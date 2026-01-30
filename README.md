@@ -5,22 +5,21 @@ A collection of utility types for .NET applications, focused on bit manipulation
 ## Table of Contents
 
 - [Installation](#installation)
+- [Code Generation Setup](#code-generation-setup)
 - [Features](#features)
-  - [BitField (Source Generator)](#bitfield-source-generator)
+  - [BitField](#bitfield)
+  - [EnhancedEnum](#enhancedenum)
   - [Result Types](#result-types)
   - [Big-Endian Types](#big-endian-types)
   - [BitStream](#bitstream)
-  - [EnhancedEnum](#enhancedenum)
-    - [Source Generator (Recommended)](#enhancedenum-source-generator--recommended)
-    - [Manual Approach](#enhancedenumt-manual-approach)
-    - [Zero-Allocation (EnhancedEnumFlex)](#enhancedenumflext-zero-allocation-hot-path)
   - [Extension Methods](#extension-methods)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Installation
 
-Add a reference to `Stardust.Utilities` in your project. The library targets .NET 10.
+Add a reference to `Stardust.Utilities` in your project:
 
 ```xml
 <ProjectReference Include="..\Stardust.Utilities\Stardust.Utilities.csproj" />
@@ -28,44 +27,81 @@ Add a reference to `Stardust.Utilities` in your project. The library targets .NE
 
 ---
 
-## Features
+## Code Generation Setup
 
-### BitField (Source Generator)
+Stardust.Utilities uses a **code generation tool** to create implementations for `[EnhancedEnum]` and `[BitFields]` attributed types. The generated code is saved as `.Generated.cs` files alongside your source files, which means:
 
-**The easiest way to work with hardware registers and bit-packed data.**
+- **IntelliSense works immediately** after cloning from Git (no build required)
+- **Generated code is visible** in your project folder
+- **You can inspect and debug** the generated code
 
-The BitField feature uses a C# source generator to automatically create property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
+### Step 1: Import the Code Generation Targets
 
-#### [+] Zero Performance Overhead
+Add this line to your `.csproj` file, **after** the `<ProjectReference>` to Stardust.Utilities:
 
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- your other properties -->
+  </PropertyGroup>
 
-The source generator produces **exactly the same code** you would write by hand using the non-generic `BitFieldDef32`, `BitFlagDef64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
+  <ItemGroup>
+    <!-- Reference the library -->
+    <ProjectReference Include="..\Stardust.Utilities\Stardust.Utilities.csproj" />
+  </ItemGroup>
 
-**Use the source generator with confidence in hot paths** -- you get clean, readable property syntax with the same performance as manual bit manipulation.
+  <!-- Import code generation (must be after ItemGroup) -->
+  <Import Project="..\Stardust.Utilities\Stardust.Utilities.CodeGen.targets" />
+</Project>
+```
 
-#### **Warning:** IntelliSense Errors Before First Build
+### Step 2: Build Your Project
 
-**This is normal and expected!** When you first create a struct with `[BitFields]`, Visual Studio will show red squiggly errors:
+When you build, the tool will:
+1. Scan your project for `[EnhancedEnum]` and `[BitFields]` structs
+2. Generate a `.Generated.cs` file for each source file containing these types
+3. The generated files are placed in the same folder as your source files
 
-- *"'YourStruct' does not contain a definition for 'YourProperty'"*
-- *"A partial property may not have multiple defining declarations"*
+**Example:**
+```
+MyProject/
+  Commands.cs              <-- Your code with [EnhancedEnum]
+  Commands.Generated.cs    <-- Auto-generated implementation
+```
 
-**These errors disappear after your first build.** The source generator creates the implementation code during compilation. Until then, Visual Studio doesn't know about the generated code.
+### Step 3: Commit Generated Files to Git
 
-**Solution:** Just build your project once (`Ctrl+Shift+B`). The errors will vanish, and IntelliSense will work normally.
+The `.Generated.cs` files should be committed to your repository. This ensures:
+- Team members get working IntelliSense immediately after clone
+- CI/CD builds work without running the tool first
+- You can review generated code in pull requests
 
-#### **Tip:** Enabling Full IntelliSense for Generated Code
+### Disabling Code Generation
 
-To make generated code fully discoverable by IntelliSense (similar to Windows Forms designer code), add these properties to your project file:
+If you need to disable automatic code generation (e.g., for CI builds where files are already generated):
 
 ```xml
 <PropertyGroup>
-  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-  <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+  <StardustCodeGenEnabled>false</StardustCodeGenEnabled>
 </PropertyGroup>
 ```
 
-This writes generated source files to `obj\GeneratedFiles\`, allowing Visual Studio to index them for IntelliSense, Go To Definition, and Find All References.
+---
+
+## Features
+
+### BitField
+
+**The easiest way to work with hardware registers and bit-packed data.**
+
+The BitField feature automatically creates property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
+
+#### [+] Zero Performance Overhead
+
+The code generator produces **exactly the same code** you would write by hand using the non-generic `BitFieldDef32`, `BitFlagDef64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
+
+**Use the code generator with confidence in hot paths** -- you get clean, readable property syntax with the same performance as manual bit manipulation.
 
 #### Quick Start
 
@@ -91,6 +127,9 @@ public partial struct StatusRegister
     [BitField(5, 2)] public partial byte Priority { get; set; }  // Bits 5-6 (2 bits wide)
 }
 ```
+
+
+After building, a `StatusRegister.Generated.cs` file (or `YourSourceFile.Generated.cs`) will be created with the property implementations.
 
 #### Usage
 
@@ -425,15 +464,11 @@ bool same = a == b;  // true
 - [x] **Type-safe** - compiler-enforced exhaustive matching
 - [x] **AggressiveInlining** - optimal performance
 
-#### **Warning:** IntelliSense Errors Before First Build
-
-Same as BitFields: Visual Studio shows errors until you build once. This is normal -- the source generator creates the code during compilation.
-
 ---
 
 #### EnhancedEnum&lt;T&gt; (Manual Approach)
 
-For cases where you need more control or want to avoid the source generator:
+For cases where you need more control or want to avoid the code generator:
 
 ```csharp
 using Stardust.Utilities;
@@ -513,6 +548,7 @@ word = word.SetLo(0x00);  // 0xFF00
 bool flag = true;
 byte b = flag.ToByte();  // 1
 
+
 // Saturating arithmetic (clamps instead of overflow)
 int a = int.MaxValue;
 int result = a.SaturatingAdd(1);  // Still int.MaxValue, not overflow
@@ -524,6 +560,77 @@ Options opts = Options.A | Options.B;
 bool hasA = opts.IsSet(Options.A);   // true
 bool noC = opts.IsClear(Options.A);  // false
 ```
+
+---
+
+## Troubleshooting
+
+### "Cannot find type" or "does not contain a definition" errors
+
+**Problem:** Visual Studio shows errors like `'MyStruct' does not contain a definition for 'MyProperty'`.
+
+**Cause:** The `.Generated.cs` file doesn't exist or is out of date.
+
+**Solution:**
+1. Make sure you have `<Import Project="...\Stardust.Utilities.CodeGen.targets" />` in your `.csproj`
+2. Build the project (Ctrl+Shift+B)
+3. Check that a `.Generated.cs` file was created next to your source file
+
+### Code generation doesn't run
+
+**Problem:** Building doesn't create or update the `.Generated.cs` files.
+
+**Possible causes and solutions:**
+
+1. **Missing targets import** - Add this to your `.csproj`:
+   ```xml
+   <Import Project="..\Stardust.Utilities\Stardust.Utilities.CodeGen.targets" />
+   ```
+
+2. **Code generation disabled** - Check you don't have this property set:
+   ```xml
+   <StardustCodeGenEnabled>false</StardustCodeGenEnabled>
+   ```
+
+3. **Tool not built** - The tool project must be buildable. Try:
+   ```bash
+   dotnet build path/to/Stardust.Utilities/Tool/Stardust.Utilities.Tool.csproj
+   ```
+
+### Generated file not updating
+
+**Problem:** You changed your `[EnhancedEnum]` or `[BitFields]` struct but the generated file wasn't updated.
+
+**Solution:**
+1. Ensure you're using `partial struct` (not `class` or `record`)
+2. Check that attributes are spelled correctly: `[EnhancedEnum]`, `[EnumKind]`, `[EnumValue]`, `[BitFields]`, `[BitField]`, `[BitFlag]`
+3. For `[EnhancedEnum]`, ensure the `Kind` enum is nested inside the struct and has `[EnumKind]` attribute
+4. Delete the `.Generated.cs` file and rebuild
+
+### Build fails with "duplicate definition" errors
+
+**Problem:** Compiler errors about duplicate type definitions.
+
+**Cause:** You may have both:
+- A `.Generated.cs` file from the tool
+- A `.g.cs` file from a source generator
+
+**Solution:** 
+1. Remove the source generator reference from your `.csproj` if you're using the tool:
+   ```xml
+   <!-- Remove or comment out this line -->
+   <ProjectReference Include="...\Stardust.Generators.csproj" OutputItemType="Analyzer" ... />
+   ```
+2. Delete any `.g.cs` files in your `obj\` folder
+
+### How do I see what the tool is doing?
+
+Run the tool manually with `--verbose`:
+```bash
+dotnet run --project path/to/Stardust.Utilities/Tool/Stardust.Utilities.Tool.csproj -- "path/to/your/project" --verbose
+```
+
+This will print each file it generates or skips.
 
 ---
 

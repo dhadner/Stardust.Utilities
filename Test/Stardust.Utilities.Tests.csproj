@@ -6,15 +6,10 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Emit generated source files to disk for IntelliSense discovery -->
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Stardust.Utilities.csproj" />
-    <!-- Reference the source generator for types defined in this test project -->
-    <ProjectReference Include="..\Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,5 +20,8 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
   </ItemGroup>
+
+  <!-- Code generation for [EnhancedEnum] and [BitFields] -->
+  <Import Project="..\Stardust.Utilities.CodeGen.targets" />
 
 </Project>

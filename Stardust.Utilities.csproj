@@ -4,9 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- Emit generated source files to disk for IntelliSense discovery -->
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <!-- Exclude the Generators subfolder from compilation - it has its own project -->
@@ -23,7 +20,17 @@
     <EmbeddedResource Remove="Test\**" />
   </ItemGroup>
 
-  <!-- Reference the source generator as an analyzer -->
+  <!-- Exclude the Tool subfolder from compilation - it has its own project -->
+  <ItemGroup>
+    <Compile Remove="Tool\**" />
+    <None Remove="Tool\**" />
+    <EmbeddedResource Remove="Tool\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Stardust.Utilities.Tool\Stardust.Utilities.Tool.csproj" />
+  </ItemGroup>
+
+  <!-- Reference the source generator as an analyzer (optional, can be removed if using Tool approach) -->
   <ItemGroup>
     <ProjectReference Include="Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
