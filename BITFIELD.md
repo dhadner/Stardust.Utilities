@@ -9,7 +9,7 @@ Type-safe, high-performance bitfield manipulation for hardware register emulatio
 The simplest approach with the best performance:
 
 ```csharp
-[BitRegister]
+[BitFields]
 public partial struct MyRegister
 {
     public ushort Value;
@@ -78,7 +78,7 @@ byte volume = ViaRegB.SoundVolume.GetByte(regB.Value);
 
 | Attribute | Usage | Description |
 |-----------|-------|-------------|
-| `[BitRegister]` | Struct | Enables source generation |
+| `[BitFields]` | Struct | Enables source generation |
 | `[BitField(shift, width)]` | Property | Multi-bit field definition |
 | `[BitFlag(bit)]` | Property | Single-bit flag definition |
 
@@ -144,7 +144,7 @@ Use the source generator or non-generic types for hot paths.
 ### ADB Keyboard Register
 
 ```csharp
-[BitRegister]
+[BitFields]
 public partial struct KeyboardReg0
 {
     public ushort Value;
@@ -159,7 +159,7 @@ public partial struct KeyboardReg0
 ### VIA Register
 
 ```csharp
-[BitRegister]
+[BitFields]
 public partial struct ViaRegB
 {
     public byte Value;
@@ -176,7 +176,7 @@ public partial struct ViaRegB
 ### 64-bit Status Register
 
 ```csharp
-[BitRegister]
+[BitFields]
 public partial struct StatusReg64
 {
     public ulong Value;
