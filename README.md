@@ -11,6 +11,9 @@ A collection of utility types for .NET applications, focused on bit manipulation
   - [Big-Endian Types](#big-endian-types)
   - [BitStream](#bitstream)
   - [EnhancedEnum](#enhancedenum)
+    - [Source Generator (Recommended)](#enhancedenum-source-generator--recommended)
+    - [Manual Approach](#enhancedenumt-manual-approach)
+    - [Zero-Allocation (EnhancedEnumFlex)](#enhancedenumflext-zero-allocation-hot-path)
   - [Extension Methods](#extension-methods)
 
 ---
@@ -35,6 +38,7 @@ The BitField feature uses a C# source generator to automatically create property
 
 #### ? Zero Performance Overhead
 
+
 The source generator produces **exactly the same code** you would write by hand using the non-generic `BitFieldDef32`, `BitFlagDef64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
 
 **Use the source generator with confidence in hot paths** — you get clean, readable property syntax with the same performance as manual bit manipulation.
@@ -49,6 +53,19 @@ The source generator produces **exactly the same code** you would write by hand 
 **These errors disappear after your first build.** The source generator creates the implementation code during compilation. Until then, Visual Studio doesn't know about the generated code.
 
 **Solution:** Just build your project once (`Ctrl+Shift+B`). The errors will vanish, and IntelliSense will work normally.
+
+#### ?? Enabling Full IntelliSense for Generated Code
+
+To make generated code fully discoverable by IntelliSense (similar to Windows Forms designer code), add these properties to your project file:
+
+```xml
+<PropertyGroup>
+  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+</PropertyGroup>
+```
+
+This writes generated source files to `obj\GeneratedFiles\`, allowing Visual Studio to index them for IntelliSense, Go To Definition, and Find All References.
 
 #### Quick Start
 
@@ -288,6 +305,7 @@ stream.Seek(-1, SeekOrigin.Current);
 stream.Truncate(8, SeekOrigin.Begin);  // Remove first 8 bits
 ```
 
+
 ---
 
 ### EnhancedEnum
@@ -296,230 +314,193 @@ Discriminated unions (sum types) for C#. Similar to Rust enums with associated d
 
 **Why use this?** In C#, a regular `enum` can only hold a single integer value. But what if each enum case needs to carry *different* data? For example, a debugger command might be "Step" (no data), "SetBreakpoint" (needs an address), or "Evaluate" (needs an expression string). `EnhancedEnum` lets each variant carry its own strongly-typed payload.
 
-#### Basic EnhancedEnum
+Stardust.Utilities provides **three approaches** to discriminated unions:
+
+| Approach | Best For | Pattern Matching | Allocation |
+|----------|----------|------------------|------------|
+| **Source Generator** | Most use cases | ? Native C# patterns | Record per instance |
+| **EnhancedEnum&lt;T&gt;** | Manual control | Via Deconstruct | Boxes value types |
+| **EnhancedEnumFlex&lt;T&gt;** | Hot paths | Manual if/TryGet | Zero allocation |
+
+---
+
+#### EnhancedEnum (Source Generator) ? Recommended
+
+The source generator creates true C# record types for each variant, giving you **native pattern matching** with minimal boilerplate.
 
 ```csharp
 using Stardust.Utilities;
 
-// A debugger command where each kind has different associated data
+[EnhancedEnum]
+public partial record DebugCommand
+{
+    [EnumKind]
+    private enum Kind
+    {
+        [EnumValue(typeof((uint address, int hitCount)))]
+        SetBreakpoint,
+        
+        [EnumValue(typeof(string))]
+        Evaluate,
+        
+        [EnumValue]  // No payload
+        Step,
+        
+        [EnumValue]
+        Continue,
+    }
+}
+```
+
+**What gets generated:**
+
+```csharp
+// Nested record types for each variant (with public constructors):
+public sealed record SetBreakpoint((uint address, int hitCount) Value) : DebugCommand;
+public sealed record Evaluate(string Value) : DebugCommand;
+public sealed record Step() : DebugCommand;
+public sealed record Continue() : DebugCommand;
+
+// Is properties:
+public bool IsSetBreakpoint => this is SetBreakpoint;
+public bool IsEvaluate => this is Evaluate;
+// etc.
+```
+
+**Usage with native C# pattern matching:**
+
+```csharp
+// Create instances using 'new'
+var cmd1 = new DebugCommand.SetBreakpoint((0x00401000u, 3));
+var cmd2 = new DebugCommand.Evaluate("PC + 4");
+var cmd3 = new DebugCommand.Step();
+
+// Pattern matching in switch expressions - true C# syntax!
+string result = cmd switch
+{
+    DebugCommand.SetBreakpoint(var bp) => $"BP at 0x{bp.address:X8}, hits={bp.hitCount}",
+    DebugCommand.Evaluate(var expr) => $"Eval: {expr}",
+    DebugCommand.Step => "Step",
+    DebugCommand.Continue => "Continue",
+    _ => "Unknown"
+};
+
+// Type checking
+if (cmd is DebugCommand.SetBreakpoint { Value: var breakpoint })
+{
+    Console.WriteLine($"Address: 0x{breakpoint.address:X8}");
+}
+
+// Is properties
+if (cmd.IsSetBreakpoint)
+{
+    // Handle breakpoint
+}
+```
+
+#### ?? IntelliSense Errors Before First Build
+
+Same as BitFields: Visual Studio shows errors until you build once. This is normal — the source generator creates the code during compilation.
+
+---
+
+#### EnhancedEnum&lt;T&gt; (Manual Approach)
+
+For cases where you need more control or want to avoid the source generator:
+
+```csharp
+using Stardust.Utilities;
+
 public enum DebugCommandKind 
 { 
-    Step,           // No data needed
-    StepOver,       // No data needed  
-    SetBreakpoint,  // Needs: (address, hitCount)
-    ClearBreakpoint,// Needs: address
-    Evaluate,       // Needs: expression string
-    ReadMemory      // Needs: (address, length)
+    Step, StepOver, SetBreakpoint, Evaluate
 }
 
 public sealed record DebugCommand : EnhancedEnum<DebugCommandKind>
 {
     static DebugCommand()
     {
-        // Register the payload type for each kind
-        RegisterKindType(DebugCommandKind.Step, null);  // No payload
+        RegisterKindType(DebugCommandKind.Step, null);
         RegisterKindType(DebugCommandKind.StepOver, null);
         RegisterKindType(DebugCommandKind.SetBreakpoint, typeof((uint address, int hitCount)));
-        RegisterKindType(DebugCommandKind.ClearBreakpoint, typeof(uint));
         RegisterKindType(DebugCommandKind.Evaluate, typeof(string));
-        RegisterKindType(DebugCommandKind.ReadMemory, typeof((uint address, int length)));
     }
 
     public DebugCommand(DebugCommandKind kind, object? value = null) : base(kind, value) { }
     
-    // Convenience factory methods for type safety
+    // Optional: convenience factory methods
     public static DebugCommand Step() => new(DebugCommandKind.Step);
     public static DebugCommand SetBreakpoint(uint address, int hitCount = 1) 
         => new(DebugCommandKind.SetBreakpoint, (address, hitCount));
-    public static DebugCommand Evaluate(string expr) 
-        => new(DebugCommandKind.Evaluate, expr);
-    public static DebugCommand ReadMemory(uint address, int length) 
-        => new(DebugCommandKind.ReadMemory, (address, length));
 }
 ```
 
-#### Pattern Matching with Different Types
-
-The real power shows in switch expressions where each case extracts its specific payload type:
+**Pattern matching via Deconstruct:**
 
 ```csharp
-string ExecuteCommand(DebugCommand cmd)
+string result = cmd switch
 {
-    return cmd switch
-    {
-        // Cases with no payload
-        (DebugCommandKind.Step, _) => 
-            StepOne(),
-            
-        (DebugCommandKind.StepOver, _) => 
-            StepOverCall(),
-        
-        // Tuple payload: extract address and hitCount
-        (DebugCommandKind.SetBreakpoint, (uint addr, int hits)) => 
-            $"Breakpoint set at 0x{addr:X8}, will trigger after {hits} hit(s)",
-        
-        // Simple uint payload
-        (DebugCommandKind.ClearBreakpoint, uint addr) => 
-            $"Breakpoint cleared at 0x{addr:X8}",
-        
-        // String payload
-        (DebugCommandKind.Evaluate, string expr) => 
-            $"Result: {EvaluateExpression(expr)}",
-        
-        // Another tuple with different types
-        (DebugCommandKind.ReadMemory, (uint addr, int len)) => 
-            $"Read {len} bytes from 0x{addr:X8}: {FormatMemory(addr, len)}",
-        
-        _ => "Unknown command"
-    };
-}
+    (DebugCommandKind.SetBreakpoint, (uint addr, int hits)) => $"BP: {addr:X8}",
+    (DebugCommandKind.Evaluate, string expr) => $"Eval: {expr}",
+    (DebugCommandKind.Step, _) => "Step",
+    _ => "Unknown"
+};
 
-// Usage
-var cmd1 = DebugCommand.SetBreakpoint(0x00401000, hitCount: 3);
-var cmd2 = DebugCommand.Evaluate("registers.PC + 4");
-var cmd3 = DebugCommand.ReadMemory(0x00000100, length: 16);
-
-Console.WriteLine(ExecuteCommand(cmd1));  // "Breakpoint set at 0x00401000..."
-Console.WriteLine(ExecuteCommand(cmd2));  // "Result: ..."
-Console.WriteLine(ExecuteCommand(cmd3));  // "Read 16 bytes from 0x00000100..."
-```
-
-#### Type-Safe Extraction
-
-```csharp
-var cmd = DebugCommand.SetBreakpoint(0x00401000, 5);
-
-// Safe extraction with TryValueAs
+// Type-safe extraction
 if (cmd.TryValueAs(out (uint address, int hitCount) bp))
 {
-    Console.WriteLine($"Address: 0x{bp.address:X8}, Hits: {bp.hitCount}");
-}
-
-// Or use Is() for combined kind check + extraction
-if (cmd.Is(DebugCommandKind.SetBreakpoint, out (uint addr, int hits) breakpoint))
-{
-    // Only enters if kind matches AND extraction succeeds
+    Console.WriteLine($"Address: 0x{bp.address:X8}");
 }
 ```
 
 ---
 
-#### EnhancedEnumFlex (Zero-Allocation Hot Path)
+#### EnhancedEnumFlex&lt;T&gt; (Zero-Allocation Hot Path)
 
-`EnhancedEnum<T>` boxes value types when storing them. For most code this is fine, but in hot paths (like an emulator's instruction loop running millions of times per second), boxing creates GC pressure.
-
-`EnhancedEnumFlex<T>` solves this by storing common value types inline without allocation.
-
-**When to use EnhancedEnumFlex:**
-- Message passing in tight loops
-- Event systems with high throughput
-- Emulator/interpreter dispatch loops
-- Any scenario where you're creating thousands of instances per frame
+For performance-critical code where boxing must be avoided:
 
 ```csharp
 using Stardust.Utilities;
 
-// Example: CPU interrupt system - called millions of times per second
-public enum InterruptKind
-{
-    None,       // No interrupt pending
-    VBlank,     // Vertical blank (no data)
-    Timer,      // Timer expired (no data)
-    DMA,        // DMA complete: channel number (byte)
-    IRQ,        // Hardware IRQ: vector number (byte)  
-    Exception,  // CPU exception: (vector, address) tuple
-}
+public enum InterruptKind { None, VBlank, DMA, IRQ, Exception }
 
-// Register payload kinds ONCE at startup (typically in a static constructor)
+// Register payload kinds ONCE at startup
 static class InterruptSystem
 {
     static InterruptSystem()
     {
         var PK = EnhancedEnumFlex<InterruptKind>.PayloadKind;
-        
         EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.None, PK.None);
         EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.VBlank, PK.None);
-        EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.Timer, PK.None);
         EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.DMA, PK.Byte);
         EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.IRQ, PK.Byte);
         EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.Exception, PK.UInt32_UInt32);
     }
-    
-    public static void Initialize() { } // Call to trigger static constructor
 }
 
-// Creating interrupts - NO HEAP ALLOCATION
-public static class Interrupt
-{
-    public static EnhancedEnumFlex<InterruptKind> None() 
-        => EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.None);
-    
-    public static EnhancedEnumFlex<InterruptKind> VBlank() 
-        => EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.VBlank);
-    
-    public static EnhancedEnumFlex<InterruptKind> DMA(byte channel) 
-        => EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.DMA, channel);
-    
-    public static EnhancedEnumFlex<InterruptKind> IRQ(byte vector) 
-        => EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.IRQ, vector);
-    
-    public static EnhancedEnumFlex<InterruptKind> Exception(uint vector, uint address) 
-        => EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.Exception, (vector, address));
-}
+// Create without boxing
+var interrupt = EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.DMA, (byte)3);
 
-// Processing interrupts - also zero allocation
-void HandleInterrupt(EnhancedEnumFlex<InterruptKind> interrupt)
+// Extract without boxing
+if (interrupt.TryGetByte(InterruptKind.DMA, out byte channel))
 {
-    if (interrupt.Is(InterruptKind.None))
-        return;
-    
-    if (interrupt.Is(InterruptKind.VBlank))
-    {
-        RefreshScreen();
-        return;
-    }
-    
-    if (interrupt.TryGetByte(InterruptKind.DMA, out byte channel))
-    {
-        CompleteDMATransfer(channel);
-        return;
-    }
-    
-    if (interrupt.TryGetByte(InterruptKind.IRQ, out byte vector))
-    {
-        ProcessIRQ(vector);
-        return;
-    }
-    
-    if (interrupt.TryGetUInt32UInt32(InterruptKind.Exception, out var ex))
-    {
-        HandleException(ex.a, ex.b);  // vector, address
-        return;
-    }
-}
-
-// In your hot loop - no allocations!
-while (running)
-{
-    ExecuteInstruction();
-    
-    var interrupt = CheckForInterrupts();  // Returns EnhancedEnumFlex
-    HandleInterrupt(interrupt);            // Zero allocation dispatch
+    ProcessDMA(channel);
 }
 ```
 
 **Supported inline payload types (no boxing):**
-| PayloadKind | C# Type | Size |
-|-------------|---------|------|
-| `None` | (no data) | 0 |
-| `Byte` | `byte` | 1 |
-| `UInt16` | `ushort` | 2 |
-| `UInt32` | `uint` | 4 |
-| `UInt32_UInt32` | `(uint, uint)` | 8 |
-| `UInt32_Int32` | `(uint, int)` | 8 |
-| `String` | `string` | ref |
-| `Reference` | any class | ref |
-| `BoxedValue` | any struct | ref (boxed) |
+
+| PayloadKind | C# Type |
+|-------------|---------|
+| `None` | (no data) |
+| `Byte` | `byte` |
+| `UInt16` | `ushort` |
+| `UInt32` | `uint` |
+| `UInt32_UInt32` | `(uint, uint)` |
+| `UInt32_Int32` | `(uint, int)` |
+| `String` | `string` |
+| `Reference` | any class |
+| `BoxedValue` | any struct (boxed fallback) |
 
 ---
 
