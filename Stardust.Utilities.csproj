@@ -6,13 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Exclude the Generators subfolder from compilation - it has its own project -->
-  <ItemGroup>
-    <Compile Remove="Generators\**" />
-    <None Remove="Generators\**" />
-    <EmbeddedResource Remove="Generators\**" />
-  </ItemGroup>
-
   <!-- Exclude the Test subfolder from compilation - it has its own project -->
   <ItemGroup>
     <Compile Remove="Test\**" />
@@ -25,14 +18,6 @@
     <Compile Remove="Tool\**" />
     <None Remove="Tool\**" />
     <EmbeddedResource Remove="Tool\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Stardust.Utilities.Tool\Stardust.Utilities.Tool.csproj" />
-  </ItemGroup>
-
-  <!-- Reference the source generator as an analyzer (optional, can be removed if using Tool approach) -->
-  <ItemGroup>
-    <ProjectReference Include="Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
