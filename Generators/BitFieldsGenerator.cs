@@ -11,20 +11,20 @@ namespace Stardust.Utilities.Generators
 {
     /// <summary>
     /// Source generator that creates bitfield property implementations from attributes.
-    /// Requires the Stardust.Utilities.BitRegisterAttribute, Stardust.Utilities.BitFieldAttribute, and Stardust.Utilities.BitFlagAttribute
+    /// Requires the Stardust.Utilities.BitFieldsAttribute, Stardust.Utilities.BitFieldAttribute, and Stardust.Utilities.BitFlagAttribute
     /// to be defined in the consuming project (provided by Stardust.Utilities.BitFieldAttributes.cs).
     /// </summary>
     [Generator]
-    public class BitRegisterGenerator : IIncrementalGenerator
+    public class BitFieldsGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // Find all structs with [BitRegister] attribute
+            // Find all structs with [BitFields] attribute
             var structDeclarations = context.SyntaxProvider
                 .ForAttributeWithMetadataName(
-                    "Stardust.Utilities.BitRegisterAttribute",
+                    "Stardust.Utilities.BitFieldsAttribute",
                     predicate: static (node, _) => node is StructDeclarationSyntax,
-                    transform: static (ctx, _) => GetBitRegisterInfo(ctx))
+                    transform: static (ctx, _) => GetBitFieldsInfo(ctx))
                 .Where(static info => info is not null);
 
             // Generate source for each
@@ -32,7 +32,7 @@ namespace Stardust.Utilities.Generators
                 static (spc, info) => Execute(spc, info!));
         }
 
-        private static BitRegisterInfo? GetBitRegisterInfo(GeneratorAttributeSyntaxContext context)
+        private static BitFieldsInfo? GetBitFieldsInfo(GeneratorAttributeSyntaxContext context)
         {
             if (context.TargetSymbol is not INamedTypeSymbol structSymbol)
                 return null;
@@ -95,7 +95,7 @@ namespace Stardust.Utilities.Generators
                 ? null
                 : structSymbol.ContainingNamespace.ToDisplayString();
 
-            return new BitRegisterInfo(
+            return new BitFieldsInfo(
                 structSymbol.Name,
                 namespaceName,
                 storageType,
@@ -104,7 +104,7 @@ namespace Stardust.Utilities.Generators
                 structSyntax.Modifiers.Any(SyntaxKind.PublicKeyword));
         }
 
-        private static void Execute(SourceProductionContext context, BitRegisterInfo info)
+        private static void Execute(SourceProductionContext context, BitFieldsInfo info)
         {
             var sb = new StringBuilder();
 
@@ -206,7 +206,7 @@ namespace Stardust.Utilities.Generators
         }
     }
 
-    internal sealed class BitRegisterInfo
+    internal sealed class BitFieldsInfo
     {
         public string StructName { get; }
         public string? Namespace { get; }
@@ -215,7 +215,7 @@ namespace Stardust.Utilities.Generators
         public List<BitFieldInfo> Fields { get; }
         public bool IsPublic { get; }
 
-        public BitRegisterInfo(string structName, string? ns, string storageType, string defSuffix, List<BitFieldInfo> fields, bool isPublic)
+        public BitFieldsInfo(string structName, string? ns, string storageType, string defSuffix, List<BitFieldInfo> fields, bool isPublic)
         {
             StructName = structName;
             Namespace = ns;

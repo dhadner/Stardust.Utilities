@@ -8,7 +8,7 @@ namespace Stardust.Utilities
     /// <remarks>
     /// Usage:
     /// <code>
-    /// [BitRegister]
+    /// [BitFields]
     /// public partial struct MyRegister
     /// {
     ///     public ulong Value;
@@ -20,7 +20,7 @@ namespace Stardust.Utilities
     /// The generator creates property implementations and implicit conversion operators.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Struct)]
-    public sealed class BitRegisterAttribute : Attribute
+    public sealed class BitFieldsAttribute : Attribute
     {
     }
 
