@@ -7,7 +7,7 @@ namespace Stardust.Utilities.Test;
 #region Test Types
 
 /// <summary>
-/// Simple breakpoint class for testing.
+/// Simple breakpoint class for testing (reference type payload).
 /// </summary>
 public class Breakpoint
 {
@@ -22,13 +22,13 @@ public class Breakpoint
 }
 
 /// <summary>
-/// Test enhanced enum with various payload types.
+/// Test enhanced enum with various payload types (struct-based, zero allocation).
 /// </summary>
 [EnhancedEnum]
-public partial record TestCommand
+public partial struct TestCommand
 {
     [EnumKind]
-    private enum Kind
+    public enum Kind
     {
         [EnumValue(typeof((uint, int)))]
         SetValue,
@@ -50,69 +50,72 @@ public partial record TestCommand
 #endregion
 
 /// <summary>
-/// Tests for the EnhancedEnum source generator.
+/// Tests for the EnhancedEnum source generator (struct-based).
 /// </summary>
 public class GeneratedEnhancedEnumTests
 {
     /// <summary>
-    /// Tests that constructors create correct variant types.
+    /// Tests that factory methods create correct variants.
     /// </summary>
     [Fact]
-    public void Constructors_CreateCorrectVariants()
+    public void FactoryMethods_CreateCorrectVariants()
     {
-        var setValue = new TestCommand.SetValue((0x1000u, 42));
-        var step = new TestCommand.Step();
-        var cont = new TestCommand.Continue();
-        var bp = new TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5));
-        var eval = new TestCommand.Evaluate("PC + 4");
+        var setValue = TestCommand.SetValue((0x1000u, 42));
+        var step = TestCommand.Step();
+        var cont = TestCommand.Continue();
+        var bp = TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5));
+        var eval = TestCommand.Evaluate("PC + 4");
 
-        setValue.Should().BeOfType<TestCommand.SetValue>();
-        step.Should().BeOfType<TestCommand.Step>();
-        cont.Should().BeOfType<TestCommand.Continue>();
-        bp.Should().BeOfType<TestCommand.SetBreakpoint>();
-        eval.Should().BeOfType<TestCommand.Evaluate>();
+        setValue.Tag.Should().Be(TestCommand.Kind.SetValue);
+        step.Tag.Should().Be(TestCommand.Kind.Step);
+        cont.Tag.Should().Be(TestCommand.Kind.Continue);
+        bp.Tag.Should().Be(TestCommand.Kind.SetBreakpoint);
+        eval.Tag.Should().Be(TestCommand.Kind.Evaluate);
     }
 
     /// <summary>
-    /// Tests that payloads are correctly stored and retrievable.
+    /// Tests that payloads are correctly stored and retrievable via TryGet.
     /// </summary>
     [Fact]
     public void Payloads_AreCorrectlyStored()
     {
-        var setValue = new TestCommand.SetValue((0x1000u, 42));
-        var bp = new TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5));
-        var eval = new TestCommand.Evaluate("PC + 4");
+        var setValue = TestCommand.SetValue((0x1000u, 42));
+        var bp = TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5));
+        var eval = TestCommand.Evaluate("PC + 4");
 
-        setValue.Value.Should().Be((0x1000u, 42));
-        bp.Value.Address.Should().Be(0x2000u);
-        bp.Value.HitCount.Should().Be(5);
-        eval.Value.Should().Be("PC + 4");
+        setValue.TryGetSetValue(out var tuple).Should().BeTrue();
+        tuple.Should().Be((0x1000u, 42));
+
+        bp.TryGetSetBreakpoint(out var breakpoint).Should().BeTrue();
+        breakpoint.Address.Should().Be(0x2000u);
+        breakpoint.HitCount.Should().Be(5);
+
+        eval.TryGetEvaluate(out var expr).Should().BeTrue();
+        expr.Should().Be("PC + 4");
     }
 
     /// <summary>
-    /// Tests pattern matching with switch expression.
+    /// Tests pattern matching with Match method.
     /// </summary>
     [Fact]
-    public void PatternMatching_WorksInSwitchExpression()
+    public void Match_WorksForAllVariants()
     {
         TestCommand[] commands =
         [
-            new TestCommand.SetValue((0x1000u, 42)),
-            new TestCommand.Step(),
-            new TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5)),
-            new TestCommand.Evaluate("PC + 4"),
-            new TestCommand.Continue(),
+            TestCommand.SetValue((0x1000u, 42)),
+            TestCommand.Step(),
+            TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5)),
+            TestCommand.Evaluate("PC + 4"),
+            TestCommand.Continue(),
         ];
 
-        var results = commands.Select(cmd => cmd switch
-        {
-            TestCommand.SetValue(var tuple) => $"SetValue: {tuple.Item1:X}, {tuple.Item2}",
-            TestCommand.SetBreakpoint(var breakpoint) => $"Breakpoint: {breakpoint.Address:X}, hits={breakpoint.HitCount}",
-            TestCommand.Evaluate(var expr) => $"Evaluate: {expr}",
-            TestCommand.Step => "Step",
-            TestCommand.Continue => "Continue",
-            _ => "Unknown"
-        }).ToArray();
+        var results = commands.Select(cmd => cmd.Match(
+            SetValue: tuple => $"SetValue: {tuple.Item1:X}, {tuple.Item2}",
+            SetBreakpoint: breakpoint => $"Breakpoint: {breakpoint.Address:X}, hits={breakpoint.HitCount}",
+            Evaluate: expr => $"Evaluate: {expr}",
+            Step: () => "Step",
+            @Continue: () => "Continue"
+        )).ToArray();
 
         results[0].Should().Be("SetValue: 1000, 42");
         results[1].Should().Be("Step");
@@ -127,8 +130,8 @@ public class GeneratedEnhancedEnumTests
     [Fact]
     public void IsProperties_CorrectlyIdentifyVariants()
     {
-        var setValue = new TestCommand.SetValue((0x1000u, 42));
-        var step = new TestCommand.Step();
+        var setValue = TestCommand.SetValue((0x1000u, 42));
+        var step = TestCommand.Step();
 
         setValue.IsSetValue.Should().BeTrue();
         setValue.IsStep.Should().BeFalse();
@@ -139,81 +142,70 @@ public class GeneratedEnhancedEnumTests
     }
 
     /// <summary>
-    /// Tests that all variants inherit from the base type.
+    /// Tests that TryGet returns false for wrong variants.
     /// </summary>
     [Fact]
-    public void AllVariants_InheritFromBaseType()
+    public void TryGet_ReturnsFalseForWrongVariant()
     {
-        TestCommand setValue = new TestCommand.SetValue((0x1000u, 42));
-        TestCommand step = new TestCommand.Step();
-        TestCommand bp = new TestCommand.SetBreakpoint(new Breakpoint(0x2000, 5));
+        var step = TestCommand.Step();
 
-        // All should be assignable to TestCommand
-        setValue.Should().BeAssignableTo<TestCommand>();
-        step.Should().BeAssignableTo<TestCommand>();
-        bp.Should().BeAssignableTo<TestCommand>();
+        step.TryGetSetValue(out _).Should().BeFalse();
+        step.TryGetEvaluate(out _).Should().BeFalse();
+        step.TryGetSetBreakpoint(out _).Should().BeFalse();
     }
 
     /// <summary>
-    /// Tests deconstruction for pattern matching.
+    /// Tests void Match overload.
     /// </summary>
     [Fact]
-    public void Deconstruction_WorksForPayloadVariants()
+    public void Match_VoidOverload_Works()
     {
-        var setValue = new TestCommand.SetValue((0x1000u, 42));
+        var cmd = TestCommand.SetValue((100u, 200));
+        string? result = null;
 
-        // Deconstruct
-        setValue.Deconstruct(out var tuple);
-        tuple.Item1.Should().Be(0x1000u);
-        tuple.Item2.Should().Be(42);
+        cmd.Match(
+            SetValue: v => result = $"SetValue: {v}",
+            SetBreakpoint: _ => result = "SetBreakpoint",
+            Evaluate: _ => result = "Evaluate",
+            Step: () => result = "Step",
+            @Continue: () => result = "Continue"
+        );
+
+        result.Should().Be("SetValue: (100, 200)");
     }
 
     /// <summary>
-    /// Tests using the generated enum in a method that accepts the base type.
+    /// Tests struct equality for variants.
     /// </summary>
     [Fact]
-    public void PolymorphicUsage_WorksCorrectly()
+    public void Equality_WorksForVariants()
     {
-        static string ProcessCommand(TestCommand cmd)
-        {
-            return cmd switch
-            {
-                TestCommand.SetValue sv => $"Set {sv.Value.Item1:X8} = {sv.Value.Item2}",
-                TestCommand.SetBreakpoint sbp => $"BP at {sbp.Value.Address:X8}",
-                TestCommand.Evaluate e => $"Eval: {e.Value}",
-                TestCommand.Step => "Step",
-                TestCommand.Continue => "Continue",
-                _ => "?"
-            };
-        }
-
-        ProcessCommand(new TestCommand.SetValue((0xDEADBEEFu, -1)))
-            .Should().Be("Set DEADBEEF = -1");
-
-        ProcessCommand(new TestCommand.Step())
-            .Should().Be("Step");
-    }
-
-    /// <summary>
-    /// Tests record equality for variants.
-    /// </summary>
-    [Fact]
-    public void RecordEquality_WorksForVariants()
-    {
-        var step1 = new TestCommand.Step();
-        var step2 = new TestCommand.Step();
-        var cont = new TestCommand.Continue();
+        var step1 = TestCommand.Step();
+        var step2 = TestCommand.Step();
+        var cont = TestCommand.Continue();
 
         // Unit variants should be equal
         step1.Should().Be(step2);
+        (step1 == step2).Should().BeTrue();
         step1.Should().NotBe(cont);
+        (step1 != cont).Should().BeTrue();
 
         // Payload variants with same values should be equal
-        var sv1 = new TestCommand.SetValue((100u, 200));
-        var sv2 = new TestCommand.SetValue((100u, 200));
-        var sv3 = new TestCommand.SetValue((100u, 300));
+        var sv1 = TestCommand.SetValue((100u, 200));
+        var sv2 = TestCommand.SetValue((100u, 200));
+        var sv3 = TestCommand.SetValue((100u, 300));
 
         sv1.Should().Be(sv2);
+        (sv1 == sv2).Should().BeTrue();
         sv1.Should().NotBe(sv3);
+    }
+
+    /// <summary>
+    /// Tests that the struct is zero-allocation (value type).
+    /// </summary>
+    [Fact]
+    public void Struct_IsValueType()
+    {
+        typeof(TestCommand).IsValueType.Should().BeTrue();
     }
 }

@@ -9,19 +9,18 @@ using Microsoft.CodeAnalysis.Text;
 namespace Stardust.Utilities.Generators
 {
     /// <summary>
-    /// Source generator that creates discriminated union types from [EnhancedEnum] attributed records.
-    /// Generates nested sealed record types for each variant with proper pattern matching support.
+    /// Source generator that creates zero-allocation discriminated union structs from [EnhancedEnum] attributed structs.
     /// </summary>
     [Generator]
     public class EnhancedEnumGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // Find all records with [EnhancedEnum] attribute
+            // Find all structs with [EnhancedEnum] attribute
             var enumDeclarations = context.SyntaxProvider
                 .ForAttributeWithMetadataName(
                     "Stardust.Utilities.EnhancedEnumAttribute",
-                    predicate: static (node, _) => node is RecordDeclarationSyntax,
+                    predicate: static (node, _) => node is StructDeclarationSyntax,
                     transform: static (ctx, _) => GetEnhancedEnumInfo(ctx))
                 .Where(static info => info is not null);
 
@@ -32,13 +31,13 @@ namespace Stardust.Utilities.Generators
 
         private static EnhancedEnumInfo? GetEnhancedEnumInfo(GeneratorAttributeSyntaxContext context)
         {
-            if (context.TargetSymbol is not INamedTypeSymbol recordSymbol)
+            if (context.TargetSymbol is not INamedTypeSymbol structSymbol)
                 return null;
 
-            var recordSyntax = (RecordDeclarationSyntax)context.TargetNode;
+            var structSyntax = (StructDeclarationSyntax)context.TargetNode;
 
             // Find the nested enum with [EnumKind] attribute
-            var kindEnum = recordSymbol.GetTypeMembers()
+            var kindEnum = structSymbol.GetTypeMembers()
                 .FirstOrDefault(t => t.TypeKind == TypeKind.Enum &&
                     t.GetAttributes().Any(a => a.AttributeClass?.Name == "EnumKindAttribute"));
 
@@ -57,35 +56,33 @@ namespace Stardust.Utilities.Generators
                     .FirstOrDefault(a => a.AttributeClass?.Name == "EnumValueAttribute");
 
                 string? payloadTypeName = null;
+                bool isReferenceType = false;
 
                 if (enumValueAttr != null && enumValueAttr.ConstructorArguments.Length > 0)
                 {
                     var typeArg = enumValueAttr.ConstructorArguments[0];
-                    if (typeArg.Value is INamedTypeSymbol payloadType)
+                    if (typeArg.Value is ITypeSymbol payloadType)
                     {
                         payloadTypeName = GetFullTypeName(payloadType);
+                        isReferenceType = payloadType.IsReferenceType;
                     }
                 }
 
-                variants.Add(new VariantInfo(member.Name, payloadTypeName));
+                variants.Add(new VariantInfo(member.Name, payloadTypeName, isReferenceType));
             }
 
             if (variants.Count == 0)
                 return null;
 
             // Get namespace
-            var ns = recordSymbol.ContainingNamespace.IsGlobalNamespace
+            var ns = structSymbol.ContainingNamespace.IsGlobalNamespace
                 ? null
-                : recordSymbol.ContainingNamespace.ToDisplayString();
-
-            // Check if partial
-            bool isPartial = recordSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
+                : structSymbol.ContainingNamespace.ToDisplayString();
 
             return new EnhancedEnumInfo(
-                recordSymbol.Name,
+                structSymbol.Name,
                 ns,
-                isPartial,
-                GetAccessibility(recordSymbol),
+                GetAccessibility(structSymbol),
                 variants);
         }
 
@@ -98,7 +95,6 @@ namespace Stardust.Utilities.Generators
                 var parts = elements.Select(e =>
                 {
                     var typeName = GetFullTypeName(e.Type);
-                    // Include element name if it's explicitly named (not Item1, Item2, etc.)
                     if (!string.IsNullOrEmpty(e.Name) && !e.Name.StartsWith("Item"))
                         return $"{typeName} {e.Name}";
                     return typeName;
@@ -124,12 +120,42 @@ namespace Stardust.Utilities.Generators
             };
         }
 
+        private static string ToCamelCase(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return name;
+            return char.ToLowerInvariant(name[0]) + name.Substring(1);
+        }
+
+        private static string ToSafeParameterName(string name)
+        {
+            // Keep PascalCase for Match parameters since they correspond to variant names
+            // Only escape C# keywords
+            var lower = name.ToLowerInvariant();
+            return lower switch
+            {
+                "continue" or "break" or "return" or "if" or "else" or "switch" or "case" or
+                "default" or "for" or "foreach" or "while" or "do" or "try" or "catch" or
+                "finally" or "throw" or "new" or "this" or "base" or "null" or "true" or
+                "false" or "void" or "int" or "string" or "bool" or "object" or "class" or
+                "struct" or "enum" or "interface" or "delegate" or "event" or "namespace" or
+                "using" or "static" or "const" or "readonly" or "volatile" or "public" or
+                "private" or "protected" or "internal" or "abstract" or "virtual" or "override" or
+                "sealed" or "partial" or "async" or "await" or "ref" or "out" or "in" or
+                "params" or "lock" or "checked" or "unchecked" or "fixed" or "sizeof" or
+                "typeof" or "is" or "as" or "goto" or "stackalloc" => $"@{name}",
+                _ => name
+            };
+        }
+
         private static void Execute(SourceProductionContext context, EnhancedEnumInfo info)
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("// <auto-generated/>");
             sb.AppendLine("#nullable enable");
+            sb.AppendLine("using System;");
+            sb.AppendLine("using System.Collections.Generic;");
+            sb.AppendLine("using System.Runtime.CompilerServices;");
             sb.AppendLine();
 
             if (!string.IsNullOrEmpty(info.Namespace))
@@ -139,28 +165,86 @@ namespace Stardust.Utilities.Generators
             }
 
             var indent = string.IsNullOrEmpty(info.Namespace) ? "" : "    ";
+            var variantsWithPayload = info.Variants.Where(v => v.PayloadType != null).ToList();
 
-            // Generate abstract partial record
-            sb.AppendLine($"{indent}{info.Accessibility} abstract partial record {info.TypeName}");
+            // Generate readonly partial struct
+            sb.AppendLine($"{indent}{info.Accessibility} readonly partial struct {info.TypeName} : IEquatable<{info.TypeName}>");
             sb.AppendLine($"{indent}{{");
 
-            // Generate nested sealed records for each variant
-            foreach (var variant in info.Variants)
-            {
-                GenerateVariant(sb, indent + "    ", info.TypeName, variant);
-                sb.AppendLine();
-            }
+            // Note: The Kind enum is already defined by the user with [EnumKind] attribute
 
-            // Generate Is properties for convenient checking
-            sb.AppendLine($"{indent}    #region Is Properties");
+            // Generate fields
+            sb.AppendLine($"{indent}    private readonly Kind _tag;");
+            foreach (var v in variantsWithPayload)
+            {
+                var fieldName = $"_{ToCamelCase(v.Name)}Payload";
+                var nullableSuffix = v.IsReferenceType ? "?" : "";
+                sb.AppendLine($"{indent}    private readonly {v.PayloadType}{nullableSuffix} {fieldName};");
+            }
             sb.AppendLine();
 
-            foreach (var variant in info.Variants)
-            {
-                GenerateIsMethod(sb, indent + "    ", variant);
-            }
+            // Generate Tag property
+            sb.AppendLine($"{indent}    /// <summary>Gets the discriminant tag indicating which variant this is.</summary>");
+            sb.AppendLine($"{indent}    public Kind Tag => _tag;");
+            sb.AppendLine();
 
+            // Generate private constructor
+            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.Append($"{indent}    private {info.TypeName}(Kind tag");
+            foreach (var v in variantsWithPayload)
+            {
+                var nullableSuffix = v.IsReferenceType ? "?" : "";
+                sb.Append($", {v.PayloadType}{nullableSuffix} {ToCamelCase(v.Name)}Payload");
+            }
+            sb.AppendLine(")");
+            sb.AppendLine($"{indent}    {{");
+            sb.AppendLine($"{indent}        _tag = tag;");
+            foreach (var v in variantsWithPayload)
+            {
+                var fieldName = $"_{ToCamelCase(v.Name)}Payload";
+                sb.AppendLine($"{indent}        {fieldName} = {ToCamelCase(v.Name)}Payload;");
+            }
+            sb.AppendLine($"{indent}    }}");
+            sb.AppendLine();
+
+            // Generate static factory methods
+            sb.AppendLine($"{indent}    #region Factory Methods");
+            sb.AppendLine();
+            foreach (var v in info.Variants)
+            {
+                GenerateFactoryMethod(sb, indent + "    ", info, v, variantsWithPayload);
+            }
             sb.AppendLine($"{indent}    #endregion");
+            sb.AppendLine();
+
+            // Generate Is properties
+            sb.AppendLine($"{indent}    #region Is Properties");
+            sb.AppendLine();
+            foreach (var v in info.Variants)
+            {
+                sb.AppendLine($"{indent}    /// <summary>Returns true if this is the {v.Name} variant.</summary>");
+                sb.AppendLine($"{indent}    public bool Is{v.Name} => _tag == Kind.{v.Name};");
+                sb.AppendLine();
+            }
+            sb.AppendLine($"{indent}    #endregion");
+            sb.AppendLine();
+
+            // Generate TryGet methods
+            sb.AppendLine($"{indent}    #region TryGet Methods");
+            sb.AppendLine();
+            foreach (var v in variantsWithPayload)
+            {
+                GenerateTryGetMethod(sb, indent + "    ", v);
+            }
+            sb.AppendLine($"{indent}    #endregion");
+            sb.AppendLine();
+
+            // Generate Match method
+            GenerateMatchMethod(sb, indent + "    ", info);
+            sb.AppendLine();
+
+            // Generate equality members
+            GenerateEqualityMembers(sb, indent + "    ", info, variantsWithPayload);
 
             sb.AppendLine($"{indent}}}");
 
@@ -172,49 +256,209 @@ namespace Stardust.Utilities.Generators
             context.AddSource($"{info.TypeName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
         }
 
-        private static void GenerateVariant(StringBuilder sb, string indent, string parentType, VariantInfo variant)
+        private static void GenerateFactoryMethod(StringBuilder sb, string indent, EnhancedEnumInfo info, VariantInfo variant, List<VariantInfo> allWithPayload)
         {
-            if (variant.PayloadType is null)
+            sb.AppendLine($"{indent}/// <summary>Creates a {variant.Name} variant.</summary>");
+            if (variant.PayloadType != null)
             {
-                // Unit variant (no payload)
-                sb.AppendLine($"{indent}/// <summary>");
-                sb.AppendLine($"{indent}/// Variant '{variant.Name}' with no associated data.");
-                sb.AppendLine($"{indent}/// </summary>");
-                sb.AppendLine($"{indent}public sealed record {variant.Name}() : {parentType};");
+                sb.AppendLine($"{indent}/// <param name=\"value\">The payload value.</param>");
+                sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.Append($"{indent}public static {info.TypeName} {variant.Name}({variant.PayloadType} value) => new(Kind.{variant.Name}");
             }
             else
             {
-                // Variant with payload
-                sb.AppendLine($"{indent}/// <summary>");
-                sb.AppendLine($"{indent}/// Variant '{variant.Name}' with payload of type <see cref=\"{EscapeXmlComment(variant.PayloadType)}\"/>.");
-                sb.AppendLine($"{indent}/// </summary>");
-                sb.AppendLine($"{indent}/// <param name=\"Value\">The payload value.</param>");
-                sb.AppendLine($"{indent}public sealed record {variant.Name}({variant.PayloadType} Value) : {parentType}");
-                sb.AppendLine($"{indent}{{");
-                sb.AppendLine($"{indent}    /// <summary>");
-                sb.AppendLine($"{indent}    /// Deconstructs the variant for pattern matching.");
-                sb.AppendLine($"{indent}    /// </summary>");
-                sb.AppendLine($"{indent}    /// <param name=\"value\">The extracted payload value.</param>");
-                sb.AppendLine($"{indent}    public void Deconstruct(out {variant.PayloadType} value) => value = Value;");
-                sb.AppendLine($"{indent}}}");
+                sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.Append($"{indent}public static {info.TypeName} {variant.Name}() => new(Kind.{variant.Name}");
             }
-        }
 
-        private static void GenerateIsMethod(StringBuilder sb, string indent, VariantInfo variant)
-        {
-            sb.AppendLine($"{indent}/// <summary>");
-            sb.AppendLine($"{indent}/// Returns true if this is the {variant.Name} variant.");
-            sb.AppendLine($"{indent}/// </summary>");
-            sb.AppendLine($"{indent}public bool Is{variant.Name} => this is {variant.Name};");
+            foreach (var v in allWithPayload)
+            {
+                if (v.Name == variant.Name)
+                    sb.Append(", value");
+                else
+                    sb.Append(", default");
+            }
+            sb.AppendLine(");");
             sb.AppendLine();
         }
 
-        private static string EscapeXmlComment(string text)
+        private static void GenerateTryGetMethod(StringBuilder sb, string indent, VariantInfo variant)
         {
-            return text
-                .Replace("&", "&amp;")
-                .Replace("<", "&lt;")
-                .Replace(">", "&gt;");
+            var fieldName = $"_{ToCamelCase(variant.Name)}Payload";
+            sb.AppendLine($"{indent}/// <summary>Attempts to get the {variant.Name} payload.</summary>");
+            sb.AppendLine($"{indent}/// <param name=\"value\">The payload value if this is a {variant.Name} variant.</param>");
+            sb.AppendLine($"{indent}/// <returns>True if this is a {variant.Name} variant.</returns>");
+            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{indent}public bool TryGet{variant.Name}(out {variant.PayloadType} value)");
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    if (_tag == Kind.{variant.Name})");
+            sb.AppendLine($"{indent}    {{");
+            if (variant.IsReferenceType)
+                sb.AppendLine($"{indent}        value = {fieldName}!;");
+            else
+                sb.AppendLine($"{indent}        value = {fieldName};");
+            sb.AppendLine($"{indent}        return true;");
+            sb.AppendLine($"{indent}    }}");
+            sb.AppendLine($"{indent}    value = default!;");
+            sb.AppendLine($"{indent}    return false;");
+            sb.AppendLine($"{indent}}}");
+            sb.AppendLine();
+        }
+
+        private static void GenerateMatchMethod(StringBuilder sb, string indent, EnhancedEnumInfo info)
+        {
+            sb.AppendLine($"{indent}#region Match");
+            sb.AppendLine();
+            sb.AppendLine($"{indent}/// <summary>Exhaustively matches all variants and returns a result.</summary>");
+
+            // Build parameter list
+            var paramList = new List<string>();
+            foreach (var v in info.Variants)
+            {
+                var paramName = ToSafeParameterName(v.Name);
+                if (v.PayloadType != null)
+                    paramList.Add($"Func<{v.PayloadType}, TResult> {paramName}");
+                else
+                    paramList.Add($"Func<TResult> {paramName}");
+            }
+
+            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{indent}public TResult Match<TResult>(");
+            for (int i = 0; i < paramList.Count; i++)
+            {
+                var comma = i < paramList.Count - 1 ? "," : ")";
+                sb.AppendLine($"{indent}    {paramList[i]}{comma}");
+            }
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    return _tag switch");
+            sb.AppendLine($"{indent}    {{");
+            foreach (var v in info.Variants)
+            {
+                var paramName = ToSafeParameterName(v.Name);
+                if (v.PayloadType != null)
+                {
+                    var fieldName = $"_{ToCamelCase(v.Name)}Payload";
+                    var nullForgiving = v.IsReferenceType ? "!" : "";
+                    sb.AppendLine($"{indent}        Kind.{v.Name} => {paramName}({fieldName}{nullForgiving}),");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}        Kind.{v.Name} => {paramName}(),");
+                }
+            }
+            sb.AppendLine($"{indent}        _ => throw new InvalidOperationException($\"Unknown tag: {{_tag}}\")");
+            sb.AppendLine($"{indent}    }};");
+            sb.AppendLine($"{indent}}}");
+            sb.AppendLine();
+
+            // Generate void Match overload
+            sb.AppendLine($"{indent}/// <summary>Exhaustively matches all variants and performs an action.</summary>");
+            var actionParamList = new List<string>();
+            foreach (var v in info.Variants)
+            {
+                var paramName = ToSafeParameterName(v.Name);
+                if (v.PayloadType != null)
+                    actionParamList.Add($"Action<{v.PayloadType}> {paramName}");
+                else
+                    actionParamList.Add($"Action {paramName}");
+            }
+
+            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{indent}public void Match(");
+            for (int i = 0; i < actionParamList.Count; i++)
+            {
+                var comma = i < actionParamList.Count - 1 ? "," : ")";
+                sb.AppendLine($"{indent}    {actionParamList[i]}{comma}");
+            }
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    switch (_tag)");
+            sb.AppendLine($"{indent}    {{");
+            foreach (var v in info.Variants)
+            {
+                var paramName = ToSafeParameterName(v.Name);
+                if (v.PayloadType != null)
+                {
+                    var fieldName = $"_{ToCamelCase(v.Name)}Payload";
+                    var nullForgiving = v.IsReferenceType ? "!" : "";
+                    sb.AppendLine($"{indent}        case Kind.{v.Name}: {paramName}({fieldName}{nullForgiving}); break;");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}        case Kind.{v.Name}: {paramName}(); break;");
+                }
+            }
+            sb.AppendLine($"{indent}    }}");
+            sb.AppendLine($"{indent}}}");
+            sb.AppendLine();
+            sb.AppendLine($"{indent}#endregion");
+        }
+
+        private static void GenerateEqualityMembers(StringBuilder sb, string indent, EnhancedEnumInfo info, List<VariantInfo> variantsWithPayload)
+        {
+            sb.AppendLine($"{indent}#region Equality");
+            sb.AppendLine();
+
+            // Equals(T other)
+            sb.AppendLine($"{indent}/// <inheritdoc/>");
+            sb.AppendLine($"{indent}public bool Equals({info.TypeName} other)");
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    if (_tag != other._tag) return false;");
+            sb.AppendLine($"{indent}    return _tag switch");
+            sb.AppendLine($"{indent}    {{");
+            foreach (var v in info.Variants)
+            {
+                if (v.PayloadType != null)
+                {
+                    var fieldName = $"_{ToCamelCase(v.Name)}Payload";
+                    sb.AppendLine($"{indent}        Kind.{v.Name} => EqualityComparer<{v.PayloadType}>.Default.Equals({fieldName}, other.{fieldName}),");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}        Kind.{v.Name} => true,");
+                }
+            }
+            sb.AppendLine($"{indent}        _ => false");
+            sb.AppendLine($"{indent}    }};");
+            sb.AppendLine($"{indent}}}");
+            sb.AppendLine();
+
+            // Equals(object)
+            sb.AppendLine($"{indent}/// <inheritdoc/>");
+            sb.AppendLine($"{indent}public override bool Equals(object? obj) => obj is {info.TypeName} other && Equals(other);");
+            sb.AppendLine();
+
+            // GetHashCode
+            sb.AppendLine($"{indent}/// <inheritdoc/>");
+            sb.AppendLine($"{indent}public override int GetHashCode()");
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    return _tag switch");
+            sb.AppendLine($"{indent}    {{");
+            foreach (var v in info.Variants)
+            {
+                if (v.PayloadType != null)
+                {
+                    var fieldName = $"_{ToCamelCase(v.Name)}Payload";
+                    sb.AppendLine($"{indent}        Kind.{v.Name} => HashCode.Combine(_tag, {fieldName}),");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}        Kind.{v.Name} => HashCode.Combine(_tag),");
+                }
+            }
+            sb.AppendLine($"{indent}        _ => 0");
+            sb.AppendLine($"{indent}    }};");
+            sb.AppendLine($"{indent}}}");
+            sb.AppendLine();
+
+            // Operators
+            sb.AppendLine($"{indent}/// <summary>Equality operator.</summary>");
+            sb.AppendLine($"{indent}public static bool operator ==({info.TypeName} left, {info.TypeName} right) => left.Equals(right);");
+            sb.AppendLine();
+            sb.AppendLine($"{indent}/// <summary>Inequality operator.</summary>");
+            sb.AppendLine($"{indent}public static bool operator !=({info.TypeName} left, {info.TypeName} right) => !left.Equals(right);");
+            sb.AppendLine();
+
+            sb.AppendLine($"{indent}#endregion");
         }
     }
 
@@ -223,15 +467,13 @@ namespace Stardust.Utilities.Generators
     {
         public string TypeName { get; }
         public string? Namespace { get; }
-        public bool IsPartial { get; }
         public string Accessibility { get; }
         public List<VariantInfo> Variants { get; }
 
-        public EnhancedEnumInfo(string typeName, string? ns, bool isPartial, string accessibility, List<VariantInfo> variants)
+        public EnhancedEnumInfo(string typeName, string? ns, string accessibility, List<VariantInfo> variants)
         {
             TypeName = typeName;
             Namespace = ns;
-            IsPartial = isPartial;
             Accessibility = accessibility;
             Variants = variants;
         }
@@ -241,11 +483,13 @@ namespace Stardust.Utilities.Generators
     {
         public string Name { get; }
         public string? PayloadType { get; }
+        public bool IsReferenceType { get; }
 
-        public VariantInfo(string name, string? payloadType)
+        public VariantInfo(string name, string? payloadType, bool isReferenceType)
         {
             Name = name;
             PayloadType = payloadType;
+            IsReferenceType = isReferenceType;
         }
     }
 }

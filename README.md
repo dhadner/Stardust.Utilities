@@ -36,14 +36,14 @@ Add a reference to `Stardust.Utilities` in your project. The library targets .NE
 
 The BitField feature uses a C# source generator to automatically create property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
 
-#### ? Zero Performance Overhead
+#### [+] Zero Performance Overhead
 
 
 The source generator produces **exactly the same code** you would write by hand using the non-generic `BitFieldDef32`, `BitFlagDef64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
 
-**Use the source generator with confidence in hot paths** — you get clean, readable property syntax with the same performance as manual bit manipulation.
+**Use the source generator with confidence in hot paths** -- you get clean, readable property syntax with the same performance as manual bit manipulation.
 
-#### ?? Important: IntelliSense Errors Before First Build
+#### **Warning:** IntelliSense Errors Before First Build
 
 **This is normal and expected!** When you first create a struct with `[BitFields]`, Visual Studio will show red squiggly errors:
 
@@ -54,7 +54,7 @@ The source generator produces **exactly the same code** you would write by hand 
 
 **Solution:** Just build your project once (`Ctrl+Shift+B`). The errors will vanish, and IntelliSense will work normally.
 
-#### ?? Enabling Full IntelliSense for Generated Code
+#### **Tip:** Enabling Full IntelliSense for Generated Code
 
 To make generated code fully discoverable by IntelliSense (similar to Windows Forms designer code), add these properties to your project file:
 
@@ -308,6 +308,7 @@ stream.Truncate(8, SeekOrigin.Begin);  // Remove first 8 bits
 
 ---
 
+
 ### EnhancedEnum
 
 Discriminated unions (sum types) for C#. Similar to Rust enums with associated data.
@@ -318,29 +319,29 @@ Stardust.Utilities provides **three approaches** to discriminated unions:
 
 | Approach | Best For | Pattern Matching | Allocation |
 |----------|----------|------------------|------------|
-| **Source Generator** | Most use cases | ? Native C# patterns | Record per instance |
+| **Source Generator** | Most use cases | Match method | **Zero allocation** (struct) |
 | **EnhancedEnum&lt;T&gt;** | Manual control | Via Deconstruct | Boxes value types |
 | **EnhancedEnumFlex&lt;T&gt;** | Hot paths | Manual if/TryGet | Zero allocation |
 
 ---
 
-#### EnhancedEnum (Source Generator) ? Recommended
+#### EnhancedEnum (Source Generator) **[Recommended]**
 
-The source generator creates true C# record types for each variant, giving you **native pattern matching** with minimal boilerplate.
+The source generator creates a **zero-allocation struct** with inline payload storage. Both value types and reference types are supported.
 
 ```csharp
 using Stardust.Utilities;
 
 [EnhancedEnum]
-public partial record DebugCommand
+public partial struct DebugCommand
 {
     [EnumKind]
-    private enum Kind
+    public enum Kind
     {
         [EnumValue(typeof((uint address, int hitCount)))]
         SetBreakpoint,
         
-        [EnumValue(typeof(string))]
+        [EnumValue(typeof(string))]  // Reference types work too
         Evaluate,
         
         [EnumValue]  // No payload
@@ -355,52 +356,78 @@ public partial record DebugCommand
 **What gets generated:**
 
 ```csharp
-// Nested record types for each variant (with public constructors):
-public sealed record SetBreakpoint((uint address, int hitCount) Value) : DebugCommand;
-public sealed record Evaluate(string Value) : DebugCommand;
-public sealed record Step() : DebugCommand;
-public sealed record Continue() : DebugCommand;
-
-// Is properties:
-public bool IsSetBreakpoint => this is SetBreakpoint;
-public bool IsEvaluate => this is Evaluate;
-// etc.
+public readonly partial struct DebugCommand : IEquatable<DebugCommand>
+{
+    // Private fields for payloads (stored inline, no boxing)
+    private readonly Kind _tag;
+    private readonly (uint address, int hitCount) _setBreakpointPayload;
+    private readonly string? _evaluatePayload;
+    
+    // Static factory methods
+    public static DebugCommand SetBreakpoint((uint, int) value);
+    public static DebugCommand Evaluate(string value);
+    public static DebugCommand Step();
+    public static DebugCommand Continue();
+    
+    // Is properties
+    public bool IsSetBreakpoint => _tag == Kind.SetBreakpoint;
+    
+    // TryGet methods
+    public bool TryGetSetBreakpoint(out (uint, int) value);
+    
+    // Match methods (exhaustive)
+    public TResult Match<TResult>(
+        Func<(uint, int), TResult> SetBreakpoint,
+        Func<string, TResult> Evaluate,
+        Func<TResult> Step,
+        Func<TResult> @Continue);
+}
 ```
 
-**Usage with native C# pattern matching:**
+**Usage:**
 
 ```csharp
-// Create instances using 'new'
-var cmd1 = new DebugCommand.SetBreakpoint((0x00401000u, 3));
-var cmd2 = new DebugCommand.Evaluate("PC + 4");
-var cmd3 = new DebugCommand.Step();
+// Create variants using static factory methods
+var cmd1 = DebugCommand.SetBreakpoint((0x00401000u, 3));
+var cmd2 = DebugCommand.Evaluate("PC + 4");
+var cmd3 = DebugCommand.Step();
 
-// Pattern matching in switch expressions - true C# syntax!
-string result = cmd switch
-{
-    DebugCommand.SetBreakpoint(var bp) => $"BP at 0x{bp.address:X8}, hits={bp.hitCount}",
-    DebugCommand.Evaluate(var expr) => $"Eval: {expr}",
-    DebugCommand.Step => "Step",
-    DebugCommand.Continue => "Continue",
-    _ => "Unknown"
-};
+// Pattern matching with Match (exhaustive, compiler-enforced)
+string result = cmd.Match(
+    SetBreakpoint: bp => $"BP at 0x{bp.address:X8}, hits={bp.hitCount}",
+    Evaluate: expr => $"Eval: {expr}",
+    Step: () => "Step",
+    @Continue: () => "Continue"
+);
 
-// Type checking
-if (cmd is DebugCommand.SetBreakpoint { Value: var breakpoint })
+// TryGet for conditional access
+if (cmd.TryGetSetBreakpoint(out var bp))
 {
-    Console.WriteLine($"Address: 0x{breakpoint.address:X8}");
+    Console.WriteLine($"Address: 0x{bp.address:X8}");
 }
 
-// Is properties
-if (cmd.IsSetBreakpoint)
+// Is properties for quick checks
+if (cmd.IsStep)
 {
-    // Handle breakpoint
+    // Handle step
 }
+
+// Equality works correctly
+var a = DebugCommand.Step();
+var b = DebugCommand.Step();
+bool same = a == b;  // true
 ```
 
-#### ?? IntelliSense Errors Before First Build
+**Benefits:**
+- [x] **Zero allocation** - struct, no heap
+- [x] **No boxing** - value payloads stored inline
+- [x] **Reference types supported** - stored as references
+- [x] **Type-safe** - compiler-enforced exhaustive matching
+- [x] **AggressiveInlining** - optimal performance
 
-Same as BitFields: Visual Studio shows errors until you build once. This is normal — the source generator creates the code during compilation.
+#### **Warning:** IntelliSense Errors Before First Build
+
+Same as BitFields: Visual Studio shows errors until you build once. This is normal -- the source generator creates the code during compilation.
 
 ---
 
@@ -455,52 +482,9 @@ if (cmd.TryValueAs(out (uint address, int hitCount) bp))
 
 ---
 
-#### EnhancedEnumFlex&lt;T&gt; (Zero-Allocation Hot Path)
+#### EnhancedEnumFlex&lt;T&gt; (Legacy Zero-Allocation)
 
-For performance-critical code where boxing must be avoided:
-
-```csharp
-using Stardust.Utilities;
-
-public enum InterruptKind { None, VBlank, DMA, IRQ, Exception }
-
-// Register payload kinds ONCE at startup
-static class InterruptSystem
-{
-    static InterruptSystem()
-    {
-        var PK = EnhancedEnumFlex<InterruptKind>.PayloadKind;
-        EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.None, PK.None);
-        EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.VBlank, PK.None);
-        EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.DMA, PK.Byte);
-        EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.IRQ, PK.Byte);
-        EnhancedEnumFlex<InterruptKind>.RegisterKindPayloadKind(InterruptKind.Exception, PK.UInt32_UInt32);
-    }
-}
-
-// Create without boxing
-var interrupt = EnhancedEnumFlex<InterruptKind>.Create(InterruptKind.DMA, (byte)3);
-
-// Extract without boxing
-if (interrupt.TryGetByte(InterruptKind.DMA, out byte channel))
-{
-    ProcessDMA(channel);
-}
-```
-
-**Supported inline payload types (no boxing):**
-
-| PayloadKind | C# Type |
-|-------------|---------|
-| `None` | (no data) |
-| `Byte` | `byte` |
-| `UInt16` | `ushort` |
-| `UInt32` | `uint` |
-| `UInt32_UInt32` | `(uint, uint)` |
-| `UInt32_Int32` | `(uint, int)` |
-| `String` | `string` |
-| `Reference` | any class |
-| `BoxedValue` | any struct (boxed fallback) |
+`EnhancedEnumFlex<T>` predates the struct-based source generator. For new code, prefer the source generator which offers the same zero-allocation benefits with better ergonomics.
 
 ---
 
