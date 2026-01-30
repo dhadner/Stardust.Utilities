@@ -13,11 +13,16 @@
     <EmbeddedResource Remove="Generators\**" />
   </ItemGroup>
 
+  <!-- Exclude the Test subfolder from compilation - it has its own project -->
+  <ItemGroup>
+    <Compile Remove="Test\**" />
+    <None Remove="Test\**" />
+    <EmbeddedResource Remove="Test\**" />
+  </ItemGroup>
+
   <!-- Reference the source generator as an analyzer -->
   <ItemGroup>
-    <ProjectReference Include="Generators\Stardust.Generators.csproj" 
-                      OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
