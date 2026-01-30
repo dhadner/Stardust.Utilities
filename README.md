@@ -1,11 +1,10 @@
 # Stardust.Utilities
 
-A collection of utility types for .NET applications, focused on bit manipulation, error handling, and type-safe discriminated unions.
+A collection of utility types for .NET applications, focused on bit manipulation, error handling, and type-safe discriminated unions. Includes source generators for zero-boilerplate `[BitFields]` and `[EnhancedEnum]` structs.
 
 ## Table of Contents
 
 - [Installation](#installation)
-- [Code Generation Setup](#code-generation-setup)
 - [Features](#features)
   - [BitField](#bitfield)
   - [EnhancedEnum](#enhancedenum)
@@ -19,73 +18,11 @@ A collection of utility types for .NET applications, focused on bit manipulation
 
 ## Installation
 
-Add a reference to `Stardust.Utilities` in your project:
-
 ```xml
-<ProjectReference Include="..\Stardust.Utilities\Stardust.Utilities.csproj" />
+<PackageReference Include="Stardust.Utilities" Version="0.2.0" />
 ```
 
----
-
-## Code Generation Setup
-
-Stardust.Utilities uses a **code generation tool** to create implementations for `[EnhancedEnum]` and `[BitFields]` attributed types. The generated code is saved as `.Generated.cs` files alongside your source files, which means:
-
-- **IntelliSense works immediately** after cloning from Git (no build required)
-- **Generated code is visible** in your project folder
-- **You can inspect and debug** the generated code
-
-### Step 1: Import the Code Generation Targets
-
-Add this line to your `.csproj` file, **after** the `<ProjectReference>` to Stardust.Utilities:
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <!-- your other properties -->
-  </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Reference the library -->
-    <ProjectReference Include="..\Stardust.Utilities\Stardust.Utilities.csproj" />
-  </ItemGroup>
-
-  <!-- Import code generation (must be after ItemGroup) -->
-  <Import Project="..\Stardust.Utilities\Stardust.Utilities.CodeGen.targets" />
-</Project>
-```
-
-### Step 2: Build Your Project
-
-When you build, the tool will:
-1. Scan your project for `[EnhancedEnum]` and `[BitFields]` structs
-2. Generate a `.Generated.cs` file for each source file containing these types
-3. The generated files are placed in the same folder as your source files
-
-**Example:**
-```
-MyProject/
-  Commands.cs              <-- Your code with [EnhancedEnum]
-  Commands.Generated.cs    <-- Auto-generated implementation
-```
-
-### Step 3: Commit Generated Files to Git
-
-The `.Generated.cs` files should be committed to your repository. This ensures:
-- Team members get working IntelliSense immediately after clone
-- CI/CD builds work without running the tool first
-- You can review generated code in pull requests
-
-### Disabling Code Generation
-
-If you need to disable automatic code generation (e.g., for CI builds where files are already generated):
-
-```xml
-<PropertyGroup>
-  <StardustCodeGenEnabled>false</StardustCodeGenEnabled>
-</PropertyGroup>
-```
+**That's it!** The source generator is included automatically.
 
 ---
 
@@ -128,8 +65,7 @@ public partial struct StatusRegister
 }
 ```
 
-
-After building, a `StatusRegister.Generated.cs` file (or `YourSourceFile.Generated.cs`) will be created with the property implementations.
+The source generator automatically creates the property implementations during build.
 
 #### Usage
 
@@ -565,72 +501,36 @@ bool noC = opts.IsClear(Options.A);  // false
 
 ## Troubleshooting
 
-### "Cannot find type" or "does not contain a definition" errors
+### "Partial property must have an implementation" errors
 
-**Problem:** Visual Studio shows errors like `'MyStruct' does not contain a definition for 'MyProperty'`.
+**Problem:** Compiler errors like `CS9248: Partial property 'MyStruct.MyProperty' must have an implementation part`.
 
-**Cause:** The `.Generated.cs` file doesn't exist or is out of date.
+**Cause:** The source generator isn't running.
 
-**Solution:**
-1. Make sure you have `<Import Project="...\Stardust.Utilities.CodeGen.targets" />` in your `.csproj`
-2. Build the project (Ctrl+Shift+B)
-3. Check that a `.Generated.cs` file was created next to your source file
+**Solution:** Make sure you have the NuGet package installed:
+```xml
+<PackageReference Include="Stardust.Utilities" Version="0.2.0" />
+```
+Then clean and rebuild the solution.
 
-### Code generation doesn't run
+### Generated code not updating
 
-**Problem:** Building doesn't create or update the `.Generated.cs` files.
-
-**Possible causes and solutions:**
-
-1. **Missing targets import** - Add this to your `.csproj`:
-   ```xml
-   <Import Project="..\Stardust.Utilities\Stardust.Utilities.CodeGen.targets" />
-   ```
-
-2. **Code generation disabled** - Check you don't have this property set:
-   ```xml
-   <StardustCodeGenEnabled>false</StardustCodeGenEnabled>
-   ```
-
-3. **Tool not built** - The tool project must be buildable. Try:
-   ```bash
-   dotnet build path/to/Stardust.Utilities/Tool/Stardust.Utilities.Tool.csproj
-   ```
-
-### Generated file not updating
-
-**Problem:** You changed your `[EnhancedEnum]` or `[BitFields]` struct but the generated file wasn't updated.
+**Problem:** You changed your `[EnhancedEnum]` or `[BitFields]` struct but the generated code wasn't updated.
 
 **Solution:**
 1. Ensure you're using `partial struct` (not `class` or `record`)
 2. Check that attributes are spelled correctly: `[EnhancedEnum]`, `[EnumKind]`, `[EnumValue]`, `[BitFields]`, `[BitField]`, `[BitFlag]`
 3. For `[EnhancedEnum]`, ensure the `Kind` enum is nested inside the struct and has `[EnumKind]` attribute
-4. Delete the `.Generated.cs` file and rebuild
+4. Clean and rebuild the solution
 
-### Build fails with "duplicate definition" errors
+### Viewing generated code
 
-**Problem:** Compiler errors about duplicate type definitions.
+To inspect the generated code:
+1. In Visual Studio, expand your project in Solution Explorer
+2. Expand **Dependencies** ? **Analyzers** ? **Stardust.Generators**
+3. You'll see the generated `.g.cs` files for each type
 
-**Cause:** You may have both:
-- A `.Generated.cs` file from the tool
-- A `.g.cs` file from a source generator
-
-**Solution:** 
-1. Remove the source generator reference from your `.csproj` if you're using the tool:
-   ```xml
-   <!-- Remove or comment out this line -->
-   <ProjectReference Include="...\Stardust.Generators.csproj" OutputItemType="Analyzer" ... />
-   ```
-2. Delete any `.g.cs` files in your `obj\` folder
-
-### How do I see what the tool is doing?
-
-Run the tool manually with `--verbose`:
-```bash
-dotnet run --project path/to/Stardust.Utilities/Tool/Stardust.Utilities.Tool.csproj -- "path/to/your/project" --verbose
-```
-
-This will print each file it generates or skips.
+Alternatively, look in your project's `obj/Debug/net*/Stardust.Generators/` folder.
 
 ---
 

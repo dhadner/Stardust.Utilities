@@ -4,20 +4,46 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    
+    <!-- NuGet Package Settings -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Stardust.Utilities</PackageId>
+    <Version>0.2.0</Version>
+    <Authors>Dave Hadner</Authors>
+    <Description>Utility types for bit manipulation, error handling, and discriminated unions. Includes source generators for [BitFields] and [EnhancedEnum] attributes.</Description>
+    <PackageTags>utilities;bitfields;enum;source-generator;result</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
-  <!-- Exclude the Test subfolder from compilation - it has its own project -->
+  <!-- Exclude subfolders from compilation -->
   <ItemGroup>
+    <Compile Remove="Generators\**" />
     <Compile Remove="Test\**" />
+    <None Remove="Generators\**" />
     <None Remove="Test\**" />
+    <EmbeddedResource Remove="Generators\**" />
     <EmbeddedResource Remove="Test\**" />
   </ItemGroup>
 
-  <!-- Exclude the Tool subfolder from compilation - it has its own project -->
+  <!-- Include the source generator - flows to referencing projects -->
   <ItemGroup>
-    <Compile Remove="Tool\**" />
-    <None Remove="Tool\**" />
-    <EmbeddedResource Remove="Tool\**" />
+    <ProjectReference Include="Generators\Stardust.Generators.csproj" 
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Include README in NuGet package -->
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <!-- Pack the generator DLL as an analyzer (for NuGet package) -->
+  <ItemGroup>
+    <None Include="Generators\bin\$(Configuration)\netstandard2.0\Stardust.Generators.dll" 
+          Pack="true" 
+          PackagePath="analyzers/dotnet/cs" 
+          Visible="false" />
   </ItemGroup>
 
 </Project>
