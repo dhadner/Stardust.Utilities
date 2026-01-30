@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Exclude the Generators subfolder from compilation - it has its own project -->
+  <ItemGroup>
+    <Compile Remove="Generators\**" />
+    <None Remove="Generators\**" />
+    <EmbeddedResource Remove="Generators\**" />
+  </ItemGroup>
+
+  <!-- Reference the source generator as an analyzer -->
+  <ItemGroup>
+    <ProjectReference Include="Generators\Stardust.Generators.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
