@@ -1,12 +1,8 @@
-# BitField Library
+# BitField Source Generator
 
 Type-safe, high-performance bitfield manipulation for hardware register emulation.
 
 ## Quick Start
-
-### Option 1: Source Generator (Recommended)
-
-The simplest approach with the best performance:
 
 ```csharp
 [BitFields]
@@ -28,53 +24,9 @@ byte code = reg.KeyCode;          // Property getter
 ushort raw = reg;                 // Implicit conversion
 ```
 
-The generator creates:
-- Non-generic `BitField16`/`BitFlag16` definitions for each field
-- Inlined property implementations
-- Implicit conversion operators
+The generator creates inline bit manipulation with **compile-time constants** — identical performance to hand-coded bit manipulation.
 
-### Option 2: Manual Definition with Generic Types
-
-For flexibility when defining registers manually:
-
-```csharp
-public record struct KeyboardReg0(ushort Value)
-{
-    public static readonly BitFlag<ushort> KeyUp = new(15);
-    public static readonly BitField<ushort, byte> KeyCode = new(8, 7);
-
-    public static implicit operator ushort(KeyboardReg0 r) => r.Value;
-    public static implicit operator KeyboardReg0(ushort v) => new(v);
-}
-
-// Usage
-KeyboardReg0 reg = 0xFFFF;
-bool isUp = KeyboardReg0.KeyUp[reg.Value];
-byte code = KeyboardReg0.KeyCode[reg.Value];
-reg = reg with { Value = KeyboardReg0.KeyCode.Set(reg.Value, 0x1A) };
-```
-
-### Option 3: Non-Generic Types for Hot Paths
-
-For manually optimized hot paths:
-
-```csharp
-public struct ViaRegB
-{
-    public static readonly BitFlag8 HeadSelect = new(5);
-    public static readonly BitField8 SoundVolume = new(0, 3);
-
-    public byte Value;
-}
-
-// Usage - direct method calls
-bool headSel = ViaRegB.HeadSelect.IsSet(regB.Value);
-byte volume = ViaRegB.SoundVolume.GetByte(regB.Value);
-```
-
-## API Reference
-
-### Attributes (for Source Generator)
+## Attributes
 
 | Attribute | Usage | Description |
 |-----------|-------|-------------|
@@ -82,62 +34,18 @@ byte volume = ViaRegB.SoundVolume.GetByte(regB.Value);
 | `[BitField(shift, width)]` | Property | Multi-bit field definition |
 | `[BitFlag(bit)]` | Property | Single-bit flag definition |
 
-### Generic Types
+## Supported Storage Types
 
-| Type | Description |
-|------|-------------|
-| `BitFlag<TStorage>` | Single-bit flag with bool access |
-| `BitField<TStorage, TField>` | Multi-bit field with typed extraction |
-
-**BitFlag<TStorage>:**
-```csharp
-bool this[TStorage value]     // Get flag value
-TStorage Set(value, bool)     // Set or clear flag
-TStorage Toggle(value)        // Toggle flag
-```
-
-**BitField<TStorage, TField>:**
-```csharp
-TField this[TStorage value]   // Extract field
-TStorage Set(value, TField)   // Set field value
-```
-
-### Non-Generic Types (Hot Path Performance)
-
-| Storage | Field Type | Flag Type |
-|---------|------------|-----------|
-| `ulong` | `BitField64` | `BitFlag64` |
-| `uint` | `BitField32` | `BitFlag32` |
-| `ushort` | `BitField16` | `BitFlag16` |
-| `byte` | `BitField8` | `BitFlag8` |
-
-**BitFieldXX:**
-```csharp
-byte GetByte(value)           // Extract as byte
-ushort GetUShort(value)       // Extract as ushort (16/32/64 only)
-uint GetUInt(value)           // Extract as uint (32/64 only)
-ulong GetULong(value)         // Extract as ulong (64 only)
-TStorage Set(value, field)    // Set field value
-```
-
-**BitFlagXX:**
-```csharp
-bool IsSet(value)             // Check if flag is set
-TStorage Set(value, bool)     // Set or clear flag
-TStorage Toggle(value)        // Toggle flag
-```
+| Storage | Bits |
+|---------|------|
+| `byte` | 8 |
+| `ushort` | 16 |
+| `uint` | 32 |
+| `ulong` | 64 |
 
 ## Performance
 
-The library is designed to meet a **?20% overhead** target vs hand-coded bit manipulation.
-
-| Approach | Overhead | Notes |
-|----------|----------|-------|
-| Source Generator | ~0-15% | Uses non-generic types |
-| Non-Generic Manual | ~0-15% | Direct method calls |
-| Generic Types | ~50-100% | Generic interface dispatch |
-
-Use the source generator or non-generic types for hot paths.
+Benchmarks show the generated code performs within **1%** of hand-coded bit manipulation (see README.md for full statistical analysis).
 
 ## Examples
 
@@ -189,3 +97,29 @@ public partial struct StatusReg64
     [BitFlag(58)] public partial bool Error { get; set; }
 }
 ```
+
+## Generated Code
+
+For each `[BitField]` or `[BitFlag]` property, the generator emits inline bit manipulation:
+
+```csharp
+// Generated for [BitFlag(0)]
+public partial bool Ready
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    get => (Value & 0x01) != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+}
+
+// Generated for [BitField(2, 3)]
+public partial byte Mode
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    get => (byte)((Value >> 2) & 0x07);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    set => Value = (byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C));
+}
+```
+
+All masks are compile-time hex constants, allowing the JIT to generate optimal machine code.

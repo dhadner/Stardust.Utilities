@@ -127,28 +127,6 @@ status = 0x42;                 // Converts from byte
 | `uint` | 32 bits | 32 |
 | `ulong` | 64 bits | 64 |
 
-#### Manual BitField Usage (No Source Generator)
-
-If you prefer not to use the source generator, you can use the BitField types directly:
-
-```csharp
-using Stardust.Utilities;
-
-// Define fields once (typically as static readonly)
-private static readonly BitField32 ModeField = new(shift: 2, width: 3);
-private static readonly BitFlag32 ReadyFlag = new(shift: 0);
-
-// Use them
-uint value = 0;
-value = ModeField.Set(value, 5);     // Set mode to 5
-value = ReadyFlag.Set(value, true);  // Set ready flag
-
-byte mode = ModeField.GetByte(value);  // Read mode
-bool ready = ReadyFlag.IsSet(value);   // Read ready flag
-```
-
-Available non-generic types: `BitField8`, `BitField16`, `BitField32`, `BitField64` and their flag counterparts `BitFlag8`, `BitFlag16`, `BitFlag32`, `BitFlag64`.
-
 ---
 
 ### Result Types
