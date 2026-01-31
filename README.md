@@ -57,27 +57,40 @@ The source generator emits **inline bit manipulation with compile-time constants
 
 #### Quick Start
 
+Two usage patterns are supported:
+
+**Option 1: User-Declared Value Field**
 ```csharp
 using Stardust.Utilities;
-
-// 1. Mark the struct with [BitFields]
-// 2. Declare a 'Value' field or property (byte, ushort, uint, or ulong)
-// 3. Declare partial properties with [BitField] or [BitFlag] attributes
 
 [BitFields]
 public partial struct StatusRegister
 {
-    public byte Value;  // The underlying storage (8 bits)
+    public byte Value;  // You declare this
 
-    // Individual bit flags
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
+    [BitField(2, 3)] public partial byte Mode { get; set; }
+    [BitField(5, 2)] public partial byte Priority { get; set; }
+}
+```
 
+**Option 2: Generator-Created Value Field**
+```csharp
+using Stardust.Utilities;
 
-    // Multi-bit fields
-    [BitField(2, 3)] public partial byte Mode { get; set; }  // Bits 2-4 (3 bits wide)
-    [BitField(5, 2)] public partial byte Priority { get; set; }  // Bits 5-6 (2 bits wide)
+[BitFields(typeof(byte))]  // Specify storage type
+public partial struct StatusRegister
+{
+    // No Value field needed - generator creates it as private
+
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
+    [BitFlag(7)] public partial bool Busy { get; set; }
+    [BitField(2, 3)] public partial byte Mode { get; set; }
+    [BitField(5, 2)] public partial byte Priority { get; set; }
+}
 }
 ```
 
@@ -86,8 +99,12 @@ The source generator automatically creates the property implementations during b
 #### Usage
 
 ```csharp
-// Create and manipulate
-var status = new StatusRegister();
+// Create with user-declared Value field
+var status = new StatusRegister { Value = 0 };
+
+// Or with generator-created Value field (use constructor or implicit conversion)
+StatusRegister status2 = 0;
+var status3 = new StatusRegister(0x42);
 
 // Set individual flags
 status.Ready = true;
@@ -101,10 +118,6 @@ status.Priority = 2;  // Sets bits 5-6 to value 2
 bool isReady = status.Ready;
 byte mode = status.Mode;
 
-// Direct value access
-byte rawValue = status.Value;  // Get the underlying byte
-status.Value = 0xFF;           // Set all bits
-
 // Implicit conversion (generated automatically)
 byte b = status;               // Converts to byte
 status = 0x42;                 // Converts from byte
@@ -114,7 +127,8 @@ status = 0x42;                 // Converts from byte
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields]` | none | Marks a struct for code generation |
+| `[BitFields]` | none | Marks struct; user must declare `Value` field |
+| `[BitFields(typeof(T))]` | `T`: storage type | Marks struct; generator creates private `Value` field |
 | `[BitFlag(bit)]` | `bit`: 0-based position | Single-bit boolean flag |
 | `[BitField(shift, width)]` | `shift`: start bit, `width`: bit count | Multi-bit field |
 
