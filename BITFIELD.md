@@ -29,7 +29,7 @@ ushort raw = reg;                 // Implicit conversion
 ```
 
 The generator creates:
-- Non-generic `BitFieldDef16`/`BitFlagDef16` definitions for each field
+- Non-generic `BitField16`/`BitFlag16` definitions for each field
 - Inlined property implementations
 - Implicit conversion operators
 
@@ -40,8 +40,8 @@ For flexibility when defining registers manually:
 ```csharp
 public record struct KeyboardReg0(ushort Value)
 {
-    public static readonly BitFlagDef<ushort> KeyUp = new(15);
-    public static readonly BitFieldDef<ushort, byte> KeyCode = new(8, 7);
+    public static readonly BitFlag<ushort> KeyUp = new(15);
+    public static readonly BitField<ushort, byte> KeyCode = new(8, 7);
 
     public static implicit operator ushort(KeyboardReg0 r) => r.Value;
     public static implicit operator KeyboardReg0(ushort v) => new(v);
@@ -61,8 +61,8 @@ For manually optimized hot paths:
 ```csharp
 public struct ViaRegB
 {
-    public static readonly BitFlagDef8 HeadSelect = new(5);
-    public static readonly BitFieldDef8 SoundVolume = new(0, 3);
+    public static readonly BitFlag8 HeadSelect = new(5);
+    public static readonly BitField8 SoundVolume = new(0, 3);
 
     public byte Value;
 }
@@ -86,17 +86,17 @@ byte volume = ViaRegB.SoundVolume.GetByte(regB.Value);
 
 | Type | Description |
 |------|-------------|
-| `BitFlagDef<TStorage>` | Single-bit flag with bool access |
-| `BitFieldDef<TStorage, TField>` | Multi-bit field with typed extraction |
+| `BitFlag<TStorage>` | Single-bit flag with bool access |
+| `BitField<TStorage, TField>` | Multi-bit field with typed extraction |
 
-**BitFlagDef<TStorage>:**
+**BitFlag<TStorage>:**
 ```csharp
 bool this[TStorage value]     // Get flag value
 TStorage Set(value, bool)     // Set or clear flag
 TStorage Toggle(value)        // Toggle flag
 ```
 
-**BitFieldDef<TStorage, TField>:**
+**BitField<TStorage, TField>:**
 ```csharp
 TField this[TStorage value]   // Extract field
 TStorage Set(value, TField)   // Set field value
@@ -106,12 +106,12 @@ TStorage Set(value, TField)   // Set field value
 
 | Storage | Field Type | Flag Type |
 |---------|------------|-----------|
-| `ulong` | `BitFieldDef64` | `BitFlagDef64` |
-| `uint` | `BitFieldDef32` | `BitFlagDef32` |
-| `ushort` | `BitFieldDef16` | `BitFlagDef16` |
-| `byte` | `BitFieldDef8` | `BitFlagDef8` |
+| `ulong` | `BitField64` | `BitFlag64` |
+| `uint` | `BitField32` | `BitFlag32` |
+| `ushort` | `BitField16` | `BitFlag16` |
+| `byte` | `BitField8` | `BitFlag8` |
 
-**BitFieldDefXX:**
+**BitFieldXX:**
 ```csharp
 byte GetByte(value)           // Extract as byte
 ushort GetUShort(value)       // Extract as ushort (16/32/64 only)
@@ -120,7 +120,7 @@ ulong GetULong(value)         // Extract as ulong (64 only)
 TStorage Set(value, field)    // Set field value
 ```
 
-**BitFlagDefXX:**
+**BitFlagXX:**
 ```csharp
 bool IsSet(value)             // Check if flag is set
 TStorage Set(value, bool)     // Set or clear flag

@@ -10,7 +10,7 @@
     <!-- NuGet Package Settings -->
     <IsPackable>true</IsPackable>
     <PackageId>Stardust.Generators</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.2.2</Version>
     <Authors>Dave Hadner</Authors>
     <Description>Source generators for [BitFields] and [EnhancedEnum] attributes in Stardust.Utilities</Description>
     <PackageTags>source-generator;roslyn;bitfields;enum</PackageTags>

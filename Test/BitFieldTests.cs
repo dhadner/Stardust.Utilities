@@ -8,16 +8,16 @@ namespace Stardust.Utilities.Tests;
 /// </summary>
 public class BitFieldTests
 {
-    #region BitFlagDef<TStorage> Tests
+    #region BitFlag<TStorage> Tests
 
     /// <summary>
-    /// Tests BitFlagDef with byte storage.
+    /// Tests BitFlag with byte storage.
     /// </summary>
     [Fact]
-    public void BitFlagDef_Byte_GetAndSet()
+    public void BitFlag_Byte_GetAndSet()
     {
         // Arrange
-        var flag = new BitFlagDef<byte>(3); // bit position 3
+        var flag = new BitFlag<byte>(3); // bit position 3
 
         // Assert initial state
         flag.Shift.Should().Be(3);
@@ -35,13 +35,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef with ushort storage.
+    /// Tests BitFlag with ushort storage.
     /// </summary>
     [Fact]
-    public void BitFlagDef_UShort_GetAndSet()
+    public void BitFlag_UShort_GetAndSet()
     {
         // Arrange
-        var flag = new BitFlagDef<ushort>(10); // bit position 10
+        var flag = new BitFlag<ushort>(10); // bit position 10
 
         // Assert initial state
         flag.Shift.Should().Be(10);
@@ -54,13 +54,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef with uint storage.
+    /// Tests BitFlag with uint storage.
     /// </summary>
     [Fact]
-    public void BitFlagDef_UInt_GetAndSet()
+    public void BitFlag_UInt_GetAndSet()
     {
         // Arrange
-        var flag = new BitFlagDef<uint>(20); // bit position 20
+        var flag = new BitFlag<uint>(20); // bit position 20
 
         // Assert initial state
         flag.Shift.Should().Be(20);
@@ -73,13 +73,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef with ulong storage.
+    /// Tests BitFlag with ulong storage.
     /// </summary>
     [Fact]
-    public void BitFlagDef_ULong_GetAndSet()
+    public void BitFlag_ULong_GetAndSet()
     {
         // Arrange
-        var flag = new BitFlagDef<ulong>(40); // bit position 40
+        var flag = new BitFlag<ulong>(40); // bit position 40
 
         // Assert initial state
         flag.Shift.Should().Be(40);
@@ -92,31 +92,31 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef constructor throws for invalid shift.
+    /// Tests BitFlag constructor throws for invalid shift.
     /// </summary>
     [Fact]
-    public void BitFlagDef_InvalidShift_ThrowsArgumentOutOfRangeException()
+    public void BitFlag_InvalidShift_ThrowsArgumentOutOfRangeException()
     {
         // Act & Assert
-        var act = () => new BitFlagDef<byte>(8); // byte only has 8 bits (0-7)
+        var act = () => new BitFlag<byte>(8); // byte only has 8 bits (0-7)
         act.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFlagDef<byte>(-1);
+        var act2 = () => new BitFlag<byte>(-1);
         act2.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFieldDef<TStorage, TField> Tests
+    #region BitField<TStorage, TField> Tests
 
     /// <summary>
-    /// Tests BitFieldDef extraction and setting.
+    /// Tests BitField extraction and setting.
     /// </summary>
     [Fact]
-    public void BitFieldDef_ExtractAndSet()
+    public void BitField_ExtractAndSet()
     {
         // Arrange - 4-bit field starting at bit 4
-        var field = new BitFieldDef<ushort, byte>(4, 4);
+        var field = new BitField<ushort, byte>(4, 4);
 
         // Assert properties
         field.Shift.Should().Be(4);
@@ -133,13 +133,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef with larger fields.
+    /// Tests BitField with larger fields.
     /// </summary>
     [Fact]
-    public void BitFieldDef_LargerField_ExtractAndSet()
+    public void BitField_LargerField_ExtractAndSet()
     {
         // Arrange - 16-bit field starting at bit 8 in uint
-        var field = new BitFieldDef<uint, ushort>(8, 16);
+        var field = new BitField<uint, ushort>(8, 16);
 
         // Assert properties
         field.Shift.Should().Be(8);
@@ -155,36 +155,36 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef constructor throws for invalid parameters.
+    /// Tests BitField constructor throws for invalid parameters.
     /// </summary>
     [Fact]
-    public void BitFieldDef_InvalidParameters_ThrowsArgumentOutOfRangeException()
+    public void BitField_InvalidParameters_ThrowsArgumentOutOfRangeException()
     {
         // Negative shift
-        var act1 = () => new BitFieldDef<uint, byte>(-1, 4);
+        var act1 = () => new BitField<uint, byte>(-1, 4);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
         // Zero width
-        var act2 = () => new BitFieldDef<uint, byte>(0, 0);
+        var act2 = () => new BitField<uint, byte>(0, 0);
         act2.Should().Throw<ArgumentOutOfRangeException>();
 
         // Exceeds storage size
-        var act3 = () => new BitFieldDef<byte, byte>(4, 8); // 4 + 8 > 8
+        var act3 = () => new BitField<byte, byte>(4, 8); // 4 + 8 > 8
         act3.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFieldDef64 Tests
+    #region BitField64 Tests
 
     /// <summary>
-    /// Tests BitFieldDef64 Get methods.
+    /// Tests BitField64 Get methods.
     /// </summary>
     [Fact]
-    public void BitFieldDef64_GetMethods()
+    public void BitField64_GetMethods()
     {
         // Arrange - 8-bit field starting at bit 16
-        var field = new BitFieldDef64(16, 8);
+        var field = new BitField64(16, 8);
 
         // Assert properties
         field.Shift.Should().Be(16);
@@ -199,13 +199,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef64 Set methods.
+    /// Tests BitField64 Set methods.
     /// </summary>
     [Fact]
-    public void BitFieldDef64_SetMethods()
+    public void BitField64_SetMethods()
     {
         // Arrange - 8-bit field starting at bit 16
-        var field = new BitFieldDef64(16, 8);
+        var field = new BitField64(16, 8);
         ulong initial = 0x00000000_00000000UL;
 
         // Test all Set methods
@@ -216,33 +216,33 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef64 constructor validation.
+    /// Tests BitField64 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFieldDef64_InvalidParameters_ThrowsArgumentOutOfRangeException()
+    public void BitField64_InvalidParameters_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFieldDef64(-1, 8);
+        var act1 = () => new BitField64(-1, 8);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFieldDef64(64, 1);
+        var act2 = () => new BitField64(64, 1);
         act2.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act3 = () => new BitFieldDef64(60, 8); // 60 + 8 > 64
+        var act3 = () => new BitField64(60, 8); // 60 + 8 > 64
         act3.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFlagDef64 Tests
+    #region BitFlag64 Tests
 
     /// <summary>
-    /// Tests BitFlagDef64 operations.
+    /// Tests BitFlag64 operations.
     /// </summary>
     [Fact]
-    public void BitFlagDef64_Operations()
+    public void BitFlag64_Operations()
     {
         // Arrange
-        var flag = new BitFlagDef64(32);
+        var flag = new BitFlag64(32);
 
         // Assert properties
         flag.Shift.Should().Be(32);
@@ -261,30 +261,30 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef64 constructor validation.
+    /// Tests BitFlag64 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFlagDef64_InvalidShift_ThrowsArgumentOutOfRangeException()
+    public void BitFlag64_InvalidShift_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFlagDef64(-1);
+        var act1 = () => new BitFlag64(-1);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFlagDef64(64);
+        var act2 = () => new BitFlag64(64);
         act2.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFieldDef32 Tests
+    #region BitField32 Tests
 
     /// <summary>
-    /// Tests BitFieldDef32 Get methods.
+    /// Tests BitField32 Get methods.
     /// </summary>
     [Fact]
-    public void BitFieldDef32_GetMethods()
+    public void BitField32_GetMethods()
     {
         // Arrange - 8-bit field starting at bit 8
-        var field = new BitFieldDef32(8, 8);
+        var field = new BitField32(8, 8);
 
         // Assert properties
         field.Shift.Should().Be(8);
@@ -298,13 +298,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef32 Set methods.
+    /// Tests BitField32 Set methods.
     /// </summary>
     [Fact]
-    public void BitFieldDef32_SetMethods()
+    public void BitField32_SetMethods()
     {
         // Arrange - 8-bit field starting at bit 8
-        var field = new BitFieldDef32(8, 8);
+        var field = new BitField32(8, 8);
         uint initial = 0x00000000U;
 
         // Test Set methods
@@ -314,33 +314,33 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef32 constructor validation.
+    /// Tests BitField32 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFieldDef32_InvalidParameters_ThrowsArgumentOutOfRangeException()
+    public void BitField32_InvalidParameters_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFieldDef32(-1, 8);
+        var act1 = () => new BitField32(-1, 8);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFieldDef32(32, 1);
+        var act2 = () => new BitField32(32, 1);
         act2.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act3 = () => new BitFieldDef32(28, 8); // 28 + 8 > 32
+        var act3 = () => new BitField32(28, 8); // 28 + 8 > 32
         act3.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFlagDef32 Tests
+    #region BitFlag32 Tests
 
     /// <summary>
-    /// Tests BitFlagDef32 operations.
+    /// Tests BitFlag32 operations.
     /// </summary>
     [Fact]
-    public void BitFlagDef32_Operations()
+    public void BitFlag32_Operations()
     {
         // Arrange
-        var flag = new BitFlagDef32(16);
+        var flag = new BitFlag32(16);
 
         // Assert properties
         flag.Shift.Should().Be(16);
@@ -359,30 +359,30 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef32 constructor validation.
+    /// Tests BitFlag32 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFlagDef32_InvalidShift_ThrowsArgumentOutOfRangeException()
+    public void BitFlag32_InvalidShift_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFlagDef32(-1);
+        var act1 = () => new BitFlag32(-1);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFlagDef32(32);
+        var act2 = () => new BitFlag32(32);
         act2.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFieldDef16 Tests
+    #region BitField16 Tests
 
     /// <summary>
-    /// Tests BitFieldDef16 Get methods.
+    /// Tests BitField16 Get methods.
     /// </summary>
     [Fact]
-    public void BitFieldDef16_GetMethods()
+    public void BitField16_GetMethods()
     {
         // Arrange - 4-bit field starting at bit 4
-        var field = new BitFieldDef16(4, 4);
+        var field = new BitField16(4, 4);
 
         // Assert properties
         field.Shift.Should().Be(4);
@@ -395,13 +395,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef16 Set methods.
+    /// Tests BitField16 Set methods.
     /// </summary>
     [Fact]
-    public void BitFieldDef16_SetMethods()
+    public void BitField16_SetMethods()
     {
         // Arrange - 4-bit field starting at bit 4
-        var field = new BitFieldDef16(4, 4);
+        var field = new BitField16(4, 4);
         ushort initial = 0x0000;
 
         // Test Set methods
@@ -410,33 +410,33 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef16 constructor validation.
+    /// Tests BitField16 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFieldDef16_InvalidParameters_ThrowsArgumentOutOfRangeException()
+    public void BitField16_InvalidParameters_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFieldDef16(-1, 4);
+        var act1 = () => new BitField16(-1, 4);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFieldDef16(16, 1);
+        var act2 = () => new BitField16(16, 1);
         act2.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act3 = () => new BitFieldDef16(12, 8); // 12 + 8 > 16
+        var act3 = () => new BitField16(12, 8); // 12 + 8 > 16
         act3.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFlagDef16 Tests
+    #region BitFlag16 Tests
 
     /// <summary>
-    /// Tests BitFlagDef16 operations.
+    /// Tests BitFlag16 operations.
     /// </summary>
     [Fact]
-    public void BitFlagDef16_Operations()
+    public void BitFlag16_Operations()
     {
         // Arrange
-        var flag = new BitFlagDef16(8);
+        var flag = new BitFlag16(8);
 
         // Assert properties
         flag.Shift.Should().Be(8);
@@ -455,30 +455,30 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef16 constructor validation.
+    /// Tests BitFlag16 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFlagDef16_InvalidShift_ThrowsArgumentOutOfRangeException()
+    public void BitFlag16_InvalidShift_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFlagDef16(-1);
+        var act1 = () => new BitFlag16(-1);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFlagDef16(16);
+        var act2 = () => new BitFlag16(16);
         act2.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFieldDef8 Tests
+    #region BitField8 Tests
 
     /// <summary>
-    /// Tests BitFieldDef8 Get method.
+    /// Tests BitField8 Get method.
     /// </summary>
     [Fact]
-    public void BitFieldDef8_GetByte()
+    public void BitField8_GetByte()
     {
         // Arrange - 4-bit field starting at bit 2
-        var field = new BitFieldDef8(2, 4);
+        var field = new BitField8(2, 4);
 
         // Assert properties
         field.Shift.Should().Be(2);
@@ -490,13 +490,13 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef8 Set method.
+    /// Tests BitField8 Set method.
     /// </summary>
     [Fact]
-    public void BitFieldDef8_SetByte()
+    public void BitField8_SetByte()
     {
         // Arrange - 4-bit field starting at bit 2
-        var field = new BitFieldDef8(2, 4);
+        var field = new BitField8(2, 4);
         byte initial = 0x00;
 
         // Test Set method
@@ -504,33 +504,33 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFieldDef8 constructor validation.
+    /// Tests BitField8 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFieldDef8_InvalidParameters_ThrowsArgumentOutOfRangeException()
+    public void BitField8_InvalidParameters_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFieldDef8(-1, 4);
+        var act1 = () => new BitField8(-1, 4);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFieldDef8(8, 1);
+        var act2 = () => new BitField8(8, 1);
         act2.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act3 = () => new BitFieldDef8(4, 8); // 4 + 8 > 8
+        var act3 = () => new BitField8(4, 8); // 4 + 8 > 8
         act3.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     #endregion
 
-    #region BitFlagDef8 Tests
+    #region BitFlag8 Tests
 
     /// <summary>
-    /// Tests BitFlagDef8 operations.
+    /// Tests BitFlag8 operations.
     /// </summary>
     [Fact]
-    public void BitFlagDef8_Operations()
+    public void BitFlag8_Operations()
     {
         // Arrange
-        var flag = new BitFlagDef8(4);
+        var flag = new BitFlag8(4);
 
         // Assert properties
         flag.Shift.Should().Be(4);
@@ -549,15 +549,15 @@ public class BitFieldTests
     }
 
     /// <summary>
-    /// Tests BitFlagDef8 constructor validation.
+    /// Tests BitFlag8 constructor validation.
     /// </summary>
     [Fact]
-    public void BitFlagDef8_InvalidShift_ThrowsArgumentOutOfRangeException()
+    public void BitFlag8_InvalidShift_ThrowsArgumentOutOfRangeException()
     {
-        var act1 = () => new BitFlagDef8(-1);
+        var act1 = () => new BitFlag8(-1);
         act1.Should().Throw<ArgumentOutOfRangeException>();
 
-        var act2 = () => new BitFlagDef8(8);
+        var act2 = () => new BitFlag8(8);
         act2.Should().Throw<ArgumentOutOfRangeException>();
     }
 

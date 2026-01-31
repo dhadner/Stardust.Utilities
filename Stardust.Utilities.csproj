@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,7 +8,7 @@
     <!-- NuGet Package Settings -->
     <IsPackable>true</IsPackable>
     <PackageId>Stardust.Utilities</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.2.2</Version>
     <Authors>Dave Hadner</Authors>
     <Description>Utility types for bit manipulation, error handling, and discriminated unions. Includes source generators for [BitFields] and [EnhancedEnum] attributes.</Description>
     <PackageTags>utilities;bitfields;enum;source-generator;result</PackageTags>

@@ -29,7 +29,7 @@ namespace Stardust.Utilities
     /// </summary>
     /// <remarks>
     /// The property must be declared as <c>public partial bool</c>.
-    /// The generator will implement the getter/setter using the non-generic BitFlagDef types.
+    /// The generator will implement the getter/setter using the non-generic BitFlag types.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class BitFlagAttribute : Attribute
@@ -55,7 +55,7 @@ namespace Stardust.Utilities
     /// <remarks>
     /// The property must be declared as <c>public partial {type}</c> where type is
     /// byte, ushort, uint, or ulong. The generator will implement the getter/setter
-    /// using the non-generic BitFieldDef types.
+    /// using the non-generic BitField types.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class BitFieldAttribute : Attribute

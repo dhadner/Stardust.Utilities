@@ -13,7 +13,7 @@ namespace Stardust.Utilities
     /// </summary>
     /// <typeparam name="TStorage">The backing storage type (byte, ushort, uint, ulong).</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFlagDef<TStorage>
+    public readonly struct BitFlag<TStorage>
         where TStorage : unmanaged, IBinaryInteger<TStorage>
     {
         private static int BitSize => Unsafe.SizeOf<TStorage>() * 8;
@@ -28,7 +28,7 @@ namespace Stardust.Utilities
 
         /// <summary>Creates a new bit flag definition.</summary>
         /// <param name="shift">The bit position (0-based).</param>
-        public BitFlagDef(int shift)
+        public BitFlag(int shift)
         {
             if (shift < 0 || shift >= BitSize)
                 throw new ArgumentOutOfRangeException(nameof(shift),
@@ -60,7 +60,7 @@ namespace Stardust.Utilities
     /// <typeparam name="TStorage">The backing storage type (byte, ushort, uint, ulong).</typeparam>
     /// <typeparam name="TField">The field type for extraction (byte, ushort, uint).</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFieldDef<TStorage, TField>
+    public readonly struct BitField<TStorage, TField>
         where TStorage : unmanaged, IBinaryInteger<TStorage>
         where TField : unmanaged, IBinaryInteger<TField>
     {
@@ -86,7 +86,7 @@ namespace Stardust.Utilities
         /// <summary>Creates a new bitfield definition.</summary>
         /// <param name="shift">The starting bit position (0-based).</param>
         /// <param name="width">The field width in bits.</param>
-        public BitFieldDef(int shift, int width)
+        public BitField(int shift, int width)
         {
             if (shift < 0)
                 throw new ArgumentOutOfRangeException(nameof(shift), "Shift cannot be negative.");
@@ -126,7 +126,7 @@ namespace Stardust.Utilities
     /// Non-generic bitfield for ulong storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFieldDef64
+    public readonly struct BitField64
     {
         private readonly int _shift;
         private readonly ulong _mask;
@@ -135,7 +135,7 @@ namespace Stardust.Utilities
         public int Shift => _shift;
         public int Width => BitOperations.PopCount(_mask);
 
-        public BitFieldDef64(int shift, int width)
+        public BitField64(int shift, int width)
         {
             if (shift < 0 || shift >= 64)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -180,13 +180,13 @@ namespace Stardust.Utilities
     /// Non-generic bit flag for ulong storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFlagDef64
+    public readonly struct BitFlag64
     {
         private readonly ulong _mask;
 
         public int Shift => BitOperations.TrailingZeroCount(_mask);
 
-        public BitFlagDef64(int shift)
+        public BitFlag64(int shift)
         {
             if (shift < 0 || shift >= 64)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -208,7 +208,7 @@ namespace Stardust.Utilities
     /// Non-generic bitfield for uint storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFieldDef32
+    public readonly struct BitField32
     {
         private readonly int _shift;
         private readonly uint _mask;
@@ -217,7 +217,7 @@ namespace Stardust.Utilities
         public int Shift => _shift;
         public int Width => BitOperations.PopCount(_mask);
 
-        public BitFieldDef32(int shift, int width)
+        public BitField32(int shift, int width)
         {
             if (shift < 0 || shift >= 32)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -255,13 +255,13 @@ namespace Stardust.Utilities
     /// Non-generic bit flag for uint storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFlagDef32
+    public readonly struct BitFlag32
     {
         private readonly uint _mask;
 
         public int Shift => BitOperations.TrailingZeroCount(_mask);
 
-        public BitFlagDef32(int shift)
+        public BitFlag32(int shift)
         {
             if (shift < 0 || shift >= 32)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -283,7 +283,7 @@ namespace Stardust.Utilities
     /// Non-generic bitfield for ushort storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFieldDef16
+    public readonly struct BitField16
     {
         private readonly int _shift;
         private readonly ushort _mask;
@@ -292,7 +292,7 @@ namespace Stardust.Utilities
         public int Shift => _shift;
         public int Width => BitOperations.PopCount(_mask);
 
-        public BitFieldDef16(int shift, int width)
+        public BitField16(int shift, int width)
         {
             if (shift < 0 || shift >= 16)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -323,13 +323,13 @@ namespace Stardust.Utilities
     /// Non-generic bit flag for ushort storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFlagDef16
+    public readonly struct BitFlag16
     {
         private readonly ushort _mask;
 
         public int Shift => BitOperations.TrailingZeroCount(_mask);
 
-        public BitFlagDef16(int shift)
+        public BitFlag16(int shift)
         {
             if (shift < 0 || shift >= 16)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -351,7 +351,7 @@ namespace Stardust.Utilities
     /// Non-generic bitfield for byte storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFieldDef8
+    public readonly struct BitField8
     {
         private readonly int _shift;
         private readonly byte _mask;
@@ -360,7 +360,7 @@ namespace Stardust.Utilities
         public int Shift => _shift;
         public int Width => BitOperations.PopCount(_mask);
 
-        public BitFieldDef8(int shift, int width)
+        public BitField8(int shift, int width)
         {
             if (shift < 0 || shift >= 8)
                 throw new ArgumentOutOfRangeException(nameof(shift));
@@ -384,13 +384,13 @@ namespace Stardust.Utilities
     /// Non-generic bit flag for byte storage. Use for hot paths requiring maximum performance.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct BitFlagDef8
+    public readonly struct BitFlag8
     {
         private readonly byte _mask;
 
         public int Shift => BitOperations.TrailingZeroCount(_mask);
 
-        public BitFlagDef8(int shift)
+        public BitFlag8(int shift)
         {
             if (shift < 0 || shift >= 8)
                 throw new ArgumentOutOfRangeException(nameof(shift));

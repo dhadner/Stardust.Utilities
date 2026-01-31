@@ -36,7 +36,7 @@ The BitField feature automatically creates property implementations for bit fiel
 
 #### [+] Zero Performance Overhead
 
-The code generator produces **exactly the same code** you would write by hand using the non-generic `BitFieldDef32`, `BitFlagDef64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
+The code generator produces **exactly the same code** you would write by hand using the non-generic `BitField32`, `BitFlag64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
 
 **Use the code generator with confidence in hot paths** -- you get clean, readable property syntax with the same performance as manual bit manipulation.
 
@@ -113,14 +113,14 @@ status = 0x42;                 // Converts from byte
 
 #### Manual BitField Usage (No Source Generator)
 
-If you prefer not to use the source generator, you can use the BitFieldDef types directly:
+If you prefer not to use the source generator, you can use the BitField types directly:
 
 ```csharp
 using Stardust.Utilities;
 
 // Define fields once (typically as static readonly)
-private static readonly BitFieldDef32 ModeField = new(shift: 2, width: 3);
-private static readonly BitFlagDef32 ReadyFlag = new(shift: 0);
+private static readonly BitField32 ModeField = new(shift: 2, width: 3);
+private static readonly BitFlag32 ReadyFlag = new(shift: 0);
 
 // Use them
 uint value = 0;
@@ -131,7 +131,7 @@ byte mode = ModeField.GetByte(value);  // Read mode
 bool ready = ReadyFlag.IsSet(value);   // Read ready flag
 ```
 
-Available non-generic types: `BitFieldDef8`, `BitFieldDef16`, `BitFieldDef32`, `BitFieldDef64` and their flag counterparts `BitFlagDef8`, `BitFlagDef16`, `BitFlagDef32`, `BitFlagDef64`.
+Available non-generic types: `BitField8`, `BitField16`, `BitField32`, `BitField64` and their flag counterparts `BitFlag8`, `BitFlag16`, `BitFlag32`, `BitFlag64`.
 
 ---
 
