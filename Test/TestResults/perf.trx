@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="1ed31569-8f1c-414d-8820-b467bb47f839" name="danhe@DANS-PC 2026-01-30 20:59:25" runUser="DANS-PC\danhe" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-01-30T20:59:25.2860939-08:00" queuing="2026-01-30T20:59:25.2860942-08:00" start="2026-01-30T20:57:14.5650839-08:00" finish="2026-01-30T20:59:25.2906875-08:00" />
+  <TestSettings name="default" id="24cdbf74-ea6c-4cd2-b472-048fb3ecda2d">
+    <Deployment runDeploymentRoot="danhe_DANS-PC_2026-01-30_20_59_25" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="eb9d9021-8d81-412a-9722-44baffe77cba" testId="e6edfb5d-1dfc-aaa5-cd82-896b847b7150" testName="Stardust.Utilities.Tests.BitFieldPerformanceTests.FullSuite_Performance_Summary" computerName="DANS-PC" duration="00:02:09.8415790" startTime="2026-01-30T20:57:15.3446748-08:00" endTime="2026-01-30T20:59:25.1933805-08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eb9d9021-8d81-412a-9722-44baffe77cba">
+      <Output>
+        <StdOut>======================================================================&#xD;
+BITFIELD PERFORMANCE SUMMARY WITH STATISTICS&#xD;
+Runs: 20, Iterations per run: 100,000,000&#xD;
+======================================================================&#xD;
+&#xD;
+Run 1/20...&#xD;
+Run 2/20...&#xD;
+Run 3/20...&#xD;
+Run 4/20...&#xD;
+Run 5/20...&#xD;
+Run 6/20...&#xD;
+Run 7/20...&#xD;
+Run 8/20...&#xD;
+Run 9/20...&#xD;
+Run 10/20...&#xD;
+Run 11/20...&#xD;
+Run 12/20...&#xD;
+Run 13/20...&#xD;
+Run 14/20...&#xD;
+Run 15/20...&#xD;
+Run 16/20...&#xD;
+Run 17/20...&#xD;
+Run 18/20...&#xD;
+Run 19/20...&#xD;
+Run 20/20...&#xD;
+&#xD;
+======================================================================&#xD;
+STATISTICAL RESULTS (mean ± std dev)&#xD;
+======================================================================&#xD;
+&#xD;
+Test           Generated (ms)     Hand-coded (ms)    Ratio&#xD;
+----------------------------------------------------------------------&#xD;
+BitFlag GET       584 ±   14         568 ±   15      1.029 ± 0.035&#xD;
+BitFlag SET       825 ±   27         821 ±   22      1.006 ± 0.031&#xD;
+BitField GET      402 ±   36         405 ±   18      0.995 ± 0.087&#xD;
+BitField SET      413 ±    9         410 ±    7      1.007 ± 0.020&#xD;
+Mixed R/W        1031 ±   13        1030 ±   23      1.001 ± 0.024&#xD;
+----------------------------------------------------------------------&#xD;
+OVERALL                                               1.008 ± 0.048&#xD;
+&#xD;
+Result: Generated code is SLOWER by 0.8% on average&#xD;
+        95% confidence interval: 0.914 to 1.102</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Stardust.Utilities.Tests.BitFieldPerformanceTests.FullSuite_Performance_Summary" storage="c:\users\danhe\onedrive\documents\github\macview\stardust.utilities\test\bin\debug\net10.0\stardust.utilities.tests.dll" id="e6edfb5d-1dfc-aaa5-cd82-896b847b7150">
+      <Execution id="eb9d9021-8d81-412a-9722-44baffe77cba" />
+      <TestMethod codeBase="C:\Users\danhe\OneDrive\Documents\GitHub\MacView\Stardust.Utilities\Test\bin\Debug\net10.0\Stardust.Utilities.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Stardust.Utilities.Tests.BitFieldPerformanceTests" name="FullSuite_Performance_Summary" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="e6edfb5d-1dfc-aaa5-cd82-896b847b7150" executionId="eb9d9021-8d81-412a-9722-44baffe77cba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.2)&#xD;
+[xUnit.net 00:00:00.08]   Discovering: Stardust.Utilities.Tests&#xD;
+[xUnit.net 00:00:00.15]   Discovered:  Stardust.Utilities.Tests&#xD;
+[xUnit.net 00:00:00.17]   Starting:    Stardust.Utilities.Tests&#xD;
+     Warning:&#xD;
+     The component "Fluent Assertions" is governed by the rules defined in the Xceed License Agreement and&#xD;
+     the Xceed Fluent Assertions Community License. You may use Fluent Assertions free of charge for&#xD;
+     non-commercial use only. An active subscription is required to use Fluent Assertions for commercial use.&#xD;
+     Please contact Xceed Sales mailto:sales@xceed.com to acquire a subscription at a very low cost.&#xD;
+     A paid commercial license supports the development and continued increasing support of&#xD;
+     Fluent Assertions users under both commercial and community licenses. Help us&#xD;
+     keep Fluent Assertions at the forefront of unit testing.&#xD;
+     For more information, visit https://xceed.com/products/unit-testing/fluent-assertions/&#xD;
+[xUnit.net 00:02:10.05]   Finished:    Stardust.Utilities.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

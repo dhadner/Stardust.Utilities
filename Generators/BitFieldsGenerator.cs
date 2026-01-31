@@ -9,9 +9,7 @@ namespace Stardust.Generators;
 
 /// <summary>
 /// Source generator for [BitFields] attributed structs.
-/// This generator is a FALLBACK - it generates code that the disk-based tool would create.
-/// The disk-based tool creates .Generated.cs files that are committed to Git.
-/// If those files exist, they are compiled directly and this generator's output is unused.
+/// Generates inline bit manipulation code with compile-time constants for maximum performance.
 /// </summary>
 [Generator]
 public class BitFieldsGenerator : IIncrementalGenerator
@@ -65,14 +63,14 @@ public class BitFieldsGenerator : IIncrementalGenerator
                 var attrName = attr.AttributeClass?.Name;
                 if (attrName == "BitFieldAttribute" && attr.ConstructorArguments.Length >= 2)
                 {
-                    var shift = attr.ConstructorArguments[0].Value?.ToString() ?? "0";
-                    var width = attr.ConstructorArguments[1].Value?.ToString() ?? "1";
+                    var shift = (int)(attr.ConstructorArguments[0].Value ?? 0);
+                    var width = (int)(attr.ConstructorArguments[1].Value ?? 1);
                     var propType = member.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                     fields.Add(new BitFieldInfo(member.Name, propType, shift, width));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
-                    var bit = attr.ConstructorArguments[0].Value?.ToString() ?? "0";
+                    var bit = (int)(attr.ConstructorArguments[0].Value ?? 0);
                     flags.Add(new BitFlagInfo(member.Name, bit));
                 }
             }
@@ -123,61 +121,18 @@ public class BitFieldsGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        var defType = info.StorageType switch
-        {
-            "byte" => "8",
-            "ushort" => "16",
-            "uint" => "32",
-            "ulong" => "64",
-            _ => "32"
-        };
-
         sb.AppendLine($"{info.Accessibility} partial struct {info.TypeName}");
         sb.AppendLine("{");
 
-        // Generate static field definitions
+        // Generate property implementations with inline constants
         foreach (var field in info.Fields)
         {
-            sb.AppendLine($"    private static readonly Stardust.Utilities.BitField{defType} _{field.Name} = new({field.Shift}, {field.Width});");
-        }
-        foreach (var flag in info.Flags)
-        {
-            sb.AppendLine($"    private static readonly Stardust.Utilities.BitFlag{defType} _{flag.Name} = new({flag.Bit});");
-        }
-        sb.AppendLine();
-
-        // Generate property implementations
-        foreach (var field in info.Fields)
-        {
-            var extractMethod = field.PropertyType switch
-            {
-                "byte" => "GetByte",
-                "ushort" => "GetUShort",
-                "uint" => "GetUInt",
-                "ulong" => "GetULong",
-                _ => "GetByte"
-            };
-
-            sb.AppendLine($"    public partial {field.PropertyType} {field.Name}");
-            sb.AppendLine("    {");
-            sb.AppendLine($"        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"        get => _{field.Name}.{extractMethod}(Value);");
-            sb.AppendLine($"        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"        set => Value = _{field.Name}.Set(Value, value);");
-            sb.AppendLine("    }");
-            sb.AppendLine();
+            GenerateBitFieldProperty(sb, info.StorageType, field);
         }
 
         foreach (var flag in info.Flags)
         {
-            sb.AppendLine($"    public partial bool {flag.Name}");
-            sb.AppendLine("    {");
-            sb.AppendLine($"        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"        get => _{flag.Name}.IsSet(Value);");
-            sb.AppendLine($"        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"        set => Value = _{flag.Name}.Set(Value, value);");
-            sb.AppendLine("    }");
-            sb.AppendLine();
+            GenerateBitFlagProperty(sb, info.StorageType, flag);
         }
 
         // Generate implicit conversions
@@ -187,6 +142,93 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine("}");
 
         context.AddSource($"{info.TypeName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+    }
+
+    /// <summary>
+    /// Generates a BitField property with inline constants for maximum performance.
+    /// </summary>
+    private static void GenerateBitFieldProperty(StringBuilder sb, string storageType, BitFieldInfo field)
+    {
+        int shift = field.Shift;
+        int width = field.Width;
+        
+        // Calculate masks as compile-time constants
+        ulong mask = (1UL << width) - 1;
+        ulong shiftedMask = mask << shift;
+        ulong invertedShiftedMask = ~shiftedMask;
+
+        // Format masks based on storage type
+        string maskHex = FormatHex(mask, storageType);
+        string shiftedMaskHex = FormatHex(shiftedMask, storageType);
+        string invertedMaskHex = FormatHex(invertedShiftedMask, storageType);
+
+        sb.AppendLine($"    public partial {field.PropertyType} {field.Name}");
+        sb.AppendLine("    {");
+        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        
+        // Getter: (storageType)((Value >> shift) & mask)
+        if (shift == 0)
+        {
+            sb.AppendLine($"        get => ({field.PropertyType})(Value & {maskHex});");
+        }
+        else
+        {
+            sb.AppendLine($"        get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
+        }
+        
+        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        
+        // Setter: Value = (storageType)((Value & ~shiftedMask) | ((value << shift) & shiftedMask))
+        if (shift == 0)
+        {
+            sb.AppendLine($"        set => Value = ({storageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex}));");
+        }
+        else
+        {
+            sb.AppendLine($"        set => Value = ({storageType})((Value & {invertedMaskHex}) | ((({storageType})value << {shift}) & {shiftedMaskHex}));");
+        }
+        
+        sb.AppendLine("    }");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates a BitFlag property with inline constants for maximum performance.
+    /// </summary>
+    private static void GenerateBitFlagProperty(StringBuilder sb, string storageType, BitFlagInfo flag)
+    {
+        int bit = flag.Bit;
+        
+        // Calculate mask as compile-time constant
+        ulong mask = 1UL << bit;
+        ulong invertedMask = ~mask;
+
+        string maskHex = FormatHex(mask, storageType);
+        string invertedMaskHex = FormatHex(invertedMask, storageType);
+
+        sb.AppendLine($"    public partial bool {flag.Name}");
+        sb.AppendLine("    {");
+        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"        get => (Value & {maskHex}) != 0;");
+        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"        set => Value = value ? ({storageType})(Value | {maskHex}) : ({storageType})(Value & {invertedMaskHex});");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Formats a value as a hex literal appropriate for the storage type.
+    /// </summary>
+    private static string FormatHex(ulong value, string storageType)
+    {
+        return storageType switch
+        {
+            "byte" => $"0x{(byte)value:X2}",
+            "ushort" => $"0x{(ushort)value:X4}",
+            "uint" => $"0x{(uint)value:X8}U",
+            "ulong" => $"0x{value:X16}UL",
+            _ => $"0x{value:X}"
+        };
     }
 }
 
@@ -216,10 +258,10 @@ internal sealed class BitFieldInfo
 {
     public string Name { get; }
     public string PropertyType { get; }
-    public string Shift { get; }
-    public string Width { get; }
+    public int Shift { get; }
+    public int Width { get; }
 
-    public BitFieldInfo(string name, string propertyType, string shift, string width)
+    public BitFieldInfo(string name, string propertyType, int shift, int width)
     {
         Name = name;
         PropertyType = propertyType;
@@ -231,9 +273,9 @@ internal sealed class BitFieldInfo
 internal sealed class BitFlagInfo
 {
     public string Name { get; }
-    public string Bit { get; }
+    public int Bit { get; }
 
-    public BitFlagInfo(string name, string bit)
+    public BitFlagInfo(string name, int bit)
     {
         Name = name;
         Bit = bit;

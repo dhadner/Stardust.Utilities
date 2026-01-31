@@ -28,6 +28,8 @@ A collection of utility types for .NET applications, focused on bit manipulation
 
 ## Features
 
+
+
 ### BitField
 
 **The easiest way to work with hardware registers and bit-packed data.**
@@ -36,9 +38,22 @@ The BitField feature automatically creates property implementations for bit fiel
 
 #### [+] Zero Performance Overhead
 
-The code generator produces **exactly the same code** you would write by hand using the non-generic `BitField32`, `BitFlag64`, etc. classes. There is no abstraction penalty, no runtime reflection, and no boxing. The generated code uses the optimized, non-generic bit manipulation types with `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for maximum performance.
+The source generator emits **inline bit manipulation with compile-time constants** — the exact same code you would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no static field allocations.
 
-**Use the code generator with confidence in hot paths** -- you get clean, readable property syntax with the same performance as manual bit manipulation.
+**Benchmark Results** (n=20 runs, 100M iterations each, .NET 10):
+
+| Test | Generated | ? | Hand-coded | ? | Ratio | ? | 95% CI |
+|------|-----------|---|------------|---|-------|---|--------|
+| BitFlag GET | 584 ms | 14 | 568 ms | 15 | 1.029 | 0.035 | 0.960 – 1.098 |
+| BitFlag SET | 825 ms | 27 | 821 ms | 22 | 1.006 | 0.031 | 0.945 – 1.067 |
+| BitField GET | 402 ms | 36 | 405 ms | 18 | 0.995 | 0.087 | 0.824 – 1.166 |
+| BitField SET | 413 ms | 9 | 410 ms | 7 | 1.007 | 0.020 | 0.968 – 1.046 |
+| Mixed R/W | 1031 ms | 13 | 1030 ms | 23 | 1.001 | 0.024 | 0.954 – 1.048 |
+| **Overall** | | | | | **1.008** | **0.048** | **0.914 – 1.102** |
+
+*? = standard deviation (1 sigma). 95% CI = mean ± 1.96?.*
+
+**Result:** Generated code performs within **0.8%** of hand-coded on average.
 
 #### Quick Start
 
@@ -58,6 +73,7 @@ public partial struct StatusRegister
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
+
 
     // Multi-bit fields
     [BitField(2, 3)] public partial byte Mode { get; set; }  // Bits 2-4 (3 bits wide)
