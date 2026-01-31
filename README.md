@@ -91,7 +91,6 @@ public partial struct StatusRegister
     [BitField(2, 3)] public partial byte Mode { get; set; }
     [BitField(5, 2)] public partial byte Priority { get; set; }
 }
-}
 ```
 
 The source generator automatically creates the property implementations during build.
