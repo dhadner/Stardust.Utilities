@@ -6,22 +6,56 @@ namespace Stardust.Utilities
     /// Marks a struct as a bit register, enabling source generation for bitfield properties.
     /// </summary>
     /// <remarks>
-    /// Usage:
+    /// Two usage patterns are supported:
+    /// <para>
+    /// 1. User declares Value field (recommended for best performance):
     /// <code>
     /// [BitFields]
     /// public partial struct MyRegister
     /// {
-    ///     public ulong Value;
+    ///     public byte Value;
     ///     
-    ///     [BitField(0, 8)] public partial byte LowByte { get; set; }
-    ///     [BitFlag(15)] public partial bool Flag { get; set; }
+    ///     [BitField(0, 4)] public partial byte LowNibble { get; set; }
+    ///     [BitFlag(7)] public partial bool Flag { get; set; }
     /// }
     /// </code>
+    /// </para>
+    /// <para>
+    /// 2. Generator creates Value field (less boilerplate):
+    /// <code>
+    /// [BitFields(typeof(byte))]
+    /// public partial struct MyRegister
+    /// {
+    ///     [BitField(0, 4)] public partial byte LowNibble { get; set; }
+    ///     [BitFlag(7)] public partial bool Flag { get; set; }
+    /// }
+    /// </code>
+    /// </para>
     /// The generator creates property implementations and implicit conversion operators.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class BitFieldsAttribute : Attribute
     {
+        /// <summary>
+        /// The storage type (byte, ushort, uint, or ulong). Null if user declares Value field.
+        /// </summary>
+        public Type? StorageType { get; }
+
+        /// <summary>
+        /// Creates a BitFields attribute where the user declares the Value field.
+        /// </summary>
+        public BitFieldsAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Creates a BitFields attribute where the generator creates a private Value field.
+        /// </summary>
+        /// <param name="storageType">The storage type (byte, ushort, uint, or ulong).</param>
+        public BitFieldsAttribute(Type storageType)
+        {
+            StorageType = storageType;
+        }
     }
 
     /// <summary>

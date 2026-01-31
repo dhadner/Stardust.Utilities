@@ -34,23 +34,42 @@ public class BitFieldsGenerator : IIncrementalGenerator
         if (context.TargetSymbol is not INamedTypeSymbol structSymbol)
             return null;
 
-        // Find Value field/property and its type
+        // Get [BitFields] attribute
+        var bitFieldsAttr = structSymbol.GetAttributes()
+            .FirstOrDefault(a => a.AttributeClass?.Name == "BitFieldsAttribute");
+
+        if (bitFieldsAttr == null)
+            return null;
+
         string? storageType = null;
+        bool hasUserValueField = false;
+
+        // First, check if user declared a Value field (preferred for performance)
         foreach (var member in structSymbol.GetMembers())
         {
             if (member is IFieldSymbol field && field.Name == "Value")
             {
                 storageType = field.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                break;
-            }
-            if (member is IPropertySymbol prop && prop.Name == "Value")
-            {
-                storageType = prop.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                hasUserValueField = true;
                 break;
             }
         }
 
+        // If no user Value field, get type from attribute: [BitFields(typeof(byte))]
+        if (storageType == null && bitFieldsAttr.ConstructorArguments.Length >= 1)
+        {
+            var storageTypeArg = bitFieldsAttr.ConstructorArguments[0];
+            if (storageTypeArg.Value is INamedTypeSymbol storageTypeSymbol)
+            {
+                storageType = storageTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            }
+        }
+
         if (storageType == null)
+            return null;
+
+        // Validate storage type
+        if (storageType != "byte" && storageType != "ushort" && storageType != "uint" && storageType != "ulong")
             return null;
 
         var fields = new List<BitFieldInfo>();
@@ -88,6 +107,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
             ns,
             GetAccessibility(structSymbol),
             storageType,
+            hasUserValueField,
             fields,
             flags);
     }
@@ -124,6 +144,16 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine($"{info.Accessibility} partial struct {info.TypeName}");
         sb.AppendLine("{");
 
+        // Only generate Value field and constructor if user didn't declare one
+        if (!info.HasUserValueField)
+        {
+            sb.AppendLine($"    private {info.StorageType} Value;");
+            sb.AppendLine();
+            sb.AppendLine($"    public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
+            sb.AppendLine();
+        }
+
+
         // Generate property implementations with inline constants
         foreach (var field in info.Fields)
         {
@@ -136,13 +166,27 @@ public class BitFieldsGenerator : IIncrementalGenerator
         }
 
         // Generate implicit conversions
+        sb.AppendLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"    public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
-        sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new() {{ Value = value }};");
+        sb.AppendLine();
+        sb.AppendLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        if (info.HasUserValueField)
+        {
+            // User declared Value field - use object initializer
+            sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new() {{ Value = value }};");
+        }
+        else
+        {
+            // Generator created Value field (private) - use constructor
+            sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
+        }
 
         sb.AppendLine("}");
 
         context.AddSource($"{info.TypeName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
     }
+
+
 
     /// <summary>
     /// Generates a BitField property with inline constants for maximum performance.
@@ -234,21 +278,24 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
 #region Info Classes
 
+
 internal sealed class BitFieldsInfo
 {
     public string TypeName { get; }
     public string? Namespace { get; }
     public string Accessibility { get; }
     public string StorageType { get; }
+    public bool HasUserValueField { get; }
     public List<BitFieldInfo> Fields { get; }
     public List<BitFlagInfo> Flags { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool hasUserValueField, List<BitFieldInfo> fields, List<BitFlagInfo> flags)
     {
         TypeName = typeName;
         Namespace = ns;
         Accessibility = accessibility;
         StorageType = storageType;
+        HasUserValueField = hasUserValueField;
         Fields = fields;
         Flags = flags;
     }
