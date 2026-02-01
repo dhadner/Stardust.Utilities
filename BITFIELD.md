@@ -25,6 +25,11 @@ The generator creates:
 - A private `Value` field of the specified storage type
 - A constructor taking the storage type
 - Property implementations with inline bit manipulation
+- Static `{Name}Bit` properties for each `[BitFlag]`
+- Static `{Name}Mask` properties for each `[BitField]`
+- Bitwise operators: `|`, `&`, `^`, `~`
+- Mixed-type operators (struct with storage type)
+- Equality operators: `==`, `!=`
 - Implicit conversion operators to/from the storage type
 
 ## Attributes
@@ -186,4 +191,70 @@ byte raw = reg.Value;
 MyReg reg = 0xFF;        // Implicit conversion
 byte raw = reg;          // Implicit conversion
 var reg2 = new MyReg(0xFF);  // Constructor
+```
+
+## Operators and Static Properties (v0.7.0+)
+
+### Static Bit Properties
+
+For each `[BitFlag]` property, a static `{Name}Bit` property is generated that returns a struct with only that bit set:
+
+```csharp
+// Instead of:
+IFRFields bit = 0;
+bit.CA1_Vbl = true;
+ClearInterrupt(bit);
+
+// Use the static Bit property:
+ClearInterrupt(IFRFields.CA1_VblBit);
+
+// Combine multiple flags:
+var flags = IFRFields.CA1_VblBit | IFRFields.CA2_RtcBit;
+```
+
+### Static Mask Properties
+
+For each `[BitField]` property, a static `{Name}Mask` property is generated that returns the mask for that field:
+
+```csharp
+// Clear a multi-bit field:
+var reg = ~RegAFields.SoundMask & someValue;
+
+// Check if any bits in a field are set:
+if ((value & RegAFields.SoundMask) != 0) { ... }
+```
+
+### Bitwise Operators
+
+Full support for bitwise operations without casting:
+
+```csharp
+IFRFields a = 0x01;
+IFRFields b = 0x02;
+
+// Binary operators (return struct type)
+var or = a | b;           // Bitwise OR
+var and = a & b;          // Bitwise AND
+var xor = a ^ b;          // Bitwise XOR
+var inv = ~a;             // Bitwise complement
+
+// Mixed-type operators
+var mixed = a | (byte)0x80;
+var mixed2 = (byte)0x40 | b;
+
+// Complex expressions
+var result = IFR & ~IFRFields.EnableBit;  // Clear a flag
+```
+
+### Equality Operators
+
+```csharp
+IFRFields a = 0x42;
+IFRFields b = 0x42;
+
+if (a == b) { ... }     // Equality
+if (a != b) { ... }     // Inequality
+a.Equals(b);            // Object equality
+a.GetHashCode();        // Hash code
+a.ToString();           // Returns "0x42"
 ```

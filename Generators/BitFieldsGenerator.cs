@@ -207,6 +207,24 @@ public class BitFieldsGenerator : IIncrementalGenerator
             GenerateBitFlagProperty(sb, info, flag, memberIndent);
         }
 
+        // Generate static Bit properties for each BitFlag
+        foreach (var flag in info.Flags)
+        {
+            GenerateStaticBitProperty(sb, info, flag, memberIndent);
+        }
+
+        // Generate static Mask properties for each BitField
+        foreach (var field in info.Fields)
+        {
+            GenerateStaticMaskProperty(sb, info, field, memberIndent);
+        }
+
+        // Generate bitwise operators
+        GenerateBitwiseOperators(sb, info, memberIndent);
+
+        // Generate equality operators
+        GenerateEqualityOperators(sb, info, memberIndent);
+
         // Generate implicit conversions
         sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{memberIndent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
@@ -330,6 +348,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
         string maskHex = FormatHex(mask, maskType);
         string invertedMaskHex = FormatHex(invertedMask, maskType);
 
+
         sb.AppendLine($"{indent}public partial bool {flag.Name}");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -348,6 +367,144 @@ public class BitFieldsGenerator : IIncrementalGenerator
         }
         
         sb.AppendLine($"{indent}}}");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates a static property that returns a struct with only the specified bit set.
+    /// E.g., CA1_VblBit returns a new IFRFields with only the CA1_Vbl bit set.
+    /// </summary>
+    private static void GenerateStaticBitProperty(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
+    {
+        int bit = flag.Bit;
+        ulong mask = 1UL << bit;
+        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
+        string maskHex = FormatHex(mask, maskType);
+
+        // For signed types, we need unchecked for values that exceed signed max
+        string castExpr = info.StorageTypeIsSigned 
+            ? $"unchecked(({info.StorageType}){maskHex})"
+            : $"({info.StorageType}){maskHex}";
+
+        sb.AppendLine($"{indent}/// <summary>Returns a {info.TypeName} with only the {flag.Name} bit set.</summary>");
+        sb.AppendLine($"{indent}public static {info.TypeName} {flag.Name}Bit => new({castExpr});");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates a static property that returns a struct with the mask for the specified field.
+    /// E.g., SoundMask returns a new RegAFields with bits 0-2 set (0x07).
+    /// </summary>
+    private static void GenerateStaticMaskProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
+    {
+        int shift = field.Shift;
+        int width = field.Width;
+        ulong mask = ((1UL << width) - 1) << shift;
+        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
+        string maskHex = FormatHex(mask, maskType);
+
+        // For signed types, we need unchecked for values that exceed signed max
+        string castExpr = info.StorageTypeIsSigned 
+            ? $"unchecked(({info.StorageType}){maskHex})"
+            : $"({info.StorageType}){maskHex}";
+
+        sb.AppendLine($"{indent}/// <summary>Returns a {info.TypeName} with the mask for the {field.Name} field (bits {shift}-{shift + width - 1}).</summary>");
+        sb.AppendLine($"{indent}public static {info.TypeName} {field.Name}Mask => new({castExpr});");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates bitwise operators: |, &amp;, ^, ~
+    /// Also generates mixed-type operators with the storage type.
+    /// </summary>
+    private static void GenerateBitwiseOperators(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+        string s = info.StorageType;
+
+        // Unary complement ~
+        sb.AppendLine($"{indent}/// <summary>Bitwise complement operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator ~({t} a) => new(({s})~a.Value);");
+        sb.AppendLine();
+
+        // Binary OR |
+        sb.AppendLine($"{indent}/// <summary>Bitwise OR operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator |({t} a, {t} b) => new(({s})(a.Value | b.Value));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator |({t} a, {s} b) => new(({s})(a.Value | b));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator |({s} a, {t} b) => new(({s})(a | b.Value));");
+        sb.AppendLine();
+
+        // Binary AND &
+        sb.AppendLine($"{indent}/// <summary>Bitwise AND operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator &({t} a, {t} b) => new(({s})(a.Value & b.Value));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator &({t} a, {s} b) => new(({s})(a.Value & b));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator &({s} a, {t} b) => new(({s})(a & b.Value));");
+        sb.AppendLine();
+
+        // Binary XOR ^
+        sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator ^({t} a, {t} b) => new(({s})(a.Value ^ b.Value));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator ^({t} a, {s} b) => new(({s})(a.Value ^ b));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator ^({s} a, {t} b) => new(({s})(a ^ b.Value));");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates equality operators: ==, !=
+    /// Also generates Equals and GetHashCode overrides.
+    /// </summary>
+    private static void GenerateEqualityOperators(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+        string s = info.StorageType;
+
+        // == operator
+        sb.AppendLine($"{indent}/// <summary>Equality operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static bool operator ==({t} a, {t} b) => a.Value == b.Value;");
+        sb.AppendLine();
+
+        // != operator
+        sb.AppendLine($"{indent}/// <summary>Inequality operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static bool operator !=({t} a, {t} b) => a.Value != b.Value;");
+        sb.AppendLine();
+
+        // Equals override
+        sb.AppendLine($"{indent}/// <summary>Determines whether the specified object is equal to the current object.</summary>");
+        sb.AppendLine($"{indent}public override bool Equals(object? obj) => obj is {t} other && Value == other.Value;");
+        sb.AppendLine();
+
+        // GetHashCode override
+        sb.AppendLine($"{indent}/// <summary>Returns the hash code for this instance.</summary>");
+        sb.AppendLine($"{indent}public override int GetHashCode() => Value.GetHashCode();");
+        sb.AppendLine();
+
+        // ToString override
+        sb.AppendLine($"{indent}/// <summary>Returns a string representation of the value.</summary>");
+        sb.AppendLine($"{indent}public override string ToString() => $\"0x{{Value:X}}\";");
         sb.AppendLine();
     }
 

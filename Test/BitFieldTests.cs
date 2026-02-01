@@ -338,6 +338,244 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+    #region Static Bit/Mask Property Tests
+
+    /// <summary>
+    /// Tests static Bit properties for BitFlags.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_StaticBitProperties()
+    {
+        // Each static Bit property should return a struct with only that bit set
+        ((byte)GeneratedStatusReg8.ReadyBit).Should().Be(0x01);  // bit 0
+        ((byte)GeneratedStatusReg8.ErrorBit).Should().Be(0x02);  // bit 1
+        ((byte)GeneratedStatusReg8.BusyBit).Should().Be(0x80);   // bit 7
+
+        // Using static Bit properties to set/clear flags
+        GeneratedStatusReg8 reg = 0;
+        reg = reg | GeneratedStatusReg8.ReadyBit;
+        reg.Ready.Should().BeTrue();
+        ((byte)reg).Should().Be(0x01);
+
+        // Combine multiple flags
+        reg = GeneratedStatusReg8.ReadyBit | GeneratedStatusReg8.ErrorBit;
+        ((byte)reg).Should().Be(0x03);
+    }
+
+    /// <summary>
+    /// Tests static Mask properties for BitFields.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_StaticMaskProperties()
+    {
+        // Each static Mask property should return a struct with the mask for that field
+        ((byte)GeneratedStatusReg8.ModeMask).Should().Be(0x1C);     // bits 2-4
+        ((byte)GeneratedStatusReg8.PriorityMask).Should().Be(0x60); // bits 5-6
+
+        // Using masks to clear a field
+        GeneratedStatusReg8 reg = 0xFF;
+        reg = reg & ~GeneratedStatusReg8.ModeMask;
+        ((byte)reg).Should().Be(0xE3);  // 0xFF & ~0x1C
+        reg.Mode.Should().Be(0);
+        reg.Ready.Should().BeTrue();
+        reg.Busy.Should().BeTrue();
+    }
+
+    #endregion
+
+    #region Bitwise Operator Tests
+
+    /// <summary>
+    /// Tests bitwise OR operator.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_BitwiseOr()
+    {
+        GeneratedStatusReg8 a = 0x01;
+        GeneratedStatusReg8 b = 0x02;
+
+        // Struct | Struct
+        GeneratedStatusReg8 result = a | b;
+        ((byte)result).Should().Be(0x03);
+
+        // Struct | byte
+        result = a | (byte)0x80;
+        ((byte)result).Should().Be(0x81);
+
+        // byte | Struct
+        result = (byte)0x40 | b;
+        ((byte)result).Should().Be(0x42);
+    }
+
+    /// <summary>
+    /// Tests bitwise AND operator.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_BitwiseAnd()
+    {
+        GeneratedStatusReg8 a = 0xFF;
+        GeneratedStatusReg8 b = 0x0F;
+
+        // Struct & Struct
+        GeneratedStatusReg8 result = a & b;
+        ((byte)result).Should().Be(0x0F);
+
+        // Struct & byte
+        result = a & (byte)0xF0;
+        ((byte)result).Should().Be(0xF0);
+
+        // byte & Struct
+        result = (byte)0x55 & b;
+        ((byte)result).Should().Be(0x05);
+    }
+
+    /// <summary>
+    /// Tests bitwise XOR operator.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_BitwiseXor()
+    {
+        GeneratedStatusReg8 a = 0xAA;
+        GeneratedStatusReg8 b = 0x55;
+
+        // Struct ^ Struct
+        GeneratedStatusReg8 result = a ^ b;
+        ((byte)result).Should().Be(0xFF);
+
+        // Struct ^ byte
+        result = a ^ (byte)0xFF;
+        ((byte)result).Should().Be(0x55);
+
+        // byte ^ Struct
+        result = (byte)0xFF ^ b;
+        ((byte)result).Should().Be(0xAA);
+    }
+
+    /// <summary>
+    /// Tests bitwise complement operator.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_BitwiseComplement()
+    {
+        GeneratedStatusReg8 a = 0x0F;
+
+        // ~Struct
+        GeneratedStatusReg8 result = ~a;
+        ((byte)result).Should().Be(0xF0);
+
+        // Double complement should give original
+        result = ~~a;
+        ((byte)result).Should().Be(0x0F);
+    }
+
+    /// <summary>
+    /// Tests combining bitwise operators in complex expressions.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_CombinedBitwiseOperations()
+    {
+        GeneratedStatusReg8 reg = 0xFF;
+
+        // Clear Ready flag using complement and AND
+        reg = reg & ~GeneratedStatusReg8.ReadyBit;
+        reg.Ready.Should().BeFalse();
+        ((byte)reg).Should().Be(0xFE);
+
+        // Set multiple flags using OR
+        reg = 0;
+        reg = reg | GeneratedStatusReg8.ReadyBit | GeneratedStatusReg8.BusyBit;
+        ((byte)reg).Should().Be(0x81);
+
+        // Toggle a flag using XOR
+        reg = reg ^ GeneratedStatusReg8.ReadyBit;
+        reg.Ready.Should().BeFalse();
+        ((byte)reg).Should().Be(0x80);
+    }
+
+    #endregion
+
+    #region Equality Operator Tests
+
+    /// <summary>
+    /// Tests equality operator.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_EqualityOperator()
+    {
+        GeneratedStatusReg8 a = 0x42;
+        GeneratedStatusReg8 b = 0x42;
+        GeneratedStatusReg8 c = 0x24;
+
+        (a == b).Should().BeTrue();
+        (a == c).Should().BeFalse();
+        (b == c).Should().BeFalse();
+
+        // Default value comparison
+        GeneratedStatusReg8 zero1 = 0;
+        GeneratedStatusReg8 zero2 = default;
+        (zero1 == zero2).Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Tests inequality operator.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_InequalityOperator()
+    {
+        GeneratedStatusReg8 a = 0x42;
+        GeneratedStatusReg8 b = 0x42;
+        GeneratedStatusReg8 c = 0x24;
+
+        (a != b).Should().BeFalse();
+        (a != c).Should().BeTrue();
+        (b != c).Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Tests Equals method.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_EqualsMethod()
+    {
+        GeneratedStatusReg8 a = 0x42;
+        GeneratedStatusReg8 b = 0x42;
+        GeneratedStatusReg8 c = 0x24;
+
+        a.Equals(b).Should().BeTrue();
+        a.Equals(c).Should().BeFalse();
+        a.Equals(null).Should().BeFalse();
+        a.Equals("not a struct").Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Tests GetHashCode method.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_GetHashCode()
+    {
+        GeneratedStatusReg8 a = 0x42;
+        GeneratedStatusReg8 b = 0x42;
+        GeneratedStatusReg8 c = 0x24;
+
+        a.GetHashCode().Should().Be(b.GetHashCode());
+        a.GetHashCode().Should().NotBe(c.GetHashCode());
+    }
+
+    /// <summary>
+    /// Tests ToString method.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_ToString()
+    {
+        GeneratedStatusReg8 a = 0x42;
+        a.ToString().Should().Be("0x42");
+
+        GeneratedStatusReg8 b = 0xFF;
+        b.ToString().Should().Be("0xFF");
+    }
+
+    #endregion
 }
 
 #region Generated BitFields Test Structs
