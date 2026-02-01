@@ -114,6 +114,22 @@ public class BitFieldsGenerator : IIncrementalGenerator
             ? null
             : structSymbol.ContainingNamespace.ToDisplayString();
 
+        // Collect containing types (for nested structs)
+        var containingTypes = new List<(string Kind, string Name, string Accessibility)>();
+        var containingType = structSymbol.ContainingType;
+        while (containingType != null)
+        {
+            string kind = containingType.TypeKind switch
+            {
+                TypeKind.Class => "class",
+                TypeKind.Struct => "struct",
+                TypeKind.Interface => "interface",
+                _ => "class"
+            };
+            containingTypes.Insert(0, (kind, containingType.Name, GetAccessibility(containingType)));
+            containingType = containingType.ContainingType;
+        }
+
         return new BitFieldsInfo(
             structSymbol.Name,
             ns,
@@ -122,7 +138,8 @@ public class BitFieldsGenerator : IIncrementalGenerator
             storageTypeIsSigned,
             unsignedStorageType,
             fields,
-            flags);
+            flags,
+            containingTypes);
     }
 
     private static string GetAccessibility(ISymbol symbol)
@@ -154,37 +171,62 @@ public class BitFieldsGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        sb.AppendLine($"{info.Accessibility} partial struct {info.TypeName}");
-        sb.AppendLine("{");
+        // Open containing types (for nested structs)
+        int indentLevel = 0;
+        foreach (var (kind, name, accessibility) in info.ContainingTypes)
+        {
+            sb.AppendLine($"{new string(' ', indentLevel * 4)}{accessibility} partial {kind} {name}");
+            sb.AppendLine($"{new string(' ', indentLevel * 4)}{{");
+            indentLevel++;
+        }
+
+        string indent = new string(' ', indentLevel * 4);
+
+        sb.AppendLine($"{indent}{info.Accessibility} partial struct {info.TypeName}");
+        sb.AppendLine($"{indent}{{");
+
+        string memberIndent = new string(' ', (indentLevel + 1) * 4);
 
         // Generate private Value field and constructor
-        sb.AppendLine($"    private {info.StorageType} Value;");
+        sb.AppendLine($"{memberIndent}private {info.StorageType} Value;");
         sb.AppendLine();
-        sb.AppendLine($"    /// <summary>Creates a new {info.TypeName} with the specified raw value.</summary>");
-        sb.AppendLine($"    public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
+        sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw value.</summary>");
+        sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
         sb.AppendLine();
 
         // Generate property implementations with inline constants
         foreach (var field in info.Fields)
         {
-            GenerateBitFieldProperty(sb, info, field);
+            GenerateBitFieldProperty(sb, info, field, memberIndent);
         }
 
         foreach (var flag in info.Flags)
         {
-            GenerateBitFlagProperty(sb, info, flag);
+            GenerateBitFlagProperty(sb, info, flag, memberIndent);
         }
 
         // Generate implicit conversions
-        sb.AppendLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"    public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
+        sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{memberIndent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
         sb.AppendLine();
-        sb.AppendLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
+        sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{memberIndent}public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
 
-        sb.AppendLine("}");
+        sb.AppendLine($"{indent}}}");
 
-        context.AddSource($"{info.TypeName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+        // Close containing types
+        for (int i = info.ContainingTypes.Count - 1; i >= 0; i--)
+        {
+            indentLevel--;
+            sb.AppendLine($"{new string(' ', indentLevel * 4)}}}");
+        }
+
+        // Generate unique filename for nested types
+        string fileName = info.ContainingTypes.Count > 0
+            ? $"{string.Join("_", info.ContainingTypes.Select(ct => ct.Name))}_{info.TypeName}.g.cs"
+            : $"{info.TypeName}.g.cs";
+
+        context.AddSource(fileName, SourceText.From(sb.ToString(), Encoding.UTF8));
     }
 
 
@@ -193,7 +235,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
     /// <summary>
     /// Generates a BitField property with inline constants for maximum performance.
     /// </summary>
-    private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field)
+    private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
     {
         int shift = field.Shift;
         int width = field.Width;
@@ -211,68 +253,68 @@ public class BitFieldsGenerator : IIncrementalGenerator
         string shiftedMaskHex = FormatHex(shiftedMask, maskType);
         string invertedMaskHex = FormatHex(invertedShiftedMask, maskType);
 
-        sb.AppendLine($"    public partial {field.PropertyType} {field.Name}");
-        sb.AppendLine("    {");
-        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public partial {field.PropertyType} {field.Name}");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
         // Getter: For signed types, cast to unsigned first to avoid sign extension during shift
         if (info.StorageTypeIsSigned)
         {
             if (shift == 0)
             {
-                sb.AppendLine($"        get => ({field.PropertyType})((({info.UnsignedStorageType})Value) & {maskHex});");
+                sb.AppendLine($"{indent}    get => ({field.PropertyType})((({info.UnsignedStorageType})Value) & {maskHex});");
             }
             else
             {
-                sb.AppendLine($"        get => ({field.PropertyType})(((({info.UnsignedStorageType})Value) >> {shift}) & {maskHex});");
+                sb.AppendLine($"{indent}    get => ({field.PropertyType})(((({info.UnsignedStorageType})Value) >> {shift}) & {maskHex});");
             }
         }
         else
         {
             if (shift == 0)
             {
-                sb.AppendLine($"        get => ({field.PropertyType})(Value & {maskHex});");
+                sb.AppendLine($"{indent}    get => ({field.PropertyType})(Value & {maskHex});");
             }
             else
             {
-                sb.AppendLine($"        get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
+                sb.AppendLine($"{indent}    get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
             }
         }
 
-        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
         // Setter: For signed types, do operations in unsigned space then cast back
         if (info.StorageTypeIsSigned)
         {
             if (shift == 0)
             {
-                sb.AppendLine($"        set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex}));");
             }
             else
             {
-                sb.AppendLine($"        set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex}));");
             }
         }
         else
         {
             if (shift == 0)
             {
-                sb.AppendLine($"        set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex}));");
             }
             else
             {
-                sb.AppendLine($"        set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex}));");
             }
         }
         
-        sb.AppendLine("    }");
+        sb.AppendLine($"{indent}}}");
         sb.AppendLine();
     }
 
     /// <summary>
     /// Generates a BitFlag property with inline constants for maximum performance.
     /// </summary>
-    private static void GenerateBitFlagProperty(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag)
+    private static void GenerateBitFlagProperty(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
     {
         int bit = flag.Bit;
         
@@ -286,24 +328,24 @@ public class BitFieldsGenerator : IIncrementalGenerator
         string maskHex = FormatHex(mask, maskType);
         string invertedMaskHex = FormatHex(invertedMask, maskType);
 
-        sb.AppendLine($"    public partial bool {flag.Name}");
-        sb.AppendLine("    {");
-        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public partial bool {flag.Name}");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
         if (info.StorageTypeIsSigned)
         {
-            sb.AppendLine($"        get => ((({info.UnsignedStorageType})Value) & {maskHex}) != 0;");
-            sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"        set => Value = value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex});");
+            sb.AppendLine($"{indent}    get => ((({info.UnsignedStorageType})Value) & {maskHex}) != 0;");
+            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{indent}    set => Value = value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex});");
         }
         else
         {
-            sb.AppendLine($"        get => (Value & {maskHex}) != 0;");
-            sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"        set => Value = value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex});");
+            sb.AppendLine($"{indent}    get => (Value & {maskHex}) != 0;");
+            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{indent}    set => Value = value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex});");
         }
         
-        sb.AppendLine("    }");
+        sb.AppendLine($"{indent}}}");
         sb.AppendLine();
     }
 
@@ -342,8 +384,13 @@ internal sealed class BitFieldsInfo
     public string UnsignedStorageType { get; }
     public List<BitFieldInfo> Fields { get; }
     public List<BitFlagInfo> Flags { get; }
+    /// <summary>
+    /// List of containing types from outermost to innermost (closest to target struct).
+    /// Each tuple contains (TypeKind, TypeName, Accessibility).
+    /// </summary>
+    public List<(string Kind, string Name, string Accessibility)> ContainingTypes { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -353,6 +400,7 @@ internal sealed class BitFieldsInfo
         StorageTypeIsSigned = storageTypeIsSigned;
         Fields = fields;
         Flags = flags;
+        ContainingTypes = containingTypes;
     }
 }
 

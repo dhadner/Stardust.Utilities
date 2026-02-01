@@ -114,6 +114,27 @@ status = 0x42;                 // Converts from byte
 | `uint` | 32 bits | `int` |
 | `ulong` | 64 bits | `long` |
 
+#### Nested Structs
+
+BitFields structs can be nested inside classes or other structs. Containing types must be marked `partial`:
+
+```csharp
+public partial class HardwareController
+{
+    [BitFields(typeof(ushort))]
+    public partial struct StatusRegister
+    {
+        [BitFlag(0)] public partial bool Ready { get; set; }
+        [BitFlag(1)] public partial bool Error { get; set; }
+        [BitField(8, 8)] public partial byte ErrorCode { get; set; }
+    }
+    
+    private StatusRegister _status;
+    
+    public bool IsReady => _status.Ready;
+}
+```
+
 ---
 
 ### Result Types

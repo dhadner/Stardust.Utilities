@@ -6,9 +6,50 @@ namespace Stardust.Utilities.Tests;
 /// <summary>
 /// Unit tests for the [BitFields] source generator.
 /// </summary>
-public class BitFieldTests
+public partial class BitFieldTests
 {
     #region Generated 8-bit BitFields Struct Tests
+
+    public partial class Reg8_InternalClass
+    {
+        [BitFields(typeof(byte))]
+        public partial struct InternalReg8
+        {
+            [BitFlag(0)] public partial bool FlagA { get; set; }
+            [BitFlag(1)] public partial bool FlagB { get; set; }
+            [BitField(3, 2)] public partial byte FieldC { get; set; }
+        }
+
+        public void RunTest()
+        {
+            var reg = new InternalReg8();
+
+            // Test default values
+            reg.FlagA.Should().BeFalse();
+            reg.FlagB.Should().BeFalse();
+            reg.FieldC.Should().Be(0);
+
+            // Test setting values
+            reg.FlagA = true;
+            reg.FlagB = true;
+            reg.FieldC = 3;  // Max value for 2-bit field
+
+            // Test getting values
+            reg.FlagA.Should().BeTrue();
+            reg.FlagB.Should().BeTrue();
+            reg.FieldC.Should().Be(3);
+
+            // FlagA (bit 0) = 1, FlagB (bit 1) = 1, FieldC (bits 3-4) = 3 (0b11 << 3 = 0x18)
+            // Expected: 0x01 | 0x02 | 0x18 = 0x1B
+            ((byte)reg).Should().Be(0x1B);
+        }
+    }
+
+    [Fact]
+    public void Reg8_InternalClass_Works()
+    {
+        new Reg8_InternalClass().RunTest();
+    }
 
     /// <summary>
     /// Tests generated 8-bit BitFields struct - flags.
