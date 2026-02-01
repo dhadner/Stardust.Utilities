@@ -120,7 +120,7 @@ public class BitFieldPerformanceTests
     }
 
     //[Fact]
-    public void BitFlag_Get_Performance()
+    private void BitFlag_Get_Performance()
     {
         _output.WriteLine($"Testing BitFlag GET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
@@ -169,7 +169,7 @@ public class BitFieldPerformanceTests
     }
 
     //[Fact]
-    public void BitFlag_Set_Performance()
+    private void BitFlag_Set_Performance()
     {
         _output.WriteLine($"Testing BitFlag SET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
@@ -214,7 +214,7 @@ public class BitFieldPerformanceTests
     }
 
     //[Fact]
-    public void BitField_Get_Performance()
+    private void BitField_Get_Performance()
     {
         _output.WriteLine($"Testing BitField GET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
@@ -258,7 +258,7 @@ public class BitFieldPerformanceTests
     }
 
     //[Fact]
-    public void BitField_Set_Performance()
+    private void BitField_Set_Performance()
     {
         _output.WriteLine($"Testing BitField SET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));

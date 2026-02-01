@@ -7,7 +7,6 @@ A collection of utility types for .NET applications, focused on bit manipulation
 - [Installation](#installation)
 - [Features](#features)
   - [BitField](#bitfield)
-  - [EnhancedEnum](#enhancedenum)
   - [Result Types](#result-types)
   - [Big-Endian Types](#big-endian-types)
   - [BitStream](#bitstream)
@@ -191,43 +190,64 @@ return Err("Something went wrong");
 
 ### Big-Endian Types
 
-Network byte order (big-endian) integer types with automatic byte swapping.
+**Type-safe network byte order integers with full operator support.**
+
+Big-endian types store bytes in network order (most significant byte first), essential for network protocols, binary file formats, and hardware emulation. These aren't just byte-swapping utilities—they're complete numeric types with arithmetic, bitwise, and comparison operators.
+
+See [ENDIAN.md](ENDIAN.md) for comprehensive documentation and examples.
+
+#### Available Types
+
+| Type | Size | Native Equivalent |
+|------|------|-------------------|
+| `UInt16Be` / `Int16Be` | 2 bytes | `ushort` / `short` |
+| `UInt32Be` / `Int32Be` | 4 bytes | `uint` / `int` |
+| `UInt64Be` / `Int64Be` | 8 bytes | `ulong` / `long` |
+
+#### Quick Example
 
 ```csharp
 using Stardust.Utilities;
 
 // Create from native values
-UInt16Be value16 = 0x1234;  // Stored as 0x12, 0x34 in memory
-UInt32Be value32 = 0x12345678;
-Int16Be signed16 = -1;
-Int32Be signed32 = -1000;
+UInt32Be networkValue = 0x12345678;
+// Stored in memory as: [0x12, 0x34, 0x56, 0x78] (big-endian)
+
+// Arithmetic and bitwise operations work naturally
+UInt32Be sum = networkValue + 100;
+UInt32Be masked = networkValue & 0xFF00FF00;
+
+// Zero-allocation I/O with Span<byte>
+Span<byte> buffer = stackalloc byte[4];
+networkValue.WriteTo(buffer);
+
+// Read back
+var restored = new UInt32Be(buffer);
+// Or: var restored = UInt32Be.ReadFrom(buffer);
 
 // Implicit conversion to/from native types
-ushort native = value16;    // Automatic conversion
-value16 = (ushort)0xABCD;   // Automatic conversion
+uint native = networkValue;
+networkValue = 0xDEADBEEF;
 
-// Arithmetic works normally
-UInt16Be sum = value16 + 1;
+// Modern .NET parsing (IParsable<T>, ISpanParsable<T>)
+UInt64Be parsed = UInt64Be.Parse("18446744073709551615", null);
+if (UInt32Be.TryParse("DEADBEEF".AsSpan(), NumberStyles.HexNumber, null, out var hex))
+{
+    Console.WriteLine(hex);  // 0xdeadbeef
+}
 
-// Serialization to bytes
-byte[] buffer = new byte[4];
-value32.ToBytes(buffer, offset: 0);  // Big-endian order
-
-// Parse from bytes
-var fromBytes = new UInt32Be(buffer, offset: 0);
-
-// Extension methods
-byte hi = value16.Hi();  // High byte
-byte lo = value16.Lo();  // Low byte
+// Allocation-free formatting (ISpanFormattable)
+Span<char> chars = stackalloc char[16];
+networkValue.TryFormat(chars, out int written, "X8", null);
 ```
 
-#### TypeConverters
+#### Key Features
 
-Each type has a corresponding `TypeConverter` for use with `PropertyGrid` and other UI frameworks:
-- `UInt16BeTypeConverter`
-- `UInt32BeTypeConverter`
-- `Int16BeTypeConverter`
-- `Int32BeTypeConverter`
+- **Full operator support**: `+`, `-`, `*`, `/`, `%`, `&`, `|`, `^`, `~`, `<<`, `>>`, `<`, `>`, `==`, etc.
+- **Modern .NET interfaces**: `IParsable<T>`, `ISpanParsable<T>`, `ISpanFormattable`
+- **Zero-allocation APIs**: `ReadOnlySpan<byte>` constructors, `WriteTo(Span<byte>)`, `TryWriteTo()`
+- **Type converters**: PropertyGrid support for UI editing
+- **Guaranteed layout**: `[StructLayout(LayoutKind.Explicit)]` ensures correct byte ordering
 
 ---
 
@@ -262,182 +282,6 @@ stream.Seek(-1, SeekOrigin.Current);
 stream.Truncate(8, SeekOrigin.Begin);  // Remove first 8 bits
 ```
 
-
----
-
-
-### EnhancedEnum
-
-Discriminated unions (sum types) for C#. Similar to Rust enums with associated data.
-
-**Why use this?** In C#, a regular `enum` can only hold a single integer value. But what if each enum case needs to carry *different* data? For example, a debugger command might be "Step" (no data), "SetBreakpoint" (needs an address), or "Evaluate" (needs an expression string). `EnhancedEnum` lets each variant carry its own strongly-typed payload.
-
-Stardust.Utilities provides **three approaches** to discriminated unions:
-
-| Approach | Best For | Pattern Matching | Allocation |
-|----------|----------|------------------|------------|
-| **Source Generator** | Most use cases | Match method | **Zero allocation** (struct) |
-| **EnhancedEnum&lt;T&gt;** | Manual control | Via Deconstruct | Boxes value types |
-| **EnhancedEnumFlex&lt;T&gt;** | Hot paths | Manual if/TryGet | Zero allocation |
-
----
-
-#### EnhancedEnum (Source Generator) **[Recommended]**
-
-The source generator creates a **zero-allocation struct** with inline payload storage. Both value types and reference types are supported.
-
-```csharp
-using Stardust.Utilities;
-
-[EnhancedEnum]
-public partial struct DebugCommand
-{
-    [EnumKind]
-    public enum Kind
-    {
-        [EnumValue(typeof((uint address, int hitCount)))]
-        SetBreakpoint,
-        
-        [EnumValue(typeof(string))]  // Reference types work too
-        Evaluate,
-        
-        [EnumValue]  // No payload
-        Step,
-        
-        [EnumValue]
-        Continue,
-    }
-}
-```
-
-**What gets generated:**
-
-```csharp
-public readonly partial struct DebugCommand : IEquatable<DebugCommand>
-{
-    // Private fields for payloads (stored inline, no boxing)
-    private readonly Kind _tag;
-    private readonly (uint address, int hitCount) _setBreakpointPayload;
-    private readonly string? _evaluatePayload;
-    
-    // Static factory methods
-    public static DebugCommand SetBreakpoint((uint, int) value);
-    public static DebugCommand Evaluate(string value);
-    public static DebugCommand Step();
-    public static DebugCommand Continue();
-    
-    // Is properties
-    public bool IsSetBreakpoint => _tag == Kind.SetBreakpoint;
-    
-    // TryGet methods
-    public bool TryGetSetBreakpoint(out (uint, int) value);
-    
-    // Match methods (exhaustive)
-    public TResult Match<TResult>(
-        Func<(uint, int), TResult> SetBreakpoint,
-        Func<string, TResult> Evaluate,
-        Func<TResult> Step,
-        Func<TResult> @Continue);
-}
-```
-
-**Usage:**
-
-```csharp
-// Create variants using static factory methods
-var cmd1 = DebugCommand.SetBreakpoint((0x00401000u, 3));
-var cmd2 = DebugCommand.Evaluate("PC + 4");
-var cmd3 = DebugCommand.Step();
-
-// Pattern matching with Match (exhaustive, compiler-enforced)
-string result = cmd.Match(
-    SetBreakpoint: bp => $"BP at 0x{bp.address:X8}, hits={bp.hitCount}",
-    Evaluate: expr => $"Eval: {expr}",
-    Step: () => "Step",
-    @Continue: () => "Continue"
-);
-
-// TryGet for conditional access
-if (cmd.TryGetSetBreakpoint(out var bp))
-{
-    Console.WriteLine($"Address: 0x{bp.address:X8}");
-}
-
-// Is properties for quick checks
-if (cmd.IsStep)
-{
-    // Handle step
-}
-
-// Equality works correctly
-var a = DebugCommand.Step();
-var b = DebugCommand.Step();
-bool same = a == b;  // true
-```
-
-**Benefits:**
-- [x] **Zero allocation** - struct, no heap
-- [x] **No boxing** - value payloads stored inline
-- [x] **Reference types supported** - stored as references
-- [x] **Type-safe** - compiler-enforced exhaustive matching
-- [x] **AggressiveInlining** - optimal performance
-
----
-
-#### EnhancedEnum&lt;T&gt; (Manual Approach)
-
-For cases where you need more control or want to avoid the code generator:
-
-```csharp
-using Stardust.Utilities;
-
-public enum DebugCommandKind 
-{ 
-    Step, StepOver, SetBreakpoint, Evaluate
-}
-
-public sealed record DebugCommand : EnhancedEnum<DebugCommandKind>
-{
-    static DebugCommand()
-    {
-        RegisterKindType(DebugCommandKind.Step, null);
-        RegisterKindType(DebugCommandKind.StepOver, null);
-        RegisterKindType(DebugCommandKind.SetBreakpoint, typeof((uint address, int hitCount)));
-        RegisterKindType(DebugCommandKind.Evaluate, typeof(string));
-    }
-
-    public DebugCommand(DebugCommandKind kind, object? value = null) : base(kind, value) { }
-    
-    // Optional: convenience factory methods
-    public static DebugCommand Step() => new(DebugCommandKind.Step);
-    public static DebugCommand SetBreakpoint(uint address, int hitCount = 1) 
-        => new(DebugCommandKind.SetBreakpoint, (address, hitCount));
-}
-```
-
-**Pattern matching via Deconstruct:**
-
-```csharp
-string result = cmd switch
-{
-    (DebugCommandKind.SetBreakpoint, (uint addr, int hits)) => $"BP: {addr:X8}",
-    (DebugCommandKind.Evaluate, string expr) => $"Eval: {expr}",
-    (DebugCommandKind.Step, _) => "Step",
-    _ => "Unknown"
-};
-
-// Type-safe extraction
-if (cmd.TryValueAs(out (uint address, int hitCount) bp))
-{
-    Console.WriteLine($"Address: 0x{bp.address:X8}");
-}
-```
-
----
-
-#### EnhancedEnumFlex&lt;T&gt; (Legacy Zero-Allocation)
-
-`EnhancedEnumFlex<T>` predates the struct-based source generator. For new code, prefer the source generator which offers the same zero-allocation benefits with better ergonomics.
 
 ---
 
@@ -497,13 +341,12 @@ Then clean and rebuild the solution.
 
 ### Generated code not updating
 
-**Problem:** You changed your `[EnhancedEnum]` or `[BitFields]` struct but the generated code wasn't updated.
+**Problem:** You changed your `[BitFields]` struct but the generated code wasn't updated.
 
 **Solution:**
 1. Ensure you're using `partial struct` (not `class` or `record`)
-2. Check that attributes are spelled correctly: `[EnhancedEnum]`, `[EnumKind]`, `[EnumValue]`, `[BitFields]`, `[BitField]`, `[BitFlag]`
-3. For `[EnhancedEnum]`, ensure the `Kind` enum is nested inside the struct and has `[EnumKind]` attribute
-4. Clean and rebuild the solution
+2. Check that attributes are spelled correctly: `[BitFields]`, `[BitField]`, `[BitFlag]`
+3. Clean and rebuild the solution
 
 ### Viewing generated code
 

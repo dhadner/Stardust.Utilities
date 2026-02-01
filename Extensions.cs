@@ -312,6 +312,50 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
+        /// Least-significant uint (lower 32 bits).
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint Lo(this ulong value)
+        {
+            return (uint)(value & 0xFFFFFFFF);
+        }
+
+        /// <summary>
+        /// Least-significant uint (lower 32 bits).
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint Lo(this long value)
+        {
+            return (uint)(value & 0xFFFFFFFF);
+        }
+
+        /// <summary>
+        /// Least-significant UInt32Be.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be Lo(this UInt64Be value)
+        {
+            return value.lo;
+        }
+
+        /// <summary>
+        /// Least-significant UInt32Be.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be Lo(this Int64Be value)
+        {
+            return value.lo;
+        }
+
+        /// <summary>
         /// Least-significant ushort.
         /// </summary>
         /// <param name="value"></param>
@@ -368,6 +412,42 @@ namespace Stardust.Utilities
         public static Int32Be SetLo(this Int32Be value, ushort lo)
         {
             return (Int32Be)((value & 0xffff0000) | lo);
+        }
+
+        /// <summary>
+        /// Set least-significant uint (lower 32 bits).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong SetLo(this ulong value, uint lo)
+        {
+            return (value & 0xFFFFFFFF00000000) | lo;
+        }
+
+        /// <summary>
+        /// Set least-significant uint (lower 32 bits).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long SetLo(this long value, uint lo)
+        {
+            return (long)((ulong)(value & unchecked((long)0xFFFFFFFF00000000)) | lo);
+        }
+
+        /// <summary>
+        /// Set least-significant UInt32Be.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be SetLo(this UInt64Be value, UInt32Be lo)
+        {
+            return new UInt64Be(value.hi, lo);
+        }
+
+        /// <summary>
+        /// Set least-significant UInt32Be.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Be SetLo(this Int64Be value, UInt32Be lo)
+        {
+            return new Int64Be(value.hi, lo);
         }
 
         /// <summary>
@@ -458,6 +538,50 @@ namespace Stardust.Utilities
             return value.hi;
         }
 
+        /// <summary>
+        /// Most-significant uint (upper 32 bits).
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint Hi(this ulong value)
+        {
+            return (uint)(value >> 32);
+        }
+
+        /// <summary>
+        /// Most-significant uint (upper 32 bits).
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint Hi(this long value)
+        {
+            return (uint)((ulong)value >> 32);
+        }
+
+        /// <summary>
+        /// Most-significant UInt32Be.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be Hi(this UInt64Be value)
+        {
+            return value.hi;
+        }
+
+        /// <summary>
+        /// Most-significant UInt32Be.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be Hi(this Int64Be value)
+        {
+            return value.hi;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort SetHi(this ushort value, byte hi)
         {
@@ -498,6 +622,42 @@ namespace Stardust.Utilities
         public static Int32Be SetHi(this Int32Be value, Int16Be hi)
         {
             return (value & 0x0000ffff) | ((Int32Be)hi << 16);
+        }
+
+        /// <summary>
+        /// Set most-significant uint (upper 32 bits).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong SetHi(this ulong value, uint hi)
+        {
+            return (value & 0x00000000FFFFFFFF) | ((ulong)hi << 32);
+        }
+
+        /// <summary>
+        /// Set most-significant uint (upper 32 bits).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long SetHi(this long value, uint hi)
+        {
+            return (long)((ulong)(value & 0x00000000FFFFFFFF) | ((ulong)hi << 32));
+        }
+
+        /// <summary>
+        /// Set most-significant UInt32Be.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be SetHi(this UInt64Be value, UInt32Be hi)
+        {
+            return new UInt64Be(hi, value.lo);
+        }
+
+        /// <summary>
+        /// Set most-significant UInt32Be.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Be SetHi(this Int64Be value, UInt32Be hi)
+        {
+            return new Int64Be(hi, value.lo);
         }
 
         /// <summary>
