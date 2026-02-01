@@ -6,136 +6,133 @@ This guide explains how to modify the source generators and update consuming pro
 
 ```
 Stardust.Utilities/
-??? Stardust.Utilities.csproj    # Main library (types, attributes)
+??? Stardust.Utilities.csproj       # Main library (types, attributes)
 ??? Generators/
-?   ??? Stardust.Generators.csproj   # Source generator project
-?   ??? BitFieldsGenerator.cs        # [BitFields] generator
-?   ??? EnhancedEnumGenerator.cs     # [EnhancedEnum] generator
+?   ??? Stardust.Generators.csproj  # Source generator project
+?   ??? BitFieldsGenerator.cs       # [BitFields] generator
 ??? Test/
 ?   ??? Stardust.Utilities.Tests.csproj
-??? nupkg/                       # Local NuGet packages
-??? README.md
+??? build/
+?   ??? Stardust.Utilities.props    # Auto-enables IntelliSense for consumers
+?   ??? Stardust.Utilities.targets  # Auto-excludes generated files from compilation
+??? nupkg/                          # Local NuGet packages
+??? Build-NuGetPackage.ps1          # Builds the NuGet package
+??? update-generator.ps1            # Updates version and rebuilds packages
+??? README.md                       # User documentation
+??? DEVELOPER.md                    # This file
 ```
+
+## NuGet Package Contents
+
+The `Stardust.Utilities` NuGet package includes:
+
+| Path | Description |
+|------|-------------|
+| `lib/net10.0/Stardust.Utilities.dll` | Main library with attributes and types |
+| `analyzers/dotnet/cs/Stardust.Generators.dll` | Source generator (runs at compile time) |
+| `build/Stardust.Utilities.props` | Auto-enables `EmitCompilerGeneratedFiles` for IntelliSense |
+| `build/Stardust.Utilities.targets` | Auto-excludes generated files from duplicate compilation |
+| `README.md` | Package documentation |
 
 ## What Requires What Workflow?
 
 | What You Changed | How to See Changes |
 |------------------|-------------------|
-| **Stardust.Utilities library** (types, attributes, BitField, etc.) | Just rebuild in Visual Studio |
-| **Stardust.Generators** (source generator code) | Run `update-generator.ps1` |
+| **Stardust.Utilities library** (types, attributes) | Just rebuild in Visual Studio |
+| **Stardust.Generators** (source generator code) | Run `update-generator.ps1 -NewVersion "x.y.z"` |
+| **build/*.props or build/*.targets** | Rebuild the NuGet package |
 
-**Why?** Projects like MacSE.Tests use:
-- `ProjectReference` for Stardust.Utilities ? changes are immediate
-- `PackageReference` for Stardust.Generators ? requires version bump + cache clear
+## Build Scripts
+
+### Build-NuGetPackage.ps1
+
+Builds the complete `Stardust.Utilities` NuGet package including the embedded generator.
+
+```powershell
+# Basic usage (runs tests)
+.\Build-NuGetPackage.ps1 -Configuration Release
+
+# Skip tests for faster builds
+.\Build-NuGetPackage.ps1 -Configuration Release -SkipTests
+
+# Specify a version
+.\Build-NuGetPackage.ps1 -Configuration Release -Version "0.6.0"
+
+# Publish to local NuGet feed (~/.nuget/local-packages)
+.\Build-NuGetPackage.ps1 -Configuration Release -PublishLocal
+```
+
+### update-generator.ps1
+
+Updates the version in both projects and rebuilds all NuGet packages.
+
+```powershell
+# Update to new version
+.\update-generator.ps1 -NewVersion "0.6.0"
+
+# Skip tests for faster builds
+.\update-generator.ps1 -NewVersion "0.6.0" -SkipTests
+```
+
+This script:
+1. Updates `<Version>` in `Generators/Stardust.Generators.csproj`
+2. Updates `<Version>` in `Stardust.Utilities.csproj`
+3. Builds `Stardust.Generators.*.nupkg`
+4. Builds `Stardust.Utilities.*.nupkg`
+5. Copies both packages to `nupkg/` folder
 
 ## Updating the Source Generator
 
 ### Step 1: Make Your Changes
 
-Edit the generator files in `Generators/`:
-- `BitFieldsGenerator.cs` - handles `[BitFields]` structs
-- `EnhancedEnumGenerator.cs` - handles `[EnhancedEnum]` structs
+Edit the generator in `Generators/BitFieldsGenerator.cs`.
 
-### Step 2: Update the Version Number
-
-**Important:** You must increment the version in **both** `.csproj` files:
-
-```xml
-<!-- Stardust.Utilities/Generators/Stardust.Generators.csproj -->
-<Version>0.2.1</Version>
-
-<!-- Stardust.Utilities/Stardust.Utilities.csproj -->
-<Version>0.2.1</Version>
-```
-
-Also update consuming projects' `PackageReference`:
-
-```xml
-<!-- In each project that uses the generator -->
-<PackageReference Include="Stardust.Generators" Version="0.2.1" />
-```
-
-### Step 3: Rebuild the NuGet Package
+### Step 2: Run the Update Script
 
 ```powershell
-# From the solution root directory
-dotnet pack "Stardust.Utilities\Generators\Stardust.Generators.csproj" -c Release -o "Stardust.Utilities\nupkg"
+.\update-generator.ps1 -NewVersion "0.6.0" -SkipTests
 ```
 
-### Step 4: Clear NuGet Cache (Critical!)
+### Step 3: Test Locally
 
-NuGet caches packages aggressively. You **must** clear the cache to pick up the new version:
+If testing with a consuming project (e.g., MacSE):
+1. Update the `PackageReference` version in the consuming project
+2. Clear NuGet cache: `dotnet nuget locals global-packages --clear`
+3. Restore and rebuild
 
-```powershell
-# Clear just this package from the cache
-dotnet nuget locals all --clear
+## Features
 
-# Or more targeted (clears only global-packages cache)
-dotnet nuget locals global-packages --clear
-```
+### Nested Struct Support (v0.5.0+)
 
-### Step 5: Restore and Rebuild
+BitFields structs can be nested inside classes. The containing types must be marked `partial`:
 
-```powershell
-# Restore packages (will fetch new version from local nupkg folder)
-dotnet restore
-
-# Rebuild solution
-dotnet build
-```
-
-## Quick Update Script
-
-Here's a PowerShell script to automate the update process:
-
-```powershell
-# update-generator.ps1
-param(
-    [Parameter(Mandatory=$true)]
-    [string]$NewVersion
-)
-
-Write-Host "Updating Stardust.Generators to version $NewVersion" -ForegroundColor Cyan
-
-# Update version in Generators project
-$genCsproj = "Stardust.Utilities\Generators\Stardust.Generators.csproj"
-(Get-Content $genCsproj) -replace '<Version>.*</Version>', "<Version>$NewVersion</Version>" | Set-Content $genCsproj
-
-# Update version in main project
-$mainCsproj = "Stardust.Utilities\Stardust.Utilities.csproj"
-(Get-Content $mainCsproj) -replace '<Version>.*</Version>', "<Version>$NewVersion</Version>" | Set-Content $mainCsproj
-
-# Update package references in test projects
-$testProjects = @(
-    "Stardust.Utilities\Test\Stardust.Utilities.Tests.csproj",
-    "MacSE.Tests\MacSE.Tests.csproj"
-)
-
-foreach ($proj in $testProjects) {
-    if (Test-Path $proj) {
-        (Get-Content $proj) -replace 'Include="Stardust.Generators" Version="[^"]*"', "Include=`"Stardust.Generators`" Version=`"$NewVersion`"" | Set-Content $proj
-        Write-Host "  Updated $proj" -ForegroundColor Green
+```csharp
+public partial class HardwareController
+{
+    [BitFields(typeof(byte))]
+    public partial struct StatusRegister
+    {
+        [BitFlag(0)] public partial bool Ready { get; set; }
+        [BitField(4, 4)] public partial byte Mode { get; set; }
     }
 }
-
-# Pack the new version
-Write-Host "Packing NuGet package..." -ForegroundColor Cyan
-dotnet pack $genCsproj -c Release -o "Stardust.Utilities\nupkg"
-
-# Clear NuGet cache
-Write-Host "Clearing NuGet cache..." -ForegroundColor Cyan
-dotnet nuget locals global-packages --clear
-
-# Restore
-Write-Host "Restoring packages..." -ForegroundColor Cyan
-dotnet restore
-
-Write-Host "Done! Run 'dotnet build' to verify." -ForegroundColor Green
 ```
 
-**Usage:**
-```powershell
-.\update-generator.ps1 -NewVersion "0.2.1"
+### Automatic IntelliSense (v0.5.2+)
+
+The NuGet package automatically enables IntelliSense for generated code:
+
+- **`.props` file**: Sets `EmitCompilerGeneratedFiles=true` by default
+- **`.targets` file**: Excludes generated files from compilation (prevents duplicates)
+- **Generated files location**: `obj/Generated/` (doesn't clutter project folder)
+
+Users don't need to add any configuration - it just works!
+
+To **disable** automatic file emission, add to your project:
+```xml
+<PropertyGroup>
+  <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+</PropertyGroup>
 ```
 
 ## Troubleshooting
@@ -164,15 +161,28 @@ dotnet build
 2. Clear NuGet cache and restore
 3. Check generator code for compilation errors:
    ```powershell
-   dotnet build "Stardust.Utilities\Generators\Stardust.Generators.csproj"
+   dotnet build "Generators\Stardust.Generators.csproj"
    ```
+
+### Duplicate compilation errors
+
+**Symptom:** CS0102 errors about duplicate definitions.
+
+**Cause:** Both the generator AND the emitted files are being compiled.
+
+**Solution:** The package's `.targets` file should handle this automatically. If not:
+```xml
+<ItemGroup>
+  <Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs" />
+</ItemGroup>
+```
 
 ### Viewing generated code
 
 To see what the generator produces:
 
 1. **Visual Studio:** Project ? Dependencies ? Analyzers ? Stardust.Generators
-2. **File System:** `obj\Debug\net10.0\generated\Stardust.Generators\`
+2. **File System:** `obj\Generated\Stardust.Generators\Stardust.Generators.BitFieldsGenerator\`
 
 ### Debugging the generator
 
@@ -184,8 +194,10 @@ To see what the generator produces:
 
 | Version | Changes |
 |---------|---------|
-| 0.3.0   | **Breaking:** Simplified BitFields API - removed user-declared Value field support. Added signed storage types. |
-| 0.2.0   | Initial release with BitFields and EnhancedEnum generators |
+| 0.5.2   | Auto-enable IntelliSense via .props/.targets files |
+| 0.5.0   | Nested struct support, improved indentation in generated code |
+| 0.3.0   | **Breaking:** Simplified BitFields API, added signed storage types |
+| 0.2.0   | Initial release with BitFields generator |
 
 ## API Simplification Trade Study (v0.3.0)
 
@@ -195,35 +207,7 @@ Prior to v0.3.0, BitFields supported two patterns:
 1. **User-declared Value field**: `[BitFields]` with `public byte Value;`
 2. **Generator-created Value field**: `[BitFields(typeof(byte))]` with private Value
 
-Performance testing was conducted to determine if the user-declared Value field pattern
-offered any performance benefit that justified the API complexity.
-
-### Test Methodology
-
-- **Iterations**: 100,000,000 per test
-- **Runtime**: .NET 10.0
-- **Tests**: READ (direct `.Value` vs implicit cast), WRITE (direct assignment vs implicit),
-  CREATION (object initializer vs constructor), and REAL-WORLD mixed usage patterns.
-
-### Results
-
-| Test | Pattern | Time (ms) | Ops/sec | Ratio |
-|------|---------|-----------|---------|-------|
-| **READ** | Direct `.Value` | 38.33 | 2,608M | 1.00x |
-| | Implicit `(byte)reg` | 24.63 | 4,060M | **0.64x** |
-| **WRITE** | Direct `.Value = x` | 38.99 | 2,564M | 1.00x |
-| | Implicit `reg = x` | 31.94 | 3,130M | **0.82x** |
-| **CREATION** | Object initializer | 65.32 | 1,530M | 1.00x |
-| | Constructor | 57.77 | 1,731M | **0.88x** |
-| **REAL-WORLD** | Direct pattern | 357.25 | 280M | 1.00x |
-| | Implicit pattern | 370.32 | 270M | **1.04x** |
-
-### Conclusions
-
-1. **Implicit conversions are FASTER for isolated operations** (36% faster for reads, 18% faster for writes)
-2. **Constructor initialization is FASTER** than object initializers (12% faster)
-3. **Real-world mixed usage is EQUIVALENT** (~4% difference, within measurement noise)
-4. **No performance justification** exists for the added API complexity
+Performance testing showed no benefit to the user-declared pattern.
 
 ### Decision
 
