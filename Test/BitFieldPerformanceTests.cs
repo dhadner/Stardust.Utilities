@@ -10,24 +10,10 @@ namespace Stardust.Utilities.Tests;
 
 /// <summary>
 /// Generated struct for performance testing.
-/// Uses the simplified API with generator-created Value field.
+/// Generator creates private Value field, constructor, and implicit conversions.
 /// </summary>
 [BitFields(typeof(byte))]
-public partial struct PerfTestUserValueRegister
-{
-    [BitFlag(0)] public partial bool Ready { get; set; }
-    [BitFlag(1)] public partial bool Error { get; set; }
-    [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
-    [BitField(5, 2)] public partial byte Priority { get; set; }
-}
-
-/// <summary>
-/// Generated struct with GENERATOR-CREATED Value field.
-/// Generator creates private Value field and constructor.
-/// </summary>
-[BitFields(typeof(byte))]
-public partial struct PerfTestGenValueRegister
+public partial struct GeneratedTestRegister
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
@@ -40,7 +26,7 @@ public partial struct PerfTestGenValueRegister
 /// Hand-coded struct with identical bit layout for comparison.
 /// This is what a developer would write manually.
 /// </summary>
-public struct PerfTestHandCodedRegister
+public struct HandCodedTestRegister
 {
     public byte Value;
 
@@ -130,7 +116,7 @@ public class BitFieldPerformanceTests
         WarmupHandCoded();
 
         // Test generated code
-        PerfTestUserValueRegister generatedReg = 0xAA;
+        GeneratedTestRegister generatedReg = 0xAA;
         var sw = Stopwatch.StartNew();
         int trueCount = 0;
         for (int i = 0; i < ITERATIONS; i++)
@@ -144,7 +130,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
 
         // Test hand-coded
-        var handCodedReg = new PerfTestHandCodedRegister { Value = 0xAA };
+        var handCodedReg = new HandCodedTestRegister { Value = 0xAA };
         sw.Restart();
         int trueCount2 = 0;
         for (int i = 0; i < ITERATIONS; i++)
@@ -178,7 +164,7 @@ public class BitFieldPerformanceTests
         WarmupHandCoded();
 
         // Test generated code
-        PerfTestUserValueRegister generatedReg = 0;
+        GeneratedTestRegister generatedReg = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -191,7 +177,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
 
         // Test hand-coded
-        var handCodedReg = new PerfTestHandCodedRegister();
+        var handCodedReg = new HandCodedTestRegister();
         sw.Restart();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -223,7 +209,7 @@ public class BitFieldPerformanceTests
         WarmupHandCoded();
 
         // Test generated code
-        var generatedReg = new PerfTestGenValueRegister(0xFF);
+        var generatedReg = new GeneratedTestRegister(0xFF);
         var sw = Stopwatch.StartNew();
         int sum = 0;
         for (int i = 0; i < ITERATIONS; i++)
@@ -236,7 +222,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
 
         // Test hand-coded
-        var handCodedReg = new PerfTestHandCodedRegister { Value = 0xFF };
+        var handCodedReg = new HandCodedTestRegister { Value = 0xFF };
         sw.Restart();
         int sum2 = 0;
         for (int i = 0; i < ITERATIONS; i++)
@@ -267,7 +253,7 @@ public class BitFieldPerformanceTests
         WarmupHandCoded();
 
         // Test generated code
-        PerfTestUserValueRegister generatedReg = 0;
+        GeneratedTestRegister generatedReg = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -279,7 +265,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
 
         // Test hand-coded
-        var handCodedReg = new PerfTestHandCodedRegister();
+        var handCodedReg = new HandCodedTestRegister();
         sw.Restart();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -309,7 +295,7 @@ public class BitFieldPerformanceTests
         WarmupHandCoded();
 
         // Test generated code - realistic usage pattern
-        PerfTestUserValueRegister generatedReg = 0;
+        GeneratedTestRegister generatedReg = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -326,7 +312,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
 
         // Test hand-coded
-        var handCodedReg = new PerfTestHandCodedRegister();
+        var handCodedReg = new HandCodedTestRegister();
         sw.Restart();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -383,7 +369,7 @@ public class BitFieldPerformanceTests
             // BitFlag GET
             var (gen, hand) = RunSingleTest(() =>
             {
-                var reg = new PerfTestGenValueRegister(0xAA);
+                var reg = new GeneratedTestRegister(0xAA);
                 int c = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
@@ -394,7 +380,7 @@ public class BitFieldPerformanceTests
                 return c;
             }, () =>
             {
-                var reg = new PerfTestHandCodedRegister { Value = 0xAA };
+                var reg = new HandCodedTestRegister { Value = 0xAA };
                 int c = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
@@ -409,7 +395,7 @@ public class BitFieldPerformanceTests
             // BitFlag SET
             (gen, hand) = RunSingleTest(() =>
             {
-                var reg = new PerfTestGenValueRegister();
+                var reg = new GeneratedTestRegister();
                 for (int i = 0; i < ITERATIONS; i++)
                 {
                     reg.Ready = true;
@@ -419,7 +405,7 @@ public class BitFieldPerformanceTests
                 return reg;
             }, () =>
             {
-                var reg = new PerfTestHandCodedRegister();
+                var reg = new HandCodedTestRegister();
                 for (int i = 0; i < ITERATIONS; i++)
                 {
                     reg.Ready = true;
@@ -433,7 +419,7 @@ public class BitFieldPerformanceTests
             // BitField GET
             (gen, hand) = RunSingleTest(() =>
             {
-                var reg = new PerfTestGenValueRegister(0xFF);
+                var reg = new GeneratedTestRegister(0xFF);
                 int sum = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
@@ -443,7 +429,7 @@ public class BitFieldPerformanceTests
                 return sum;
             }, () =>
             {
-                var reg = new PerfTestHandCodedRegister { Value = 0xFF };
+                var reg = new HandCodedTestRegister { Value = 0xFF };
                 int sum = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
@@ -457,7 +443,7 @@ public class BitFieldPerformanceTests
             // BitField SET
             (gen, hand) = RunSingleTest(() =>
             {
-                var reg = new PerfTestGenValueRegister();
+                var reg = new GeneratedTestRegister();
                 for (int i = 0; i < ITERATIONS; i++)
                 {
                     reg.Mode = (byte)(i & 0x07);
@@ -466,7 +452,7 @@ public class BitFieldPerformanceTests
                 return reg;
             }, () =>
             {
-                var reg = new PerfTestHandCodedRegister();
+                var reg = new HandCodedTestRegister();
                 for (int i = 0; i < ITERATIONS; i++)
                 {
                     reg.Mode = (byte)(i & 0x07);
@@ -479,7 +465,7 @@ public class BitFieldPerformanceTests
             // Mixed R/W
             (gen, hand) = RunSingleTest(() =>
             {
-                var reg = new PerfTestGenValueRegister();
+                var reg = new GeneratedTestRegister();
                 for (int i = 0; i < ITERATIONS; i++)
                 {
                     reg.Ready = true;
@@ -493,7 +479,7 @@ public class BitFieldPerformanceTests
                 return reg;
             }, () =>
             {
-                var reg = new PerfTestHandCodedRegister();
+                var reg = new HandCodedTestRegister();
                 for (int i = 0; i < ITERATIONS; i++)
                 {
                     reg.Ready = true;
@@ -596,11 +582,11 @@ public class BitFieldPerformanceTests
     {
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
-            PerfTestGenValueRegister reg = (byte)i;
+            GeneratedTestRegister reg = (byte)i;
             reg.Ready = !reg.Ready;
             reg.Mode = (byte)(i & 7);
             _ = reg.Priority;
-            PerfTestUserValueRegister reg2 = (byte)i;
+            GeneratedTestRegister reg2 = (byte)i;
             reg2.Ready = !reg2.Ready;
             reg2.Mode = (byte)(i & 7);
             _ = reg2.Priority;
@@ -610,7 +596,7 @@ public class BitFieldPerformanceTests
     //[MethodImpl(MethodImplOptions.NoInlining)]
     private void WarmupHandCoded()
     {
-        var reg = new PerfTestHandCodedRegister { Value = 0x55 };
+        var reg = new HandCodedTestRegister { Value = 0x55 };
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
             reg.Ready = !reg.Ready;

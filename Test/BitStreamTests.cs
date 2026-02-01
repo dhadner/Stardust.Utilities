@@ -1,4 +1,4 @@
-using Stardust.Utilities.Bits;
+using Stardust.Utilities;
 using System;
 using System.IO;
 using FluentAssertions;

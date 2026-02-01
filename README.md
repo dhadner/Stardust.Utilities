@@ -1,6 +1,6 @@
 # Stardust.Utilities
 
-A collection of utility types for .NET applications, focused on bit manipulation, error handling, and type-safe discriminated unions. Includes source generators for zero-boilerplate `[BitFields]` and `[EnhancedEnum]` structs.
+A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source generator for zero-boilerplate `[BitFields]` structs.
 
 ## Table of Contents
 
@@ -333,11 +333,13 @@ bool noC = opts.IsClear(Options.A);  // false
 
 **Cause:** The source generator isn't running.
 
-**Solution:** Make sure you have the NuGet package installed:
-```xml
-<PackageReference Include="Stardust.Utilities" Version="0.2.0" />
-```
-Then clean and rebuild the solution.
+**Solution:** 
+1. Ensure you have the NuGet package installed:
+   ```xml
+   <PackageReference Include="Stardust.Utilities" Version="0.2.0" />
+   ```
+2. Clean and rebuild the solution
+3. Restart Visual Studio if needed (sometimes required after first install)
 
 ### Generated code not updating
 
@@ -348,14 +350,40 @@ Then clean and rebuild the solution.
 2. Check that attributes are spelled correctly: `[BitFields]`, `[BitField]`, `[BitFlag]`
 3. Clean and rebuild the solution
 
+### IntelliSense not working for generated members
+
+**Problem:** Visual Studio doesn't show IntelliSense for generated properties or methods.
+
+**Solution:**
+1. Build the project at least once (source generators run during build)
+2. If still not working, close and reopen the solution
+3. Check **View ? Error List** for any generator errors
+4. Ensure your Visual Studio is up to date (VS 2022 17.0+ required for incremental generators)
+
 ### Viewing generated code
 
-To inspect the generated code:
-1. In Visual Studio, expand your project in Solution Explorer
+**In Visual Studio:**
+1. Expand your project in **Solution Explorer**
 2. Expand **Dependencies** ? **Analyzers** ? **Stardust.Generators**
-3. You'll see the generated `.g.cs` files for each type
+3. Expand the generator (e.g., **Stardust.Generators.BitFieldsGenerator**)
+4. Double-click any `.g.cs` file to view the generated source
 
-Alternatively, look in your project's `obj/Debug/net*/Stardust.Generators/` folder.
+**On disk:**
+Generated files are located at:
+```
+obj/Debug/net*/generated/Stardust.Generators/
+    Stardust.Generators.BitFieldsGenerator/
+        YourTypeName.g.cs
+```
+
+**Tip:** To persist generated files to disk (useful for source control or debugging), add to your `.csproj`:
+```xml
+<PropertyGroup>
+  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+</PropertyGroup>
+```
+This creates a `Generated/` folder in your project with all generated `.cs` files.
 
 ---
 

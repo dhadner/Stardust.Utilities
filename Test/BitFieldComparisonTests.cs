@@ -26,7 +26,7 @@ public class BitFieldComparisonTests
     [Fact]
     public void Generated_Flags_GetAndSet()
     {
-        PerfTestGenValueRegister reg = 0;
+        GeneratedTestRegister reg = 0;
 
         reg.Ready.Should().BeFalse();
         reg.Error.Should().BeFalse();
@@ -52,7 +52,7 @@ public class BitFieldComparisonTests
     [Fact]
     public void Generated_Fields_GetAndSet()
     {
-        PerfTestGenValueRegister reg = 0;
+        GeneratedTestRegister reg = 0;
 
         reg.Mode.Should().Be(0);
         reg.Priority.Should().Be(0);
@@ -69,7 +69,7 @@ public class BitFieldComparisonTests
     [Fact]
     public void Generated_ImplicitConversion()
     {
-        PerfTestGenValueRegister reg = 0xAA;
+        GeneratedTestRegister reg = 0xAA;
         ((byte)reg).Should().Be(0xAA);
 
         byte value = reg;
@@ -79,7 +79,7 @@ public class BitFieldComparisonTests
     [Fact]
     public void Generated_Constructor()
     {
-        var reg = new PerfTestGenValueRegister(0xFF);
+        var reg = new GeneratedTestRegister(0xFF);
         
         reg.Ready.Should().BeTrue();
         reg.Error.Should().BeTrue();
@@ -96,8 +96,8 @@ public class BitFieldComparisonTests
     public void Generated_MatchesHandCoded_BitPatterns()
     {
         // Test that generated code produces identical bit patterns to hand-coded
-        PerfTestGenValueRegister genReg = 0;
-        var handReg = new PerfTestHandCodedRegister { Value = 0 };
+        GeneratedTestRegister genReg = 0;
+        var handReg = new HandCodedTestRegister { Value = 0 };
 
         // Set same values
         genReg.Ready = true;
@@ -142,7 +142,7 @@ public class BitFieldComparisonTests
         WarmupHandCoded();
 
         // Test Generated
-        PerfTestGenValueRegister genReg = 0xFF;
+        GeneratedTestRegister genReg = 0xFF;
         var sw = Stopwatch.StartNew();
         int sum1 = 0;
         for (int i = 0; i < ITERATIONS; i++)
@@ -155,7 +155,7 @@ public class BitFieldComparisonTests
         _output.WriteLine($"Generated:    {genTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / genTime.TotalSeconds:N0} ops/sec)");
 
         // Test Hand-coded
-        var handReg = new PerfTestHandCodedRegister { Value = 0xFF };
+        var handReg = new HandCodedTestRegister { Value = 0xFF };
         sw.Restart();
         int sum2 = 0;
         for (int i = 0; i < ITERATIONS; i++)
@@ -187,7 +187,7 @@ public class BitFieldComparisonTests
         WarmupHandCoded();
 
         // Test Generated
-        PerfTestGenValueRegister genReg = 0;
+        GeneratedTestRegister genReg = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -199,7 +199,7 @@ public class BitFieldComparisonTests
         _output.WriteLine($"Generated:    {genTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / genTime.TotalSeconds:N0} ops/sec)");
 
         // Test Hand-coded
-        var handReg = new PerfTestHandCodedRegister();
+        var handReg = new HandCodedTestRegister();
         sw.Restart();
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -227,7 +227,7 @@ public class BitFieldComparisonTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void WarmupGenerated()
     {
-        PerfTestGenValueRegister reg = 0x55;
+        GeneratedTestRegister reg = 0x55;
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
             reg.Ready = !reg.Ready;
@@ -239,7 +239,7 @@ public class BitFieldComparisonTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void WarmupHandCoded()
     {
-        var reg = new PerfTestHandCodedRegister { Value = 0x55 };
+        var reg = new HandCodedTestRegister { Value = 0x55 };
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
             reg.Ready = !reg.Ready;

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Stardust.Utilities.Bits
+namespace Stardust.Utilities
 {
     /// <summary>
     /// BitStream class. Allows reading and writing individual bits as well as
