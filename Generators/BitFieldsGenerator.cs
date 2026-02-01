@@ -42,21 +42,9 @@ public class BitFieldsGenerator : IIncrementalGenerator
             return null;
 
         string? storageType = null;
-        bool hasUserValueField = false;
 
-        // First, check if user declared a Value field (preferred for performance)
-        foreach (var member in structSymbol.GetMembers())
-        {
-            if (member is IFieldSymbol field && field.Name == "Value")
-            {
-                storageType = field.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                hasUserValueField = true;
-                break;
-            }
-        }
-
-        // If no user Value field, get type from attribute: [BitFields(typeof(byte))]
-        if (storageType == null && bitFieldsAttr.ConstructorArguments.Length >= 1)
+        // Get type from attribute: [BitFields(typeof(byte))]
+        if (bitFieldsAttr.ConstructorArguments.Length >= 1)
         {
             var storageTypeArg = bitFieldsAttr.ConstructorArguments[0];
             if (storageTypeArg.Value is INamedTypeSymbol storageTypeSymbol)
@@ -68,12 +56,36 @@ public class BitFieldsGenerator : IIncrementalGenerator
         if (storageType == null)
             return null;
 
+        bool storageTypeIsSigned;
+        string unsignedStorageType;
+
         // Validate storage type
-        if (storageType != "byte" && storageType != "ushort" && storageType != "uint" && storageType != "ulong")
+        if (storageType == "byte" || storageType == "ushort" || storageType == "uint" || storageType == "ulong")
+        {
+            storageTypeIsSigned = false;
+            unsignedStorageType = storageType;
+        }
+        else if (storageType == "sbyte" || storageType == "short" || storageType == "int" || storageType == "long")
+        {
+            storageTypeIsSigned = true;
+            unsignedStorageType = storageType switch
+            {
+                "sbyte" => "byte",
+                "short" => "ushort",
+                "int" => "uint",
+                "long" => "ulong",
+                _ => "CAN'T HAPPEN",
+            };
+        }
+        else
+        {
             return null;
+        }
+
 
         var fields = new List<BitFieldInfo>();
         var flags = new List<BitFlagInfo>();
+
 
         foreach (var member in structSymbol.GetMembers().OfType<IPropertySymbol>())
         {
@@ -107,7 +119,8 @@ public class BitFieldsGenerator : IIncrementalGenerator
             ns,
             GetAccessibility(structSymbol),
             storageType,
-            hasUserValueField,
+            storageTypeIsSigned,
+            unsignedStorageType,
             fields,
             flags);
     }
@@ -144,25 +157,22 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine($"{info.Accessibility} partial struct {info.TypeName}");
         sb.AppendLine("{");
 
-        // Only generate Value field and constructor if user didn't declare one
-        if (!info.HasUserValueField)
-        {
-            sb.AppendLine($"    private {info.StorageType} Value;");
-            sb.AppendLine();
-            sb.AppendLine($"    public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
-            sb.AppendLine();
-        }
-
+        // Generate private Value field and constructor
+        sb.AppendLine($"    private {info.StorageType} Value;");
+        sb.AppendLine();
+        sb.AppendLine($"    /// <summary>Creates a new {info.TypeName} with the specified raw value.</summary>");
+        sb.AppendLine($"    public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
+        sb.AppendLine();
 
         // Generate property implementations with inline constants
         foreach (var field in info.Fields)
         {
-            GenerateBitFieldProperty(sb, info.StorageType, field);
+            GenerateBitFieldProperty(sb, info, field);
         }
 
         foreach (var flag in info.Flags)
         {
-            GenerateBitFlagProperty(sb, info.StorageType, flag);
+            GenerateBitFlagProperty(sb, info, flag);
         }
 
         // Generate implicit conversions
@@ -170,16 +180,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine($"    public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
         sb.AppendLine();
         sb.AppendLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        if (info.HasUserValueField)
-        {
-            // User declared Value field - use object initializer
-            sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new() {{ Value = value }};");
-        }
-        else
-        {
-            // Generator created Value field (private) - use constructor
-            sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
-        }
+        sb.AppendLine($"    public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
 
         sb.AppendLine("}");
 
@@ -188,10 +189,11 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
 
 
+
     /// <summary>
     /// Generates a BitField property with inline constants for maximum performance.
     /// </summary>
-    private static void GenerateBitFieldProperty(StringBuilder sb, string storageType, BitFieldInfo field)
+    private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field)
     {
         int shift = field.Shift;
         int width = field.Width;
@@ -201,35 +203,66 @@ public class BitFieldsGenerator : IIncrementalGenerator
         ulong shiftedMask = mask << shift;
         ulong invertedShiftedMask = ~shiftedMask;
 
-        // Format masks based on storage type
-        string maskHex = FormatHex(mask, storageType);
-        string shiftedMaskHex = FormatHex(shiftedMask, storageType);
-        string invertedMaskHex = FormatHex(invertedShiftedMask, storageType);
+        // For signed types, use unsigned type for mask operations to avoid sign extension issues
+        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
+        
+        // Format masks - always use unsigned representation for masks
+        string maskHex = FormatHex(mask, maskType);
+        string shiftedMaskHex = FormatHex(shiftedMask, maskType);
+        string invertedMaskHex = FormatHex(invertedShiftedMask, maskType);
 
         sb.AppendLine($"    public partial {field.PropertyType} {field.Name}");
         sb.AppendLine("    {");
         sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
-        // Getter: (storageType)((Value >> shift) & mask)
-        if (shift == 0)
+        // Getter: For signed types, cast to unsigned first to avoid sign extension during shift
+        if (info.StorageTypeIsSigned)
         {
-            sb.AppendLine($"        get => ({field.PropertyType})(Value & {maskHex});");
+            if (shift == 0)
+            {
+                sb.AppendLine($"        get => ({field.PropertyType})((({info.UnsignedStorageType})Value) & {maskHex});");
+            }
+            else
+            {
+                sb.AppendLine($"        get => ({field.PropertyType})(((({info.UnsignedStorageType})Value) >> {shift}) & {maskHex});");
+            }
         }
         else
         {
-            sb.AppendLine($"        get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
+            if (shift == 0)
+            {
+                sb.AppendLine($"        get => ({field.PropertyType})(Value & {maskHex});");
+            }
+            else
+            {
+                sb.AppendLine($"        get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
+            }
         }
-        
+
         sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
-        // Setter: Value = (storageType)((Value & ~shiftedMask) | ((value << shift) & shiftedMask))
-        if (shift == 0)
+        // Setter: For signed types, do operations in unsigned space then cast back
+        if (info.StorageTypeIsSigned)
         {
-            sb.AppendLine($"        set => Value = ({storageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex}));");
+            if (shift == 0)
+            {
+                sb.AppendLine($"        set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex}));");
+            }
+            else
+            {
+                sb.AppendLine($"        set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex}));");
+            }
         }
         else
         {
-            sb.AppendLine($"        set => Value = ({storageType})((Value & {invertedMaskHex}) | ((({storageType})value << {shift}) & {shiftedMaskHex}));");
+            if (shift == 0)
+            {
+                sb.AppendLine($"        set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex}));");
+            }
+            else
+            {
+                sb.AppendLine($"        set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex}));");
+            }
         }
         
         sb.AppendLine("    }");
@@ -239,7 +272,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
     /// <summary>
     /// Generates a BitFlag property with inline constants for maximum performance.
     /// </summary>
-    private static void GenerateBitFlagProperty(StringBuilder sb, string storageType, BitFlagInfo flag)
+    private static void GenerateBitFlagProperty(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag)
     {
         int bit = flag.Bit;
         
@@ -247,21 +280,36 @@ public class BitFieldsGenerator : IIncrementalGenerator
         ulong mask = 1UL << bit;
         ulong invertedMask = ~mask;
 
-        string maskHex = FormatHex(mask, storageType);
-        string invertedMaskHex = FormatHex(invertedMask, storageType);
+        // For signed types, use unsigned type for mask operations
+        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
+        
+        string maskHex = FormatHex(mask, maskType);
+        string invertedMaskHex = FormatHex(invertedMask, maskType);
 
         sb.AppendLine($"    public partial bool {flag.Name}");
         sb.AppendLine("    {");
         sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"        get => (Value & {maskHex}) != 0;");
-        sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"        set => Value = value ? ({storageType})(Value | {maskHex}) : ({storageType})(Value & {invertedMaskHex});");
+        
+        if (info.StorageTypeIsSigned)
+        {
+            sb.AppendLine($"        get => ((({info.UnsignedStorageType})Value) & {maskHex}) != 0;");
+            sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"        set => Value = value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex});");
+        }
+        else
+        {
+            sb.AppendLine($"        get => (Value & {maskHex}) != 0;");
+            sb.AppendLine("        [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"        set => Value = value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex});");
+        }
+        
         sb.AppendLine("    }");
         sb.AppendLine();
     }
 
     /// <summary>
     /// Formats a value as a hex literal appropriate for the storage type.
+    /// For signed types, uses unchecked cast from unsigned to avoid overflow issues.
     /// </summary>
     private static string FormatHex(ulong value, string storageType)
     {
@@ -271,6 +319,11 @@ public class BitFieldsGenerator : IIncrementalGenerator
             "ushort" => $"0x{(ushort)value:X4}",
             "uint" => $"0x{(uint)value:X8}U",
             "ulong" => $"0x{value:X16}UL",
+            // For signed types, we need unchecked casts because mask values can exceed signed max
+            "sbyte" => $"unchecked((sbyte)0x{(byte)value:X2})",
+            "short" => $"unchecked((short)0x{(ushort)value:X4})",
+            "int" => $"unchecked((int)0x{(uint)value:X8}U)",
+            "long" => $"unchecked((long)0x{value:X16}UL)",
             _ => $"0x{value:X}"
         };
     }
@@ -285,17 +338,19 @@ internal sealed class BitFieldsInfo
     public string? Namespace { get; }
     public string Accessibility { get; }
     public string StorageType { get; }
-    public bool HasUserValueField { get; }
+    public bool StorageTypeIsSigned { get; }
+    public string UnsignedStorageType { get; }
     public List<BitFieldInfo> Fields { get; }
     public List<BitFlagInfo> Flags { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool hasUserValueField, List<BitFieldInfo> fields, List<BitFlagInfo> flags)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags)
     {
         TypeName = typeName;
         Namespace = ns;
         Accessibility = accessibility;
         StorageType = storageType;
-        HasUserValueField = hasUserValueField;
+        UnsignedStorageType = unsignedStorageType;
+        StorageTypeIsSigned = storageTypeIsSigned;
         Fields = fields;
         Flags = flags;
     }

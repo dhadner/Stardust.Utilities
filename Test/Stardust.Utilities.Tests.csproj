@@ -10,18 +10,24 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stardust.Utilities.csproj" />
+    <!-- Source generator project reference for development -->
+    <ProjectReference Include="..\Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Source generator NuGet package -->
-    <PackageReference Include="Stardust.Generators" Version="0.3.1" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Commented out to use project reference instead during development -->
+    <!-- <PackageReference Include="Stardust.Generators" Version="0.3.2" /> -->
     
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
   </ItemGroup>
 
 </Project>

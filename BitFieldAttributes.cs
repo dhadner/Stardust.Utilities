@@ -6,22 +6,7 @@ namespace Stardust.Utilities
     /// Marks a struct as a bit register, enabling source generation for bitfield properties.
     /// </summary>
     /// <remarks>
-    /// Two usage patterns are supported:
-    /// <para>
-    /// 1. User declares Value field (recommended for best performance):
-    /// <code>
-    /// [BitFields]
-    /// public partial struct MyRegister
-    /// {
-    ///     public byte Value;
-    ///     
-    ///     [BitField(0, 4)] public partial byte LowNibble { get; set; }
-    ///     [BitFlag(7)] public partial bool Flag { get; set; }
-    /// }
-    /// </code>
-    /// </para>
-    /// <para>
-    /// 2. Generator creates Value field (less boilerplate):
+    /// Usage:
     /// <code>
     /// [BitFields(typeof(byte))]
     /// public partial struct MyRegister
@@ -29,29 +14,32 @@ namespace Stardust.Utilities
     ///     [BitField(0, 4)] public partial byte LowNibble { get; set; }
     ///     [BitFlag(7)] public partial bool Flag { get; set; }
     /// }
+    /// 
+    /// // Usage with implicit conversions
+    /// MyRegister reg = 0xFF;       // From byte
+    /// byte raw = reg;              // To byte
+    /// var reg2 = new MyRegister(0x55);  // Constructor
     /// </code>
-    /// </para>
-    /// The generator creates property implementations and implicit conversion operators.
+    /// The generator creates:
+    /// <list type="bullet">
+    /// <item>A private Value field of the specified storage type</item>
+    /// <item>A constructor taking the storage type</item>
+    /// <item>Property implementations with inline bit manipulation</item>
+    /// <item>Implicit conversion operators to/from the storage type</item>
+    /// </list>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class BitFieldsAttribute : Attribute
     {
         /// <summary>
-        /// The storage type (byte, ushort, uint, or ulong). Null if user declares Value field.
+        /// The storage type (byte, ushort, uint, ulong, sbyte, short, int, or long).
         /// </summary>
-        public Type? StorageType { get; }
+        public Type StorageType { get; }
 
         /// <summary>
-        /// Creates a BitFields attribute where the user declares the Value field.
+        /// Creates a BitFields attribute with the specified storage type.
         /// </summary>
-        public BitFieldsAttribute()
-        {
-        }
-
-        /// <summary>
-        /// Creates a BitFields attribute where the generator creates a private Value field.
-        /// </summary>
-        /// <param name="storageType">The storage type (byte, ushort, uint, or ulong).</param>
+        /// <param name="storageType">The storage type (byte, ushort, uint, ulong, sbyte, short, int, or long).</param>
         public BitFieldsAttribute(Type storageType)
         {
             StorageType = storageType;

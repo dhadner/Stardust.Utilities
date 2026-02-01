@@ -184,7 +184,61 @@ To see what the generator produces:
 
 | Version | Changes |
 |---------|---------|
+| 0.3.0   | **Breaking:** Simplified BitFields API - removed user-declared Value field support. Added signed storage types. |
 | 0.2.0   | Initial release with BitFields and EnhancedEnum generators |
+
+## API Simplification Trade Study (v0.3.0)
+
+### Background
+
+Prior to v0.3.0, BitFields supported two patterns:
+1. **User-declared Value field**: `[BitFields]` with `public byte Value;`
+2. **Generator-created Value field**: `[BitFields(typeof(byte))]` with private Value
+
+Performance testing was conducted to determine if the user-declared Value field pattern
+offered any performance benefit that justified the API complexity.
+
+### Test Methodology
+
+- **Iterations**: 100,000,000 per test
+- **Runtime**: .NET 10.0
+- **Tests**: READ (direct `.Value` vs implicit cast), WRITE (direct assignment vs implicit),
+  CREATION (object initializer vs constructor), and REAL-WORLD mixed usage patterns.
+
+### Results
+
+| Test | Pattern | Time (ms) | Ops/sec | Ratio |
+|------|---------|-----------|---------|-------|
+| **READ** | Direct `.Value` | 38.33 | 2,608M | 1.00x |
+| | Implicit `(byte)reg` | 24.63 | 4,060M | **0.64x** |
+| **WRITE** | Direct `.Value = x` | 38.99 | 2,564M | 1.00x |
+| | Implicit `reg = x` | 31.94 | 3,130M | **0.82x** |
+| **CREATION** | Object initializer | 65.32 | 1,530M | 1.00x |
+| | Constructor | 57.77 | 1,731M | **0.88x** |
+| **REAL-WORLD** | Direct pattern | 357.25 | 280M | 1.00x |
+| | Implicit pattern | 370.32 | 270M | **1.04x** |
+
+### Conclusions
+
+1. **Implicit conversions are FASTER for isolated operations** (36% faster for reads, 18% faster for writes)
+2. **Constructor initialization is FASTER** than object initializers (12% faster)
+3. **Real-world mixed usage is EQUIVALENT** (~4% difference, within measurement noise)
+4. **No performance justification** exists for the added API complexity
+
+### Decision
+
+The user-declared Value field pattern was removed in v0.3.0. The simplified API:
+- Requires `[BitFields(typeof(T))]` with explicit storage type
+- Generates private Value field automatically
+- Uses implicit conversions and constructors for all raw value access
+- **No performance penalty** compared to the previous approach
+
+### Signed Storage Type Support
+
+v0.3.0 also added support for signed storage types (`sbyte`, `short`, `int`, `long`).
+Performance testing showed signed types are approximately 22% slower than unsigned
+equivalents due to the additional casts required to avoid sign extension issues in
+bitwise operations. For most use cases, this overhead is acceptable.
 
 ## nuget.config
 

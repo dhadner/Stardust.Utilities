@@ -53,38 +53,17 @@ The source generator emits **inline bit manipulation with compile-time constants
 
 *? = standard deviation (1 sigma). 95% CI = mean ± 1.96?.*
 
+
 **Result:** Generated code performs within **0.8%** of hand-coded on average.
 
 #### Quick Start
 
-Two usage patterns are supported:
-
-**Option 1: User-Declared Value Field**
-```csharp
-using Stardust.Utilities;
-
-[BitFields]
-public partial struct StatusRegister
-{
-    public byte Value;  // You declare this
-
-    [BitFlag(0)] public partial bool Ready { get; set; }
-    [BitFlag(1)] public partial bool Error { get; set; }
-    [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
-    [BitField(5, 2)] public partial byte Priority { get; set; }
-}
-```
-
-**Option 2: Generator-Created Value Field**
 ```csharp
 using Stardust.Utilities;
 
 [BitFields(typeof(byte))]  // Specify storage type
 public partial struct StatusRegister
 {
-    // No Value field needed - generator creates it as private
-
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
@@ -98,12 +77,9 @@ The source generator automatically creates the property implementations during b
 #### Usage
 
 ```csharp
-// Create with user-declared Value field
-var status = new StatusRegister { Value = 0 };
-
-// Or with generator-created Value field (use constructor or implicit conversion)
-StatusRegister status2 = 0;
-var status3 = new StatusRegister(0x42);
+// Create using constructor or implicit conversion
+StatusRegister status = 0;
+var status2 = new StatusRegister(0x42);
 
 // Set individual flags
 status.Ready = true;
@@ -126,19 +102,18 @@ status = 0x42;                 // Converts from byte
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields]` | none | Marks struct; user must declare `Value` field |
 | `[BitFields(typeof(T))]` | `T`: storage type | Marks struct; generator creates private `Value` field |
 | `[BitFlag(bit)]` | `bit`: 0-based position | Single-bit boolean flag |
 | `[BitField(shift, width)]` | `shift`: start bit, `width`: bit count | Multi-bit field |
 
 #### Supported Storage Types
 
-| Storage Type | Size | Max BitField Width |
+| Storage Type | Size | Signed Alternative |
 |--------------|------|-------------------|
-| `byte` | 8 bits | 8 |
-| `ushort` | 16 bits | 16 |
-| `uint` | 32 bits | 32 |
-| `ulong` | 64 bits | 64 |
+| `byte` | 8 bits | `sbyte` |
+| `ushort` | 16 bits | `short` |
+| `uint` | 32 bits | `int` |
+| `ulong` | 64 bits | `long` |
 
 ---
 

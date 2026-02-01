@@ -16,10 +16,10 @@ public class BitFieldTests
     [Fact]
     public void GeneratedStatusReg8_Flags_GetAndSet()
     {
-        var reg = new GeneratedStatusReg8();
+        GeneratedStatusReg8 reg = 0;
 
         // Initial state
-        reg.Value.Should().Be(0);
+        ((byte)reg).Should().Be(0);
         reg.Ready.Should().BeFalse();
         reg.Error.Should().BeFalse();
         reg.Busy.Should().BeFalse();
@@ -27,20 +27,20 @@ public class BitFieldTests
         // Set flags
         reg.Ready = true;
         reg.Ready.Should().BeTrue();
-        reg.Value.Should().Be(0x01);
+        ((byte)reg).Should().Be(0x01);
 
         reg.Error = true;
         reg.Error.Should().BeTrue();
-        reg.Value.Should().Be(0x03);
+        ((byte)reg).Should().Be(0x03);
 
         reg.Busy = true;
         reg.Busy.Should().BeTrue();
-        reg.Value.Should().Be(0x83);
+        ((byte)reg).Should().Be(0x83);
 
         // Clear flags
         reg.Ready = false;
         reg.Ready.Should().BeFalse();
-        reg.Value.Should().Be(0x82);
+        ((byte)reg).Should().Be(0x82);
     }
 
     /// <summary>
@@ -49,17 +49,17 @@ public class BitFieldTests
     [Fact]
     public void GeneratedStatusReg8_Fields_GetAndSet()
     {
-        var reg = new GeneratedStatusReg8();
+        GeneratedStatusReg8 reg = 0;
 
         // Set Mode (bits 2-4, 3 bits wide)
         reg.Mode = 5;
         reg.Mode.Should().Be(5);
-        reg.Value.Should().Be(0x14); // 5 << 2 = 0x14
+        ((byte)reg).Should().Be(0x14); // 5 << 2 = 0x14
 
         // Set Priority (bits 5-6, 2 bits wide)
         reg.Priority = 3;
         reg.Priority.Should().Be(3);
-        reg.Value.Should().Be(0x74); // 0x14 | (3 << 5) = 0x74
+        ((byte)reg).Should().Be(0x74); // 0x14 | (3 << 5) = 0x74
 
         // Verify fields don't interfere with each other
         reg.Mode = 0;
@@ -75,7 +75,7 @@ public class BitFieldTests
     {
         // From byte
         GeneratedStatusReg8 reg = 0xFF;
-        reg.Value.Should().Be(0xFF);
+        ((byte)reg).Should().Be(0xFF);
         reg.Ready.Should().BeTrue();
         reg.Error.Should().BeTrue();
         reg.Busy.Should().BeTrue();
@@ -117,7 +117,7 @@ public class BitFieldTests
         // FirstKeyUp (bit 15) = 1, FirstKeyCode (bits 8-14) = 0x1A
         // SecondKeyUp (bit 7) = 0, SecondKeyCode (bits 0-6) = 0x00
         // Expected: 0x9A00
-        reg.Value.Should().Be(0x9A00);
+        ((ushort)reg).Should().Be(0x9A00);
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class BitFieldTests
     {
         // From ushort
         GeneratedKeyboardReg16 reg = 0xFFFF;
-        reg.Value.Should().Be(0xFFFF);
+        ((ushort)reg).Should().Be(0xFFFF);
         reg.FirstKeyUp.Should().BeTrue();
         reg.SecondKeyUp.Should().BeTrue();
         reg.FirstKeyCode.Should().Be(0x7F);
@@ -168,7 +168,7 @@ public class BitFieldTests
 
         // Verify combined value
         // Address = 0x00ABCDEF, Command = 0x0F, Enable = 1 (bit 28), Interrupt = 1 (bit 29)
-        reg.Value.Should().Be(0x3FABCDEF);
+        ((uint)reg).Should().Be(0x3FABCDEF);
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class BitFieldTests
     {
         // From uint
         GeneratedControlReg32 reg = 0xFFFFFFFF;
-        reg.Value.Should().Be(0xFFFFFFFF);
+        ((uint)reg).Should().Be(0xFFFFFFFF);
         reg.Enable.Should().BeTrue();
         reg.Interrupt.Should().BeTrue();
         reg.Command.Should().Be(0x0F);
@@ -227,7 +227,7 @@ public class BitFieldTests
             | ((ulong)0x12345678 << 24)
             | (1UL << 56)  // Valid
             | (1UL << 57); // Ready
-        reg.Value.Should().Be(expected);
+        ((ulong)reg).Should().Be(expected);
     }
 
     /// <summary>
@@ -238,7 +238,7 @@ public class BitFieldTests
     {
         // From ulong
         GeneratedWideReg64 reg = 0xFFFFFFFFFFFFFFFF;
-        reg.Value.Should().Be(0xFFFFFFFFFFFFFFFF);
+        ((ulong)reg).Should().Be(0xFFFFFFFFFFFFFFFF);
         reg.Valid.Should().BeTrue();
         reg.Ready.Should().BeTrue();
         reg.Status.Should().Be(0xFF);
@@ -260,7 +260,7 @@ public class BitFieldTests
     [Fact]
     public void GeneratedBitFields_FieldIsolation()
     {
-        var reg = new GeneratedStatusReg8 { Value = 0xFF };
+        GeneratedStatusReg8 reg = 0xFF;
 
         // Clear Mode field (bits 2-4)
         reg.Mode = 0;
@@ -272,7 +272,7 @@ public class BitFieldTests
         reg.Busy.Should().BeTrue();     // bit 7
         
         // Only bits 2-4 should be cleared
-        reg.Value.Should().Be(0xE3); // 0xFF & ~0x1C = 0xE3
+        ((byte)reg).Should().Be(0xE3); // 0xFF & ~0x1C = 0xE3
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class BitFieldTests
     [Fact]
     public void GeneratedBitFields_BoundaryValues()
     {
-        var reg = new GeneratedStatusReg8();
+        GeneratedStatusReg8 reg = 0;
 
         // Mode is 3 bits (max value 7)
         reg.Mode = 7;
@@ -304,11 +304,9 @@ public class BitFieldTests
 /// <summary>
 /// 8-bit status register for testing code generation.
 /// </summary>
-[BitFields]
+[BitFields(typeof(byte))]
 public partial struct GeneratedStatusReg8
 {
-    public byte Value;
-
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
@@ -319,11 +317,9 @@ public partial struct GeneratedStatusReg8
 /// <summary>
 /// 16-bit keyboard register for testing code generation.
 /// </summary>
-[BitFields]
+[BitFields(typeof(ushort))]
 public partial struct GeneratedKeyboardReg16
 {
-    public ushort Value;
-
     [BitField(0, 7)] public partial byte SecondKeyCode { get; set; }
     [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
     [BitField(8, 7)] public partial byte FirstKeyCode { get; set; }
@@ -333,11 +329,9 @@ public partial struct GeneratedKeyboardReg16
 /// <summary>
 /// 32-bit control register for testing code generation.
 /// </summary>
-[BitFields]
+[BitFields(typeof(uint))]
 public partial struct GeneratedControlReg32
 {
-    public uint Value;
-
     [BitField(0, 24)] public partial uint Address { get; set; }
     [BitField(24, 4)] public partial byte Command { get; set; }
     [BitFlag(28)] public partial bool Enable { get; set; }
@@ -347,11 +341,9 @@ public partial struct GeneratedControlReg32
 /// <summary>
 /// 64-bit wide register for testing code generation.
 /// </summary>
-[BitFields]
+[BitFields(typeof(ulong))]
 public partial struct GeneratedWideReg64
 {
-    public ulong Value;
-
     [BitField(0, 8)] public partial byte Status { get; set; }
     [BitField(8, 16)] public partial ushort Data { get; set; }
     [BitField(24, 32)] public partial uint Address { get; set; }

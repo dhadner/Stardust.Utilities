@@ -4,40 +4,10 @@ Type-safe, high-performance bitfield manipulation for hardware register emulatio
 
 ## Quick Start
 
-Two usage patterns are supported:
-
-### Option 1: User-Declared Value Field
-
-You declare the `Value` field explicitly. This gives you control over the field's visibility.
-
-```csharp
-[BitFields]
-public partial struct MyRegister
-{
-    public ushort Value;  // You declare this
-
-    [BitField(0, 7)] public partial byte KeyCode { get; set; }
-    [BitFlag(7)] public partial bool KeyUp { get; set; }
-    [BitField(8, 7)] public partial byte SecondKey { get; set; }
-    [BitFlag(15)] public partial bool SecondKeyUp { get; set; }
-}
-
-// Usage
-var reg = new MyRegister { Value = 0xFFFF };
-reg.KeyUp = false;
-ushort raw = reg;                 // Implicit conversion
-```
-
-### Option 2: Generator-Created Value Field
-
-Specify the storage type in the attribute, and the generator creates a private `Value` field and constructor.
-
 ```csharp
 [BitFields(typeof(ushort))]
 public partial struct MyRegister
 {
-    // No Value field needed - generator creates it as private
-
     [BitField(0, 7)] public partial byte KeyCode { get; set; }
     [BitFlag(7)] public partial bool KeyUp { get; set; }
     [BitField(8, 7)] public partial byte SecondKey { get; set; }
@@ -45,54 +15,42 @@ public partial struct MyRegister
 }
 
 // Usage - use implicit conversion or constructor
-MyRegister reg = 0xFFFF;          // Implicit conversion
+MyRegister reg = 0xFFFF;          // Implicit conversion from ushort
 var reg2 = new MyRegister(0x1234); // Constructor
 reg.KeyUp = false;
-ushort raw = reg;                 // Implicit conversion
+ushort raw = reg;                 // Implicit conversion to ushort
 ```
 
-Both approaches generate inline bit manipulation with **compile-time constants** - identical performance to hand-coded bit manipulation.
+The generator creates:
+- A private `Value` field of the specified storage type
+- A constructor taking the storage type
+- Property implementations with inline bit manipulation
+- Implicit conversion operators to/from the storage type
 
 ## Attributes
 
 | Attribute | Usage | Description |
 |-----------|-------|-------------|
-| `[BitFields]` | Struct | Enables generation; user must declare `Value` field |
-| `[BitFields(typeof(T))]` | Struct | Enables generation; generator creates private `Value` field of type T |
+| `[BitFields(typeof(T))]` | Struct | Enables generation with storage type T |
 | `[BitField(shift, width)]` | Property | Multi-bit field definition |
 | `[BitFlag(bit)]` | Property | Single-bit flag definition |
 
 ## Supported Storage Types
 
-| Storage | Bits | Attribute Syntax |
-|---------|------|------------------|
-| `byte` | 8 | `[BitFields(typeof(byte))]` |
-| `ushort` | 16 | `[BitFields(typeof(ushort))]` |
-| `uint` | 32 | `[BitFields(typeof(uint))]` |
-| `ulong` | 64 | `[BitFields(typeof(ulong))]` |
+| Storage | Bits | Signed Alternative |
+|---------|------|-------------------|
+| `byte` | 8 | `sbyte` |
+| `ushort` | 16 | `short` |
+| `uint` | 32 | `int` |
+| `ulong` | 64 | `long` |
 
 ## Performance
 
-Benchmarks show the generated code performs within **1%** of hand-coded bit manipulation (see README.md for full statistical analysis).
+Benchmarks show the generated code performs within **1%** of hand-coded bit manipulation. All bit manipulation uses **compile-time constants** for zero runtime overhead.
 
 ## Examples
 
-### ADB Keyboard Register (User-Declared Value)
-
-```csharp
-[BitFields]
-public partial struct KeyboardReg0
-{
-    public ushort Value;
-
-    [BitField(0, 7)] public partial byte SecondKeyCode { get; set; }
-    [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
-    [BitField(8, 7)] public partial byte FirstKeyCode { get; set; }
-    [BitFlag(15)] public partial bool FirstKeyUp { get; set; }
-}
-```
-
-### VIA Register (Generator-Created Value)
+### VIA Register (8-bit)
 
 ```csharp
 [BitFields(typeof(byte))]
@@ -104,6 +62,19 @@ public partial struct ViaRegB
     [BitFlag(5)] public partial bool HeadSelect { get; set; }
     [BitFlag(6)] public partial bool VideoPage { get; set; }
     [BitFlag(7)] public partial bool SccAccess { get; set; }
+}
+```
+
+### ADB Keyboard Register (16-bit)
+
+```csharp
+[BitFields(typeof(ushort))]
+public partial struct KeyboardReg0
+{
+    [BitField(0, 7)] public partial byte SecondKeyCode { get; set; }
+    [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
+    [BitField(8, 7)] public partial byte FirstKeyCode { get; set; }
+    [BitFlag(15)] public partial bool FirstKeyUp { get; set; }
 }
 ```
 
@@ -122,52 +93,24 @@ public partial struct StatusReg64
 }
 ```
 
-## Generated Code
+### Signed Storage Type (32-bit)
 
-### With User-Declared Value Field
-
-For `[BitFields]` with user-declared `Value`, the generator creates property implementations and implicit conversions:
+For hardware registers that use signed values:
 
 ```csharp
-// User writes:
-[BitFields]
-public partial struct StatusRegister
+[BitFields(typeof(int))]
+public partial struct SignedReg32
 {
-    public byte Value;
-    [BitFlag(0)] public partial bool Ready { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
-}
-
-// Generator creates:
-public partial struct StatusRegister
-{
-    public partial bool Ready
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
-    }
-
-    public partial byte Mode
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x07);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(StatusRegister value) => value.Value;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator StatusRegister(byte value) => new() { Value = value };
+    [BitFlag(0)] public partial bool Flag0 { get; set; }
+    [BitFlag(31)] public partial bool Sign { get; set; }  // Sign bit
+    [BitField(1, 15)] public partial ushort LowWord { get; set; }
+    [BitField(16, 15)] public partial ushort HighWord { get; set; }
 }
 ```
 
-### With Generator-Created Value Field
+## Generated Code
 
-For `[BitFields(typeof(T))]`, the generator also creates the private `Value` field and constructor:
+For `[BitFields(typeof(byte))]`, the generator creates:
 
 ```csharp
 // User writes:
@@ -183,6 +126,7 @@ public partial struct StatusRegister
 {
     private byte Value;
 
+    /// <summary>Creates a new StatusRegister with the specified raw value.</summary>
     public StatusRegister(byte value) { Value = value; }
 
     public partial bool Ready
@@ -209,4 +153,32 @@ public partial struct StatusRegister
 }
 ```
 
-All masks are compile-time hex constants, allowing the JIT to generate optimal machine code.
+## Migration from Previous API
+
+If you were using the user-declared Value field pattern:
+
+```csharp
+// Old pattern (no longer supported):
+[BitFields]
+public partial struct MyReg
+{
+    public byte Value;  // User declares this
+    [BitFlag(0)] public partial bool Flag { get; set; }
+}
+
+// New pattern:
+[BitFields(typeof(byte))]
+public partial struct MyReg
+{
+    [BitFlag(0)] public partial bool Flag { get; set; }
+}
+
+// Old usage:
+var reg = new MyReg { Value = 0xFF };
+byte raw = reg.Value;
+
+// New usage:
+MyReg reg = 0xFF;        // Implicit conversion
+byte raw = reg;          // Implicit conversion
+var reg2 = new MyReg(0xFF);  // Constructor
+```
