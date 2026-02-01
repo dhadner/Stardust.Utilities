@@ -6,20 +6,20 @@ This guide explains how to modify the source generators and update consuming pro
 
 ```
 Stardust.Utilities/
-??? Stardust.Utilities.csproj       # Main library (types, attributes)
+??? Stardust.Utilities.csproj            # Main library (types, attributes)
 ??? Generators/
-?   ??? Stardust.Generators.csproj  # Source generator project
-?   ??? BitFieldsGenerator.cs       # [BitFields] generator
+?   ??? Stardust.Generators.csproj       # Source generator project
+?   ??? BitFieldsGenerator.cs            # [BitFields] generator
 ??? Test/
 ?   ??? Stardust.Utilities.Tests.csproj
 ??? build/
-?   ??? Stardust.Utilities.props    # Auto-enables IntelliSense for consumers
-?   ??? Stardust.Utilities.targets  # Auto-excludes generated files from compilation
-??? nupkg/                          # Local NuGet packages
-??? Build-NuGetPackage.ps1          # Builds the NuGet package
-??? update-generator.ps1            # Updates version and rebuilds packages
-??? README.md                       # User documentation
-??? DEVELOPER.md                    # This file
+?   ??? Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
+?   ??? Stardust.Utilities.targets       # Auto-excludes generated files from compilation
+??? nupkg/                               # Local NuGet packages output
+??? Build-Generator-NuGetPackage.ps1     # Builds generator package only
+??? Build-Combined-NuGetPackages.ps1     # Builds both packages
+??? README.md                            # User documentation
+??? DEVELOPER.md                         # This file
 ```
 
 ## NuGet Package Contents
@@ -39,47 +39,63 @@ The `Stardust.Utilities` NuGet package includes:
 | What You Changed | How to See Changes |
 |------------------|-------------------|
 | **Stardust.Utilities library** (types, attributes) | Just rebuild in Visual Studio |
-| **Stardust.Generators** (source generator code) | Run `update-generator.ps1 -NewVersion "x.y.z"` |
-| **build/*.props or build/*.targets** | Rebuild the NuGet package |
+| **Stardust.Generators** (source generator code) | Run `Build-Generator-NuGetPackage.ps1` or `Build-Combined-NuGetPackages.ps1` |
+| **build/*.props or build/*.targets** | Run `Build-Combined-NuGetPackages.ps1` |
 
 ## Build Scripts
 
-### Build-NuGetPackage.ps1
+### Build-Generator-NuGetPackage.ps1
 
-Builds the complete `Stardust.Utilities` NuGet package including the embedded generator.
+Builds **only** the `Stardust.Generators.x.y.z.nupkg` standalone generator package.
+
+**Use this when:**
+- Debugging `Stardust.Utilities` via ProjectReference in Visual Studio
+- But still need the generator as a NuGet package for code generation
 
 ```powershell
-# Basic usage (runs tests)
-.\Build-NuGetPackage.ps1 -Configuration Release
-
-# Skip tests for faster builds
-.\Build-NuGetPackage.ps1 -Configuration Release -SkipTests
+# Basic usage (uses version from .csproj)
+.\Build-Generator-NuGetPackage.ps1
 
 # Specify a version
-.\Build-NuGetPackage.ps1 -Configuration Release -Version "0.6.0"
+.\Build-Generator-NuGetPackage.ps1 -Version "0.6.0"
 
-# Publish to local NuGet feed (~/.nuget/local-packages)
-.\Build-NuGetPackage.ps1 -Configuration Release -PublishLocal
+# Update version in .csproj and build
+.\Build-Generator-NuGetPackage.ps1 -Version "0.6.0" -UpdateVersion
 ```
 
-### update-generator.ps1
+### Build-Combined-NuGetPackages.ps1
 
-Updates the version in both projects and rebuilds all NuGet packages.
+Builds **both** NuGet packages:
+- `Stardust.Generators.x.y.z.nupkg` - Standalone generator (for projects using ProjectReference to Stardust.Utilities)
+- `Stardust.Utilities.x.y.z.nupkg` - Combined package (includes generator as embedded analyzer + utility types)
+
+This script calls `Build-Generator-NuGetPackage.ps1` internally for the generator package.
 
 ```powershell
-# Update to new version
-.\update-generator.ps1 -NewVersion "0.6.0"
+# Basic usage (runs tests, builds both packages)
+.\Build-Combined-NuGetPackages.ps1
 
 # Skip tests for faster builds
-.\update-generator.ps1 -NewVersion "0.6.0" -SkipTests
+.\Build-Combined-NuGetPackages.ps1 -SkipTests
+
+# Specify a version
+.\Build-Combined-NuGetPackages.ps1 -Version "0.6.0"
+
+# Update version in BOTH .csproj files and build
+.\Build-Combined-NuGetPackages.ps1 -Version "0.6.0" -UpdateVersion
+
+# Publish to local NuGet feed (~/.nuget/local-packages)
+.\Build-Combined-NuGetPackages.ps1 -PublishLocal
 ```
 
-This script:
-1. Updates `<Version>` in `Generators/Stardust.Generators.csproj`
-2. Updates `<Version>` in `Stardust.Utilities.csproj`
-3. Builds `Stardust.Generators.*.nupkg`
-4. Builds `Stardust.Utilities.*.nupkg`
-5. Copies both packages to `nupkg/` folder
+**Output:** Both packages are copied to the `nupkg/` folder.
+
+## Package Reference Scenarios
+
+| Scenario | What to Reference |
+|----------|-------------------|
+| **Normal usage** (just need BitFields) | `Stardust.Utilities` NuGet package only |
+| **Debugging Stardust.Utilities** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to `Stardust.Generators` |
 
 ## Updating the Source Generator
 
@@ -87,10 +103,14 @@ This script:
 
 Edit the generator in `Generators/BitFieldsGenerator.cs`.
 
-### Step 2: Run the Update Script
+### Step 2: Rebuild the Package
 
 ```powershell
-.\update-generator.ps1 -NewVersion "0.6.0" -SkipTests
+# Just rebuild the generator package (for debugging with ProjectReference)
+.\Build-Generator-NuGetPackage.ps1 -Version "0.6.1"
+
+# Or rebuild both packages for a full release
+.\Build-Combined-NuGetPackages.ps1 -Version "0.6.1" -UpdateVersion -SkipTests
 ```
 
 ### Step 3: Test Locally
@@ -101,6 +121,27 @@ If testing with a consuming project (e.g., MacSE):
 3. Restore and rebuild
 
 ## Features
+
+### Rust-Style Bit Ranges (v0.6.0+)
+
+The `[BitField]` attribute uses Rust-style inclusive bit ranges:
+
+```csharp
+[BitFields(typeof(byte))]
+public partial struct RegisterA
+{
+    // 3-bit field at bits 0, 1, 2 (like Rust's 0..=2)
+    [BitField(0, 2)] public partial byte Sound { get; set; }
+    
+    // Single bit at position 3
+    [BitField(3, 3)] public partial byte Flag { get; set; }
+    
+    // 4-bit field at bits 4, 5, 6, 7 (like Rust's 4..=7)
+    [BitField(4, 7)] public partial byte Mode { get; set; }
+}
+```
+
+Width is calculated as `(endBit - startBit + 1)`.
 
 ### Nested Struct Support (v0.5.0+)
 
@@ -113,7 +154,7 @@ public partial class HardwareController
     public partial struct StatusRegister
     {
         [BitFlag(0)] public partial bool Ready { get; set; }
-        [BitField(4, 4)] public partial byte Mode { get; set; }
+        [BitField(4, 7)] public partial byte Mode { get; set; }  // bits 4..=7 (4 bits)
     }
 }
 ```
@@ -194,6 +235,7 @@ To see what the generator produces:
 
 | Version | Changes |
 |---------|---------|
+| 0.6.0   | **Breaking:** Changed `[BitField(shift, width)]` to Rust-style `[BitField(startBit, endBit)]` |
 | 0.5.2   | Auto-enable IntelliSense via .props/.targets files |
 | 0.5.0   | Nested struct support, improved indentation in generated code |
 | 0.3.0   | **Breaking:** Simplified BitFields API, added signed storage types |

@@ -8,9 +8,9 @@ Type-safe, high-performance bitfield manipulation for hardware register emulatio
 [BitFields(typeof(ushort))]
 public partial struct MyRegister
 {
-    [BitField(0, 7)] public partial byte KeyCode { get; set; }
+    [BitField(0, 6)] public partial byte KeyCode { get; set; }       // bits 0..=6 (7 bits)
     [BitFlag(7)] public partial bool KeyUp { get; set; }
-    [BitField(8, 7)] public partial byte SecondKey { get; set; }
+    [BitField(8, 14)] public partial byte SecondKey { get; set; }    // bits 8..=14 (7 bits)
     [BitFlag(15)] public partial bool SecondKeyUp { get; set; }
 }
 
@@ -32,8 +32,13 @@ The generator creates:
 | Attribute | Usage | Description |
 |-----------|-------|-------------|
 | `[BitFields(typeof(T))]` | Struct | Enables generation with storage type T |
-| `[BitField(shift, width)]` | Property | Multi-bit field definition |
+| `[BitField(startBit, endBit)]` | Property | Multi-bit field (Rust-style inclusive range) |
 | `[BitFlag(bit)]` | Property | Single-bit flag definition |
+
+**BitField Examples:**
+- `[BitField(0, 2)]` - 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
+- `[BitField(4, 7)]` - 4-bit field at bits 4, 5, 6, 7 (like Rust's `4..=7`)
+- `[BitField(3, 3)]` - 1-bit field at bit 3 only
 
 ## Supported Storage Types
 
@@ -56,7 +61,7 @@ Benchmarks show the generated code performs within **1%** of hand-coded bit mani
 [BitFields(typeof(byte))]
 public partial struct ViaRegB
 {
-    [BitField(0, 3)] public partial byte SoundVolume { get; set; }
+    [BitField(0, 2)] public partial byte SoundVolume { get; set; }  // bits 0..=2 (3 bits)
     [BitFlag(3)] public partial bool SoundBuffer { get; set; }
     [BitFlag(4)] public partial bool OverlayRom { get; set; }
     [BitFlag(5)] public partial bool HeadSelect { get; set; }
@@ -71,9 +76,9 @@ public partial struct ViaRegB
 [BitFields(typeof(ushort))]
 public partial struct KeyboardReg0
 {
-    [BitField(0, 7)] public partial byte SecondKeyCode { get; set; }
+    [BitField(0, 6)] public partial byte SecondKeyCode { get; set; }  // bits 0..=6 (7 bits)
     [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
-    [BitField(8, 7)] public partial byte FirstKeyCode { get; set; }
+    [BitField(8, 14)] public partial byte FirstKeyCode { get; set; }  // bits 8..=14 (7 bits)
     [BitFlag(15)] public partial bool FirstKeyUp { get; set; }
 }
 ```
@@ -84,9 +89,9 @@ public partial struct KeyboardReg0
 [BitFields(typeof(ulong))]
 public partial struct StatusReg64
 {
-    [BitField(0, 8)] public partial byte Status { get; set; }
-    [BitField(8, 16)] public partial ushort DataWord { get; set; }
-    [BitField(24, 32)] public partial uint Address { get; set; }
+    [BitField(0, 7)] public partial byte Status { get; set; }       // bits 0..=7 (8 bits)
+    [BitField(8, 23)] public partial ushort DataWord { get; set; }  // bits 8..=23 (16 bits)
+    [BitField(24, 55)] public partial uint Address { get; set; }    // bits 24..=55 (32 bits)
     [BitFlag(56)] public partial bool Enable { get; set; }
     [BitFlag(57)] public partial bool Ready { get; set; }
     [BitFlag(58)] public partial bool Error { get; set; }
@@ -103,8 +108,8 @@ public partial struct SignedReg32
 {
     [BitFlag(0)] public partial bool Flag0 { get; set; }
     [BitFlag(31)] public partial bool Sign { get; set; }  // Sign bit
-    [BitField(1, 15)] public partial ushort LowWord { get; set; }
-    [BitField(16, 15)] public partial ushort HighWord { get; set; }
+    [BitField(1, 15)] public partial ushort LowWord { get; set; }   // bits 1..=15 (15 bits)
+    [BitField(16, 30)] public partial ushort HighWord { get; set; } // bits 16..=30 (15 bits)
 }
 ```
 
@@ -118,7 +123,7 @@ For `[BitFields(typeof(byte))]`, the generator creates:
 public partial struct StatusRegister
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
+    [BitField(2, 4)] public partial byte Mode { get; set; }  // bits 2..=4 (3 bits)
 }
 
 // Generator creates:

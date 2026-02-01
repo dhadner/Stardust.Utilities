@@ -17,7 +17,7 @@ public partial class BitFieldTests
         {
             [BitFlag(0)] public partial bool FlagA { get; set; }
             [BitFlag(1)] public partial bool FlagB { get; set; }
-            [BitField(3, 2)] public partial byte FieldC { get; set; }
+            [BitField(3, 4)] public partial byte FieldC { get; set; }  // bits 3..=4 (2 bits)
         }
 
         public void RunTest()
@@ -351,8 +351,8 @@ public partial struct GeneratedStatusReg8
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
-    [BitField(5, 2)] public partial byte Priority { get; set; }
+    [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2..=4 (3 bits)
+    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 
 /// <summary>
@@ -361,9 +361,9 @@ public partial struct GeneratedStatusReg8
 [BitFields(typeof(ushort))]
 public partial struct GeneratedKeyboardReg16
 {
-    [BitField(0, 7)] public partial byte SecondKeyCode { get; set; }
+    [BitField(0, 6)] public partial byte SecondKeyCode { get; set; }  // bits 0..=6 (7 bits)
     [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
-    [BitField(8, 7)] public partial byte FirstKeyCode { get; set; }
+    [BitField(8, 14)] public partial byte FirstKeyCode { get; set; }  // bits 8..=14 (7 bits)
     [BitFlag(15)] public partial bool FirstKeyUp { get; set; }
 }
 
@@ -373,8 +373,8 @@ public partial struct GeneratedKeyboardReg16
 [BitFields(typeof(uint))]
 public partial struct GeneratedControlReg32
 {
-    [BitField(0, 24)] public partial uint Address { get; set; }
-    [BitField(24, 4)] public partial byte Command { get; set; }
+    [BitField(0, 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
+    [BitField(24, 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
     [BitFlag(28)] public partial bool Enable { get; set; }
     [BitFlag(29)] public partial bool Interrupt { get; set; }
 }
@@ -385,9 +385,9 @@ public partial struct GeneratedControlReg32
 [BitFields(typeof(ulong))]
 public partial struct GeneratedWideReg64
 {
-    [BitField(0, 8)] public partial byte Status { get; set; }
-    [BitField(8, 16)] public partial ushort Data { get; set; }
-    [BitField(24, 32)] public partial uint Address { get; set; }
+    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
     [BitFlag(56)] public partial bool Valid { get; set; }
     [BitFlag(57)] public partial bool Ready { get; set; }
 }

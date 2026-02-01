@@ -94,10 +94,12 @@ public class BitFieldsGenerator : IIncrementalGenerator
                 var attrName = attr.AttributeClass?.Name;
                 if (attrName == "BitFieldAttribute" && attr.ConstructorArguments.Length >= 2)
                 {
-                    var shift = (int)(attr.ConstructorArguments[0].Value ?? 0);
-                    var width = (int)(attr.ConstructorArguments[1].Value ?? 1);
+                    // New API: [BitField(startBit, endBit)] - Rust-style inclusive range
+                    var startBit = (int)(attr.ConstructorArguments[0].Value ?? 0);
+                    var endBit = (int)(attr.ConstructorArguments[1].Value ?? 0);
+                    var width = endBit - startBit + 1;
                     var propType = member.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                    fields.Add(new BitFieldInfo(member.Name, propType, shift, width));
+                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {

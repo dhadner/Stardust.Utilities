@@ -66,8 +66,8 @@ public partial struct StatusRegister
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
-    [BitField(5, 2)] public partial byte Priority { get; set; }
+    [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2..=4 (3 bits)
+    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 ```
 
@@ -103,7 +103,12 @@ status = 0x42;                 // Converts from byte
 |-----------|------------|-------------|
 | `[BitFields(typeof(T))]` | `T`: storage type | Marks struct; generator creates private `Value` field |
 | `[BitFlag(bit)]` | `bit`: 0-based position | Single-bit boolean flag |
-| `[BitField(shift, width)]` | `shift`: start bit, `width`: bit count | Multi-bit field |
+| `[BitField(startBit, endBit)]` | Rust-style inclusive range | Multi-bit field (width = endBit - startBit + 1) |
+
+**BitField Examples:**
+- `[BitField(0, 2)]` - 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
+- `[BitField(4, 7)]` - 4-bit field at bits 4, 5, 6, 7 (like Rust's `4..=7`)
+- `[BitField(3, 3)]` - 1-bit field at bit 3 only
 
 #### Supported Storage Types
 
@@ -126,7 +131,7 @@ public partial class HardwareController
     {
         [BitFlag(0)] public partial bool Ready { get; set; }
         [BitFlag(1)] public partial bool Error { get; set; }
-        [BitField(8, 8)] public partial byte ErrorCode { get; set; }
+        [BitField(8, 15)] public partial byte ErrorCode { get; set; }  // bits 8..=15 (8 bits)
     }
     
     private StatusRegister _status;

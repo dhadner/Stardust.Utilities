@@ -18,8 +18,8 @@ public partial struct GeneratedTestRegister
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 3)] public partial byte Mode { get; set; }
-    [BitField(5, 2)] public partial byte Priority { get; set; }
+    [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2..=4 (3 bits)
+    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 
 /// <summary>
