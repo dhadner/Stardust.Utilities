@@ -17,7 +17,7 @@
   <PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
   <RepositoryUrl>https://github.com/dhadner/Stardust.Utilities</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
-  <!-- TODO: Add icon.png (128x128 PNG) and uncomment: <PackageIcon>icon.png</PackageIcon> -->
+  <PackageIcon>icon.png</PackageIcon>
 </PropertyGroup>
 
   <!-- Exclude subfolders from compilation -->
@@ -38,8 +38,9 @@
 
   <!-- Include README in NuGet package -->
   <ItemGroup>
+    <None Include=".github\workflows\ci.yml" />
     <None Include="README.md" Pack="true" PackagePath="" />
-    <!-- TODO: Uncomment when icon.png is added: <None Include="icon.png" Pack="true" PackagePath="" /> -->
+    <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <!-- Pack the generator DLL as an analyzer (for NuGet package) -->

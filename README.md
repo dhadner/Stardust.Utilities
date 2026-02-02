@@ -18,7 +18,7 @@ A collection of utility types for .NET applications, focused on bit manipulation
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.2.0" />
+<PackageReference Include="Stardust.Utilities" Version="0.8.3" />
 ```
 
 **That's it!** The source generator is included automatically.

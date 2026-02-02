@@ -580,6 +580,206 @@ public partial class BitFieldTests
 
 
 
+    #region Parsing Tests (IParsable<T> and ISpanParsable<T>)
+
+    /// <summary>
+    /// Tests Parse method with decimal string.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_Decimal()
+    {
+        var result = GeneratedStatusReg8.Parse("66");
+        ((byte)result).Should().Be(66);
+        result.ToString().Should().Be("0x42");
+    }
+
+    /// <summary>
+    /// Tests Parse method with hex string (0x prefix).
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_HexWith0xPrefix()
+    {
+        var result = GeneratedStatusReg8.Parse("0x42");
+        ((byte)result).Should().Be(0x42);
+    }
+
+    /// <summary>
+    /// Tests Parse method with hex string (0X prefix, uppercase).
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_HexWith0XPrefix()
+    {
+        var result = GeneratedStatusReg8.Parse("0XFF");
+        ((byte)result).Should().Be(0xFF);
+    }
+
+    /// <summary>
+    /// Tests Parse method throws on invalid input.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_ThrowsOnInvalidInput()
+    {
+        FluentActions.Invoking(() => GeneratedStatusReg8.Parse("not a number"))
+            .Should().Throw<FormatException>();
+    }
+
+    /// <summary>
+    /// Tests Parse method throws on null input.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_ThrowsOnNull()
+    {
+        FluentActions.Invoking(() => GeneratedStatusReg8.Parse(null!))
+            .Should().Throw<ArgumentNullException>();
+    }
+
+    /// <summary>
+    /// Tests TryParse returns true and outputs correct value for valid input.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_TryParse_ValidInput()
+    {
+        var success = GeneratedStatusReg8.TryParse("66", out var result);
+        success.Should().BeTrue();
+        ((byte)result).Should().Be(66);
+    }
+
+    /// <summary>
+    /// Tests TryParse with hex input.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_TryParse_HexInput()
+    {
+        var success = GeneratedStatusReg8.TryParse("0xFF", out var result);
+        success.Should().BeTrue();
+        ((byte)result).Should().Be(0xFF);
+    }
+
+    /// <summary>
+    /// Tests TryParse returns false for invalid input.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_TryParse_InvalidInput()
+    {
+        var success = GeneratedStatusReg8.TryParse("not a number", out var result);
+        success.Should().BeFalse();
+        ((byte)result).Should().Be(0); // default value
+    }
+
+    /// <summary>
+    /// Tests TryParse returns false for null input.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_TryParse_NullInput()
+    {
+        var success = GeneratedStatusReg8.TryParse(null, out var result);
+        success.Should().BeFalse();
+        ((byte)result).Should().Be(0);
+    }
+
+    /// <summary>
+    /// Tests Parse with IFormatProvider.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_WithFormatProvider()
+    {
+        var result = GeneratedStatusReg8.Parse("42", System.Globalization.CultureInfo.InvariantCulture);
+        ((byte)result).Should().Be(42);
+    }
+
+    /// <summary>
+    /// Tests TryParse with IFormatProvider.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_TryParse_WithFormatProvider()
+    {
+        var success = GeneratedStatusReg8.TryParse("255", System.Globalization.CultureInfo.InvariantCulture, out var result);
+        success.Should().BeTrue();
+        ((byte)result).Should().Be(255);
+    }
+
+    /// <summary>
+    /// Tests Parse with ReadOnlySpan&lt;char&gt;.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_Span()
+    {
+        var input = "0xAB".AsSpan();
+        var result = GeneratedStatusReg8.Parse(input, null);
+        ((byte)result).Should().Be(0xAB);
+    }
+
+    /// <summary>
+    /// Tests TryParse with ReadOnlySpan&lt;char&gt;.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_TryParse_Span()
+    {
+        var input = "123".AsSpan();
+        var success = GeneratedStatusReg8.TryParse(input, null, out var result);
+        success.Should().BeTrue();
+        ((byte)result).Should().Be(123);
+    }
+
+    /// <summary>
+    /// Tests parsing for 16-bit BitFields struct.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_16Bit()
+    {
+        var result = GeneratedKeyboardReg16.Parse("0xABCD");
+        ((ushort)result).Should().Be(0xABCD);
+        result.FirstKeyCode.Should().Be(0x2B); // bits 8-14
+        result.SecondKeyCode.Should().Be(0x4D); // bits 0-6
+    }
+
+    /// <summary>
+    /// Tests parsing for 32-bit BitFields struct.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_32Bit()
+    {
+        var result = GeneratedControlReg32.Parse("0x12345678");
+        ((uint)result).Should().Be(0x12345678);
+    }
+
+    /// <summary>
+    /// Tests parsing for 64-bit BitFields struct.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_64Bit()
+    {
+        var result = GeneratedWideReg64.Parse("0x123456789ABCDEF0");
+        ((ulong)result).Should().Be(0x123456789ABCDEF0);
+    }
+
+    /// <summary>
+    /// Tests that parsed value can be used with properties.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_ThenUseProperties()
+    {
+        var reg = GeneratedStatusReg8.Parse("0x83");
+        reg.Ready.Should().BeTrue();   // bit 0
+        reg.Error.Should().BeTrue();   // bit 1
+        reg.Busy.Should().BeTrue();    // bit 7
+        reg.Mode.Should().Be(0);       // bits 2-4
+        reg.Priority.Should().Be(0);   // bits 5-6
+    }
+
+    /// <summary>
+    /// Tests round-trip: Parse then ToString.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_Parse_RoundTrip()
+    {
+        var original = "0xFF";
+        var parsed = GeneratedStatusReg8.Parse(original);
+        parsed.ToString().Should().Be(original);
+    }
+
+    #endregion
+
 
     #region With{Name} Fluent Method Tests
 

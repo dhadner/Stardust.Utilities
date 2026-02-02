@@ -1,35 +1,67 @@
-# Stardust.Utilities Developer Guide
+﻿# Stardust.Utilities Developer Guide
 
 This guide explains how to modify the source generators and update consuming projects.
+
+## Quick Reference: Release Workflow
+
+**To release a new version (e.g., 0.8.3):**
+
+```powershell
+# Navigate to the Stardust.Utilities directory
+cd Stardust.Utilities
+
+# Build both NuGet packages and publish to local feed
+.\Build-Combined-NuGetPackages.ps1 -Version "0.8.3" -PublishLocal
+
+# Or skip tests for faster iteration during development
+.\Build-Combined-NuGetPackages.ps1 -Version "0.8.3" -PublishLocal -SkipTests
+```
+
+**Then update consuming projects:**
+1. Update `PackageReference` version in each .csproj that uses `Stardust.Utilities`
+2. Rebuild the consuming solution
 
 ## Project Structure
 
 ```
 Stardust.Utilities/
-??? Stardust.Utilities.csproj            # Main library (types, attributes)
-??? Generators/
-?   ??? Stardust.Generators.csproj       # Source generator project
-?   ??? BitFieldsGenerator.cs            # [BitFields] generator
-??? Test/
-?   ??? Stardust.Utilities.Tests.csproj
-??? build/
-?   ??? Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
-?   ??? Stardust.Utilities.targets       # Auto-excludes generated files from compilation
-??? nupkg/                               # Local NuGet packages output
-??? Build-Generator-NuGetPackage.ps1     # Builds generator package only
-??? Build-Combined-NuGetPackages.ps1     # Builds both packages
-??? README.md                            # User documentation
-??? DEVELOPER.md                         # This file
+├── Stardust.Utilities.csproj            # Main library (types, attributes)
+├── Generators/
+│   ├── Stardust.Generators.csproj       # Source generator project
+│   └── BitFieldsGenerator.cs            # [BitFields] generator
+├── Test/
+│   └── Stardust.Utilities.Tests.csproj
+├── build/
+│   ├── Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
+│   └── Stardust.Utilities.targets       # Auto-excludes generated files from compilation
+├── nupkg/                               # Local NuGet packages output
+├── Build-Generator-NuGetPackage.ps1     # Builds generator package (for local development)
+├── Build-Combined-NuGetPackages.ps1     # Builds the distributable package
+├── README.md                            # User documentation
+└── DEVELOPER.md                         # This file
 ```
 
-## NuGet Package Contents
+## NuGet Package Architecture
+
+### Why Two Packages Exist
+
+The **`Stardust.Generators`** package is **not intended for public distribution**. It exists solely to support local development scenarios. The source generator is embedded directly within the `Stardust.Utilities` package for distribution.
+
+The separate `Stardust.Generators` package is needed because:
+- When debugging `Stardust.Utilities` via `ProjectReference`, the embedded analyzer doesn't load
+- The standalone generator package includes MSBuild `.props`/`.targets` files that automatically configure consumer projects
+- This enables IntelliSense for generated code without manual project configuration
+
+**For end users:** Only reference `Stardust.Utilities` — the generator is included automatically.
+
+### Stardust.Utilities Package Contents
 
 The `Stardust.Utilities` NuGet package includes:
 
 | Path | Description |
 |------|-------------|
 | `lib/net10.0/Stardust.Utilities.dll` | Main library with attributes and types |
-| `analyzers/dotnet/cs/Stardust.Generators.dll` | Source generator (runs at compile time) |
+| `analyzers/dotnet/cs/Stardust.Generators.dll` | Source generator (embedded, runs at compile time) |
 | `build/Stardust.Utilities.props` | Auto-enables `EmitCompilerGeneratedFiles` for IntelliSense |
 | `build/Stardust.Utilities.targets` | Auto-excludes generated files from duplicate compilation |
 | `README.md` | Package documentation |
@@ -46,11 +78,13 @@ The `Stardust.Utilities` NuGet package includes:
 
 ### Build-Generator-NuGetPackage.ps1
 
-Builds **only** the `Stardust.Generators.x.y.z.nupkg` standalone generator package.
+Builds the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for local development only**.
+
+> **Note:** This package is not published to NuGet.org. It exists only to support debugging scenarios where `Stardust.Utilities` is referenced via `ProjectReference`.
 
 **Use this when:**
 - Debugging `Stardust.Utilities` via ProjectReference in Visual Studio
-- But still need the generator as a NuGet package for code generation
+- The embedded analyzer doesn't load with ProjectReference, so this standalone package provides the generator
 
 ```powershell
 # Basic usage (uses version from .csproj)
@@ -65,11 +99,11 @@ Builds **only** the `Stardust.Generators.x.y.z.nupkg` standalone generator packa
 
 ### Build-Combined-NuGetPackages.ps1
 
-Builds **both** NuGet packages:
-- `Stardust.Generators.x.y.z.nupkg` - Standalone generator (for projects using ProjectReference to Stardust.Utilities)
-- `Stardust.Utilities.x.y.z.nupkg` - Combined package (includes generator as embedded analyzer + utility types)
+Builds both NuGet packages:
+- `Stardust.Utilities.x.y.z.nupkg` - **The distributable package** (includes generator as embedded analyzer + utility types)
+- `Stardust.Generators.x.y.z.nupkg` - Local development package only (not for distribution)
 
-This script calls `Build-Generator-NuGetPackage.ps1` internally for the generator package.
+This script calls `Build-Generator-NuGetPackage.ps1` internally.
 
 ```powershell
 # Basic usage (runs tests, builds both packages)
@@ -94,8 +128,10 @@ This script calls `Build-Generator-NuGetPackage.ps1` internally for the generato
 
 | Scenario | What to Reference |
 |----------|-------------------|
-| **Normal usage** (just need BitFields) | `Stardust.Utilities` NuGet package only |
-| **Debugging Stardust.Utilities** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to `Stardust.Generators` |
+| **Normal usage** (consuming the library) | `Stardust.Utilities` NuGet package only |
+| **Debugging Stardust.Utilities locally** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to `Stardust.Generators` (local only) |
+
+> **Important:** Only `Stardust.Utilities` is published to NuGet.org. The `Stardust.Generators` package is for local development only and should never be distributed separately.
 
 ## Updating the Source Generator
 
@@ -115,7 +151,7 @@ Edit the generator in `Generators/BitFieldsGenerator.cs`.
 
 ### Step 3: Test Locally
 
-If testing with a consuming project (e.g., MacSE):
+If testing with a consuming project:
 1. Update the `PackageReference` version in the consuming project
 2. Clear NuGet cache: `dotnet nuget locals global-packages --clear`
 3. Restore and rebuild
@@ -235,6 +271,7 @@ To see what the generator produces:
 
 | Version | Changes |
 |---------|---------|
+| 0.8.3   | Added parsing support via `IParsable<T>` and `ISpanParsable<T>` interfaces |
 | 0.6.0   | **Breaking:** Changed `[BitField(shift, width)]` to Rust-style `[BitField(startBit, endBit)]` |
 | 0.5.2   | Auto-enable IntelliSense via .props/.targets files |
 | 0.5.0   | Nested struct support, improved indentation in generated code |

@@ -32,6 +32,7 @@ The generator creates:
 - Mixed-type operators (struct with storage type)
 - Equality operators: `==`, `!=`
 - Implicit conversion operators to/from the storage type
+- Parsing support via `IParsable<T>` and `ISpanParsable<T>` interfaces
 
 ## Attributes
 
@@ -54,6 +55,33 @@ The generator creates:
 | `ushort` | 16 | `short` |
 | `uint` | 32 | `int` |
 | `ulong` | 64 | `long` |
+
+## Parsing
+
+BitFields structs implement `IParsable<T>` and `ISpanParsable<T>` interfaces, allowing parsing from strings:
+
+```csharp
+// Parse from string (supports decimal and hex with 0x prefix)
+MyRegister reg = MyRegister.Parse("0xFF");
+MyRegister reg2 = MyRegister.Parse("255");
+
+// TryParse pattern for safe parsing
+if (MyRegister.TryParse("0xABCD", out var result))
+{
+    Console.WriteLine($"Parsed: {result}");
+}
+
+// With IFormatProvider for culture-specific parsing
+var reg3 = MyRegister.Parse("42", CultureInfo.InvariantCulture);
+
+// ReadOnlySpan<char> overloads for performance
+var span = "0xFF".AsSpan();
+var reg4 = MyRegister.Parse(span, null);
+```
+
+**Supported Formats:**
+- Decimal: `"255"`, `"1234"`
+- Hexadecimal with prefix: `"0xFF"`, `"0XFF"`, `"0x1234ABCD"`
 
 ## Performance
 

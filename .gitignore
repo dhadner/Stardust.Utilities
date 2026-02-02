@@ -11,3 +11,6 @@
 /Tool/bin
 /Tool/obj
 /Test/Generated/Stardust.Generators/Stardust.Generators.BitFieldsGenerator
+
+# NuGet packages (don't commit built packages)
+/nupkg/
