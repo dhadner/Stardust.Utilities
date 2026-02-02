@@ -27,6 +27,7 @@ The generator creates:
 - Property implementations with inline bit manipulation
 - Static `{Name}Bit` properties for each `[BitFlag]`
 - Static `{Name}Mask` properties for each `[BitField]`
+- Fluent `Set{Name}` methods for each property
 - Bitwise operators: `|`, `&`, `^`, `~`
 - Mixed-type operators (struct with storage type)
 - Equality operators: `==`, `!=`
@@ -228,6 +229,7 @@ if ((value & RegAFields.SoundMask) != 0) { ... }
 
 Full support for bitwise operations without casting:
 
+
 ```csharp
 IFRFields a = 0x01;
 IFRFields b = 0x02;
@@ -258,3 +260,80 @@ a.Equals(b);            // Object equality
 a.GetHashCode();        // Hash code
 a.ToString();           // Returns "0x42"
 ```
+
+## Fluent Set{Name} Methods (v0.8.0+)
+
+### The Struct-as-Property Problem
+
+When a BitFields struct is exposed as a property, direct setter calls don't work:
+
+```csharp
+public class MyClass
+{
+    public IFRFields IFR { get; set; }
+}
+
+// ? This modifies a COPY, not the original!
+obj.IFR.Ready = true;  // Compiles but doesn't work
+```
+
+This is a fundamental C# behavior: property getters return a copy of the struct.
+
+### Solution: Set{Name} Methods
+
+For each property, a `Set{Name}` method is generated that returns a new struct:
+
+```csharp
+// ? This works correctly
+obj.IFR = obj.IFR.SetReady(true);
+
+// ? Chain multiple changes
+obj.IFR = obj.IFR.SetReady(true).SetError(false).SetMode(5);
+```
+
+### Examples
+
+```csharp
+// BitFlags
+IFRFields flags = 0;
+flags = flags.SetReady(true);           // Set flag
+flags = flags.SetReady(false);          // Clear flag
+
+// BitFields (multi-bit)
+RegAFields reg = 0;
+reg = reg.SetSound(5);                  // Set 3-bit field to 5
+reg = reg.SetPriority(2);               // Set 2-bit field to 2
+
+// Chaining
+var result = reg
+    .SetSound(7)
+    .SetPage2(true)
+    .SetDriveSel(false);
+
+// With properties
+container.Status = container.Status.SetReady(true).SetMode(3);
+```
+
+### Alternative: Bitwise Operators
+
+For simple flag operations, bitwise operators also work with properties:
+
+```csharp
+// Set a flag
+obj.IFR = obj.IFR | IFRFields.ReadyBit;
+
+// Clear a flag  
+obj.IFR = obj.IFR & ~IFRFields.ReadyBit;
+
+// Toggle a flag
+obj.IFR = obj.IFR ^ IFRFields.ReadyBit;
+```
+
+### Summary: Choosing the Right Approach
+
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| Struct is a local variable | Direct setter: `reg.Ready = true` |
+| Struct is a property | Set method: `obj.IFR = obj.IFR.SetReady(true)` |
+| Setting multiple values | Chain: `reg.SetA(1).SetB(2).SetC(true)` |
+| Simple flag set/clear | Bitwise: `obj.IFR = obj.IFR \| IFRFields.ReadyBit` |

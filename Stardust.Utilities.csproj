@@ -8,7 +8,7 @@
     <!-- NuGet Package Settings -->
     <IsPackable>true</IsPackable>
     <PackageId>Stardust.Utilities</PackageId>
-    <Version>0.7.0</Version>
+    <Version>0.8.1</Version>
     <Authors>Dave Hadner</Authors>
     <Description>Utility types for bit manipulation, error handling, and big-endian data types. Includes source generator for [BitFields] attribute.</Description>
     <PackageTags>utilities;bitfields;source-generator;result;big-endian</PackageTags>

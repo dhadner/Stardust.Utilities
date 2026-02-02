@@ -558,6 +558,7 @@ public partial class BitFieldTests
         GeneratedStatusReg8 b = 0x42;
         GeneratedStatusReg8 c = 0x24;
 
+
         a.GetHashCode().Should().Be(b.GetHashCode());
         a.GetHashCode().Should().NotBe(c.GetHashCode());
     }
@@ -576,6 +577,135 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+
+    #region Set{Name} Fluent Method Tests
+
+    /// <summary>
+    /// Tests Set{Name} methods for BitFlags.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_SetBitFlagMethods()
+    {
+        GeneratedStatusReg8 reg = 0;
+
+        // Set a flag using Set method
+        var result = reg.SetReady(true);
+        result.Ready.Should().BeTrue();
+        ((byte)result).Should().Be(0x01);
+
+        // Original should be unchanged (immutable pattern)
+        reg.Ready.Should().BeFalse();
+        ((byte)reg).Should().Be(0x00);
+
+        // Clear a flag
+        GeneratedStatusReg8 full = 0xFF;
+        var cleared = full.SetReady(false);
+        cleared.Ready.Should().BeFalse();
+        ((byte)cleared).Should().Be(0xFE);
+    }
+
+    /// <summary>
+    /// Tests Set{Name} methods for BitFields.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_SetBitFieldMethods()
+    {
+        GeneratedStatusReg8 reg = 0;
+
+        // Set a multi-bit field using Set method
+        var result = reg.SetMode(5);
+        result.Mode.Should().Be(5);
+        ((byte)result).Should().Be(0x14); // 5 << 2 = 0x14
+
+        // Original should be unchanged
+        reg.Mode.Should().Be(0);
+
+        // Change a field in an existing register
+        GeneratedStatusReg8 existing = 0xFF;
+        var changed = existing.SetMode(0);
+        changed.Mode.Should().Be(0);
+        ((byte)changed).Should().Be(0xE3); // 0xFF & ~0x1C
+    }
+
+    /// <summary>
+    /// Tests chaining multiple Set{Name} methods.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_SetMethodChaining()
+    {
+        GeneratedStatusReg8 reg = 0;
+
+        // Chain multiple Set methods
+        var result = reg
+            .SetReady(true)
+            .SetError(true)
+            .SetMode(5)
+            .SetPriority(2);
+
+        result.Ready.Should().BeTrue();
+        result.Error.Should().BeTrue();
+        result.Mode.Should().Be(5);
+        result.Priority.Should().Be(2);
+
+        // Ready (bit 0) = 1, Error (bit 1) = 1, Mode (bits 2-4) = 5, Priority (bits 5-6) = 2
+        // Expected: 0x01 | 0x02 | 0x14 | 0x40 = 0x57
+        ((byte)result).Should().Be(0x57);
+    }
+
+    /// <summary>
+    /// Tests using Set{Name} methods with properties (the main use case).
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_SetMethodsOnProperties()
+    {
+        // Simulate a class with a BitFields property
+        var container = new TestContainer();
+        container.Status = 0;
+
+        // This is the pattern that works with properties
+        container.Status = container.Status.SetReady(true);
+        container.Status.Ready.Should().BeTrue();
+
+        // Chain multiple changes
+        container.Status = container.Status.SetError(true).SetMode(3);
+        container.Status.Ready.Should().BeTrue();
+        container.Status.Error.Should().BeTrue();
+        container.Status.Mode.Should().Be(3);
+    }
+
+    /// <summary>
+    /// Tests Set{Name} methods on 16-bit registers.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_SetMethods16Bit()
+    {
+        GeneratedKeyboardReg16 reg = 0;
+
+        var result = reg
+            .SetFirstKeyCode(0x1A)
+            .SetFirstKeyUp(true)
+            .SetSecondKeyCode(0x00);
+
+        result.FirstKeyCode.Should().Be(0x1A);
+        result.FirstKeyUp.Should().BeTrue();
+        result.SecondKeyCode.Should().Be(0x00);
+
+        // FirstKeyUp (bit 15) = 1, FirstKeyCode (bits 8-14) = 0x1A
+        // SecondKeyCode (bits 0-6) = 0x00
+        // Expected: 0x9A00
+        ((ushort)result).Should().Be(0x9A00);
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Helper class to test BitFields properties.
+/// </summary>
+public class TestContainer
+{
+    public GeneratedStatusReg8 Status { get; set; }
 }
 
 #region Generated BitFields Test Structs
