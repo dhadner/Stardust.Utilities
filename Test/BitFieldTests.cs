@@ -579,18 +579,20 @@ public partial class BitFieldTests
     #endregion
 
 
-    #region Set{Name} Fluent Method Tests
+
+
+    #region With{Name} Fluent Method Tests
 
     /// <summary>
-    /// Tests Set{Name} methods for BitFlags.
+    /// Tests With{Name} methods for BitFlags.
     /// </summary>
     [Fact]
-    public void GeneratedBitFields_SetBitFlagMethods()
+    public void GeneratedBitFields_WithBitFlagMethods()
     {
         GeneratedStatusReg8 reg = 0;
 
-        // Set a flag using Set method
-        var result = reg.SetReady(true);
+        // Set a flag using With method
+        var result = reg.WithReady(true);
         result.Ready.Should().BeTrue();
         ((byte)result).Should().Be(0x01);
 
@@ -600,21 +602,21 @@ public partial class BitFieldTests
 
         // Clear a flag
         GeneratedStatusReg8 full = 0xFF;
-        var cleared = full.SetReady(false);
+        var cleared = full.WithReady(false);
         cleared.Ready.Should().BeFalse();
         ((byte)cleared).Should().Be(0xFE);
     }
 
     /// <summary>
-    /// Tests Set{Name} methods for BitFields.
+    /// Tests With{Name} methods for BitFields.
     /// </summary>
     [Fact]
-    public void GeneratedBitFields_SetBitFieldMethods()
+    public void GeneratedBitFields_WithBitFieldMethods()
     {
         GeneratedStatusReg8 reg = 0;
 
-        // Set a multi-bit field using Set method
-        var result = reg.SetMode(5);
+        // Set a multi-bit field using With method
+        var result = reg.WithMode(5);
         result.Mode.Should().Be(5);
         ((byte)result).Should().Be(0x14); // 5 << 2 = 0x14
 
@@ -623,25 +625,25 @@ public partial class BitFieldTests
 
         // Change a field in an existing register
         GeneratedStatusReg8 existing = 0xFF;
-        var changed = existing.SetMode(0);
+        var changed = existing.WithMode(0);
         changed.Mode.Should().Be(0);
         ((byte)changed).Should().Be(0xE3); // 0xFF & ~0x1C
     }
 
     /// <summary>
-    /// Tests chaining multiple Set{Name} methods.
+    /// Tests chaining multiple With{Name} methods.
     /// </summary>
     [Fact]
-    public void GeneratedBitFields_SetMethodChaining()
+    public void GeneratedBitFields_WithMethodChaining()
     {
         GeneratedStatusReg8 reg = 0;
 
-        // Chain multiple Set methods
+        // Chain multiple With methods
         var result = reg
-            .SetReady(true)
-            .SetError(true)
-            .SetMode(5)
-            .SetPriority(2);
+            .WithReady(true)
+            .WithError(true)
+            .WithMode(5)
+            .WithPriority(2);
 
         result.Ready.Should().BeTrue();
         result.Error.Should().BeTrue();
@@ -654,38 +656,38 @@ public partial class BitFieldTests
     }
 
     /// <summary>
-    /// Tests using Set{Name} methods with properties (the main use case).
+    /// Tests using With{Name} methods with properties (the main use case).
     /// </summary>
     [Fact]
-    public void GeneratedBitFields_SetMethodsOnProperties()
+    public void GeneratedBitFields_WithMethodsOnProperties()
     {
         // Simulate a class with a BitFields property
         var container = new TestContainer();
         container.Status = 0;
 
         // This is the pattern that works with properties
-        container.Status = container.Status.SetReady(true);
+        container.Status = container.Status.WithReady(true);
         container.Status.Ready.Should().BeTrue();
 
         // Chain multiple changes
-        container.Status = container.Status.SetError(true).SetMode(3);
+        container.Status = container.Status.WithError(true).WithMode(3);
         container.Status.Ready.Should().BeTrue();
         container.Status.Error.Should().BeTrue();
         container.Status.Mode.Should().Be(3);
     }
 
     /// <summary>
-    /// Tests Set{Name} methods on 16-bit registers.
+    /// Tests With{Name} methods on 16-bit registers.
     /// </summary>
     [Fact]
-    public void GeneratedBitFields_SetMethods16Bit()
+    public void GeneratedBitFields_WithMethods16Bit()
     {
         GeneratedKeyboardReg16 reg = 0;
 
         var result = reg
-            .SetFirstKeyCode(0x1A)
-            .SetFirstKeyUp(true)
-            .SetSecondKeyCode(0x00);
+            .WithFirstKeyCode(0x1A)
+            .WithFirstKeyUp(true)
+            .WithSecondKeyCode(0x00);
 
         result.FirstKeyCode.Should().Be(0x1A);
         result.FirstKeyUp.Should().BeTrue();

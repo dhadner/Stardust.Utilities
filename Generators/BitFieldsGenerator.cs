@@ -219,15 +219,15 @@ public class BitFieldsGenerator : IIncrementalGenerator
             GenerateStaticMaskProperty(sb, info, field, memberIndent);
         }
 
-        // Generate Set{Name} methods for fluent API
+        // Generate With{Name} methods for fluent API
         foreach (var flag in info.Flags)
         {
-            GenerateSetBitFlagMethod(sb, info, flag, memberIndent);
+            GenerateWithBitFlagMethod(sb, info, flag, memberIndent);
         }
 
         foreach (var field in info.Fields)
         {
-            GenerateSetBitFieldMethod(sb, info, field, memberIndent);
+            GenerateWithBitFieldMethod(sb, info, field, memberIndent);
         }
 
         // Generate bitwise operators
@@ -425,10 +425,10 @@ public class BitFieldsGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Generates a Set{Name} method for a BitFlag that returns a new struct with the flag set/cleared.
-    /// E.g., SetReady(true) returns a new IFRFields with the Ready bit set.
+    /// Generates a With{Name} method for a BitFlag that returns a new struct with the flag set/cleared.
+    /// E.g., WithReady(true) returns a new IFRFields with the Ready bit set.
     /// </summary>
-    private static void GenerateSetBitFlagMethod(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
+    private static void GenerateWithBitFlagMethod(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
     {
         int bit = flag.Bit;
         ulong mask = 1UL << bit;
@@ -443,20 +443,20 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
         if (info.StorageTypeIsSigned)
         {
-            sb.AppendLine($"{indent}public {info.TypeName} Set{flag.Name}(bool value) => new(value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex}));");
+            sb.AppendLine($"{indent}public {info.TypeName} With{flag.Name}(bool value) => new(value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex}));");
         }
         else
         {
-            sb.AppendLine($"{indent}public {info.TypeName} Set{flag.Name}(bool value) => new(value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex}));");
+            sb.AppendLine($"{indent}public {info.TypeName} With{flag.Name}(bool value) => new(value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex}));");
         }
         sb.AppendLine();
     }
 
     /// <summary>
-    /// Generates a Set{Name} method for a BitField that returns a new struct with the field set to a value.
-    /// E.g., SetSound(5) returns a new RegAFields with the Sound field set to 5.
+    /// Generates a With{Name} method for a BitField that returns a new struct with the field set to a value.
+    /// E.g., WithSound(5) returns a new RegAFields with the Sound field set to 5.
     /// </summary>
-    private static void GenerateSetBitFieldMethod(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
+    private static void GenerateWithBitFieldMethod(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
     {
         int shift = field.Shift;
         int width = field.Width;
@@ -476,22 +476,22 @@ public class BitFieldsGenerator : IIncrementalGenerator
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}public {info.TypeName} Set{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex})));");
             }
             else
             {
-                sb.AppendLine($"{indent}public {info.TypeName} Set{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex})));");
             }
         }
         else
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}public {info.TypeName} Set{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex})));");
             }
             else
             {
-                sb.AppendLine($"{indent}public {info.TypeName} Set{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex})));");
             }
         }
         sb.AppendLine();

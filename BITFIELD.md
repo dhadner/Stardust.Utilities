@@ -1,4 +1,4 @@
-# BitField Source Generator
+﻿# BitField Source Generator
 
 Type-safe, high-performance bitfield manipulation for hardware register emulation.
 
@@ -27,7 +27,7 @@ The generator creates:
 - Property implementations with inline bit manipulation
 - Static `{Name}Bit` properties for each `[BitFlag]`
 - Static `{Name}Mask` properties for each `[BitField]`
-- Fluent `Set{Name}` methods for each property
+- Fluent `With{Name}` methods for each property
 - Bitwise operators: `|`, `&`, `^`, `~`
 - Mixed-type operators (struct with storage type)
 - Equality operators: `==`, `!=`
@@ -121,24 +121,35 @@ public partial struct SignedReg32
 
 ## Generated Code
 
-For `[BitFields(typeof(byte))]`, the generator creates:
+For the following user-defined struct:
 
 ```csharp
-// User writes:
 [BitFields(typeof(byte))]
 public partial struct StatusRegister
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
     [BitField(2, 4)] public partial byte Mode { get; set; }  // bits 2..=4 (3 bits)
 }
+```
 
-// Generator creates:
+The generator creates the following complete implementation:
+
+```csharp
 public partial struct StatusRegister
 {
+    // ═══════════════════════════════════════════════════════════════════
+    // Storage
+    // ═══════════════════════════════════════════════════════════════════
+    
     private byte Value;
 
     /// <summary>Creates a new StatusRegister with the specified raw value.</summary>
     public StatusRegister(byte value) { Value = value; }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BitFlag Properties (single-bit)
+    // ═══════════════════════════════════════════════════════════════════
 
     public partial bool Ready
     {
@@ -148,53 +159,158 @@ public partial struct StatusRegister
         set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
     }
 
+    public partial bool Error
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => (Value & 0x02) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BitField Properties (multi-bit)
+    // ═══════════════════════════════════════════════════════════════════
+
     public partial byte Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (byte)((Value >> 2) & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C));
+        set => Value = (byte)((Value & 0xE3) | ((value << 2) & 0x1C));
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // Static Bit Properties (for BitFlags)
+    // Returns a struct with only the specified bit set
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Returns a StatusRegister with only the Ready bit set.</summary>
+    public static StatusRegister ReadyBit => new(0x01);
+
+    /// <summary>Returns a StatusRegister with only the Error bit set.</summary>
+    public static StatusRegister ErrorBit => new(0x02);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Static Mask Properties (for BitFields)
+    // Returns a struct with the mask for the specified field
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Returns a StatusRegister with the mask for the Mode field (bits 2-4).</summary>
+    public static StatusRegister ModeMask => new(0x1C);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Fluent With{Name} Methods
+    // Returns a new struct with the specified value changed
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Returns a new StatusRegister with the Ready flag set to the specified value.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public StatusRegister WithReady(bool value) => 
+        new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+
+    /// <summary>Returns a new StatusRegister with the Error flag set to the specified value.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public StatusRegister WithError(bool value) => 
+        new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+
+    /// <summary>Returns a new StatusRegister with the Mode field set to the specified value.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public StatusRegister WithMode(byte value) => 
+        new((byte)((Value & 0xE3) | ((value << 2) & 0x1C)));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Bitwise Operators
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Bitwise complement operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator ~(StatusRegister a) => new((byte)~a.Value);
+
+    /// <summary>Bitwise OR operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator |(StatusRegister a, StatusRegister b) => 
+        new((byte)(a.Value | b.Value));
+
+    /// <summary>Bitwise AND operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator &(StatusRegister a, StatusRegister b) => 
+        new((byte)(a.Value & b.Value));
+
+    /// <summary>Bitwise XOR operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator ^(StatusRegister a, StatusRegister b) => 
+        new((byte)(a.Value ^ b.Value));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Mixed-Type Bitwise Operators (struct with storage type)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Bitwise OR with storage type (struct | byte).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator |(StatusRegister a, byte b) => 
+        new((byte)(a.Value | b));
+
+    /// <summary>Bitwise OR with storage type (byte | struct).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator |(byte a, StatusRegister b) => 
+        new((byte)(a | b.Value));
+
+    /// <summary>Bitwise AND with storage type (struct & byte).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator &(StatusRegister a, byte b) => 
+        new((byte)(a.Value & b));
+
+    /// <summary>Bitwise AND with storage type (byte & struct).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator &(byte a, StatusRegister b) => 
+        new((byte)(a & b.Value));
+
+    /// <summary>Bitwise XOR with storage type (struct ^ byte).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator ^(StatusRegister a, byte b) => 
+        new((byte)(a.Value ^ b));
+
+    /// <summary>Bitwise XOR with storage type (byte ^ struct).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator ^(byte a, StatusRegister b) => 
+        new((byte)(a ^ b.Value));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Equality Operators
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Equality operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(StatusRegister a, StatusRegister b) => a.Value == b.Value;
+
+    /// <summary>Inequality operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(StatusRegister a, StatusRegister b) => a.Value != b.Value;
+
+    /// <summary>Determines whether this instance equals another object.</summary>
+    public override bool Equals(object? obj) => obj is StatusRegister other && Value == other.Value;
+
+    /// <summary>Returns the hash code for this instance.</summary>
+    public override int GetHashCode() => Value.GetHashCode();
+
+    /// <summary>Returns the hexadecimal string representation of the value.</summary>
+    public override string ToString() => $"0x{Value:X2}";
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Implicit Conversion Operators
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Implicit conversion to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator byte(StatusRegister value) => value.Value;
 
+    /// <summary>Implicit conversion from storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator StatusRegister(byte value) => new(value);
 }
 ```
 
-## Migration from Previous API
-
-If you were using the user-declared Value field pattern:
-
-```csharp
-// Old pattern (no longer supported):
-[BitFields]
-public partial struct MyReg
-{
-    public byte Value;  // User declares this
-    [BitFlag(0)] public partial bool Flag { get; set; }
-}
-
-// New pattern:
-[BitFields(typeof(byte))]
-public partial struct MyReg
-{
-    [BitFlag(0)] public partial bool Flag { get; set; }
-}
-
-// Old usage:
-var reg = new MyReg { Value = 0xFF };
-byte raw = reg.Value;
-
-// New usage:
-MyReg reg = 0xFF;        // Implicit conversion
-byte raw = reg;          // Implicit conversion
-var reg2 = new MyReg(0xFF);  // Constructor
-```
-
-## Operators and Static Properties (v0.7.0+)
+## Operators and Static Properties
 
 ### Static Bit Properties
 
@@ -261,7 +377,7 @@ a.GetHashCode();        // Hash code
 a.ToString();           // Returns "0x42"
 ```
 
-## Fluent Set{Name} Methods (v0.8.0+)
+## Fluent With{Name} Methods (v0.8.0+)
 
 ### The Struct-as-Property Problem
 
@@ -273,22 +389,22 @@ public class MyClass
     public IFRFields IFR { get; set; }
 }
 
-// ? This modifies a COPY, not the original!
+// This modifies a COPY, not the original!
 obj.IFR.Ready = true;  // Compiles but doesn't work
 ```
 
 This is a fundamental C# behavior: property getters return a copy of the struct.
 
-### Solution: Set{Name} Methods
+### Solution: With{Name} Methods
 
-For each property, a `Set{Name}` method is generated that returns a new struct:
+For each property, a `With{Name}` method is generated that returns a new struct and does NOT modify the value of the current struct:
 
 ```csharp
-// ? This works correctly
-obj.IFR = obj.IFR.SetReady(true);
+// This works correctly
+obj.IFR = obj.IFR.WithReady(true);
 
-// ? Chain multiple changes
-obj.IFR = obj.IFR.SetReady(true).SetError(false).SetMode(5);
+// Chain multiple changes
+obj.IFR = obj.IFR.WithReady(true).WithError(false).WithMode(5);
 ```
 
 ### Examples
@@ -296,22 +412,22 @@ obj.IFR = obj.IFR.SetReady(true).SetError(false).SetMode(5);
 ```csharp
 // BitFlags
 IFRFields flags = 0;
-flags = flags.SetReady(true);           // Set flag
-flags = flags.SetReady(false);          // Clear flag
+flags = flags.WithReady(true);           // Set flag
+flags = flags.WithReady(false);          // Clear flag
 
 // BitFields (multi-bit)
 RegAFields reg = 0;
-reg = reg.SetSound(5);                  // Set 3-bit field to 5
-reg = reg.SetPriority(2);               // Set 2-bit field to 2
+reg = reg.WithSound(5);                  // Set 3-bit field to 5
+reg = reg.WithPriority(2);               // Set 2-bit field to 2
 
 // Chaining
 var result = reg
-    .SetSound(7)
-    .SetPage2(true)
-    .SetDriveSel(false);
+    .WithSound(7)
+    .WithPage2(true)
+    .WithDriveSel(false);
 
 // With properties
-container.Status = container.Status.SetReady(true).SetMode(3);
+container.Status = container.Status.WithReady(true).WithMode(3);
 ```
 
 ### Alternative: Bitwise Operators
@@ -334,6 +450,6 @@ obj.IFR = obj.IFR ^ IFRFields.ReadyBit;
 | Scenario | Recommended Approach |
 |----------|---------------------|
 | Struct is a local variable | Direct setter: `reg.Ready = true` |
-| Struct is a property | Set method: `obj.IFR = obj.IFR.SetReady(true)` |
-| Setting multiple values | Chain: `reg.SetA(1).SetB(2).SetC(true)` |
-| Simple flag set/clear | Bitwise: `obj.IFR = obj.IFR \| IFRFields.ReadyBit` |
+| Struct is a property | With method: `obj.IFR = obj.IFR.WithReady(true)` |
+| Setting multiple values | Chain: `reg = reg.WithStatus(1).WithMode(2).WithReady(true)` |
+| Simple flag set/clear | Bitwise: `obj.IFR = obj.IFR | IFRFields.ReadyBit` |
