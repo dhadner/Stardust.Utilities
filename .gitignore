@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Generators/bin
+/Generators/obj
+/obj
+/bin
+/Test/bin
+/Test/obj
+/Tool/bin
+/Tool/obj
+/Test/Generated/Stardust.Generators/Stardust.Generators.BitFieldsGenerator

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+  To use this runsettings file in Visual Studio:
+  1. Test > Configure Run Settings > Select Solution Wide runsettings File
+  2. Select this file (release.runsettings)
+  
+  IMPORTANT: You must also change the Solution Configuration to "Release" 
+  in the toolbar dropdown before running performance tests.
+  
+  Or run from command line with Release:
+  dotnet test -c Release -s release.runsettings
+-->
+<RunSettings>
+  <RunConfiguration>
+    <TargetPlatform>x64</TargetPlatform>
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+    <!-- 10 minute timeout for full performance suite -->
+    <TestSessionTimeout>600000</TestSessionTimeout>
+    <!-- Disable parallel test execution for consistent timing -->
+    <MaxCpuCount>1</MaxCpuCount>
+  </RunConfiguration>
+</RunSettings>
