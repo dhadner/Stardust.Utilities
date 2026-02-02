@@ -543,3 +543,70 @@ Both produce identical machine code, but the big-endian type version:
 - Is type-safe (can't accidentally use wrong endianness)
 - Catches size mismatches at compile time
 - Provides consistent API across 16/32/64-bit sizes
+
+## Design Decisions
+
+### Why No Little-Endian (*Le) Types?
+
+This library provides only big-endian types (`*Be`) and intentionally omits little-endian counterparts (`*Le`). Here's why:
+
+**1. Native types are already little-endian on modern platforms**
+
+The vast majority of .NET target platforms (x86, x64, ARM, ARM64) are little-endian. Native types like `uint` and `ulong` already store bytes in little-endian order, so `UInt32Le` would be redundant.
+
+**2. Big-endian is the exception that needs explicit handling**
+
+The `*Be` types exist because big-endian byte order is needed for:
+- Network protocols (TCP/IP uses "network byte order" = big-endian)
+- Many file formats (PNG, JPEG, Java class files, etc.)
+- Big-endian hardware emulation (68000, PowerPC, SPARC)
+
+On a little-endian machine, you need explicit conversion to/from big-endian. The `*Be` types provide this.
+
+**3. BCL already provides little-endian support for big-endian machines**
+
+For the rare case of running on a big-endian machine and needing little-endian data, the BCL provides:
+```csharp
+// Reading little-endian on any platform
+ushort value = BinaryPrimitives.ReadUInt16LittleEndian(span);
+
+// Writing little-endian on any platform
+BinaryPrimitives.WriteUInt32LittleEndian(span, value);
+```
+
+**4. YAGNI (You Aren't Gonna Need It)**
+
+Adding `*Le` types would double the API surface for a use case with minimal demand. If a specific need arises, they can be added later following the same patterns as the `*Be` types.
+
+### Memory Layout
+
+The types use `[StructLayout(LayoutKind.Explicit)]` with explicit `[FieldOffset]` attributes to guarantee byte ordering:
+
+```csharp
+[StructLayout(LayoutKind.Explicit, Size = 4)]
+public struct UInt32Be
+{
+    [FieldOffset(0)] internal UInt16Be hi;  // Most significant bytes
+    [FieldOffset(2)] internal UInt16Be lo;  // Least significant bytes
+}
+```
+
+This ensures:
+- Predictable memory layout regardless of compiler/runtime optimizations
+- Direct byte access via `hi` and `lo` fields
+- Correct behavior when casting to/from `Span<byte>`
+
+### Endianness-Agnostic Implementation
+
+The byte extraction uses bit shifting rather than pointer casting, making the implementation correct on both little-endian and big-endian machines:
+
+```csharp
+// This works correctly regardless of machine endianness
+public UInt16Be(ushort num)
+{
+    hi = (byte)(num >> 8);   // Always extracts the high byte
+    lo = (byte)(num & 0xff); // Always extracts the low byte
+}
+```
+
+The JIT compiler optimizes this to efficient native instructions on all platforms.

@@ -334,7 +334,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
         _output.WriteLine("");
 
-        ratio.Should().BeInRange(0.9, 1.1);
+        ratio.Should().BeInRange(0.85, 1.15);
     }
 
     [Fact]

@@ -2,24 +2,33 @@
 
 This guide explains how to modify the source generators and update consuming projects.
 
-## Quick Reference: Release Workflow
+## Quick Reference: Build Workflow
 
-**To release a new version (e.g., 0.8.3):**
+**To build a new version (e.g., 0.9.0):**
 
 ```powershell
 # Navigate to the Stardust.Utilities directory
 cd Stardust.Utilities
 
-# Build both NuGet packages and publish to local feed
-.\Build-Combined-NuGetPackages.ps1 -Version "0.8.3" -PublishLocal
+# Build both NuGet packages (automatically publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.0
 
 # Or skip tests for faster iteration during development
-.\Build-Combined-NuGetPackages.ps1 -Version "0.8.3" -PublishLocal -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
 ```
+
+**What happens automatically:**
+1. Builds the generator and library
+2. Runs unit tests (unless `-SkipTests`)
+3. Creates packages in `./nupkg/`
+4. Publishes to local NuGet feed (`~/.nuget/local-packages/`)
+5. Clears NuGet cache so consuming projects pick up changes
 
 **Then update consuming projects:**
 1. Update `PackageReference` version in each .csproj that uses `Stardust.Utilities`
 2. Rebuild the consuming solution
+
+> **Note:** Version is specified at build time and is NOT stored in .csproj files. This keeps source control clean and avoids accidental version mismatches.
 
 ## Project Structure
 
@@ -76,9 +85,51 @@ The `Stardust.Utilities` NuGet package includes:
 
 ## Build Scripts
 
+### Build-Combined-NuGetPackages.ps1
+
+**This is the primary build script.** It builds both NuGet packages and automatically publishes to the local feed:
+- `Stardust.Utilities.x.y.z.nupkg` - **The distributable package** (includes generator as embedded analyzer + utility types)
+- `Stardust.Generators.x.y.z.nupkg` - Local development package only (not for distribution)
+
+```powershell
+# Show help
+.\Build-Combined-NuGetPackages.ps1 -Help
+
+# Build version 0.9.0 (runs tests, publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.0
+
+# Skip tests for faster iteration
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+
+# Use Debug configuration
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -Configuration Debug
+```
+
+**Parameters:**
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `<version>` | Yes | Version number (e.g., `0.9.0`, `1.0.0-beta1`) |
+| `-SkipTests` | No | Skip running unit tests |
+| `-Configuration` | No | `Debug` or `Release` (default: Release) |
+| `-Help` | No | Show help message |
+
+**What it does:**
+1. Cleans previous build artifacts
+2. Builds the generator package
+3. Builds the main library
+4. Runs unit tests (unless `-SkipTests`)
+5. Creates NuGet packages in `./nupkg/`
+6. Copies packages to `~/.nuget/local-packages/`
+7. Clears NuGet cache for `stardust.utilities` and `stardust.generators`
+
+**Output locations:**
+- `./nupkg/` - Package files
+- `~/.nuget/local-packages/` - Local NuGet feed (packages appear in NuGet Package Manager)
+
 ### Build-Generator-NuGetPackage.ps1
 
-Builds the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for local development only**.
+Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for local development**.
 
 > **Note:** This package is not published to NuGet.org. It exists only to support debugging scenarios where `Stardust.Utilities` is referenced via `ProjectReference`.
 
@@ -87,42 +138,9 @@ Builds the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for 
 - The embedded analyzer doesn't load with ProjectReference, so this standalone package provides the generator
 
 ```powershell
-# Basic usage (uses version from .csproj)
-.\Build-Generator-NuGetPackage.ps1
-
 # Specify a version
-.\Build-Generator-NuGetPackage.ps1 -Version "0.6.0"
-
-# Update version in .csproj and build
-.\Build-Generator-NuGetPackage.ps1 -Version "0.6.0" -UpdateVersion
+.\Build-Generator-NuGetPackage.ps1 -Version "0.9.0"
 ```
-
-### Build-Combined-NuGetPackages.ps1
-
-Builds both NuGet packages:
-- `Stardust.Utilities.x.y.z.nupkg` - **The distributable package** (includes generator as embedded analyzer + utility types)
-- `Stardust.Generators.x.y.z.nupkg` - Local development package only (not for distribution)
-
-This script calls `Build-Generator-NuGetPackage.ps1` internally.
-
-```powershell
-# Basic usage (runs tests, builds both packages)
-.\Build-Combined-NuGetPackages.ps1
-
-# Skip tests for faster builds
-.\Build-Combined-NuGetPackages.ps1 -SkipTests
-
-# Specify a version
-.\Build-Combined-NuGetPackages.ps1 -Version "0.6.0"
-
-# Update version in BOTH .csproj files and build
-.\Build-Combined-NuGetPackages.ps1 -Version "0.6.0" -UpdateVersion
-
-# Publish to local NuGet feed (~/.nuget/local-packages)
-.\Build-Combined-NuGetPackages.ps1 -PublishLocal
-```
-
-**Output:** Both packages are copied to the `nupkg/` folder.
 
 ## Package Reference Scenarios
 
@@ -142,11 +160,8 @@ Edit the generator in `Generators/BitFieldsGenerator.cs`.
 ### Step 2: Rebuild the Package
 
 ```powershell
-# Just rebuild the generator package (for debugging with ProjectReference)
-.\Build-Generator-NuGetPackage.ps1 -Version "0.6.1"
-
-# Or rebuild both packages for a full release
-.\Build-Combined-NuGetPackages.ps1 -Version "0.6.1" -UpdateVersion -SkipTests
+# Rebuild both packages (recommended)
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
 ```
 
 ### Step 3: Test Locally

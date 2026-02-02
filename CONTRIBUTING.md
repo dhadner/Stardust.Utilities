@@ -94,8 +94,11 @@ dotnet build
 # Run tests
 dotnet test Test/Stardust.Utilities.Tests.csproj
 
-# Build NuGet packages (for testing packaging changes)
-.\Build-Combined-NuGetPackages.ps1 -SkipTests
+# Build NuGet packages (version is required)
+.\Build-Combined-NuGetPackages.ps1 0.9.0
+
+# Skip tests for faster iteration
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
 ```
 
 ### Build Scripts
@@ -107,9 +110,16 @@ The repository includes PowerShell build scripts to simplify package development
 | `Build-Combined-NuGetPackages.ps1` | Builds the distributable `Stardust.Utilities` NuGet package |
 | `Build-Generator-NuGetPackage.ps1` | Builds the standalone generator package (for local development only) |
 
+**Key behavior of `Build-Combined-NuGetPackages.ps1`:**
+- Version is specified as a **required** command-line argument (e.g., `0.9.0`)
+- Version is NOT stored in .csproj files
+- Packages are automatically published to the local NuGet feed (`~/.nuget/local-packages/`)
+- NuGet cache is automatically cleared so consuming projects pick up changes
+- Packages appear in Visual Studio's NuGet Package Manager under the local feed
+
 > **Note:** The `Stardust.Generators` package is **not for distribution**. It exists solely to support local debugging scenarios where `Stardust.Utilities` is referenced via `ProjectReference`. The source generator is embedded directly within the `Stardust.Utilities` package for end users.
 
-See [DEVELOPER.md](DEVELOPER.md) for detailed usage examples and the complete release workflow.
+See [DEVELOPER.md](DEVELOPER.md) for detailed usage examples and the complete build workflow.
 
 ### Project Structure
 
