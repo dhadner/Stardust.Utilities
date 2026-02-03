@@ -297,9 +297,15 @@ See [RESULT.md](RESULT.md) for comprehensive documentation and examples.
 
 #### Basic Usage
 
-```csharp
-using Stardust.Utilities;
+Use `global using static` to enable cleaner Ok() and Err() syntax:
 
+```csharp
+// In GlobalUsings.cs
+global using static Stardust.Utilities.Result<int,string>;
+global using static Stardust.Utilities.Result<string>;
+// Add additional global usings as needed for other Result types for clean usage syntax.
+
+// In your source filees
 // Function that might fail
 Result<int, string> Divide(int a, int b)
 {
