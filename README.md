@@ -440,7 +440,7 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 
 ### BitStream
 
-Read and write individual bits to a stream.
+Read and write individual bits in a (byte array-based) stream.
 
 See [BITSTREAM.md](BITSTREAM.md) for comprehensive documentation and examples.
 
@@ -459,9 +459,13 @@ stream.WriteByte(0xAB);
 
 // Read back
 stream.Position = 0;
-bool bit1 = stream.Read();  // true
-bool bit2 = stream.Read();  // false
-int byte1 = stream.ReadByte();  // 0xAB (if aligned)
+bool bit0 = stream.Read();      // true
+bool bit1 = stream.Read();      // false
+bool bit2 = stream.Read();      // true
+bool bit3 = stream.Read();      // (from 0xAB) true
+
+stream.Position = 0;
+int byte1 = stream.ReadByte();  // 0xAB
 
 // Seek within the stream
 stream.Seek(0, SeekOrigin.Begin);
@@ -470,7 +474,6 @@ stream.Seek(-1, SeekOrigin.Current);
 // Truncate
 stream.Truncate(8, SeekOrigin.Begin);  // Remove first 8 bits
 ```
-
 
 ---
 
@@ -483,11 +486,6 @@ See [EXTENSIONS.md](EXTENSIONS.md) for comprehensive documentation and examples.
 ```csharp
 using Stardust.Utilities;
 
-// Bit checking
-byte value = 0b10101010;
-bool isSet = value.IsSet(0b00001000);    // true
-bool isClear = value.IsClear(0b00000001); // true
-
 // Hi/Lo byte extraction
 ushort word = 0x1234;
 byte hi = word.Hi();  // 0x12
@@ -497,21 +495,11 @@ byte lo = word.Lo();  // 0x34
 word = word.SetHi(0xFF);  // 0xFF34
 word = word.SetLo(0x00);  // 0xFF00
 
-// Boolean to byte
-bool flag = true;
-byte b = flag.ToByte();  // 1
-
-
-// Saturating arithmetic (clamps instead of overflow)
+// Saturating arithmetic (clamps instead of overflows)
 int a = int.MaxValue;
-int result = a.SaturatingAdd(1);  // Still int.MaxValue, not overflow
-int r2 = 10.SaturatingSub(20);    // 0, not negative (for uint)
+int result = a.SaturatingAdd(1);     // Still int.MaxValue, not overflow
+uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 
-// Enum flag checking
-[Flags] enum Options { None = 0, A = 1, B = 2 }
-Options opts = Options.A | Options.B;
-bool hasA = opts.IsSet(Options.A);   // true
-bool noC = opts.IsClear(Options.A);  // false
 ```
 
 ---
