@@ -30,10 +30,25 @@ cd Stardust.Utilities
 
 > **Note:** Version is specified at build time and is NOT stored in .csproj files. This keeps source control clean and avoids accidental version mismatches.
 
+## Opening the Project
+
+Open `Stardust.Utilities.slnx` in Visual Studio or VS Code:
+
+```powershell
+# Open in Visual Studio
+start Stardust.Utilities.slnx
+
+# Or open in VS Code
+code .
+```
+
+This solution uses the new XML-based solution format (`.slnx`) which is cleaner and easier to merge than the legacy `.sln` format.
+
 ## Project Structure
 
 ```
 Stardust.Utilities/
+├── Stardust.Utilities.slnx              # Solution file (XML format, .NET 9+)
 ├── Stardust.Utilities.csproj            # Main library (types, attributes)
 ├── Generators/
 │   ├── Stardust.Generators.csproj       # Source generator project
@@ -54,7 +69,9 @@ Stardust.Utilities/
 
 ### Why Two Packages Exist
 
-The **`Stardust.Generators`** package is **not intended for public distribution**. It exists solely to support local development scenarios. The source generator is embedded directly within the `Stardust.Utilities` package for distribution.
+The **`Stardust.Generators`** package is **not intended for public distribution**. It exists solely 
+to support local development scenarios. The source generator is embedded directly within the `Stardust.Utilities` 
+package for distribution.
 
 The separate `Stardust.Generators` package is needed because:
 - When debugging `Stardust.Utilities` via `ProjectReference`, the embedded analyzer doesn't load
@@ -131,7 +148,8 @@ The `Stardust.Utilities` NuGet package includes:
 
 Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for local development**.
 
-> **Note:** This package is not published to NuGet.org. It exists only to support debugging scenarios where `Stardust.Utilities` is referenced via `ProjectReference`.
+> **Note:** This package is not published to NuGet.org. It exists only to support debugging scenarios where 
+`Stardust.Utilities` is referenced via `ProjectReference`.
 
 **Use this when:**
 - Debugging `Stardust.Utilities` via ProjectReference in Visual Studio
@@ -147,9 +165,11 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 | Scenario | What to Reference |
 |----------|-------------------|
 | **Normal usage** (consuming the library) | `Stardust.Utilities` NuGet package only |
-| **Debugging Stardust.Utilities locally** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to `Stardust.Generators` (local only) |
+| **Debugging Stardust.Utilities locally** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to 
+`Stardust.Generators` (local only) |
 
-> **Important:** Only `Stardust.Utilities` is published to NuGet.org. The `Stardust.Generators` package is for local development only and should never be distributed separately.
+> **Important:** Only `Stardust.Utilities` is published to NuGet.org. The `Stardust.Generators` package is for local 
+development only and should never be distributed separately.
 
 ## Updating the Source Generator
 
@@ -173,7 +193,7 @@ If testing with a consuming project:
 
 ## Features
 
-### Rust-Style Bit Ranges (v0.6.0+)
+### Rust-Style Bit Ranges
 
 The `[BitField]` attribute uses Rust-style inclusive bit ranges:
 
@@ -194,7 +214,7 @@ public partial struct RegisterA
 
 Width is calculated as `(endBit - startBit + 1)`.
 
-### Nested Struct Support (v0.5.0+)
+### Nested Struct Support
 
 BitFields structs can be nested inside classes. The containing types must be marked `partial`:
 
@@ -210,7 +230,7 @@ public partial class HardwareController
 }
 ```
 
-### Automatic IntelliSense (v0.5.2+)
+### Automatic IntelliSense
 
 The NuGet package automatically enables IntelliSense for generated code:
 
@@ -226,6 +246,52 @@ To **disable** automatic file emission, add to your project:
   <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
 </PropertyGroup>
 ```
+
+### Full Operator Support
+
+BitFields structs support a complete set of operators for parity with the underlying storage type and big-endian types:
+
+| Category | Operators | Notes |
+|----------|-----------|-------|
+| **Arithmetic** | `+`, `-` (unary/binary), `*`, `/`, `%` | Unchecked wraparound matches native behavior |
+| **Bitwise** | `&`, `\|`, `^`, `~` | Mixed-type operators with storage type |
+| **Shift** | `<<`, `>>`, `>>>` | Shift amount is always `int` |
+| **Comparison** | `<`, `>`, `<=`, `>=`, `==`, `!=` | Direct value comparison |
+| **Conversions** | Implicit to/from storage type | Zero-cost conversions |
+
+**Interface implementations:**
+- `IComparable`, `IComparable<T>` — sorting and ordering support
+- `IEquatable<T>` — efficient equality comparison
+- `IFormattable`, `ISpanFormattable` — format string support (e.g., `"X2"`, `"D"`)
+- `IParsable<T>`, `ISpanParsable<T>` — parsing with hex (`0x`) and binary (`0b`) support, can include underscores
+
+**Example usage:**
+```csharp
+GeneratedStatusReg8 a = 0x0F;
+GeneratedStatusReg8 b = 0x10;
+
+// Arithmetic
+var sum = a + b;              // 0x1F
+var shifted = a << 4;         // 0xF0
+
+// Comparison and sorting
+bool isLess = a < b;          // true
+var sorted = new[] { b, a }.OrderBy(x => x).ToArray();
+
+// Formatting
+string hex = a.ToString("X2", null);  // "0F"
+
+// Parsing
+var parsed = GeneratedStatusReg8.Parse("0xFF");
+```
+
+**Parity with native types:**
+- Overflow/underflow uses unchecked semantics (wraparound)
+- Division by zero throws `DivideByZeroException`
+- Shift operators take `int` for shift amount
+
+> **Note:** Unary `-` for unsigned types is an extension (native `uint`/`ulong` don't support it).
+> It produces two's complement negation: `-1` on a `byte` yields `255`.
 
 ## Troubleshooting
 
@@ -286,6 +352,7 @@ To see what the generator produces:
 
 | Version | Changes |
 |---------|---------|
+| 0.9.0   | Full operator support: arithmetic (+, -, *, /, %), shift (<<, >>, >>>), comparison (<, >, <=, >=), IComparable, IEquatable, IFormattable, ISpanFormattable |
 | 0.8.3   | Added parsing support via `IParsable<T>` and `ISpanParsable<T>` interfaces |
 | 0.6.0   | **Breaking:** Changed `[BitField(shift, width)]` to Rust-style `[BitField(startBit, endBit)]` |
 | 0.5.2   | Auto-enable IntelliSense via .props/.targets files |
@@ -301,7 +368,49 @@ Prior to v0.3.0, BitFields supported two patterns:
 1. **User-declared Value field**: `[BitFields]` with `public byte Value;`
 2. **Generator-created Value field**: `[BitFields(typeof(byte))]` with private Value
 
-Performance testing showed no benefit to the user-declared pattern.
+Performance testing showed no benefit to the user-declared pattern.  That is, directly
+accessing the Value field from user code vs. implicit conversions had negligible affect 
+on speed.
+
+```
+// Example structs for performance comparison
+
+// User-declared public value determined type
+
+[BitFields]               
+public partial struct RegisterWithVisibleValue
+{
+    public byte Value; 
+
+    [BitField(0, 3)] public byte Field1 { get; set; }
+    [BitField(4, 7)] public byte Field2 { get; set; }
+}
+
+// Attribute determines type, generator creates private Value field
+
+[BitFields(typeof(byte))] 
+public partial struct RegisterWithConversion
+{
+    [BitField(0, 3)] public byte Field1 { get; set; }
+    [BitField(4, 7)] public byte Field2 { get; set; }
+}
+
+// Compare use of both patterns, same performance either way
+
+private void AccessEntireRegister()
+{
+    RegisterWithVisibleValue regVisibleValue = new();
+    RegisterWithConversion reg = new();
+
+    // Use public Value field version
+    byte value = regVisibleValue.Value;   // Direct access to public value field
+    regVisibleValue.Value = 0xFF;         // Direct assignment to public value field
+
+    // Use implicit conversion version
+    byte valConvert = reg;                // Implicit conversion
+    reg = 0xFF;                           // Implicit assignment
+}
+```
 
 ### Decision
 
@@ -317,20 +426,3 @@ v0.3.0 also added support for signed storage types (`sbyte`, `short`, `int`, `lo
 Performance testing showed signed types are approximately 22% slower than unsigned
 equivalents due to the additional casts required to avoid sign extension issues in
 bitwise operations. For most use cases, this overhead is acceptable.
-
-## nuget.config
-
-The solution uses a `nuget.config` file to reference the local package folder:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources>
-    <clear />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-    <add key="local" value="Stardust.Utilities/nupkg" />
-  </packageSources>
-</configuration>
-```
-
-This allows consuming projects to find packages in `Stardust.Utilities/nupkg/` without publishing to nuget.org.

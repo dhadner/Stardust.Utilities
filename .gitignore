@@ -8,9 +8,12 @@
 /bin
 /Test/bin
 /Test/obj
-/Tool/bin
-/Tool/obj
-/Test/Generated/Stardust.Generators/Stardust.Generators.BitFieldsGenerator
+
+# Test results (exclude test run artifacts, but keep generated source files for inspection)
+/Test/TestResults/*.trx
+/Test/TestResults/*.xml
+/Test/TestResults/*.coverage
 
 # NuGet packages (don't commit built packages)
 /nupkg/
+/.vs

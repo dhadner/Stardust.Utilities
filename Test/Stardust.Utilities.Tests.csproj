@@ -17,12 +17,12 @@
 	
 	<PropertyGroup>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+		<CompilerGeneratedFilesOutputPath>TestResults\Generated</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
 
 	<!-- Exclude emitted generated files from compilation (they're already compiled by the generator) -->
 	<ItemGroup>
-		<Compile Remove="Generated\**" />
+		<Compile Remove="TestResults\Generated\**" />
 	</ItemGroup>
 
 	<ItemGroup>

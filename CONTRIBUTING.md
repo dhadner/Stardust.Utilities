@@ -85,6 +85,18 @@ For detailed development workflows, build scripts, and package publishing instru
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) or later
 - Visual Studio 2026 or VS Code with C# Dev Kit extension
 
+### Opening the Project
+
+Open `Stardust.Utilities.slnx` in Visual Studio or VS Code. This is the new XML-based solution format (`.slnx`) which is cleaner and easier to merge than the legacy `.sln` format.
+
+```powershell
+# Open in Visual Studio
+start Stardust.Utilities.slnx
+
+# Or open in VS Code
+code .
+```
+
 ### Building
 
 ```powershell
@@ -125,6 +137,7 @@ See [DEVELOPER.md](DEVELOPER.md) for detailed usage examples and the complete bu
 
 ```
 Stardust.Utilities/
+├── Stardust.Utilities.slnx # Solution file (XML format, .NET 9+)
 ├── *.cs                    # Core library types (Result, BigEndian, etc.)
 ├── Generators/             # Source generator project (embedded in main package)
 │   └── BitFieldsGenerator.cs

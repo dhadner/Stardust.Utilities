@@ -186,7 +186,8 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
         string indent = new string(' ', indentLevel * 4);
 
-        sb.AppendLine($"{indent}{info.Accessibility} partial struct {info.TypeName} : IParsable<{info.TypeName}>, ISpanParsable<{info.TypeName}>");
+        sb.AppendLine($"{indent}{info.Accessibility} partial struct {info.TypeName} : IComparable, IComparable<{info.TypeName}>, IEquatable<{info.TypeName}>,");
+        sb.AppendLine($"{indent}                             IFormattable, ISpanFormattable, IParsable<{info.TypeName}>, ISpanParsable<{info.TypeName}>");
         sb.AppendLine($"{indent}{{");
 
         string memberIndent = new string(' ', (indentLevel + 1) * 4);
@@ -235,6 +236,15 @@ public class BitFieldsGenerator : IIncrementalGenerator
         // Generate bitwise operators
         GenerateBitwiseOperators(sb, info, memberIndent);
 
+        // Generate arithmetic operators
+        GenerateArithmeticOperators(sb, info, memberIndent);
+
+        // Generate shift operators
+        GenerateShiftOperators(sb, info, memberIndent);
+
+        // Generate comparison operators
+        GenerateComparisonOperators(sb, info, memberIndent);
+
         // Generate equality operators
         GenerateEqualityOperators(sb, info, memberIndent);
 
@@ -248,6 +258,12 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
         // Generate parsing methods (IParsable<T> and ISpanParsable<T>)
         GenerateParsingMethods(sb, info, memberIndent);
+
+        // Generate formatting methods (IFormattable and ISpanFormattable)
+        GenerateFormattingMethods(sb, info, memberIndent);
+
+        // Generate comparison and equality interface methods
+        GenerateComparisonMethods(sb, info, memberIndent);
 
         sb.AppendLine($"{indent}}}");
 
@@ -562,6 +578,170 @@ public class BitFieldsGenerator : IIncrementalGenerator
     }
 
     /// <summary>
+    /// Generates arithmetic operators: +, -, *, /, %
+    /// Note: Unary +/- are provided for all types for convenience, though native unsigned types
+    /// don't support unary -. Behavior matches Int32Be pattern with two's complement semantics.
+    /// </summary>
+    private static void GenerateArithmeticOperators(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+        string s = info.StorageType;
+
+        // Unary + (native types return int for byte/sbyte/short/ushort, but we return self for consistency)
+        sb.AppendLine($"{indent}/// <summary>Unary plus operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator +({t} a) => a;");
+        sb.AppendLine();
+
+        // Unary - (native unsigned types don't support this, but we provide it for convenience like Int32Be)
+        sb.AppendLine($"{indent}/// <summary>Unary negation operator. Returns two's complement negation.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        if (info.StorageTypeIsSigned)
+        {
+            // For signed types, use unchecked to match native wraparound behavior
+            // e.g., -sbyte.MinValue wraps to sbyte.MinValue (-128)
+            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(-a.Value)));");
+        }
+        else
+        {
+            // For unsigned types, compute two's complement negation
+            // This is an extension since native unsigned types don't support unary -
+            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(0 - a.Value)));");
+        }
+        sb.AppendLine();
+
+        // Binary + (use unchecked to match native wraparound behavior)
+        sb.AppendLine($"{indent}/// <summary>Addition operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator +({t} a, {t} b) => new(unchecked(({s})(a.Value + b.Value)));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Addition operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator +({t} a, {s} b) => new(unchecked(({s})(a.Value + b)));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Addition operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator +({s} a, {t} b) => new(unchecked(({s})(a + b.Value)));");
+        sb.AppendLine();
+
+        // Binary -
+        sb.AppendLine($"{indent}/// <summary>Subtraction operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator -({t} a, {t} b) => new(unchecked(({s})(a.Value - b.Value)));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Subtraction operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator -({t} a, {s} b) => new(unchecked(({s})(a.Value - b)));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Subtraction operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator -({s} a, {t} b) => new(unchecked(({s})(a - b.Value)));");
+        sb.AppendLine();
+
+        // Binary *
+        sb.AppendLine($"{indent}/// <summary>Multiplication operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator *({t} a, {t} b) => new(unchecked(({s})(a.Value * b.Value)));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Multiplication operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator *({t} a, {s} b) => new(unchecked(({s})(a.Value * b)));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Multiplication operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator *({s} a, {t} b) => new(unchecked(({s})(a * b.Value)));");
+        sb.AppendLine();
+
+        // Binary /
+        sb.AppendLine($"{indent}/// <summary>Division operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator /({t} a, {t} b) => new(({s})(a.Value / b.Value));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Division operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator /({t} a, {s} b) => new(({s})(a.Value / b));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Division operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator /({s} a, {t} b) => new(({s})(a / b.Value));");
+        sb.AppendLine();
+
+        // Binary %
+        sb.AppendLine($"{indent}/// <summary>Modulus operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator %({t} a, {t} b) => new(({s})(a.Value % b.Value));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Modulus operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator %({t} a, {s} b) => new(({s})(a.Value % b));");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}/// <summary>Modulus operator with storage type.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator %({s} a, {t} b) => new(({s})(a % b.Value));");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates shift operators: &lt;&lt;, &gt;&gt;, &gt;&gt;&gt;
+    /// Shift amount is always int, matching native behavior.
+    /// </summary>
+    private static void GenerateShiftOperators(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+        string s = info.StorageType;
+
+        // Left shift <<
+        sb.AppendLine($"{indent}/// <summary>Left shift operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator <<({t} a, int b) => new(unchecked(({s})(a.Value << b)));");
+        sb.AppendLine();
+
+        // Right shift >>
+        sb.AppendLine($"{indent}/// <summary>Right shift operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator >>({t} a, int b) => new(unchecked(({s})(a.Value >> b)));");
+        sb.AppendLine();
+
+        // Unsigned right shift >>> (C# 11+)
+        sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static {t} operator >>>({t} a, int b) => new(unchecked(({s})(a.Value >>> b)));");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates comparison operators: &lt;, &gt;, &lt;=, &gt;=
+    /// </summary>
+    private static void GenerateComparisonOperators(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+
+        // < operator
+        sb.AppendLine($"{indent}/// <summary>Less than operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static bool operator <({t} a, {t} b) => a.Value < b.Value;");
+        sb.AppendLine();
+
+        // > operator
+        sb.AppendLine($"{indent}/// <summary>Greater than operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static bool operator >({t} a, {t} b) => a.Value > b.Value;");
+        sb.AppendLine();
+
+        // <= operator
+        sb.AppendLine($"{indent}/// <summary>Less than or equal operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static bool operator <=({t} a, {t} b) => a.Value <= b.Value;");
+        sb.AppendLine();
+
+        // >= operator
+        sb.AppendLine($"{indent}/// <summary>Greater than or equal operator.</summary>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public static bool operator >=({t} a, {t} b) => a.Value >= b.Value;");
+        sb.AppendLine();
+    }
+
+    /// <summary>
     /// Generates equality operators: ==, !=
     /// Also generates Equals and GetHashCode overrides.
     /// </summary>
@@ -601,32 +781,72 @@ public class BitFieldsGenerator : IIncrementalGenerator
     /// <summary>
     /// Generates parsing methods implementing IParsable&lt;T&gt; and ISpanParsable&lt;T&gt;.
     /// Also generates convenience overloads without IFormatProvider.
-    /// Handles both decimal and hex (0x/0X prefix) formats.
+    /// Handles decimal, hex (0x/0X prefix), and binary (0b/0B prefix) formats.
+    /// Supports C#-style underscore digit separators in all formats.
     /// </summary>
     private static void GenerateParsingMethods(StringBuilder sb, BitFieldsInfo info, string indent)
     {
         string t = info.TypeName;
         string s = info.StorageType;
 
-        // Helper method for detecting and parsing hex strings
+        // Helper methods for detecting prefixes and removing underscores
         sb.AppendLine($"{indent}private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');");
+        sb.AppendLine($"{indent}private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}private static string RemoveUnderscores(ReadOnlySpan<char> s)");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    // Fast path: no underscores");
+        sb.AppendLine($"{indent}    bool hasUnderscore = false;");
+        sb.AppendLine($"{indent}    foreach (var c in s) {{ if (c == '_') {{ hasUnderscore = true; break; }} }}");
+        sb.AppendLine($"{indent}    if (!hasUnderscore) return s.ToString();");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}    // Remove underscores");
+        sb.AppendLine($"{indent}    var sb = new System.Text.StringBuilder(s.Length);");
+        sb.AppendLine($"{indent}    foreach (var c in s) {{ if (c != '_') sb.Append(c); }}");
+        sb.AppendLine($"{indent}    return sb.ToString();");
+        sb.AppendLine($"{indent}}}");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}private static {s} ParseBinary(ReadOnlySpan<char> s)");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    var clean = RemoveUnderscores(s);");
+        sb.AppendLine($"{indent}    return Convert.To{GetConvertMethodName(s)}(clean, 2);");
+        sb.AppendLine($"{indent}}}");
+        sb.AppendLine();
+        sb.AppendLine($"{indent}private static bool TryParseBinary(ReadOnlySpan<char> s, out {s} result)");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    try");
+        sb.AppendLine($"{indent}    {{");
+        sb.AppendLine($"{indent}        result = ParseBinary(s);");
+        sb.AppendLine($"{indent}        return true;");
+        sb.AppendLine($"{indent}    }}");
+        sb.AppendLine($"{indent}    catch");
+        sb.AppendLine($"{indent}    {{");
+        sb.AppendLine($"{indent}        result = default;");
+        sb.AppendLine($"{indent}        return false;");
+        sb.AppendLine($"{indent}    }}");
+        sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
         // IParsable<T>.Parse(string, IFormatProvider?)
-        sb.AppendLine($"{indent}/// <summary>Parses a string into a {t}. Supports decimal and hex (0x prefix) formats.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Parses a string into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
         sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
         sb.AppendLine($"{indent}/// <returns>The parsed {t} value.</returns>");
+        sb.AppendLine($"{indent}/// <exception cref=\"ArgumentNullException\">s is null.</exception>");
         sb.AppendLine($"{indent}public static {t} Parse(string s, IFormatProvider? provider)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (IsHexPrefix(s.AsSpan()))");
-        sb.AppendLine($"{indent}        return new({s}.Parse(s.AsSpan(2), NumberStyles.HexNumber, provider));");
-        sb.AppendLine($"{indent}    return new({s}.Parse(s, NumberStyles.Integer, provider));");
+        sb.AppendLine($"{indent}    ArgumentNullException.ThrowIfNull(s);");
+        sb.AppendLine($"{indent}    var span = s.AsSpan();");
+        sb.AppendLine($"{indent}    if (IsBinaryPrefix(span))");
+        sb.AppendLine($"{indent}        return new(ParseBinary(span.Slice(2)));");
+        sb.AppendLine($"{indent}    if (IsHexPrefix(span))");
+        sb.AppendLine($"{indent}        return new({s}.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));");
+        sb.AppendLine($"{indent}    return new({s}.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
         // IParsable<T>.TryParse(string?, IFormatProvider?, out T)
-        sb.AppendLine($"{indent}/// <summary>Tries to parse a string into a {t}. Supports decimal and hex (0x prefix) formats.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Tries to parse a string into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
         sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
         sb.AppendLine($"{indent}/// <param name=\"result\">When this method returns, contains the parsed value if successful.</param>");
@@ -635,15 +855,27 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    if (s is null) {{ result = default; return false; }}");
         sb.AppendLine($"{indent}    var span = s.AsSpan();");
+        sb.AppendLine($"{indent}    if (IsBinaryPrefix(span))");
+        sb.AppendLine($"{indent}    {{");
+        sb.AppendLine($"{indent}        if (TryParseBinary(span.Slice(2), out var binValue))");
+        sb.AppendLine($"{indent}        {{");
+        sb.AppendLine($"{indent}            result = new(binValue);");
+        sb.AppendLine($"{indent}            return true;");
+        sb.AppendLine($"{indent}        }}");
+        sb.AppendLine($"{indent}        result = default;");
+        sb.AppendLine($"{indent}        return false;");
+        sb.AppendLine($"{indent}    }}");
         sb.AppendLine($"{indent}    if (IsHexPrefix(span))");
         sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        if ({s}.TryParse(span.Slice(2), NumberStyles.HexNumber, provider, out var hexValue))");
+        sb.AppendLine($"{indent}        if ({s}.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))");
         sb.AppendLine($"{indent}        {{");
         sb.AppendLine($"{indent}            result = new(hexValue);");
         sb.AppendLine($"{indent}            return true;");
         sb.AppendLine($"{indent}        }}");
+        sb.AppendLine($"{indent}        result = default;");
+        sb.AppendLine($"{indent}        return false;");
         sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    else if ({s}.TryParse(s, NumberStyles.Integer, provider, out var value))");
+        sb.AppendLine($"{indent}    if ({s}.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))");
         sb.AppendLine($"{indent}    {{");
         sb.AppendLine($"{indent}        result = new(value);");
         sb.AppendLine($"{indent}        return true;");
@@ -654,35 +886,49 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // ISpanParsable<T>.Parse(ReadOnlySpan<char>, IFormatProvider?)
-        sb.AppendLine($"{indent}/// <summary>Parses a span of characters into a {t}. Supports decimal and hex (0x prefix) formats.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Parses a span of characters into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"s\">The span of characters to parse.</param>");
         sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
         sb.AppendLine($"{indent}/// <returns>The parsed {t} value.</returns>");
         sb.AppendLine($"{indent}public static {t} Parse(ReadOnlySpan<char> s, IFormatProvider? provider)");
         sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    if (IsBinaryPrefix(s))");
+        sb.AppendLine($"{indent}        return new(ParseBinary(s.Slice(2)));");
         sb.AppendLine($"{indent}    if (IsHexPrefix(s))");
-        sb.AppendLine($"{indent}        return new({s}.Parse(s.Slice(2), NumberStyles.HexNumber, provider));");
-        sb.AppendLine($"{indent}    return new({s}.Parse(s, NumberStyles.Integer, provider));");
+        sb.AppendLine($"{indent}        return new({s}.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));");
+        sb.AppendLine($"{indent}    return new({s}.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
         // ISpanParsable<T>.TryParse(ReadOnlySpan<char>, IFormatProvider?, out T)
-        sb.AppendLine($"{indent}/// <summary>Tries to parse a span of characters into a {t}. Supports decimal and hex (0x prefix) formats.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Tries to parse a span of characters into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"s\">The span of characters to parse.</param>");
         sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
         sb.AppendLine($"{indent}/// <param name=\"result\">When this method returns, contains the parsed value if successful.</param>");
         sb.AppendLine($"{indent}/// <returns>true if parsing succeeded; otherwise, false.</returns>");
         sb.AppendLine($"{indent}public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out {t} result)");
         sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    if (IsBinaryPrefix(s))");
+        sb.AppendLine($"{indent}    {{");
+        sb.AppendLine($"{indent}        if (TryParseBinary(s.Slice(2), out var binValue))");
+        sb.AppendLine($"{indent}        {{");
+        sb.AppendLine($"{indent}            result = new(binValue);");
+        sb.AppendLine($"{indent}            return true;");
+        sb.AppendLine($"{indent}        }}");
+        sb.AppendLine($"{indent}        result = default;");
+        sb.AppendLine($"{indent}        return false;");
+        sb.AppendLine($"{indent}    }}");
         sb.AppendLine($"{indent}    if (IsHexPrefix(s))");
         sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        if ({s}.TryParse(s.Slice(2), NumberStyles.HexNumber, provider, out var hexValue))");
+        sb.AppendLine($"{indent}        if ({s}.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))");
         sb.AppendLine($"{indent}        {{");
         sb.AppendLine($"{indent}            result = new(hexValue);");
         sb.AppendLine($"{indent}            return true;");
         sb.AppendLine($"{indent}        }}");
+        sb.AppendLine($"{indent}        result = default;");
+        sb.AppendLine($"{indent}        return false;");
         sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    else if ({s}.TryParse(s, NumberStyles.Integer, provider, out var value))");
+        sb.AppendLine($"{indent}    if ({s}.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))");
         sb.AppendLine($"{indent}    {{");
         sb.AppendLine($"{indent}        result = new(value);");
         sb.AppendLine($"{indent}        return true;");
@@ -693,7 +939,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // Convenience overload: Parse(string)
-        sb.AppendLine($"{indent}/// <summary>Parses a string into a {t} using invariant culture. Supports decimal and hex (0x prefix) formats.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Parses a string into a {t} using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
         sb.AppendLine($"{indent}/// <returns>The parsed {t} value.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -701,12 +947,96 @@ public class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // Convenience overload: TryParse(string?, out T)
-        sb.AppendLine($"{indent}/// <summary>Tries to parse a string into a {t} using invariant culture. Supports decimal and hex (0x prefix) formats.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Tries to parse a string into a {t} using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
         sb.AppendLine($"{indent}/// <param name=\"result\">When this method returns, contains the parsed value if successful.</param>");
         sb.AppendLine($"{indent}/// <returns>true if parsing succeeded; otherwise, false.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{indent}public static bool TryParse(string? s, out {t} result) => TryParse(s, CultureInfo.InvariantCulture, out result);");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Gets the Convert.ToXxx method name for a given storage type.
+    /// </summary>
+    private static string GetConvertMethodName(string storageType)
+    {
+        return storageType switch
+        {
+            "byte" => "Byte",
+            "sbyte" => "SByte",
+            "short" => "Int16",
+            "ushort" => "UInt16",
+            "int" => "Int32",
+            "uint" => "UInt32",
+            "long" => "Int64",
+            "ulong" => "UInt64",
+            _ => "Int32"
+        };
+    }
+
+    /// <summary>
+    /// Generates formatting methods implementing IFormattable and ISpanFormattable.
+    /// </summary>
+    private static void GenerateFormattingMethods(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+        string s = info.StorageType;
+
+        // IFormattable.ToString(string?, IFormatProvider?)
+        sb.AppendLine($"{indent}/// <summary>Formats the value using the specified format and format provider.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"format\">The format to use, or null for the default format.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"formatProvider\">The provider to use for culture-specific formatting.</param>");
+        sb.AppendLine($"{indent}/// <returns>The formatted string representation of the value.</returns>");
+        sb.AppendLine($"{indent}public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);");
+        sb.AppendLine();
+
+        // ISpanFormattable.TryFormat
+        sb.AppendLine($"{indent}/// <summary>Tries to format the value into the provided span of characters.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"destination\">The span to write to.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"charsWritten\">The number of characters written.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"format\">The format to use.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"provider\">The provider to use for culture-specific formatting.</param>");
+        sb.AppendLine($"{indent}/// <returns>true if the formatting was successful; otherwise, false.</returns>");
+        sb.AppendLine($"{indent}public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)");
+        sb.AppendLine($"{indent}    => Value.TryFormat(destination, out charsWritten, format, provider);");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates comparison and equality interface methods: IComparable, IComparable&lt;T&gt;, IEquatable&lt;T&gt;.
+    /// </summary>
+    private static void GenerateComparisonMethods(StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string t = info.TypeName;
+
+        // IComparable.CompareTo(object?)
+        sb.AppendLine($"{indent}/// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"obj\">An object to compare, or null.</param>");
+        sb.AppendLine($"{indent}/// <returns>A value indicating the relative order of the objects being compared.</returns>");
+        sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">obj is not a {t}.</exception>");
+        sb.AppendLine($"{indent}public int CompareTo(object? obj)");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}    if (obj is null) return 1;");
+        sb.AppendLine($"{indent}    if (obj is {t} other) return CompareTo(other);");
+        sb.AppendLine($"{indent}    throw new ArgumentException(\"Object must be of type {t}\", nameof(obj));");
+        sb.AppendLine($"{indent}}}");
+        sb.AppendLine();
+
+        // IComparable<T>.CompareTo(T)
+        sb.AppendLine($"{indent}/// <summary>Compares this instance to another {t} and returns an integer indicating their relative order.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"other\">A {t} to compare.</param>");
+        sb.AppendLine($"{indent}/// <returns>A value indicating the relative order of the instances being compared.</returns>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public int CompareTo({t} other) => Value.CompareTo(other.Value);");
+        sb.AppendLine();
+
+        // IEquatable<T>.Equals(T)
+        sb.AppendLine($"{indent}/// <summary>Indicates whether this instance is equal to another {t}.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"other\">A {t} to compare with this instance.</param>");
+        sb.AppendLine($"{indent}/// <returns>true if the two instances are equal; otherwise, false.</returns>");
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{indent}public bool Equals({t} other) => Value == other.Value;");
         sb.AppendLine();
     }
 

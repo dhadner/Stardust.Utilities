@@ -236,8 +236,14 @@ foreach ($pkg in $packageFiles) {
     Write-Host "  - $($pkg.Name)" -ForegroundColor White
 }
 Write-Host ""
-Write-Host "To publish to NuGet.org:" -ForegroundColor Gray
-foreach ($pkg in $packageFiles) {
-    Write-Host "  dotnet nuget push `"$nupkgFolder\$($pkg.Name)`" -k YOUR_API_KEY -s https://api.nuget.org/v3/index.json" -ForegroundColor Gray
-}
+Write-Host "Note: Only publish Stardust.Utilities. The Stardust.Generators package is for local development only." -ForegroundColor Gray
 Write-Host ""
+
+# Only show publish command for Stardust.Utilities (never publish Stardust.Generators separately)
+$utilitiesPackage = $packageFiles | Where-Object { $_.Name -like "Stardust.Utilities.*" }
+if ($utilitiesPackage) {
+    Write-Host "To publish to NuGet.org:" -ForegroundColor Yellow
+    Write-Host "  dotnet nuget push `"$nupkgFolder\$($utilitiesPackage.Name)`" -k YOUR_API_KEY -s https://api.nuget.org/v3/index.json" -ForegroundColor Gray
+    Write-Host ""
+}
+
