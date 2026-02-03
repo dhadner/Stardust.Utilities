@@ -35,6 +35,8 @@ A collection of utility types for .NET applications, focused on bit manipulation
 
 The BitField feature automatically creates property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
 
+See [BITFIELD.md](BITFIELD.md) for comprehensive documentation and examples.
+
 #### [+] Zero Performance Overhead
 
 The source generator emits **inline bit manipulation with compile-time constants** — the exact same code you would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no static field allocations.
@@ -291,6 +293,8 @@ Every BitFields type automatically implements:
 
 Railway-oriented error handling without exceptions. Inspired by Rust's `Result<T, E>` type.
 
+See [RESULT.md](RESULT.md) for comprehensive documentation and examples.
+
 #### Basic Usage
 
 ```csharp
@@ -426,6 +430,8 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 
 Read and write individual bits to a stream.
 
+See [BITSTREAM.md](BITSTREAM.md) for comprehensive documentation and examples.
+
 ```csharp
 using Stardust.Utilities.Bits;
 
@@ -459,6 +465,8 @@ stream.Truncate(8, SeekOrigin.Begin);  // Remove first 8 bits
 ### Extension Methods
 
 Utility extension methods for bit manipulation.
+
+See [EXTENSIONS.md](EXTENSIONS.md) for comprehensive documentation and examples.
 
 ```csharp
 using Stardust.Utilities;
