@@ -5,7 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![NuGet](https://img.shields.io/nuget/v/Stardust.Utilities.svg)](https://www.nuget.org/packages/Stardust.Utilities/)
 
-A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source generator for zero-boilerplate `[BitFields]` structs.
+A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source 
+generator for zero-allocate `[BitFields]` structs.  Provides native hand-coded speed for bit access with almost no boilerplate needed.
 
 ## Table of Contents
 
