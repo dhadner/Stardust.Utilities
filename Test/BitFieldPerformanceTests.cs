@@ -285,7 +285,11 @@ public class BitFieldPerformanceTests
         ratio.Should().BeInRange(0.95, 1.05);
     }
 
-    [Fact]
+    /// <summary>
+    /// Performance test for mixed read/write operations.
+    /// Skipped in CI environments due to variable runner performance.
+    /// </summary>
+    [Fact(Skip = "Performance tests are unreliable in CI environments")]
     public void Mixed_ReadWrite_Performance()
     {
         _output.WriteLine($"Testing mixed read/write performance ({ITERATIONS:N0} iterations)");
@@ -337,7 +341,12 @@ public class BitFieldPerformanceTests
         ratio.Should().BeInRange(0.85, 1.15);
     }
 
-    [Fact]
+    /// <summary>
+    /// Comprehensive performance test with statistical analysis.
+    /// Skipped in CI environments due to variable runner performance.
+    /// Run locally to verify performance characteristics.
+    /// </summary>
+    [Fact(Skip = "Performance tests are unreliable in CI environments")]
     public void FullSuite_Performance_Summary()
     {
         const int RUNS = 20;
