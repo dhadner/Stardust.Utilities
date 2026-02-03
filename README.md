@@ -1,5 +1,10 @@
 # Stardust.Utilities
 
+[![CI/CD](https://github.com/dhadner/Stardust.Utilities/actions/workflows/ci.yml/badge.svg)](https://github.com/dhadner/Stardust.Utilities/actions/workflows/ci.yml)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NuGet](https://img.shields.io/nuget/v/Stardust.Utilities.svg)](https://www.nuget.org/packages/Stardust.Utilities/)
+
 A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source generator for zero-boilerplate `[BitFields]` structs.
 
 ## Table of Contents
@@ -579,3 +584,4 @@ This project is provided under the MIT License.
 ## Contributing
 
 Contributions are welcome! Please open an issue or pull request on GitHub.
+
