@@ -1,56 +1,61 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-<PropertyGroup>
-  <TargetFramework>net10.0</TargetFramework>
-  <ImplicitUsings>enable</ImplicitUsings>
-  <Nullable>enable</Nullable>
-    
-  <!-- NuGet Package Settings -->
-  <IsPackable>true</IsPackable>
-  <PackageId>Stardust.Utilities</PackageId>
-  <!-- Version is specified at build time via: .\Build-Combined-NuGetPackages.ps1 X.Y.Z -->
-  <Authors>Dave Hadner</Authors>
-  <Description>Utility types for bit manipulation, error handling, and big-endian data types. Includes source generator for [BitFields] attribute.</Description>
-  <PackageTags>utilities;bitfields;source-generator;result;big-endian</PackageTags>
-  <PackageReadmeFile>README.md</PackageReadmeFile>
-  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  <PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
-  <RepositoryUrl>https://github.com/dhadner/Stardust.Utilities</RepositoryUrl>
-  <RepositoryType>git</RepositoryType>
-  <!-- TODO: Add icon.png (128x128 PNG) and uncomment: <PackageIcon>icon.png</PackageIcon> -->
-</PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <!-- Exclude subfolders from compilation -->
-  <ItemGroup>
-    <Compile Remove="Generators\**" />
-    <Compile Remove="Test\**" />
-    <None Remove="Generators\**" />
-    <None Remove="Test\**" />
-    <EmbeddedResource Remove="Generators\**" />
-    <EmbeddedResource Remove="Test\**" />
-  </ItemGroup>
+		<!-- NuGet Package Settings -->
+		<IsPackable>true</IsPackable>
+		<PackageId>Stardust.Utilities</PackageId>
+		<!-- Version is specified at build time via: .\Build-Combined-NuGetPackages.ps1 X.Y.Z -->
+		<Authors>Dave Hadner</Authors>
+		<Description>Utility types for bit manipulation, error handling, and big-endian data types. Includes source generator for [BitFields] attribute.</Description>
+		<PackageTags>utilities;bitfields;source-generator;result;big-endian</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/dhadner/Stardust.Utilities</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<!-- TODO: Add icon.png (128x128 PNG) and uncomment: <PackageIcon>icon.png</PackageIcon> -->
+	</PropertyGroup>
 
-  <!-- Include the source generator - flows to referencing projects -->
-  <ItemGroup>
-    <ProjectReference Include="Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
+	<!-- Exclude subfolders from compilation -->
+	<ItemGroup>
+		<Compile Remove="Generators\**" />
+		<Compile Remove="Test\**" />
+		<None Remove="Generators\**" />
+		<None Remove="Test\**" />
+		<EmbeddedResource Remove="Generators\**" />
+		<EmbeddedResource Remove="Test\**" />
+	</ItemGroup>
+
+	<!-- Include the source generator - flows to referencing projects -->
+	<ItemGroup>
+		<ProjectReference Include="Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
 
 
-  <!-- Include README in NuGet package -->
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="" />
-    <!-- TODO: Uncomment when icon.png is added: <None Include="icon.png" Pack="true" PackagePath="" /> -->
-  </ItemGroup>
+	<!-- Include README in NuGet package -->
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="" />
+		<!-- TODO: Uncomment when icon.png is added: <None Include="icon.png" Pack="true" PackagePath="" /> -->
+	</ItemGroup>
 
-  <!-- Pack the generator DLL as an analyzer (for NuGet package) -->
-  <ItemGroup>
-    <None Include="Generators\bin\$(Configuration)\netstandard2.0\Stardust.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
+	<!-- Include icon in NuGet package -->
+	<ItemGroup>
+		<None Include="icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
 
-  <!-- Include .props and .targets files for auto-configuration -->
-  <ItemGroup>
-    <None Include="build\Stardust.Utilities.props" Pack="true" PackagePath="build" />
-    <None Include="build\Stardust.Utilities.targets" Pack="true" PackagePath="build" />
-  </ItemGroup>
+	<!-- Pack the generator DLL as an analyzer (for NuGet package) -->
+	<ItemGroup>
+		<None Include="Generators\bin\$(Configuration)\netstandard2.0\Stardust.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+
+	<!-- Include .props and .targets files for auto-configuration -->
+	<ItemGroup>
+		<None Include="build\Stardust.Utilities.props" Pack="true" PackagePath="build" />
+		<None Include="build\Stardust.Utilities.targets" Pack="true" PackagePath="build" />
+	</ItemGroup>
 
 </Project>

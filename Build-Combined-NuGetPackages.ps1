@@ -88,8 +88,7 @@ $foldersToClean = @(
     "$ScriptDir\Generators\bin",
     "$ScriptDir\Generators\obj",
     "$ScriptDir\Test\bin",
-    "$ScriptDir\Test\obj",
-    "$ScriptDir\Test\Generated"
+    "$ScriptDir\Test\obj"
 )
 
 foreach ($folder in $foldersToClean) {

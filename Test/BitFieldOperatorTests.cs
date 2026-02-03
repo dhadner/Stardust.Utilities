@@ -894,12 +894,12 @@ public class BitFieldOperatorTests
     public void Operators_WithProperties()
     {
         GeneratedStatusReg8 reg = 0;
-        reg.Mode = 5;
+        reg.Mode = OpMode.Mode5;
         reg.Priority = 2;
 
         // Add a value to the register
         var result = reg + (byte)1;
-        result.Mode.Should().Be(5); // Mode should still be 5 (adding 1 to byte doesn't change bits 2-4)
+        result.Mode.Should().Be(OpMode.Mode5); // Mode should still be 5 (adding 1 to byte doesn't change bits 2-4)
         ((byte)result).Should().Be((byte)((byte)reg + 1));
     }
 

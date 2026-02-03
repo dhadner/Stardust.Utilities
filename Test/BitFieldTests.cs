@@ -93,8 +93,8 @@ public partial class BitFieldTests
         GeneratedStatusReg8 reg = 0;
 
         // Set Mode (bits 2-4, 3 bits wide)
-        reg.Mode = 5;
-        reg.Mode.Should().Be(5);
+        reg.Mode = OpMode.Mode5;
+        reg.Mode.Should().Be(OpMode.Mode5);
         ((byte)reg).Should().Be(0x14); // 5 << 2 = 0x14
 
         // Set Priority (bits 5-6, 2 bits wide)
@@ -325,16 +325,16 @@ public partial class BitFieldTests
         GeneratedStatusReg8 reg = 0;
 
         // Mode is 3 bits (max value 7)
-        reg.Mode = 7;
-        reg.Mode.Should().Be(7);
+        reg.Mode = OpMode.Mode7;
+        reg.Mode.Should().Be(OpMode.Mode7);
 
         // Priority is 2 bits (max value 3)
         reg.Priority = 3;
         reg.Priority.Should().Be(3);
 
         // Values exceeding field width should be truncated
-        reg.Mode = 0xFF;  // Should become 7 (0b111)
-        reg.Mode.Should().Be(7);
+        reg.Mode = (OpMode)0xFF;  // Should become 7 (0b111)
+        reg.Mode.Should().Be(OpMode.Mode7);
     }
 
     #endregion
@@ -816,8 +816,8 @@ public partial class BitFieldTests
         GeneratedStatusReg8 reg = 0;
 
         // Set a multi-bit field using With method
-        var result = reg.WithMode(5);
-        result.Mode.Should().Be(5);
+        var result = reg.WithMode(OpMode.Mode5);
+        result.Mode.Should().Be(OpMode.Mode5);
         ((byte)result).Should().Be(0x14); // 5 << 2 = 0x14
 
         // Original should be unchanged
@@ -842,12 +842,12 @@ public partial class BitFieldTests
         var result = reg
             .WithReady(true)
             .WithError(true)
-            .WithMode(5)
+            .WithMode(OpMode.Mode5)
             .WithPriority(2);
 
         result.Ready.Should().BeTrue();
         result.Error.Should().BeTrue();
-        result.Mode.Should().Be(5);
+        result.Mode.Should().Be(OpMode.Mode5);
         result.Priority.Should().Be(2);
 
         // Ready (bit 0) = 1, Error (bit 1) = 1, Mode (bits 2-4) = 5, Priority (bits 5-6) = 2
@@ -870,10 +870,10 @@ public partial class BitFieldTests
         container.Status.Ready.Should().BeTrue();
 
         // Chain multiple changes
-        container.Status = container.Status.WithError(true).WithMode(3);
+        container.Status = container.Status.WithError(true).WithMode(OpMode.Mode3);
         container.Status.Ready.Should().BeTrue();
         container.Status.Error.Should().BeTrue();
-        container.Status.Mode.Should().Be(3);
+        container.Status.Mode.Should().Be(OpMode.Mode3);
     }
 
     /// <summary>
@@ -912,6 +912,17 @@ public class TestContainer
 
 #region Generated BitFields Test Structs
 
+public enum OpMode : byte
+{
+    Mode0 = 0,
+    Mode1 = 1,
+    Mode2 = 2,
+    Mode3 = 3,
+    Mode4 = 4,
+    Mode5 = 5,
+    Mode6 = 6,
+    Mode7 = 7
+}
 /// <summary>
 /// 8-bit status register for testing code generation.
 /// </summary>
@@ -921,7 +932,7 @@ public partial struct GeneratedStatusReg8
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2..=4 (3 bits)
+    [BitField(2, 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
     [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 

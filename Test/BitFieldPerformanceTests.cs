@@ -537,7 +537,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine("");
 
         // Overall should be within 20% - fail if regression exceeds this
-        // Note: Widened from 5% to 20% to account for system variability during CI/testing
+        // Note: Widened from 5% to 20% to account for system variability
         overallStats.Mean.Should().BeInRange(0.80, 1.20, "Average performance should be within 20% of hand-coded");
     }
 

@@ -16,10 +16,10 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Creates a new GeneratedStatusReg8 with the specified raw value.</summary>
     public GeneratedStatusReg8(byte value) { Value = value; }
 
-    public partial byte Mode
+    public partial OpMode Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x07);
+        get => (OpMode)((Value >> 2) & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C));
     }
@@ -85,7 +85,7 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Mode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithMode(byte value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
+    public GeneratedStatusReg8 WithMode(OpMode value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

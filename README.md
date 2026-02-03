@@ -6,7 +6,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Stardust.Utilities.svg)](https://www.nuget.org/packages/Stardust.Utilities/)
 
 A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source 
-generator for zero-allocate `[BitFields]` structs.  Provides native hand-coded speed for bit access with almost no boilerplate needed.
+generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-coded speed for bit access with no boilerplate needed.
 
 ## Table of Contents
 
@@ -15,7 +15,6 @@ generator for zero-allocate `[BitFields]` structs.  Provides native hand-coded s
   - [BitField](#bitfield)
   - [Result Types](#result-types)
   - [Big-Endian Types](#big-endian-types)
-  - [BitStream](#bitstream)
   - [Extension Methods](#extension-methods)
 - [Troubleshooting](#troubleshooting)
 
@@ -24,10 +23,10 @@ generator for zero-allocate `[BitFields]` structs.  Provides native hand-coded s
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.8.3" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.1" />
 ```
 
-**That's it!** The source generator is included automatically.
+That's it, the source generator is included automatically.
 
 ---
 
@@ -71,15 +70,43 @@ using Stardust.Utilities;
 [BitFields(typeof(byte))]  // Specify storage type
 public partial struct StatusRegister
 {
-    [BitFlag(0)] public partial bool Ready { get; set; }
-    [BitFlag(1)] public partial bool Error { get; set; }
-    [BitFlag(7)] public partial bool Busy { get; set; }
+    [BitFlag(0)] public partial bool Ready { get; set; }         // bit 0
+    [BitFlag(1)] public partial bool Error { get; set; }         // bit 1
+    [BitFlag(7)] public partial bool Busy { get; set; }          // bit 7
     [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2..=4 (3 bits)
     [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 ```
 
-The source generator automatically creates the property implementations during build.
+The source generator automatically creates the property implementations during build.  The
+property type can be defined in your code.  For example, you can make the property types enums 
+for better readability with no runtime overhead:
+
+```csharp
+using Stardust.Utilities;
+
+public enum OpMode : byte
+{
+    Mode0 = 0,
+    Mode1 = 1,
+    Mode2 = 2,
+    Mode3 = 3,
+    Mode4 = 4,
+    Mode5 = 5,
+    Mode6 = 6,
+    Mode7 = 7,
+}
+
+[BitFields(typeof(byte))]  // Specify storage type
+public partial struct StatusRegister
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }        // bit 0
+    [BitFlag(1)] public partial bool Error { get; set; }        // bit 1
+    [BitFlag(7)] public partial bool Busy { get; set; }         // bit 7
+    [BitField(2, 4)] public partial OpMode Mode { get; set; }   // bits 2..=4 (3 bits)
+    [BitField(5, 6)] public partial byte Priority { get; set; } // bits 5..=6 (2 bits)
+}
+```
 
 #### Usage
 
@@ -435,45 +462,6 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 - **Zero-allocation APIs**: `ReadOnlySpan<byte>` constructors, `WriteTo(Span<byte>)`, `TryWriteTo()`
 - **Type converters**: PropertyGrid support for UI editing
 - **Guaranteed layout**: `[StructLayout(LayoutKind.Explicit)]` ensures correct byte ordering
-
----
-
-### BitStream
-
-Read and write individual bits in a (byte array-based) stream.
-
-See [BITSTREAM.md](BITSTREAM.md) for comprehensive documentation and examples.
-
-```csharp
-using Stardust.Utilities.Bits;
-
-var stream = new BitStream();
-
-// Write individual bits
-stream.Write(true);
-stream.Write(false);
-stream.Write(true);
-
-// Write bytes
-stream.WriteByte(0xAB);
-
-// Read back
-stream.Position = 0;
-bool bit0 = stream.Read();      // true
-bool bit1 = stream.Read();      // false
-bool bit2 = stream.Read();      // true
-bool bit3 = stream.Read();      // (from 0xAB) true
-
-stream.Position = 0;
-int byte1 = stream.ReadByte();  // 0xAB
-
-// Seek within the stream
-stream.Seek(0, SeekOrigin.Begin);
-stream.Seek(-1, SeekOrigin.Current);
-
-// Truncate
-stream.Truncate(8, SeekOrigin.Begin);  // Remove first 8 bits
-```
 
 ---
 
