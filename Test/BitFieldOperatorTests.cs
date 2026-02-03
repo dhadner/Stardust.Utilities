@@ -286,6 +286,67 @@ public class BitFieldOperatorTests
         ((ushort)right).Should().Be(0x00FF);
     }
 
+    /// <summary>
+    /// Tests that shift-then-mask pattern works intuitively with integer literals.
+    /// For small types (byte, ushort, etc.), shift returns int to allow:
+    /// <c>(bits >> n) &amp; 1</c> without ambiguity.
+    /// </summary>
+    [Fact]
+    public void ShiftThenMask_WorksWithIntegerLiterals()
+    {
+        // Test with byte-backed BitFields
+        GeneratedStatusReg8 bits8 = 0b0000_1110; // bits 1,2,3 set
+        int lsb8 = (bits8 >> 1) & 1;
+        lsb8.Should().Be(1, "bit 1 is set, so (bits >> 1) & 1 should be 1");
+        
+        int bit2 = (bits8 >> 2) & 1;
+        bit2.Should().Be(1, "bit 2 is set");
+        
+        int bit0 = (bits8 >> 0) & 1;
+        bit0.Should().Be(0, "bit 0 is not set");
+
+        // Test with ushort-backed BitFields
+        GeneratedKeyboardReg16 bits16 = 0b0000_0000_0111_0000; // bits 4,5,6 set
+        int bit4 = (bits16 >> 4) & 1;
+        bit4.Should().Be(1, "bit 4 is set");
+        
+        int bit5 = (bits16 >> 5) & 1;
+        bit5.Should().Be(1, "bit 5 is set");
+        
+        int bit7 = (bits16 >> 7) & 1;
+        bit7.Should().Be(0, "bit 7 is not set");
+
+        // Test that shift result can be directly assigned back to BitFields type
+        // This works because we have implicit conversion from int to small BitFields types
+        GeneratedKeyboardReg16 c = 0b0000_0000_0111_0000;
+        GeneratedKeyboardReg16 d = (c >> 4) & 1;  // Implicit int -> GeneratedKeyboardReg16
+        d.Should().Be((GeneratedKeyboardReg16)1);
+
+        GeneratedStatusReg8 e = (bits8 >> 1) & 0xFF;  // Implicit int -> GeneratedStatusReg8
+        ((byte)e).Should().Be(0x07);
+    }
+
+    /// <summary>
+    /// Tests that shift result can be used with various bitwise operators.
+    /// </summary>
+    [Fact]
+    public void ShiftResult_CanUseWithBitwiseOperators()
+    {
+        GeneratedStatusReg8 bits = 0b1010_1010;
+        
+        // Shift then AND with literal
+        int andResult = (bits >> 2) & 0x0F;
+        andResult.Should().Be(0x0A); // 0b1010_1010 >> 2 = 0b0010_1010 = 42, & 0x0F = 10
+        
+        // Shift then OR with literal
+        int orResult = (bits >> 4) | 0xF0;
+        orResult.Should().Be(0xFA); // 0b1010_1010 >> 4 = 0b0000_1010 = 10, | 0xF0 = 250
+        
+        // Shift then XOR with literal
+        int xorResult = (bits >> 4) ^ 0x0F;
+        xorResult.Should().Be(0x05); // 0b0000_1010 ^ 0b0000_1111 = 0b0000_0101 = 5
+    }
+
     #endregion
 
     #region Comparison Operator Tests

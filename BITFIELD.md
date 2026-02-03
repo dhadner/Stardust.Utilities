@@ -30,14 +30,47 @@ The generator creates:
 - Fluent `With{Name}` methods for each property
 - Arithmetic operators: `+`, `-`, `*`, `/`, `%`, unary `-`
 - Bitwise operators: `|`, `&`, `^`, `~`
-- Shift operators: `<<`, `>>`, `>>>`
+- Shift operators: `<<`, `>>`, `>>>` (return `int` for small types)
 - Comparison operators: `<`, `<=`, `>`, `>=`
 - Equality operators: `==`, `!=`
-- Mixed-type operators (struct with storage type)
+- Mixed-type operators (for `int`, `uint`, `long`, `ulong` storage types)
 - Implicit conversion operators to/from the storage type
 - Parsing support via `IParsable<T>` and `ISpanParsable<T>` interfaces
 - Formatting support via `IFormattable` and `ISpanFormattable` interfaces
 - Comparison interfaces: `IComparable`, `IComparable<T>`, `IEquatable<T>`
+
+## Shift-and-Mask Pattern
+
+For small storage types (`byte`, `sbyte`, `short`, `ushort`), shift operators return `int` to enable intuitive bit manipulation with integer literals:
+
+```csharp
+[BitFields(typeof(byte))]
+public partial struct MyReg { /* ... */ }
+
+MyReg bits = 0b0000_1110;
+
+// This works intuitively because (bits >> 1) returns int
+int lsb = (bits >> 1) & 1;  // Gets bit 1: result = 1
+int bit2 = (bits >> 2) & 1; // Gets bit 2: result = 1
+int bit0 = bits & 1;        // Gets bit 0: result = 0 (uses implicit conversion)
+
+// You can also assign the result back to a BitFields type
+// (implicit conversion from int truncates to storage type)
+MyReg extracted = (bits >> 1) & 0x07;  // Implicit int -> MyReg
+```
+
+For larger storage types (`int`, `uint`, `long`, `ulong`), shift operators return the BitFields type.
+
+### Implicit Conversions
+
+Small BitFields types support implicit conversion from `int`:
+
+```csharp
+MyReg reg = 42;                    // Implicit int -> MyReg (truncates)
+MyReg mask = (bits >> 4) & 0x0F;   // Result of int expression assigned to MyReg
+```
+
+This is intentional because BitFields represent hardware registers where truncation is expected.
 
 ## Attributes
 
@@ -310,39 +343,16 @@ public partial struct StatusRegister
         new((byte)(a.Value ^ b.Value));
 
     // ═══════════════════════════════════════════════════════════════════
-    // Mixed-Type Bitwise Operators (struct with storage type)
+    // Mixed-Type Bitwise Operators
+    // Note: For small types (byte, sbyte, short, ushort), these are NOT
+    // generated because shift returns int, enabling native int operators.
+    // For larger types (int, uint, long, ulong), these ARE generated.
     // ═══════════════════════════════════════════════════════════════════
 
-    /// <summary>Bitwise OR with storage type (struct | byte).</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator |(StatusRegister a, byte b) => 
-        new((byte)(a.Value | b));
-
-    /// <summary>Bitwise OR with storage type (byte | struct).</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator |(byte a, StatusRegister b) => 
-        new((byte)(a | b.Value));
-
-    /// <summary>Bitwise AND with storage type (struct & byte).</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator &(StatusRegister a, byte b) => 
-        new((byte)(a.Value & b));
-
-    /// <summary>Bitwise AND with storage type (byte & struct).</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator &(byte a, StatusRegister b) => 
-        new((byte)(a & b.Value));
-
-    /// <summary>Bitwise XOR with storage type (struct ^ byte).</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator ^(StatusRegister a, byte b) => 
-        new((byte)(a.Value ^ b));
-
-
-    /// <summary>Bitwise XOR with storage type (byte ^ struct).</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator ^(byte a, StatusRegister b) => 
-        new((byte)(a ^ b.Value));
+    // For small types, use the shift-then-mask pattern:
+    //   int bit = (bits >> n) & 1;    // Works because shift returns int
+    //
+    // For int/uint/long/ulong storage types, the following operators are generated:
 
     // ═══════════════════════════════════════════════════════════════════
     // Arithmetic Operators
@@ -367,22 +377,21 @@ public partial struct StatusRegister
 
     // ═══════════════════════════════════════════════════════════════════
     // Shift Operators
+    // For small types (byte, sbyte, short, ushort), returns int to allow
+    // intuitive use like: (bits >> n) & 1
     // ═══════════════════════════════════════════════════════════════════
 
-    /// <summary>Left shift operator.</summary>
+    /// <summary>Left shift operator. Returns int for intuitive bitwise operations.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator <<(StatusRegister a, int b) => 
-        new(unchecked((byte)(a.Value << b)));
+    public static int operator <<(StatusRegister a, int b) => a.Value << b;
 
-    /// <summary>Right shift operator.</summary>
+    /// <summary>Right shift operator. Returns int for intuitive bitwise operations.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator >>(StatusRegister a, int b) => 
-        new(unchecked((byte)(a.Value >> b)));
+    public static int operator >>(StatusRegister a, int b) => a.Value >> b;
 
-    /// <summary>Unsigned right shift operator.</summary>
+    /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusRegister operator >>>(StatusRegister a, int b) => 
-        new(unchecked((byte)(a.Value >>> b)));
+    public static int operator >>>(StatusRegister a, int b) => a.Value >>> b;
 
     // ═══════════════════════════════════════════════════════════════════
     // Comparison Operators
