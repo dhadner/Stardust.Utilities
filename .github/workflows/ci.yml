@@ -32,6 +32,9 @@ jobs:
     - name: Build Library
       run: dotnet build Stardust.Utilities.csproj -c Release --no-restore
 
+    - name: Build Tests
+      run: dotnet build Test/Stardust.Utilities.Tests.csproj -c Release --no-restore
+
     - name: Run Tests
       run: dotnet test Test/Stardust.Utilities.Tests.csproj -c Release --no-build --verbosity normal
 
