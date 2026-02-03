@@ -310,8 +310,8 @@ global using static Stardust.Utilities.Result<string>;
 Result<int, string> Divide(int a, int b)
 {
     if (b == 0)
-        return Result<int, string>.Err("Division by zero");
-    return Result<int, string>.Ok(a / b);
+        return Err("Division by zero");
+    return Ok(a / b);
 }
 
 // Using the result
