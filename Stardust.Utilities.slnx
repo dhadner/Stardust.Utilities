@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Generators/">
+    <Project Path="Generators/Stardust.Generators.csproj" />
+  </Folder>
+  <Folder Name="/Test/">
+    <Project Path="Test/Stardust.Utilities.Tests.csproj" />
+  </Folder>
+  <Project Path="Stardust.Utilities.csproj" />
+</Solution>

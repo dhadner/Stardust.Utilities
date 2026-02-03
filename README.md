@@ -18,7 +18,7 @@ A collection of utility types for .NET applications, focused on bit manipulation
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.2.0" />
+<PackageReference Include="Stardust.Utilities" Version="0.8.3" />
 ```
 
 **That's it!** The source generator is included automatically.
@@ -139,6 +139,151 @@ public partial class HardwareController
     public bool IsReady => _status.Ready;
 }
 ```
+
+#### Generated Operators
+
+BitFields types are full-featured numeric types with complete operator support:
+
+```csharp
+StatusRegister a = 0x42;
+StatusRegister b = 0x18;
+
+// Arithmetic operators
+var sum = a + b;           // Addition
+var diff = a - b;          // Subtraction
+var prod = a * 2;          // Multiplication (with storage type)
+var quot = a / b;          // Division
+var rem = a % b;           // Modulus
+var neg = -a;              // Unary negation (two's complement)
+
+// Bitwise operators
+var or = a | b;            // OR
+var and = a & b;           // AND
+var xor = a ^ b;           // XOR
+var not = ~a;              // Complement
+var shl = a << 2;          // Left shift
+var shr = a >> 2;          // Right shift
+var ushr = a >>> 2;        // Unsigned right shift
+
+// Comparison operators
+bool lt = a < b;           // Less than
+bool le = a <= b;          // Less than or equal
+bool gt = a > b;           // Greater than
+bool ge = a >= b;          // Greater than or equal
+
+// Equality operators
+bool eq = a == b;          // Equality
+bool ne = a != b;          // Inequality
+
+// Mixed-type operations (with storage type)
+StatusRegister c = a + (byte)10;
+StatusRegister d = (byte)5 | b;
+```
+
+#### Parsing Support
+
+BitFields types implement `IParsable<T>` and `ISpanParsable<T>` with support for multiple formats:
+
+```csharp
+// Decimal parsing
+StatusRegister dec = StatusRegister.Parse("255");
+
+// Hexadecimal parsing (0x or 0X prefix)
+StatusRegister hex = StatusRegister.Parse("0xFF");
+StatusRegister hex2 = StatusRegister.Parse("0XAB");
+
+// Binary parsing (0b or 0B prefix)
+StatusRegister bin = StatusRegister.Parse("0b11111111");
+StatusRegister bin2 = StatusRegister.Parse("0B10101010");
+
+// C#-style underscore digit separators (all formats)
+StatusRegister d1 = StatusRegister.Parse("1_000");           // Decimal: 1000
+StatusRegister h1 = StatusRegister.Parse("0xFF_00");         // Hex: 0xFF00  
+StatusRegister b1 = StatusRegister.Parse("0b1111_0000");     // Binary: 0xF0
+
+// TryParse for safe parsing
+if (StatusRegister.TryParse("0b1010_1010", out var result))
+{
+    Console.WriteLine(result);  // 0xAA
+}
+
+// With format provider
+var parsed = StatusRegister.Parse("42", CultureInfo.InvariantCulture);
+```
+
+#### Formatting Support
+
+BitFields types implement `IFormattable` and `ISpanFormattable`:
+
+```csharp
+StatusRegister value = 0xAB;
+
+// Standard format strings
+string hex = value.ToString("X2", null);    // "AB"
+string dec = value.ToString("D", null);     // "171"
+
+// Default ToString returns hex
+string str = value.ToString();              // "0xAB"
+
+// Allocation-free formatting
+Span<char> buffer = stackalloc char[10];
+if (value.TryFormat(buffer, out int written, "X4", null))
+{
+    // buffer[..written] contains "00AB"
+}
+```
+
+#### Fluent API
+
+Generated `With{PropertyName}` methods enable immutable-style updates:
+
+```csharp
+StatusRegister initial = 0;
+
+// Fluent building
+var configured = initial
+    .WithReady(true)
+    .WithMode(5)
+    .WithPriority(2);
+
+// Original unchanged
+Console.WriteLine(initial);     // 0x0
+Console.WriteLine(configured);  // 0x6D
+```
+
+#### Static Bit and Mask Properties
+
+For each flag and field, static properties provide the corresponding bit patterns:
+
+```csharp
+// For [BitFlag(0)] Ready - get a value with only that bit set
+StatusRegister readyBit = StatusRegister.ReadyBit;   // 0x01
+
+// For [BitField(2, 4)] Mode - get the mask for that field
+StatusRegister modeMask = StatusRegister.ModeMask;   // 0x1C (bits 2-4)
+
+// Useful for testing and masking
+if ((status & StatusRegister.ReadyBit) != 0)
+{
+    // Ready bit is set
+}
+
+var modeOnly = status & StatusRegister.ModeMask;
+```
+
+#### Interface Implementations
+
+Every BitFields type automatically implements:
+
+| Interface | Purpose |
+|-----------|---------|
+| `IComparable` | Non-generic comparison |
+| `IComparable<T>` | Generic comparison |
+| `IEquatable<T>` | Value equality |
+| `IFormattable` | Format string support |
+| `ISpanFormattable` | Allocation-free formatting |
+| `IParsable<T>` | String parsing |
+| `ISpanParsable<T>` | Span-based parsing |
 
 ---
 

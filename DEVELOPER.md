@@ -1,35 +1,93 @@
-# Stardust.Utilities Developer Guide
+﻿# Stardust.Utilities Developer Guide
 
 This guide explains how to modify the source generators and update consuming projects.
+
+## Quick Reference: Build Workflow
+
+**To build a new version (e.g., 0.9.0):**
+
+```powershell
+# Navigate to the Stardust.Utilities directory
+cd Stardust.Utilities
+
+# Build both NuGet packages (automatically publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.0
+
+# Or skip tests for faster iteration during development
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+```
+
+**What happens automatically:**
+1. Builds the generator and library
+2. Runs unit tests (unless `-SkipTests`)
+3. Creates packages in `./nupkg/`
+4. Publishes to local NuGet feed (`~/.nuget/local-packages/`)
+5. Clears NuGet cache so consuming projects pick up changes
+
+**Then update consuming projects:**
+1. Update `PackageReference` version in each .csproj that uses `Stardust.Utilities`
+2. Rebuild the consuming solution
+
+> **Note:** Version is specified at build time and is NOT stored in .csproj files. This keeps source control clean and avoids accidental version mismatches.
+
+## Opening the Project
+
+Open `Stardust.Utilities.slnx` in Visual Studio or VS Code:
+
+```powershell
+# Open in Visual Studio
+start Stardust.Utilities.slnx
+
+# Or open in VS Code
+code .
+```
+
+This solution uses the new XML-based solution format (`.slnx`) which is cleaner and easier to merge than the legacy `.sln` format.
 
 ## Project Structure
 
 ```
 Stardust.Utilities/
-??? Stardust.Utilities.csproj            # Main library (types, attributes)
-??? Generators/
-?   ??? Stardust.Generators.csproj       # Source generator project
-?   ??? BitFieldsGenerator.cs            # [BitFields] generator
-??? Test/
-?   ??? Stardust.Utilities.Tests.csproj
-??? build/
-?   ??? Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
-?   ??? Stardust.Utilities.targets       # Auto-excludes generated files from compilation
-??? nupkg/                               # Local NuGet packages output
-??? Build-Generator-NuGetPackage.ps1     # Builds generator package only
-??? Build-Combined-NuGetPackages.ps1     # Builds both packages
-??? README.md                            # User documentation
-??? DEVELOPER.md                         # This file
+├── Stardust.Utilities.slnx              # Solution file (XML format, .NET 9+)
+├── Stardust.Utilities.csproj            # Main library (types, attributes)
+├── Generators/
+│   ├── Stardust.Generators.csproj       # Source generator project
+│   └── BitFieldsGenerator.cs            # [BitFields] generator
+├── Test/
+│   └── Stardust.Utilities.Tests.csproj
+├── build/
+│   ├── Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
+│   └── Stardust.Utilities.targets       # Auto-excludes generated files from compilation
+├── nupkg/                               # Local NuGet packages output
+├── Build-Generator-NuGetPackage.ps1     # Builds generator package (for local development)
+├── Build-Combined-NuGetPackages.ps1     # Builds the distributable package
+├── README.md                            # User documentation
+└── DEVELOPER.md                         # This file
 ```
 
-## NuGet Package Contents
+## NuGet Package Architecture
+
+### Why Two Packages Exist
+
+The **`Stardust.Generators`** package is **not intended for public distribution**. It exists solely 
+to support local development scenarios. The source generator is embedded directly within the `Stardust.Utilities` 
+package for distribution.
+
+The separate `Stardust.Generators` package is needed because:
+- When debugging `Stardust.Utilities` via `ProjectReference`, the embedded analyzer doesn't load
+- The standalone generator package includes MSBuild `.props`/`.targets` files that automatically configure consumer projects
+- This enables IntelliSense for generated code without manual project configuration
+
+**For end users:** Only reference `Stardust.Utilities` — the generator is included automatically.
+
+### Stardust.Utilities Package Contents
 
 The `Stardust.Utilities` NuGet package includes:
 
 | Path | Description |
 |------|-------------|
 | `lib/net10.0/Stardust.Utilities.dll` | Main library with attributes and types |
-| `analyzers/dotnet/cs/Stardust.Generators.dll` | Source generator (runs at compile time) |
+| `analyzers/dotnet/cs/Stardust.Generators.dll` | Source generator (embedded, runs at compile time) |
 | `build/Stardust.Utilities.props` | Auto-enables `EmitCompilerGeneratedFiles` for IntelliSense |
 | `build/Stardust.Utilities.targets` | Auto-excludes generated files from duplicate compilation |
 | `README.md` | Package documentation |
@@ -44,58 +102,74 @@ The `Stardust.Utilities` NuGet package includes:
 
 ## Build Scripts
 
+### Build-Combined-NuGetPackages.ps1
+
+**This is the primary build script.** It builds both NuGet packages and automatically publishes to the local feed:
+- `Stardust.Utilities.x.y.z.nupkg` - **The distributable package** (includes generator as embedded analyzer + utility types)
+- `Stardust.Generators.x.y.z.nupkg` - Local development package only (not for distribution)
+
+```powershell
+# Show help
+.\Build-Combined-NuGetPackages.ps1 -Help
+
+# Build version 0.9.0 (runs tests, publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.0
+
+# Skip tests for faster iteration
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+
+# Use Debug configuration
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -Configuration Debug
+```
+
+**Parameters:**
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `<version>` | Yes | Version number (e.g., `0.9.0`, `1.0.0-beta1`) |
+| `-SkipTests` | No | Skip running unit tests |
+| `-Configuration` | No | `Debug` or `Release` (default: Release) |
+| `-Help` | No | Show help message |
+
+**What it does:**
+1. Cleans previous build artifacts
+2. Builds the generator package
+3. Builds the main library
+4. Runs unit tests (unless `-SkipTests`)
+5. Creates NuGet packages in `./nupkg/`
+6. Copies packages to `~/.nuget/local-packages/`
+7. Clears NuGet cache for `stardust.utilities` and `stardust.generators`
+
+**Output locations:**
+- `./nupkg/` - Package files
+- `~/.nuget/local-packages/` - Local NuGet feed (packages appear in NuGet Package Manager)
+
 ### Build-Generator-NuGetPackage.ps1
 
-Builds **only** the `Stardust.Generators.x.y.z.nupkg` standalone generator package.
+Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for local development**.
+
+> **Note:** This package is not published to NuGet.org. It exists only to support debugging scenarios where 
+`Stardust.Utilities` is referenced via `ProjectReference`.
 
 **Use this when:**
 - Debugging `Stardust.Utilities` via ProjectReference in Visual Studio
-- But still need the generator as a NuGet package for code generation
+- The embedded analyzer doesn't load with ProjectReference, so this standalone package provides the generator
 
 ```powershell
-# Basic usage (uses version from .csproj)
-.\Build-Generator-NuGetPackage.ps1
-
 # Specify a version
-.\Build-Generator-NuGetPackage.ps1 -Version "0.6.0"
-
-# Update version in .csproj and build
-.\Build-Generator-NuGetPackage.ps1 -Version "0.6.0" -UpdateVersion
+.\Build-Generator-NuGetPackage.ps1 -Version "0.9.0"
 ```
-
-### Build-Combined-NuGetPackages.ps1
-
-Builds **both** NuGet packages:
-- `Stardust.Generators.x.y.z.nupkg` - Standalone generator (for projects using ProjectReference to Stardust.Utilities)
-- `Stardust.Utilities.x.y.z.nupkg` - Combined package (includes generator as embedded analyzer + utility types)
-
-This script calls `Build-Generator-NuGetPackage.ps1` internally for the generator package.
-
-```powershell
-# Basic usage (runs tests, builds both packages)
-.\Build-Combined-NuGetPackages.ps1
-
-# Skip tests for faster builds
-.\Build-Combined-NuGetPackages.ps1 -SkipTests
-
-# Specify a version
-.\Build-Combined-NuGetPackages.ps1 -Version "0.6.0"
-
-# Update version in BOTH .csproj files and build
-.\Build-Combined-NuGetPackages.ps1 -Version "0.6.0" -UpdateVersion
-
-# Publish to local NuGet feed (~/.nuget/local-packages)
-.\Build-Combined-NuGetPackages.ps1 -PublishLocal
-```
-
-**Output:** Both packages are copied to the `nupkg/` folder.
 
 ## Package Reference Scenarios
 
 | Scenario | What to Reference |
 |----------|-------------------|
-| **Normal usage** (just need BitFields) | `Stardust.Utilities` NuGet package only |
-| **Debugging Stardust.Utilities** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to `Stardust.Generators` |
+| **Normal usage** (consuming the library) | `Stardust.Utilities` NuGet package only |
+| **Debugging Stardust.Utilities locally** | ProjectReference to `Stardust.Utilities.csproj` + PackageReference to 
+`Stardust.Generators` (local only) |
+
+> **Important:** Only `Stardust.Utilities` is published to NuGet.org. The `Stardust.Generators` package is for local 
+development only and should never be distributed separately.
 
 ## Updating the Source Generator
 
@@ -106,23 +180,20 @@ Edit the generator in `Generators/BitFieldsGenerator.cs`.
 ### Step 2: Rebuild the Package
 
 ```powershell
-# Just rebuild the generator package (for debugging with ProjectReference)
-.\Build-Generator-NuGetPackage.ps1 -Version "0.6.1"
-
-# Or rebuild both packages for a full release
-.\Build-Combined-NuGetPackages.ps1 -Version "0.6.1" -UpdateVersion -SkipTests
+# Rebuild both packages (recommended)
+.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
 ```
 
 ### Step 3: Test Locally
 
-If testing with a consuming project (e.g., MacSE):
+If testing with a consuming project:
 1. Update the `PackageReference` version in the consuming project
 2. Clear NuGet cache: `dotnet nuget locals global-packages --clear`
 3. Restore and rebuild
 
 ## Features
 
-### Rust-Style Bit Ranges (v0.6.0+)
+### Rust-Style Bit Ranges
 
 The `[BitField]` attribute uses Rust-style inclusive bit ranges:
 
@@ -143,7 +214,7 @@ public partial struct RegisterA
 
 Width is calculated as `(endBit - startBit + 1)`.
 
-### Nested Struct Support (v0.5.0+)
+### Nested Struct Support
 
 BitFields structs can be nested inside classes. The containing types must be marked `partial`:
 
@@ -159,7 +230,7 @@ public partial class HardwareController
 }
 ```
 
-### Automatic IntelliSense (v0.5.2+)
+### Automatic IntelliSense
 
 The NuGet package automatically enables IntelliSense for generated code:
 
@@ -175,6 +246,52 @@ To **disable** automatic file emission, add to your project:
   <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
 </PropertyGroup>
 ```
+
+### Full Operator Support
+
+BitFields structs support a complete set of operators for parity with the underlying storage type and big-endian types:
+
+| Category | Operators | Notes |
+|----------|-----------|-------|
+| **Arithmetic** | `+`, `-` (unary/binary), `*`, `/`, `%` | Unchecked wraparound matches native behavior |
+| **Bitwise** | `&`, `\|`, `^`, `~` | Mixed-type operators with storage type |
+| **Shift** | `<<`, `>>`, `>>>` | Shift amount is always `int` |
+| **Comparison** | `<`, `>`, `<=`, `>=`, `==`, `!=` | Direct value comparison |
+| **Conversions** | Implicit to/from storage type | Zero-cost conversions |
+
+**Interface implementations:**
+- `IComparable`, `IComparable<T>` — sorting and ordering support
+- `IEquatable<T>` — efficient equality comparison
+- `IFormattable`, `ISpanFormattable` — format string support (e.g., `"X2"`, `"D"`)
+- `IParsable<T>`, `ISpanParsable<T>` — parsing with hex (`0x`) and binary (`0b`) support, can include underscores
+
+**Example usage:**
+```csharp
+GeneratedStatusReg8 a = 0x0F;
+GeneratedStatusReg8 b = 0x10;
+
+// Arithmetic
+var sum = a + b;              // 0x1F
+var shifted = a << 4;         // 0xF0
+
+// Comparison and sorting
+bool isLess = a < b;          // true
+var sorted = new[] { b, a }.OrderBy(x => x).ToArray();
+
+// Formatting
+string hex = a.ToString("X2", null);  // "0F"
+
+// Parsing
+var parsed = GeneratedStatusReg8.Parse("0xFF");
+```
+
+**Parity with native types:**
+- Overflow/underflow uses unchecked semantics (wraparound)
+- Division by zero throws `DivideByZeroException`
+- Shift operators take `int` for shift amount
+
+> **Note:** Unary `-` for unsigned types is an extension (native `uint`/`ulong` don't support it).
+> It produces two's complement negation: `-1` on a `byte` yields `255`.
 
 ## Troubleshooting
 
@@ -235,6 +352,8 @@ To see what the generator produces:
 
 | Version | Changes |
 |---------|---------|
+| 0.9.0   | Full operator support: arithmetic (+, -, *, /, %), shift (<<, >>, >>>), comparison (<, >, <=, >=), IComparable, IEquatable, IFormattable, ISpanFormattable |
+| 0.8.3   | Added parsing support via `IParsable<T>` and `ISpanParsable<T>` interfaces |
 | 0.6.0   | **Breaking:** Changed `[BitField(shift, width)]` to Rust-style `[BitField(startBit, endBit)]` |
 | 0.5.2   | Auto-enable IntelliSense via .props/.targets files |
 | 0.5.0   | Nested struct support, improved indentation in generated code |
@@ -249,7 +368,49 @@ Prior to v0.3.0, BitFields supported two patterns:
 1. **User-declared Value field**: `[BitFields]` with `public byte Value;`
 2. **Generator-created Value field**: `[BitFields(typeof(byte))]` with private Value
 
-Performance testing showed no benefit to the user-declared pattern.
+Performance testing showed no benefit to the user-declared pattern.  That is, directly
+accessing the Value field from user code vs. implicit conversions had negligible affect 
+on speed.
+
+```
+// Example structs for performance comparison
+
+// User-declared public value determined type
+
+[BitFields]               
+public partial struct RegisterWithVisibleValue
+{
+    public byte Value; 
+
+    [BitField(0, 3)] public byte Field1 { get; set; }
+    [BitField(4, 7)] public byte Field2 { get; set; }
+}
+
+// Attribute determines type, generator creates private Value field
+
+[BitFields(typeof(byte))] 
+public partial struct RegisterWithConversion
+{
+    [BitField(0, 3)] public byte Field1 { get; set; }
+    [BitField(4, 7)] public byte Field2 { get; set; }
+}
+
+// Compare use of both patterns, same performance either way
+
+private void AccessEntireRegister()
+{
+    RegisterWithVisibleValue regVisibleValue = new();
+    RegisterWithConversion reg = new();
+
+    // Use public Value field version
+    byte value = regVisibleValue.Value;   // Direct access to public value field
+    regVisibleValue.Value = 0xFF;         // Direct assignment to public value field
+
+    // Use implicit conversion version
+    byte valConvert = reg;                // Implicit conversion
+    reg = 0xFF;                           // Implicit assignment
+}
+```
 
 ### Decision
 
@@ -265,20 +426,3 @@ v0.3.0 also added support for signed storage types (`sbyte`, `short`, `int`, `lo
 Performance testing showed signed types are approximately 22% slower than unsigned
 equivalents due to the additional casts required to avoid sign extension issues in
 bitwise operations. For most use cases, this overhead is acceptable.
-
-## nuget.config
-
-The solution uses a `nuget.config` file to reference the local package folder:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources>
-    <clear />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-    <add key="local" value="Stardust.Utilities/nupkg" />
-  </packageSources>
-</configuration>
-```
-
-This allows consuming projects to find packages in `Stardust.Utilities/nupkg/` without publishing to nuget.org.

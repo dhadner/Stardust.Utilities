@@ -28,10 +28,16 @@ The generator creates:
 - Static `{Name}Bit` properties for each `[BitFlag]`
 - Static `{Name}Mask` properties for each `[BitField]`
 - Fluent `With{Name}` methods for each property
+- Arithmetic operators: `+`, `-`, `*`, `/`, `%`, unary `-`
 - Bitwise operators: `|`, `&`, `^`, `~`
-- Mixed-type operators (struct with storage type)
+- Shift operators: `<<`, `>>`, `>>>`
+- Comparison operators: `<`, `<=`, `>`, `>=`
 - Equality operators: `==`, `!=`
+- Mixed-type operators (struct with storage type)
 - Implicit conversion operators to/from the storage type
+- Parsing support via `IParsable<T>` and `ISpanParsable<T>` interfaces
+- Formatting support via `IFormattable` and `ISpanFormattable` interfaces
+- Comparison interfaces: `IComparable`, `IComparable<T>`, `IEquatable<T>`
 
 ## Attributes
 
@@ -54,6 +60,68 @@ The generator creates:
 | `ushort` | 16 | `short` |
 | `uint` | 32 | `int` |
 | `ulong` | 64 | `long` |
+
+## Parsing
+
+BitFields structs implement `IParsable<T>` and `ISpanParsable<T>` interfaces, allowing parsing from strings in multiple formats:
+
+```csharp
+// Decimal parsing
+MyRegister dec = MyRegister.Parse("255");
+
+// Hexadecimal parsing (0x or 0X prefix)
+MyRegister hex = MyRegister.Parse("0xFF");
+MyRegister hex2 = MyRegister.Parse("0XAB");
+
+// Binary parsing (0b or 0B prefix)
+MyRegister bin = MyRegister.Parse("0b11111111");
+MyRegister bin2 = MyRegister.Parse("0B10101010");
+
+// C#-style underscore digit separators (all formats)
+MyRegister d1 = MyRegister.Parse("1_000");           // Decimal: 1000
+MyRegister h1 = MyRegister.Parse("0xFF_00");         // Hex: 0xFF00  
+MyRegister b1 = MyRegister.Parse("0b1111_0000");     // Binary: 0xF0
+
+// TryParse pattern for safe parsing
+if (MyRegister.TryParse("0b1010_1010", out var result))
+{
+    Console.WriteLine($"Parsed: {result}");  // 0xAA
+}
+
+// With IFormatProvider for culture-specific parsing
+var reg3 = MyRegister.Parse("42", CultureInfo.InvariantCulture);
+
+// ReadOnlySpan<char> overloads for performance
+var span = "0xFF".AsSpan();
+var reg4 = MyRegister.Parse(span, null);
+```
+
+**Supported Formats:**
+- Decimal: `"255"`, `"1234"`, `"1_000_000"`
+- Hexadecimal with prefix: `"0xFF"`, `"0XFF"`, `"0x1234_ABCD"`
+- Binary with prefix: `"0b1010"`, `"0B1111_0000"`
+
+## Formatting
+
+BitFields structs implement `IFormattable` and `ISpanFormattable` interfaces:
+
+```csharp
+MyRegister value = 0xAB;
+
+// Standard format strings
+string hex = value.ToString("X2", null);    // "AB"
+string dec = value.ToString("D", null);     // "171"
+
+// Default ToString returns hex
+string str = value.ToString();              // "0xAB"
+
+// Allocation-free formatting with Span<char>
+Span<char> buffer = stackalloc char[10];
+if (value.TryFormat(buffer, out int written, "X4", null))
+{
+    // buffer[..written] contains "00AB"
+}
+```
 
 ## Performance
 
@@ -270,10 +338,71 @@ public partial struct StatusRegister
     public static StatusRegister operator ^(StatusRegister a, byte b) => 
         new((byte)(a.Value ^ b));
 
+
     /// <summary>Bitwise XOR with storage type (byte ^ struct).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static StatusRegister operator ^(byte a, StatusRegister b) => 
         new((byte)(a ^ b.Value));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Arithmetic Operators
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Addition operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator +(StatusRegister a, StatusRegister b) => 
+        new(unchecked((byte)(a.Value + b.Value)));
+
+    /// <summary>Subtraction operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator -(StatusRegister a, StatusRegister b) => 
+        new(unchecked((byte)(a.Value - b.Value)));
+
+    /// <summary>Unary negation operator (two's complement).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator -(StatusRegister a) => 
+        new(unchecked((byte)(0 - a.Value)));
+
+    // ... plus *, /, % and mixed-type overloads
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Shift Operators
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Left shift operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator <<(StatusRegister a, int b) => 
+        new(unchecked((byte)(a.Value << b)));
+
+    /// <summary>Right shift operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator >>(StatusRegister a, int b) => 
+        new(unchecked((byte)(a.Value >> b)));
+
+    /// <summary>Unsigned right shift operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static StatusRegister operator >>>(StatusRegister a, int b) => 
+        new(unchecked((byte)(a.Value >>> b)));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Comparison Operators
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>Less than operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <(StatusRegister a, StatusRegister b) => a.Value < b.Value;
+
+    /// <summary>Greater than operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >(StatusRegister a, StatusRegister b) => a.Value > b.Value;
+
+    /// <summary>Less than or equal operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <=(StatusRegister a, StatusRegister b) => a.Value <= b.Value;
+
+    /// <summary>Greater than or equal operator.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >=(StatusRegister a, StatusRegister b) => a.Value >= b.Value;
 
     // ═══════════════════════════════════════════════════════════════════
     // Equality Operators
@@ -307,8 +436,31 @@ public partial struct StatusRegister
     /// <summary>Implicit conversion from storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator StatusRegister(byte value) => new(value);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Interface Implementations (abbreviated)
+    // ═══════════════════════════════════════════════════════════════════
+
+    // IComparable<T>
+    public int CompareTo(StatusRegister other) => Value.CompareTo(other.Value);
+
+    // IEquatable<T>  
+    public bool Equals(StatusRegister other) => Value == other.Value;
+
+    // IFormattable
+    public string ToString(string? format, IFormatProvider? formatProvider) => 
+        Value.ToString(format, formatProvider);
+
+    // ISpanFormattable
+    public bool TryFormat(Span<char> destination, out int charsWritten, 
+        ReadOnlySpan<char> format, IFormatProvider? provider) => 
+        Value.TryFormat(destination, out charsWritten, format, provider);
+
+    // IParsable<T> and ISpanParsable<T> - Parse/TryParse methods
+    // (supports decimal, 0x hex, 0b binary, with underscores)
 }
 ```
+
 
 ## Operators and Static Properties
 
@@ -341,9 +493,34 @@ var reg = ~RegAFields.SoundMask & someValue;
 if ((value & RegAFields.SoundMask) != 0) { ... }
 ```
 
+### Arithmetic Operators
+
+Full support for arithmetic operations:
+
+```csharp
+MyRegister a = 100;
+MyRegister b = 50;
+
+// Binary arithmetic operators
+var sum = a + b;           // Addition: 150
+var diff = a - b;          // Subtraction: 50
+var prod = a * 2;          // Multiplication (with storage type)
+var quot = a / b;          // Division: 2
+var rem = a % 3;           // Modulus
+
+// Unary operators
+var pos = +a;              // Unary plus (returns same value)
+var neg = -a;              // Unary negation (two's complement)
+
+// Mixed-type operations (struct with storage type)
+var mixed = a + (byte)10;
+var mixed2 = (byte)5 + b;
+```
+
 ### Bitwise Operators
 
 Full support for bitwise operations without casting:
+
 
 
 ```csharp
@@ -364,6 +541,31 @@ var mixed2 = (byte)0x40 | b;
 var result = IFR & ~IFRFields.EnableBit;  // Clear a flag
 ```
 
+### Shift Operators
+
+```csharp
+MyRegister a = 0x0F;
+
+var shl = a << 4;         // Left shift: 0xF0
+var shr = a >> 2;         // Right shift: 0x03
+var ushr = a >>> 1;       // Unsigned right shift (C# 11+)
+```
+
+### Comparison Operators
+
+```csharp
+MyRegister a = 100;
+MyRegister b = 200;
+
+bool lt = a < b;          // Less than: true
+bool le = a <= b;         // Less than or equal: true
+bool gt = a > b;          // Greater than: false
+bool ge = a >= b;         // Greater than or equal: false
+
+// Useful for bounds checking
+if (reg < MyRegister.ModeMask) { ... }
+```
+
 ### Equality Operators
 
 ```csharp
@@ -375,6 +577,32 @@ if (a != b) { ... }     // Inequality
 a.Equals(b);            // Object equality
 a.GetHashCode();        // Hash code
 a.ToString();           // Returns "0x42"
+```
+
+## Interface Implementations
+
+Every BitFields type automatically implements the following interfaces:
+
+| Interface | Purpose |
+|-----------|---------|
+| `IComparable` | Non-generic comparison for sorting |
+| `IComparable<T>` | Generic comparison |
+| `IEquatable<T>` | Value equality |
+| `IFormattable` | Format string support (`ToString("X2", null)`) |
+| `ISpanFormattable` | Allocation-free formatting |
+| `IParsable<T>` | String parsing |
+| `ISpanParsable<T>` | Span-based parsing |
+
+```csharp
+// IComparable - sorting
+var registers = new[] { reg3, reg1, reg2 };
+Array.Sort(registers);  // Sorts by underlying value
+
+// IEquatable<T> - efficient equality
+bool equal = reg1.Equals(reg2);
+
+// IComparable<T> - comparison
+int cmp = reg1.CompareTo(reg2);  // -1, 0, or 1
 ```
 
 ## Fluent With{Name} Methods (v0.8.0+)
@@ -452,4 +680,5 @@ obj.IFR = obj.IFR ^ IFRFields.ReadyBit;
 | Struct is a local variable | Direct setter: `reg.Ready = true` |
 | Struct is a property | With method: `obj.IFR = obj.IFR.WithReady(true)` |
 | Setting multiple values | Chain: `reg = reg.WithStatus(1).WithMode(2).WithReady(true)` |
+|                         | Bitwise chaining: `reg = (reg | IFRFields.ReadyBit) & ~IFRFields.ErrorBit` |
 | Simple flag set/clear | Bitwise: `obj.IFR = obj.IFR | IFRFields.ReadyBit` |
