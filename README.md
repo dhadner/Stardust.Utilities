@@ -47,7 +47,7 @@ The BitField feature automatically creates property implementations for bit fiel
 
 See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for comprehensive documentation and examples.
 
-#### [+] Zero Performance Overhead
+#### :white_check_mark: Zero Performance Overhead
 
 The source generator emits **inline bit manipulation with compile-time constants** — the exact same code you would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no static field allocations.
 
