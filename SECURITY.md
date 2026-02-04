@@ -20,9 +20,12 @@ We take security seriously. If you discover a security vulnerability in Stardust
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
 Instead, use GitHub's private vulnerability reporting:
-1. Go to the [Security tab](https://github.com/dhadner/Stardust.Utilities/security)
-2. Click "Report a vulnerability"
-3. Fill out the form with details
+
+1. Go to [github.com/dhadner/Stardust.Utilities/security/advisories/new](https://github.com/dhadner/Stardust.Utilities/security/advisories/new)
+2. Fill out the vulnerability report form
+3. Submit the report
+
+This creates a private discussion between you and the maintainers where we can assess and address the issue before any public disclosure.
 
 ### What to Include
 
