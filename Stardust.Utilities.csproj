@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 <PropertyGroup>
-<TargetFrameworks>net7.0;net8.0;net10.0</TargetFrameworks>
+<TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
 <ImplicitUsings>enable</ImplicitUsings>
 <Nullable>enable</Nullable>
 
@@ -11,8 +11,8 @@
 		<!-- Version is specified at build time via: .\Build-Combined-NuGetPackages.ps1 X.Y.Z -->
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for bit manipulation, error handling, and big-endian data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
-		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net10</PackageTags>
-		<PackageReleaseNotes>Supports .NET 7, .NET 8, and .NET 10. See README.md and CHANGELOG.md for details.</PackageReleaseNotes>
+		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net9;net10</PackageTags>
+		<PackageReleaseNotes>Supports .NET 7, .NET 8, .NET 9, and .NET 10. See README.md and CHANGELOG.md for details.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
