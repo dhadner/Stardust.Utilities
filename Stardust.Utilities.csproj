@@ -37,7 +37,7 @@
 
 	<!-- Reference SourceLink -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
 	
 	<!-- Reference the source generator -->
@@ -47,6 +47,11 @@
 
 	<!-- Include in NuGet package -->
 	<ItemGroup>
+		<None Include=".github\ISSUE_TEMPLATE\bug_report.md" />
+		<None Include=".github\ISSUE_TEMPLATE\config.yml" />
+		<None Include=".github\ISSUE_TEMPLATE\feature_request.md" />
+		<None Include=".github\ISSUE_TEMPLATE\question.md" />
+		<None Include=".github\PULL_REQUEST_TEMPLATE.md" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
