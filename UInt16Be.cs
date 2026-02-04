@@ -51,7 +51,10 @@ namespace Stardust.Utilities
         /// <exception cref="ArgumentOutOfRangeException">If value exceeds ushort.MaxValue.</exception>
         public UInt16Be(uint num)
         {
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(num, ushort.MaxValue);
+            if (num > ushort.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(num));
+            }
             hi = (byte)((num & 0xffff) >> 8);
             lo = (byte)(num & 0xff);
         }
@@ -576,7 +579,10 @@ namespace Stardust.Utilities
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="a"/> exceeds <see cref="ushort.MaxValue"/>.</exception>
         public static explicit operator UInt16Be(uint a)
         {
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(a, ushort.MaxValue);
+            if (a > ushort.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(a));
+            }
             return new UInt16Be((ushort)a);
         }
 

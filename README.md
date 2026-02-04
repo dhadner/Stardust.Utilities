@@ -1,9 +1,11 @@
 # Stardust.Utilities
 
 [![CI/CD](https://github.com/dhadner/Stardust.Utilities/actions/workflows/ci.yml/badge.svg)](https://github.com/dhadner/Stardust.Utilities/actions/workflows/ci.yml)
-[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![NuGet](https://img.shields.io/nuget/v/Stardust.Utilities.svg)](https://www.nuget.org/packages/Stardust.Utilities/)
+[![.NET 7](https://img.shields.io/badge/.NET-7.0-512BD4)](https://dotnet.microsoft.com/)
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source 
 generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-coded speed for bit access with no boilerplate needed.
@@ -28,7 +30,7 @@ generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.2" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.3" />
 ```
 
 That's it, the source generator is included automatically.
