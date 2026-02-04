@@ -19,6 +19,9 @@ generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-
   - [Big-Endian Types](#big-endian-types)
   - [Extension Methods](#extension-methods)
 - [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
 
 ---
 
@@ -562,9 +565,20 @@ This project is provided under the MIT License.
 
 See [LICENSE](https://github.com/dhadner/Stardust.Utilities/blob/main/LICENSE) for license details.
 
+---
+
 ## Contributing
 
-Contributions are welcome! Please open an issue or pull request on GitHub.
+Contributions are welcome! Please read our guidelines before submitting issues or pull requests.
 
-See [CONTRIBUTING.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md) for contribution guidelines.
+- [Contributing Guidelines](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md)
+- [Code of Conduct](https://github.com/dhadner/Stardust.Utilities/blob/main/CODE_OF_CONDUCT.md)
+
+---
+
+## Security
+
+To report a security vulnerability, please use GitHub's private vulnerability reporting feature. **Do not report security issues through public GitHub issues.**
+
+See [SECURITY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/SECURITY.md) for details.
 
