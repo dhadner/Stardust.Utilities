@@ -3,12 +3,8 @@ name: CI/CD
 on:
   push:
     branches: [ main, master ]
-    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
-
-env:
-  DOTNET_VERSION: '10.0.x'
 
 jobs:
   build:
@@ -18,10 +14,20 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: '8.0.x'
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
 
     - name: Restore dependencies
       run: dotnet restore
@@ -35,39 +41,11 @@ jobs:
     - name: Build Tests
       run: dotnet build Test/Stardust.Utilities.Tests.csproj -c Release --no-restore
 
-    - name: Run Tests
-      run: dotnet test Test/Stardust.Utilities.Tests.csproj -c Release --no-build --verbosity normal
+    - name: Run Tests (.NET 8)
+      run: dotnet test Test/Stardust.Utilities.Tests.csproj -c Release --no-build --framework net8.0 --verbosity normal
 
-    - name: Pack NuGet packages
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        dotnet pack Generators/Stardust.Generators.csproj -c Release --no-build -o ./artifacts
-        dotnet pack Stardust.Utilities.csproj -c Release --no-build -o ./artifacts
+    - name: Run Tests (.NET 9)
+      run: dotnet test Test/Stardust.Utilities.Tests.csproj -c Release --no-build --framework net9.0 --verbosity normal
 
-    - name: Upload artifacts
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuget-packages
-        path: ./artifacts/*.nupkg
-
-  publish:
-    needs: build
-    runs-on: windows-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    
-    steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: nuget-packages
-        path: ./artifacts
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Publish to NuGet.org
-      run: |
-        dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    - name: Run Tests (.NET 10)
+      run: dotnet test Test/Stardust.Utilities.Tests.csproj -c Release --no-build --framework net10.0 --verbosity normal
