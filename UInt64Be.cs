@@ -557,6 +557,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns>A signed integer that indicates the relative order.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is null.</exception>
         public readonly int CompareTo(object? obj)
         {
             if (obj == null)

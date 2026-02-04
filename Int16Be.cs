@@ -65,6 +65,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Creates a big-endian 16-bit signed integer from a native uint.
         /// </summary>
+        /// <param name="num">The native value.</param>
         /// <exception cref="ArgumentOutOfRangeException">If value exceeds short.MaxValue.</exception>
         public Int16Be(uint num)
         {
@@ -79,6 +80,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Creates a big-endian 16-bit signed integer from a native int.
         /// </summary>
+        /// <param name="num">The native value.</param>
         /// <exception cref="ArgumentOutOfRangeException">If value exceeds short.MaxValue.</exception>
         public Int16Be(int num)
         {
@@ -538,6 +540,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns>A signed integer that indicates the relative order.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is null.</exception>
         public readonly int CompareTo(object? obj)
         {
             if (obj == null)

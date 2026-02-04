@@ -69,6 +69,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// The success value. Throws if IsFailure.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the result is a failure.</exception>
         public T Value => _isSuccess
             ? _value!
             : throw new InvalidOperationException($"Cannot access Value on failed Result: {_error}");
@@ -76,6 +77,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// The error value. Throws if IsSuccess.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the result is a success.</exception>
         public TError Error => !_isSuccess
             ? _error!
             : throw new InvalidOperationException("Cannot access Error on successful Result");
@@ -105,8 +107,8 @@ namespace Stardust.Utilities
         /// <summary>
         /// Throw exception if the type is not string or collection type.
         /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <returns>The default value for type T.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when T is not a string or collection type.</exception>
         private static T? GetDefaultValueOrThrow()
         {
             T? value = GetDefaultValue();
@@ -329,12 +331,14 @@ namespace Stardust.Utilities
         /// Unwraps the value, throwing if failed. Alias for Value property.
         /// </summary>
         /// <returns>The success value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the result is a failure.</exception>
         public T Unwrap() => Value;
 
         /// <summary>
         /// Unwraps the error, throwing if successful. Alias for Error property.
         /// </summary>
         /// <returns>The error value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the result is a success.</exception>
         public TError UnwrapError() => Error;
     }
 
@@ -367,6 +371,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// The error value. Throws if IsSuccess.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the result is a success.</exception>
         public TError Error => !_isSuccess
             ? _error!
             : throw new InvalidOperationException("Cannot access Error on successful Result");
