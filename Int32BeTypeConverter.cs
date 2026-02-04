@@ -9,12 +9,25 @@ namespace Stardust.Utilities
     /// </summary>
     public class Int32BeTypeConverter : TypeConverter
     {
+        /// <summary>
+        /// Returns whether this converter can convert from the specified source type.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="sourceType">The source type.</param>
+        /// <returns><see langword="true"/> if conversion from <paramref name="sourceType"/> is supported; otherwise, <see langword="false"/>.</returns>
         public override bool CanConvertFrom(ITypeDescriptorContext? context,
                                             Type sourceType)
         {
             return sourceType == typeof(string);
         }
 
+        /// <summary>
+        /// Converts the given value to an Int32Be instance.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="culture">Culture information.</param>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>The converted value.</returns>
         public override object? ConvertFrom(ITypeDescriptorContext? context,
                                             CultureInfo? culture, object value)
         {
@@ -34,6 +47,14 @@ namespace Stardust.Utilities
             return base.ConvertFrom(context, culture, value);
         }
 
+        /// <summary>
+        /// Converts the given value to the specified destination type.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="culture">Culture information.</param>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="destinationType">The destination type.</param>
+        /// <returns>The converted value.</returns>
         public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture,
                                           object? value, Type destinationType)
         {

@@ -10,6 +10,8 @@ generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-
 
 ## Table of Contents
 
+[![Stardust Utilities](https://github.com/dhadner/Stardust.Utilities/blob/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
+
 - [Installation](#installation)
 - [Features](#features)
   - [BitField](#bitfield)
@@ -23,7 +25,7 @@ generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.1" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.2" />
 ```
 
 That's it, the source generator is included automatically.
@@ -40,7 +42,7 @@ That's it, the source generator is included automatically.
 
 The BitField feature automatically creates property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
 
-See [BITFIELD.md](BITFIELD.md) for comprehensive documentation and examples.
+See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for comprehensive documentation and examples.
 
 #### [+] Zero Performance Overhead
 
@@ -324,9 +326,9 @@ Every BitFields type automatically implements:
 
 ### Result Types
 
-Railway-oriented error handling without exceptions. Inspired by Rust's `Result<T, E>` type.
+Railway-Oriented Programming (ROP) error handling without exceptions. Inspired by Rust's `Result<T, E>` type.
 
-See [RESULT.md](RESULT.md) for comprehensive documentation and examples.
+See [RESULT.md](https://github.com/dhadner/Stardust.Utilities/blob/main/RESULT.md) for comprehensive documentation and examples.
 
 #### Basic Usage
 
@@ -408,7 +410,7 @@ return Err("Something went wrong");
 
 Big-endian types store bytes in network order (most significant byte first), essential for network protocols, binary file formats, and hardware emulation. These aren't just byte-swapping utilities—they're complete numeric types with arithmetic, bitwise, and comparison operators.
 
-See [ENDIAN.md](ENDIAN.md) for comprehensive documentation and examples.
+See [ENDIAN.md](https://github.com/dhadner/Stardust.Utilities/blob/main/ENDIAN.md) for comprehensive documentation and examples.
 
 #### Available Types
 
@@ -469,7 +471,7 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 
 Utility extension methods for bit manipulation.
 
-See [EXTENSIONS.md](EXTENSIONS.md) for comprehensive documentation and examples.
+See [EXTENSIONS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/EXTENSIONS.md) for comprehensive documentation and examples.
 
 ```csharp
 using Stardust.Utilities;
@@ -558,7 +560,11 @@ This creates a `Generated/` folder in your project with all generated `.cs` file
 
 This project is provided under the MIT License.
 
+See [LICENSE](https://github.com/dhadner/Stardust.Utilities/blob/main/LICENSE) for license details.
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or pull request on GitHub.
+
+See [CONTRIBUTING.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md) for contribution guidelines.
 

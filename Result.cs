@@ -98,6 +98,8 @@ namespace Stardust.Utilities
         /// To create an error result, use Result&lt;TError&gt;.Err(error) and 
         /// cast the Result&lt;TError&gt; to Result&lt;T, TError&gt;
         /// </summary>
+        /// <param name="error">The error value.</param>
+        /// <returns>A failed result containing the error.</returns>
         public static Result<T, TError> Err(TError error) => new(error);
 
         /// <summary>
@@ -184,6 +186,9 @@ namespace Stardust.Utilities
         /// The Deconstruct method allows usage like:
         ///    var (isSuccess, value, error) = result;
         /// </summary>
+        /// <param name="isSuccess">True if the result is successful.</param>
+        /// <param name="value">The success value.</param>
+        /// <param name="error">The error value.</param>
         public void Deconstruct(out bool isSuccess, out T? value, out TError? error)
         {
             isSuccess = _isSuccess;
@@ -194,6 +199,8 @@ namespace Stardust.Utilities
         /// <summary>
         /// Try to get the value. Returns false if failed.
         /// </summary>
+        /// <param name="value">The success value.</param>
+        /// <returns>True if the result is successful; otherwise, false.</returns>
         public bool TryGetValue(out T? value)
         {
             value = _value;
@@ -203,6 +210,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Try to get the error. Returns false if succeeded.
         /// </summary>
+        /// <param name="error">The error value.</param>
         /// <returns>True if the result is a failure and the error is set; otherwise, false.</returns>
         public bool TryGetError(out TError? error)
         {
@@ -213,11 +221,15 @@ namespace Stardust.Utilities
         /// <summary>
         /// Returns the value if successful, or the specified default if failed.
         /// </summary>
+        /// <param name="defaultValue">The default value to return on failure.</param>
+        /// <returns>The success value or the provided default.</returns>
         public T ValueOr(T defaultValue) => _isSuccess ? _value! : defaultValue;
 
         /// <summary>
         /// Returns the value if successful, or invokes the factory to get a default.
         /// </summary>
+        /// <param name="defaultFactory">Factory invoked when the result is a failure.</param>
+        /// <returns>The success value or the factory result.</returns>
         public T ValueOr(Func<TError, T> defaultFactory) =>
             _isSuccess ? _value! : defaultFactory(_error!);
 
@@ -225,6 +237,8 @@ namespace Stardust.Utilities
         /// Chains a transform that cannot fail.
         /// If successful, applies the transform to the value; otherwise propagates the error.
         /// </summary>
+        /// <param name="transform">The transform to apply on success.</param>
+        /// <returns>The transformed result or the original error.</returns>
         /// <example>
         /// result.Then(x => x.ToString())  // Transform int to string
         /// </example>
@@ -235,6 +249,8 @@ namespace Stardust.Utilities
         /// Chains an operation that can fail.
         /// If successful, executes the next operation; otherwise propagates the error.
         /// </summary>
+        /// <param name="nextStep">The operation to execute on success.</param>
+        /// <returns>The next result or the original error.</returns>
         /// <example>
         /// result.Then(x => Validate(x))  // Validate returns Result
         /// </example>
@@ -246,6 +262,8 @@ namespace Stardust.Utilities
         /// If successful, returns the next result; otherwise propagates the error.
         /// Warning: The nextResult argument is evaluated eagerly!
         /// </summary>
+        /// <param name="nextResult">The next result to return on success.</param>
+        /// <returns>The next result or the original error.</returns>
         public Result<TNew, TError> Then<TNew>(Result<TNew, TError> nextResult) =>
             _isSuccess ? nextResult : Result<TNew, TError>.Err(_error!);
 
@@ -254,6 +272,8 @@ namespace Stardust.Utilities
         /// If successful, returns the next result; otherwise propagates the error.
         /// Warning: The nextResult argument is evaluated eagerly!
         /// </summary>
+        /// <param name="nextResult">The next result to return on success.</param>
+        /// <returns>The next result or the original error.</returns>
         public Result<TError> Then(Result<TError> nextResult) =>
             _isSuccess ? nextResult : Result<TError>.Err(_error!);
 
@@ -263,12 +283,16 @@ namespace Stardust.Utilities
         ///  - Adding context to errors as they bubble up
         ///  - Translating technical errors to user-friendly messages
         /// </summary>
+        /// <param name="transform">The transform applied to the error.</param>
+        /// <returns>A result with the transformed error.</returns>
         public Result<T, TNewError> MapError<TNewError>(Func<TError, TNewError> transform) =>
             _isSuccess ? Result<T, TNewError>.Ok(_value!) : Result<T, TNewError>.Err(transform(_error!));
 
         /// <summary>
         /// Executes an action if successful, returns self for chaining.
         /// </summary>
+        /// <param name="action">The action to execute on success.</param>
+        /// <returns>The current result.</returns>
         public Result<T, TError> OnSuccess(Action<T> action)
         {
             if (_isSuccess) action(_value!);
@@ -278,6 +302,8 @@ namespace Stardust.Utilities
         /// <summary>
         /// Executes an action if failed, returns self for chaining.
         /// </summary>
+        /// <param name="action">The action to execute on failure.</param>
+        /// <returns>The current result.</returns>
         public Result<T, TError> OnFailure(Action<TError> action)
         {
             if (!_isSuccess) action(_error!);
@@ -287,22 +313,28 @@ namespace Stardust.Utilities
         /// <summary>
         /// Pattern matches on success or failure.
         /// </summary>
+        /// <param name="onSuccess">The function to invoke on success.</param>
+        /// <param name="onFailure">The function to invoke on failure.</param>
+        /// <returns>The result of the invoked function.</returns>
         public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<TError, TResult> onFailure) =>
             _isSuccess ? onSuccess(_value!) : onFailure(_error!);
 
         /// <summary>
         /// Converts to a nullable, returning null on failure.
         /// </summary>
+        /// <returns>The success value or <see langword="null"/> on failure.</returns>
         public T? ToNullable() => _isSuccess ? _value : default;
 
         /// <summary>
         /// Unwraps the value, throwing if failed. Alias for Value property.
         /// </summary>
+        /// <returns>The success value.</returns>
         public T Unwrap() => Value;
 
         /// <summary>
         /// Unwraps the error, throwing if successful. Alias for Error property.
         /// </summary>
+        /// <returns>The error value.</returns>
         public TError UnwrapError() => Error;
     }
 
@@ -347,17 +379,22 @@ namespace Stardust.Utilities
         /// <summary>
         /// Creates a successful result.
         /// </summary>
+        /// <returns>A successful result.</returns>
         public static Result<TError> Ok() => new(true);
 
         /// <summary>
         /// Creates a successful Result&lt;T, TError&gt; with the specified value.
         /// Allows Ok(value) syntax when 'using static Result&lt;TError&gt;' is present.
         /// </summary>
+        /// <param name="value">The success value.</param>
+        /// <returns>A successful result containing the value.</returns>
         public static Result<T, TError> Ok<T>(T value) => Result<T, TError>.Ok(value);
 
         /// <summary>
         /// Creates a failed result with the specified error.
         /// </summary>
+        /// <param name="error">The error value.</param>
+        /// <returns>A failed result containing the error.</returns>
         public static Result<TError> Err(TError? error = default) => new(false, error);
 
         /// <summary>
@@ -365,6 +402,8 @@ namespace Stardust.Utilities
         /// Allows for usage like:
         ///   var (isSuccess, error) = result;
         /// </summary>
+        /// <param name="isSuccess">True if the result is successful.</param>
+        /// <param name="error">The error value.</param>
         public void Deconstruct(out bool isSuccess, out TError? error)
         {
             isSuccess = _isSuccess;
@@ -374,6 +413,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Try to get the error.
         /// </summary>
+        /// <param name="error">The error value.</param>
         /// <returns>True if the result is a failure and the error is set; otherwise, false.</returns>
         public bool TryGetError(out TError? error)
         {
@@ -385,6 +425,8 @@ namespace Stardust.Utilities
         /// Chains an operation that can fail.
         /// If successful, executes the next operation; otherwise propagates the error.
         /// </summary>
+        /// <param name="nextStep">The operation to execute on success.</param>
+        /// <returns>The next result or the original error.</returns>
         public Result<TError> Then(Func<Result<TError>> nextStep) =>
             _isSuccess ? nextStep() : this;
 
@@ -393,6 +435,8 @@ namespace Stardust.Utilities
         /// If successful, returns the next result; otherwise propagates the error.
         /// Warning: The nextResult argument is evaluated eagerly!
         /// </summary>
+        /// <param name="nextResult">The next result to return on success.</param>
+        /// <returns>The next result or the original error.</returns>
         public Result<TError> Then(Result<TError> nextResult) =>
             _isSuccess ? nextResult : this;
 
@@ -402,12 +446,16 @@ namespace Stardust.Utilities
         ///  - Adding context to errors as they bubble up
         ///  - Translating technical errors to user-friendly messages
         /// </summary>
+        /// <param name="transform">The transform applied to the error.</param>
+        /// <returns>A result with the transformed error.</returns>
         public Result<TNewError> MapError<TNewError>(Func<TError, TNewError> transform) =>
             _isSuccess ? Result<TNewError>.Ok() : Result<TNewError>.Err(transform(_error!));
 
         /// <summary>
         /// Executes an action if successful, returns self for chaining.
         /// </summary>
+        /// <param name="action">The action to execute on success.</param>
+        /// <returns>The current result.</returns>
         public Result<TError> OnSuccess(Action action)
         {
             if (_isSuccess) action();
@@ -417,6 +465,8 @@ namespace Stardust.Utilities
         /// <summary>
         /// Executes an action if failed, returns self for chaining.
         /// </summary>
+        /// <param name="action">The action to execute on failure.</param>
+        /// <returns>The current result.</returns>
         public Result<TError> OnFailure(Action<TError> action)
         {
             if (!_isSuccess) action(_error!);
@@ -426,18 +476,25 @@ namespace Stardust.Utilities
         /// <summary>
         /// Pattern matches on success or failure.
         /// </summary>
+        /// <param name="onSuccess">The function to invoke on success.</param>
+        /// <param name="onFailure">The function to invoke on failure.</param>
+        /// <returns>The result of the invoked function.</returns>
         public TResult Match<TResult>(Func<TResult> onSuccess, Func<TError, TResult> onFailure) =>
             _isSuccess ? onSuccess() : onFailure(_error!);
 
         /// <summary>
         /// Converts to Result&lt;T, TError&gt; with the specified value on success.
         /// </summary>
+        /// <param name="value">The value to return on success.</param>
+        /// <returns>A value result carrying the provided value on success.</returns>
         public Result<T, TError> WithValue<T>(T value) =>
             _isSuccess ? Result<T, TError>.Ok(value) : Err(_error!);
 
         /// <summary>
         /// Combines multiple Results, returning first failure or success if all succeed.
         /// </summary>
+        /// <param name="results">The results to combine.</param>
+        /// <returns>The first failure or success if all succeed.</returns>
         public static Result<TError> Combine(params Result<TError>[] results)
         {
             foreach (var result in results)
@@ -489,6 +546,8 @@ namespace Stardust.Utilities
         /// <summary>
         /// Converts a tuple of (error, value) to Result&lt;T, TError&gt;.
         /// </summary>
+        /// <param name="tuple">The tuple containing an error and value.</param>
+        /// <returns>The converted result.</returns>
         public static Result<T, TError> ToResult<T, TError>(this (TError? error, T? value) tuple)
             where TError : class =>
             tuple.error == null ? Result<T, TError>.Ok(tuple.value!) : Result<T, TError>.Err(tuple.error);
@@ -496,12 +555,17 @@ namespace Stardust.Utilities
         /// <summary>
         /// Converts a nullable error to Result&lt;TError&gt; (null = success).
         /// </summary>
+        /// <param name="error">The error value.</param>
+        /// <returns>The converted result.</returns>
         public static Result<TError> ToResult<TError>(this TError? error) where TError : class =>
             error == null ? Result<TError>.Ok() : Result<TError>.Err(error);
 
         /// <summary>
         /// Chains an async transform that cannot fail.
         /// </summary>
+        /// <param name="resultTask">The task producing the result.</param>
+        /// <param name="transform">The transform to apply on success.</param>
+        /// <returns>A task containing the transformed result.</returns>
         /// <example>
         /// await GetDataAsync().Then(x => x.ToString())
         /// </example>
@@ -516,6 +580,9 @@ namespace Stardust.Utilities
         /// <summary>
         /// Chains a sync operation that can fail after an async Result.
         /// </summary>
+        /// <param name="resultTask">The task producing the result.</param>
+        /// <param name="nextStep">The next operation to execute on success.</param>
+        /// <returns>A task containing the next result.</returns>
         /// <example>
         /// await GetDataAsync().Then(x => Validate(x))
         /// </example>
@@ -530,6 +597,9 @@ namespace Stardust.Utilities
         /// <summary>
         /// Chains an async operation that can fail.
         /// </summary>
+        /// <param name="resultTask">The task producing the result.</param>
+        /// <param name="nextStep">The async operation to execute on success.</param>
+        /// <returns>A task containing the next result.</returns>
         /// <example>
         /// await GetDataAsync()
         ///     .Then(data => ProcessAsync(data))
@@ -548,6 +618,9 @@ namespace Stardust.Utilities
         /// <summary>
         /// Chains async operations for void Results.
         /// </summary>
+        /// <param name="resultTask">The task producing the result.</param>
+        /// <param name="nextStep">The async operation to execute on success.</param>
+        /// <returns>A task containing the next result.</returns>
         public static async Task<Result<TError>> Then<TError>(
             this Task<Result<TError>> resultTask,
             Func<Task<Result<TError>>> nextStep)
@@ -559,6 +632,9 @@ namespace Stardust.Utilities
         /// <summary>
         /// Chains a sync operation for void Results after an async Result.
         /// </summary>
+        /// <param name="resultTask">The task producing the result.</param>
+        /// <param name="nextStep">The operation to execute on success.</param>
+        /// <returns>A task containing the next result.</returns>
         public static async Task<Result<TError>> Then<TError>(
             this Task<Result<TError>> resultTask,
             Func<Result<TError>> nextStep)
@@ -570,6 +646,9 @@ namespace Stardust.Utilities
         /// <summary>
         /// Transforms the error of an async Result if failed.
         /// </summary>
+        /// <param name="resultTask">The task producing the result.</param>
+        /// <param name="transform">The transform applied to the error.</param>
+        /// <returns>A task containing the result with a transformed error.</returns>
         public static async Task<Result<T, TNewError>> ThenError<T, TError, TNewError>(
             this Task<Result<T, TError>> resultTask,
             Func<TError, TNewError> transform)
