@@ -22,7 +22,7 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (byte)(Value & 0x007F);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFF80) | (value & 0x007F));
+        set => Value = (ushort)((Value & 0xFF80) | (((ushort)value) & 0x007F));
     }
 
     public partial byte FirstKeyCode
@@ -30,7 +30,7 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (byte)((Value >> 8) & 0x007F);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0x80FF) | (((ushort)value << 8) & 0x7F00));
+        set => Value = (ushort)((Value & 0x80FF) | ((((ushort)value) << 8) & 0x7F00));
     }
 
     public partial bool SecondKeyUp

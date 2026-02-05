@@ -22,7 +22,7 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (byte)((Value >> 2) & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C));
+        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
     }
 
     public partial byte Priority
@@ -30,7 +30,7 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (byte)((Value >> 5) & 0x03);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x9F) | (((byte)value << 5) & 0x60));
+        set => Value = (byte)((Value & 0x9F) | ((((byte)value) << 5) & 0x60));
     }
 
     public partial bool Ready

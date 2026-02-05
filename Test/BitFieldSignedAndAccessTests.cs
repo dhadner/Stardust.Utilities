@@ -71,6 +71,72 @@ public partial struct SignedGenReg32
 
 #endregion
 
+#region Signed Property Type Test Structs (Sign Extension)
+
+/// <summary>
+/// Tests signed property types with UNSIGNED storage.
+/// The property type determines sign extension, not the storage type.
+/// </summary>
+[BitFields(typeof(ushort))]
+public partial struct SignedPropertyReg16
+{
+    /// <summary>3-bit signed field at bits 13-15. Values: -4 to +3.</summary>
+    [BitField(13, 15)] public partial sbyte Delta { get; set; }       // 3 bits, signed property
+    
+    /// <summary>3-bit unsigned field at bits 10-12. Values: 0 to 7.</summary>
+    [BitField(10, 12)] public partial byte UnsignedField { get; set; } // 3 bits, unsigned property
+    
+    /// <summary>4-bit signed field at bits 6-9. Values: -8 to +7.</summary>
+    [BitField(6, 9)] public partial sbyte SignedNibble { get; set; }  // 4 bits, signed property
+    
+    /// <summary>6-bit signed field at bits 0-5. Values: -32 to +31.</summary>
+    [BitField(0, 5)] public partial sbyte Offset { get; set; }        // 6 bits, signed property
+}
+
+/// <summary>
+/// Tests signed property types with SIGNED storage (should work the same).
+/// </summary>
+[BitFields(typeof(short))]
+public partial struct SignedPropertyRegSigned16
+{
+    /// <summary>3-bit signed field at bits 13-15. Values: -4 to +3.</summary>
+    [BitField(13, 15)] public partial sbyte Delta { get; set; }
+    
+    /// <summary>4-bit signed field at bits 9-12. Values: -8 to +7.</summary>
+    [BitField(9, 12)] public partial sbyte SignedNibble { get; set; }
+}
+
+/// <summary>
+/// Tests 32-bit signed property fields with unsigned storage.
+/// </summary>
+[BitFields(typeof(uint))]
+public partial struct SignedPropertyReg32
+{
+    /// <summary>8-bit signed field at bits 24-31. Values: -128 to +127.</summary>
+    [BitField(24, 31)] public partial sbyte HighByte { get; set; }
+    
+    /// <summary>16-bit signed field at bits 8-23. Values: -32768 to +32767.</summary>
+    [BitField(8, 23)] public partial short MiddleWord { get; set; }
+    
+    /// <summary>8-bit unsigned field at bits 0-7. Values: 0 to 255.</summary>
+    [BitField(0, 7)] public partial byte LowByte { get; set; }
+}
+
+/// <summary>
+/// Tests int property type for larger signed fields.
+/// </summary>
+[BitFields(typeof(ulong))]
+public partial struct SignedPropertyReg64
+{
+    /// <summary>32-bit signed field at bits 32-63. Full int range.</summary>
+    [BitField(32, 63)] public partial int HighInt { get; set; }
+    
+    /// <summary>32-bit unsigned field at bits 0-31.</summary>
+    [BitField(0, 31)] public partial uint LowUInt { get; set; }
+}
+
+#endregion
+
 /// <summary>
 /// Unit tests for signed storage types and Value field access vs implicit conversion performance.
 /// </summary>
@@ -357,6 +423,254 @@ public class BitFieldSignedAndAccessTests
         signedReg.Sign.Should().Be(genReg.Sign);
         signedReg.LowWord.Should().Be(genReg.LowWord);
         signedReg.HighWord.Should().Be(genReg.HighWord);
+    }
+
+    #endregion
+
+    #region Signed Property Type Tests (Sign Extension)
+
+    /// <summary>
+    /// Tests that a 3-bit signed property returns negative values when MSB is set.
+    /// Field bits 13-15, values: -4 to +3 (3-bit two's complement).
+    /// </summary>
+    [Fact]
+    public void SignedProperty_3BitField_ReturnsNegativeWhenMsbSet()
+    {
+        SignedPropertyReg16 reg = 0;
+
+        // Test all 3-bit values: 0-7 unsigned maps to 0,1,2,3,-4,-3,-2,-1 signed
+        // Binary  Unsigned  Signed
+        // 000     0         0
+        // 001     1         1
+        // 010     2         2
+        // 011     3         3
+        // 100     4        -4
+        // 101     5        -3
+        // 110     6        -2
+        // 111     7        -1
+
+        reg.Delta = 0;
+        reg.Delta.Should().Be(0);
+
+        reg.Delta = 1;
+        reg.Delta.Should().Be(1);
+
+        reg.Delta = 2;
+        reg.Delta.Should().Be(2);
+
+        reg.Delta = 3;
+        reg.Delta.Should().Be(3);
+
+        reg.Delta = -4;
+        reg.Delta.Should().Be(-4);
+
+        reg.Delta = -3;
+        reg.Delta.Should().Be(-3);
+
+        reg.Delta = -2;
+        reg.Delta.Should().Be(-2);
+
+        reg.Delta = -1;
+        reg.Delta.Should().Be(-1);
+    }
+
+    /// <summary>
+    /// Tests that setting raw bit patterns correctly sign-extends on read.
+    /// </summary>
+    [Fact]
+    public void SignedProperty_RawBitPattern_SignExtendsCorrectly()
+    {
+        // Set Delta field (bits 13-15) to binary 100 = -4
+        // Bits 13-15 = 0b100 shifted = 0x8000
+        SignedPropertyReg16 reg = unchecked((ushort)0x8000);
+        reg.Delta.Should().Be(-4, "binary 100 in 3-bit signed is -4");
+
+        // Set Delta field to binary 111 = -1
+        // Bits 13-15 = 0b111 shifted = 0xE000
+        reg = unchecked((ushort)0xE000);
+        reg.Delta.Should().Be(-1, "binary 111 in 3-bit signed is -1");
+
+        // Set Delta field to binary 011 = +3
+        // Bits 13-15 = 0b011 shifted = 0x6000
+        reg = unchecked((ushort)0x6000);
+        reg.Delta.Should().Be(3, "binary 011 in 3-bit signed is +3");
+    }
+
+    /// <summary>
+    /// Tests 4-bit signed nibble field. Values: -8 to +7.
+    /// </summary>
+    [Fact]
+    public void SignedProperty_4BitNibble_SignExtendsCorrectly()
+    {
+        SignedPropertyReg16 reg = 0;
+
+        // Positive values
+        reg.SignedNibble = 0;
+        reg.SignedNibble.Should().Be(0);
+
+        reg.SignedNibble = 7;
+        reg.SignedNibble.Should().Be(7);
+
+        // Negative values
+        reg.SignedNibble = -8;
+        reg.SignedNibble.Should().Be(-8);
+
+        reg.SignedNibble = -1;
+        reg.SignedNibble.Should().Be(-1);
+
+        reg.SignedNibble = -4;
+        reg.SignedNibble.Should().Be(-4);
+    }
+
+    /// <summary>
+    /// Tests 6-bit signed offset field. Values: -32 to +31.
+    /// </summary>
+    [Fact]
+    public void SignedProperty_6BitOffset_SignExtendsCorrectly()
+    {
+        SignedPropertyReg16 reg = 0;
+
+        // Positive boundary
+        reg.Offset = 31;
+        reg.Offset.Should().Be(31);
+
+        // Negative boundary
+        reg.Offset = -32;
+        reg.Offset.Should().Be(-32);
+
+        // Middle values
+        reg.Offset = 15;
+        reg.Offset.Should().Be(15);
+
+        reg.Offset = -16;
+        reg.Offset.Should().Be(-16);
+    }
+
+    /// <summary>
+    /// Tests that unsigned property type does NOT sign extend.
+    /// </summary>
+    [Fact]
+    public void UnsignedProperty_DoesNotSignExtend()
+    {
+        SignedPropertyReg16 reg = 0;
+
+        // UnsignedField is 3 bits with byte property type
+        reg.UnsignedField = 7;
+        reg.UnsignedField.Should().Be(7);
+
+        reg.UnsignedField = 4;
+        reg.UnsignedField.Should().Be(4, "unsigned 3-bit field with MSB set stays positive");
+    }
+
+    /// <summary>
+    /// Tests signed property with signed storage type (should work the same as unsigned storage).
+    /// </summary>
+    [Fact]
+    public void SignedProperty_WithSignedStorage_WorksCorrectly()
+    {
+        SignedPropertyRegSigned16 reg = 0;
+
+        // Delta is 3-bit signed at bits 13-15
+        reg.Delta = -4;
+        reg.Delta.Should().Be(-4);
+
+        reg.Delta = 3;
+        reg.Delta.Should().Be(3);
+
+        // SignedNibble is 4-bit signed at bits 9-12
+        reg.SignedNibble = -8;
+        reg.SignedNibble.Should().Be(-8);
+
+        reg.SignedNibble = 7;
+        reg.SignedNibble.Should().Be(7);
+    }
+
+    /// <summary>
+    /// Tests 32-bit register with various signed field sizes.
+    /// </summary>
+    [Fact]
+    public void SignedProperty_32BitRegister_SignExtendsCorrectly()
+    {
+        SignedPropertyReg32 reg = 0;
+
+        // 8-bit signed high byte (bits 24-31)
+        reg.HighByte = -128;
+        reg.HighByte.Should().Be(-128);
+
+        reg.HighByte = 127;
+        reg.HighByte.Should().Be(127);
+
+        reg.HighByte = -1;
+        reg.HighByte.Should().Be(-1);
+
+        // 16-bit signed middle word (bits 8-23)
+        reg.MiddleWord = short.MinValue;
+        reg.MiddleWord.Should().Be(short.MinValue);
+
+        reg.MiddleWord = short.MaxValue;
+        reg.MiddleWord.Should().Be(short.MaxValue);
+
+        reg.MiddleWord = -1;
+        reg.MiddleWord.Should().Be(-1);
+
+        // 8-bit unsigned low byte (bits 0-7) - should not sign extend
+        reg.LowByte = 255;
+        reg.LowByte.Should().Be(255);
+    }
+
+    /// <summary>
+    /// Tests 64-bit register with 32-bit signed int property.
+    /// </summary>
+    [Fact]
+    public void SignedProperty_64BitRegister_32BitSignedField()
+    {
+        SignedPropertyReg64 reg = 0;
+
+        // HighInt is 32-bit signed at bits 32-63
+        reg.HighInt = int.MinValue;
+        reg.HighInt.Should().Be(int.MinValue);
+
+        reg.HighInt = int.MaxValue;
+        reg.HighInt.Should().Be(int.MaxValue);
+
+        reg.HighInt = -1;
+        reg.HighInt.Should().Be(-1);
+
+        reg.HighInt = 0;
+        reg.HighInt.Should().Be(0);
+
+        // Verify low uint is independent
+        reg.LowUInt = uint.MaxValue;
+        reg.LowUInt.Should().Be(uint.MaxValue);
+        reg.HighInt.Should().Be(0, "setting LowUInt should not affect HighInt");
+    }
+
+    /// <summary>
+    /// Tests that mixing signed and unsigned fields in same register works correctly.
+    /// </summary>
+    [Fact]
+    public void SignedProperty_MixedFields_IndependentAndCorrect()
+    {
+        SignedPropertyReg16 reg = 0;
+
+        // Set all fields
+        reg.Delta = -2;          // 3-bit signed
+        reg.UnsignedField = 5;   // 3-bit unsigned
+        reg.SignedNibble = -5;   // 4-bit signed
+        reg.Offset = -20;        // 6-bit signed
+
+        // Verify all fields independently
+        reg.Delta.Should().Be(-2);
+        reg.UnsignedField.Should().Be(5);
+        reg.SignedNibble.Should().Be(-5);
+        reg.Offset.Should().Be(-20);
+
+        // Modify one and verify others unchanged
+        reg.Delta = 2;
+        reg.Delta.Should().Be(2);
+        reg.UnsignedField.Should().Be(5);
+        reg.SignedNibble.Should().Be(-5);
+        reg.Offset.Should().Be(-20);
     }
 
     #endregion

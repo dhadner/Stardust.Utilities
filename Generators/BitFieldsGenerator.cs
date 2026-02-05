@@ -303,11 +303,14 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Generates a BitField property with inline constants for maximum performance.
+    /// For signed property types (sbyte, short, int, long), sign extension is performed
+    /// when the field width is smaller than the property type width.
     /// </summary>
     private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
     {
         int shift = field.Shift;
         int width = field.Width;
+        int endBit = shift + width - 1;
         
         // Calculate masks as compile-time constants
         ulong mask = (1UL << width) - 1;
@@ -322,42 +325,74 @@ public class BitFieldsGenerator : IIncrementalGenerator
         string shiftedMaskHex = FormatHex(shiftedMask, maskType);
         string invertedMaskHex = FormatHex(invertedShiftedMask, maskType);
 
+        // Check if the property type is signed and needs sign extension
+        bool propertyTypeIsSigned = IsSignedType(field.PropertyType);
+        int propertyTypeBitWidth = GetTypeBitWidth(field.PropertyType);
+        bool needsSignExtension = propertyTypeIsSigned && width < propertyTypeBitWidth;
+
         sb.AppendLine($"{indent}public partial {field.PropertyType} {field.Name}");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
-        // Getter: For signed types, cast to unsigned first to avoid sign extension during shift
-        if (info.StorageTypeIsSigned)
+        // Getter: For signed property types with field width < type width, perform sign extension
+        if (needsSignExtension)
         {
-            if (shift == 0)
+            // Optimized sign extension: mask in place, then shift left/right for sign extension.
+            // This is more efficient than extract-then-extend (saves one shift operation).
+            // Formula: ((signExtendType)(Value & shiftedMask) << leftShift) >> rightShift
+            // - leftShift positions the field's MSB at the sign bit of the intermediate type
+            // - rightShift propagates the sign and moves the result to bits [0, width-1]
+            string signExtendType = GetSignExtendIntermediateType(field.PropertyType);
+            int intermediateTypeBitWidth = signExtendType == "long" ? 64 : 32;
+            int leftShift = intermediateTypeBitWidth - 1 - endBit;  // Put field MSB at bit 31 (or 63)
+            int rightShift = intermediateTypeBitWidth - width;       // Propagate sign to result width
+            
+            if (info.StorageTypeIsSigned)
             {
-                sb.AppendLine($"{indent}    get => ({field.PropertyType})((({info.UnsignedStorageType})Value) & {maskHex});");
+                // For signed storage, cast to unsigned first to avoid unwanted sign extension
+                sb.AppendLine($"{indent}    get => ({field.PropertyType})((({signExtendType})((({info.UnsignedStorageType})Value) & {shiftedMaskHex}) << {leftShift}) >> {rightShift});");
             }
             else
             {
-                sb.AppendLine($"{indent}    get => ({field.PropertyType})(((({info.UnsignedStorageType})Value) >> {shift}) & {maskHex});");
+                sb.AppendLine($"{indent}    get => ({field.PropertyType})((({signExtendType})(Value & {shiftedMaskHex}) << {leftShift}) >> {rightShift});");
             }
         }
         else
         {
-            if (shift == 0)
+            // No sign extension needed - original behavior
+            if (info.StorageTypeIsSigned)
             {
-                sb.AppendLine($"{indent}    get => ({field.PropertyType})(Value & {maskHex});");
+                if (shift == 0)
+                {
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})((({info.UnsignedStorageType})Value) & {maskHex});");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(((({info.UnsignedStorageType})Value) >> {shift}) & {maskHex});");
+                }
             }
             else
             {
-                sb.AppendLine($"{indent}    get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
+                if (shift == 0)
+                {
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(Value & {maskHex});");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
+                }
             }
         }
 
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
         // Setter: For signed types, do operations in unsigned space then cast back
+        // Setter masks off any sign-extended bits, so no change needed
         if (info.StorageTypeIsSigned)
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | ((({info.UnsignedStorageType})value) & {shiftedMaskHex}));");
             }
             else
             {
@@ -368,16 +403,53 @@ public class BitFieldsGenerator : IIncrementalGenerator
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value) & {shiftedMaskHex}));");
             }
             else
             {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex}));");
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType})value) << {shift}) & {shiftedMaskHex}));");
             }
         }
         
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Determines if a type name represents a signed integer type.
+    /// </summary>
+    private static bool IsSignedType(string typeName)
+    {
+        return typeName == "sbyte" || typeName == "short" || typeName == "int" || typeName == "long";
+    }
+
+    /// <summary>
+    /// Gets the bit width of a numeric type.
+    /// </summary>
+    private static int GetTypeBitWidth(string typeName)
+    {
+        return typeName switch
+        {
+            "sbyte" or "byte" => 8,
+            "short" or "ushort" => 16,
+            "int" or "uint" => 32,
+            "long" or "ulong" => 64,
+            _ => 32 // Default to int size for unknown types
+        };
+    }
+
+    /// <summary>
+    /// Gets the signed intermediate type to use for sign extension.
+    /// For sbyte/short, we use int. For int, we use int. For long, we use long.
+    /// </summary>
+    private static string GetSignExtendIntermediateType(string propertyType)
+    {
+        return propertyType switch
+        {
+            "sbyte" or "short" or "int" => "int",
+            "long" => "long",
+            _ => "int"
+        };
     }
 
     /// <summary>

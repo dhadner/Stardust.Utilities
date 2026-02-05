@@ -220,6 +220,89 @@ public partial struct SignedReg32
 }
 ```
 
+### Signed Property Types (Sign Extension)
+
+When a property type is signed (`sbyte`, `short`, `int`, `long`), the generator automatically sign-extends the extracted field value. This is essential for hardware registers where fields represent signed quantities like deltas, offsets, or two's complement values.
+
+**The property type determines sign extension, not the storage type.**
+
+```csharp
+[BitFields(typeof(ushort))]
+public partial struct MotionRegister
+{
+    // 3-bit signed delta at bits 13-15. Values: -4 to +3 (two's complement)
+    [BitField(13, 15)] public partial sbyte DeltaX { get; set; }
+    
+    // 3-bit unsigned field at bits 10-12. Values: 0 to 7
+    [BitField(10, 12)] public partial byte UnsignedField { get; set; }
+    
+    // 4-bit signed nibble at bits 6-9. Values: -8 to +7
+    [BitField(6, 9)] public partial sbyte DeltaY { get; set; }
+    
+    // 6-bit signed offset at bits 0-5. Values: -32 to +31
+    [BitField(0, 5)] public partial sbyte Offset { get; set; }
+}
+```
+
+**Usage:**
+
+```csharp
+MotionRegister reg = 0;
+
+// Setting negative values works correctly
+reg.DeltaX = -3;
+Console.WriteLine(reg.DeltaX);  // Output: -3
+
+// The 3-bit field stores the two's complement representation
+// Binary: 101 (unsigned 5) = -3 (signed 3-bit)
+reg.DeltaX = -1;
+Console.WriteLine(reg.DeltaX);  // Output: -1
+
+// Positive values in range also work
+reg.DeltaX = 3;
+Console.WriteLine(reg.DeltaX);  // Output: 3
+
+// Unsigned fields do NOT sign extend
+reg.UnsignedField = 5;
+Console.WriteLine(reg.UnsignedField);  // Output: 5 (stays positive)
+```
+
+**Generated Code for Signed Properties:**
+
+For a 3-bit signed field at bits 13-15, the generator produces:
+
+```csharp
+public partial sbyte DeltaX
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    get => (sbyte)(((int)(Value & 0xE000) << 16) >> 29);
+    //              ↑ mask in place   ↑ shift MSB to bit 31   ↑ arithmetic right shift
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    set => Value = (ushort)((Value & 0x1FFF) | ((((ushort)value) << 13) & 0xE000));
+}
+```
+
+The getter uses an optimized mask-then-shift pattern:
+1. **Mask in place**: `Value & 0xE000` extracts bits 13-15 without shifting first
+2. **Left shift**: `<< 16` positions the field's MSB at bit 31 (the int sign bit)
+3. **Arithmetic right shift**: `>> 29` propagates the sign bit down to bits 0-2
+
+This produces correct two's complement sign extension with only 3 operations (mask, shift, shift) plus the final cast.
+
+**Sign Extension by Field Width:**
+
+| Field Width | Signed Range | Example |
+|-------------|--------------|---------|
+| 3 bits | -4 to +3 | `sbyte DeltaX` |
+| 4 bits | -8 to +7 | `sbyte DeltaY` |
+| 6 bits | -32 to +31 | `sbyte Offset` |
+| 8 bits | -128 to +127 | `sbyte SignedByte` (no sign extension needed) |
+| 16 bits | -32768 to +32767 | `short SignedWord` (no sign extension needed) |
+
+**Zero Overhead for Unsigned Properties:**
+
+Unsigned property types (`byte`, `ushort`, `uint`, `ulong`) use the standard mask-and-shift pattern with no additional sign extension overhead.
+
 ## Generated Code
 
 For the following user-defined struct:

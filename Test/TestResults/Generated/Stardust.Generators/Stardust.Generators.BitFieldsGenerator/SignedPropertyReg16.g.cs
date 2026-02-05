@@ -9,211 +9,196 @@ using System.Runtime.CompilerServices;
 
 namespace Stardust.Utilities.Tests;
 
-public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedStatusReg8>, IEquatable<GeneratedStatusReg8>,
-                             IFormattable, ISpanFormattable, IParsable<GeneratedStatusReg8>, ISpanParsable<GeneratedStatusReg8>
+public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPropertyReg16>, IEquatable<SignedPropertyReg16>,
+                             IFormattable, ISpanFormattable, IParsable<SignedPropertyReg16>, ISpanParsable<SignedPropertyReg16>
 {
-    private byte Value;
+    private ushort Value;
 
-    /// <summary>Creates a new GeneratedStatusReg8 with the specified raw value.</summary>
-    public GeneratedStatusReg8(byte value) { Value = value; }
+    /// <summary>Creates a new SignedPropertyReg16 with the specified raw value.</summary>
+    public SignedPropertyReg16(ushort value) { Value = value; }
 
-    public partial OpMode Mode
+    public partial sbyte Delta
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (OpMode)((Value >> 2) & 0x07);
+        get => (sbyte)(((int)(Value & 0xE000) << 16) >> 29);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
+        set => Value = (ushort)((Value & 0x1FFF) | ((((ushort)value) << 13) & 0xE000));
     }
 
-    public partial byte Priority
+    public partial byte UnsignedField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 5) & 0x03);
+        get => (byte)((Value >> 10) & 0x0007);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x9F) | ((((byte)value) << 5) & 0x60));
+        set => Value = (ushort)((Value & 0xE3FF) | ((((ushort)value) << 10) & 0x1C00));
     }
 
-    public partial bool Ready
+    public partial sbyte SignedNibble
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (sbyte)(((int)(Value & 0x03C0) << 22) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => Value = (ushort)((Value & 0xFC3F) | ((((ushort)value) << 6) & 0x03C0));
     }
 
-    public partial bool Error
+    public partial sbyte Offset
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x02) != 0;
+        get => (sbyte)(((int)(Value & 0x003F) << 26) >> 26);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+        set => Value = (ushort)((Value & 0xFFC0) | (((ushort)value) & 0x003F));
     }
 
-    public partial bool Busy
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x80) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F);
-    }
+    /// <summary>Returns a SignedPropertyReg16 with the mask for the Delta field (bits 13-15).</summary>
+    public static SignedPropertyReg16 DeltaMask => new((ushort)0xE000);
 
-    /// <summary>Returns a GeneratedStatusReg8 with only the Ready bit set.</summary>
-    public static GeneratedStatusReg8 ReadyBit => new((byte)0x01);
+    /// <summary>Returns a SignedPropertyReg16 with the mask for the UnsignedField field (bits 10-12).</summary>
+    public static SignedPropertyReg16 UnsignedFieldMask => new((ushort)0x1C00);
 
-    /// <summary>Returns a GeneratedStatusReg8 with only the Error bit set.</summary>
-    public static GeneratedStatusReg8 ErrorBit => new((byte)0x02);
+    /// <summary>Returns a SignedPropertyReg16 with the mask for the SignedNibble field (bits 6-9).</summary>
+    public static SignedPropertyReg16 SignedNibbleMask => new((ushort)0x03C0);
 
-    /// <summary>Returns a GeneratedStatusReg8 with only the Busy bit set.</summary>
-    public static GeneratedStatusReg8 BusyBit => new((byte)0x80);
+    /// <summary>Returns a SignedPropertyReg16 with the mask for the Offset field (bits 0-5).</summary>
+    public static SignedPropertyReg16 OffsetMask => new((ushort)0x003F);
 
-    /// <summary>Returns a GeneratedStatusReg8 with the mask for the Mode field (bits 2-4).</summary>
-    public static GeneratedStatusReg8 ModeMask => new((byte)0x1C);
-
-    /// <summary>Returns a GeneratedStatusReg8 with the mask for the Priority field (bits 5-6).</summary>
-    public static GeneratedStatusReg8 PriorityMask => new((byte)0x60);
-
-    /// <summary>Returns a new GeneratedStatusReg8 with the Ready flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithReady(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((Value & 0x1FFF) | (((ushort)value << 13) & 0xE000)));
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Error flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg16 with the UnsignedField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithError(bool value) => new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((Value & 0xE3FF) | (((ushort)value << 10) & 0x1C00)));
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Busy flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg16 with the SignedNibble field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithBusy(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
+    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((Value & 0xFC3F) | (((ushort)value << 6) & 0x03C0)));
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Mode field set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg16 with the Offset field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithMode(OpMode value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
-
-    /// <summary>Returns a new GeneratedStatusReg8 with the Priority field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithPriority(byte value) => new((byte)((Value & 0x9F) | (((byte)value << 5) & 0x60)));
+    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((Value & 0xFFC0) | (value & 0x003F)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator ~(GeneratedStatusReg8 a) => new((byte)~a.Value);
+    public static SignedPropertyReg16 operator ~(SignedPropertyReg16 a) => new((ushort)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator |(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value | b.Value));
+    public static SignedPropertyReg16 operator |(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator &(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value & b.Value));
+    public static SignedPropertyReg16 operator &(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator ^(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value ^ b.Value));
+    public static SignedPropertyReg16 operator ^(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value ^ b.Value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(GeneratedStatusReg8 a) => a;
+    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(GeneratedStatusReg8 a) => new(unchecked((byte)(0 - a.Value)));
+    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a) => new(unchecked((ushort)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(GeneratedStatusReg8 a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(byte a, GeneratedStatusReg8 b) => new(unchecked((byte)(a + b.Value)));
+    public static SignedPropertyReg16 operator +(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(GeneratedStatusReg8 a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(byte a, GeneratedStatusReg8 b) => new(unchecked((byte)(a - b.Value)));
+    public static SignedPropertyReg16 operator -(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator *(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static SignedPropertyReg16 operator *(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator *(GeneratedStatusReg8 a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static SignedPropertyReg16 operator *(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator *(byte a, GeneratedStatusReg8 b) => new(unchecked((byte)(a * b.Value)));
+    public static SignedPropertyReg16 operator *(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator /(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value / b.Value));
+    public static SignedPropertyReg16 operator /(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator /(GeneratedStatusReg8 a, byte b) => new((byte)(a.Value / b));
+    public static SignedPropertyReg16 operator /(SignedPropertyReg16 a, ushort b) => new((ushort)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator /(byte a, GeneratedStatusReg8 b) => new((byte)(a / b.Value));
+    public static SignedPropertyReg16 operator /(ushort a, SignedPropertyReg16 b) => new((ushort)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator %(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value % b.Value));
+    public static SignedPropertyReg16 operator %(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator %(GeneratedStatusReg8 a, byte b) => new((byte)(a.Value % b));
+    public static SignedPropertyReg16 operator %(SignedPropertyReg16 a, ushort b) => new((ushort)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator %(byte a, GeneratedStatusReg8 b) => new((byte)(a % b.Value));
+    public static SignedPropertyReg16 operator %(ushort a, SignedPropertyReg16 b) => new((ushort)(a % b.Value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(GeneratedStatusReg8 a, int b) => a.Value << b;
+    public static int operator <<(SignedPropertyReg16 a, int b) => a.Value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(GeneratedStatusReg8 a, int b) => a.Value >> b;
+    public static int operator >>(SignedPropertyReg16 a, int b) => a.Value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(GeneratedStatusReg8 a, int b) => a.Value >>> b;
+    public static int operator >>>(SignedPropertyReg16 a, int b) => a.Value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value < b.Value;
+    public static bool operator <(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value > b.Value;
+    public static bool operator >(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value == b.Value;
+    public static bool operator ==(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value != b.Value;
+    public static bool operator !=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is GeneratedStatusReg8 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedPropertyReg16 other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -222,14 +207,14 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(GeneratedStatusReg8 value) => value.Value;
+    public static implicit operator ushort(SignedPropertyReg16 value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator GeneratedStatusReg8(byte value) => new(value);
+    public static implicit operator SignedPropertyReg16(ushort value) => new(value);
 
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator GeneratedStatusReg8(int value) => new(unchecked((byte)value));
+    public static implicit operator SignedPropertyReg16(int value) => new(unchecked((ushort)value));
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -247,13 +232,13 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return sb.ToString();
     }
 
-    private static byte ParseBinary(ReadOnlySpan<char> s)
+    private static ushort ParseBinary(ReadOnlySpan<char> s)
     {
         var clean = RemoveUnderscores(s);
-        return Convert.ToByte(clean, 2);
+        return Convert.ToUInt16(clean, 2);
     }
 
-    private static bool TryParseBinary(ReadOnlySpan<char> s, out byte result)
+    private static bool TryParseBinary(ReadOnlySpan<char> s, out ushort result)
     {
         try
         {
@@ -267,28 +252,28 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         }
     }
 
-    /// <summary>Parses a string into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a SignedPropertyReg16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedStatusReg8 value.</returns>
+    /// <returns>The parsed SignedPropertyReg16 value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static GeneratedStatusReg8 Parse(string s, IFormatProvider? provider)
+    public static SignedPropertyReg16 Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
         if (IsBinaryPrefix(span))
             return new(ParseBinary(span.Slice(2)));
         if (IsHexPrefix(span))
-            return new(byte.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(byte.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
+            return new(ushort.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(ushort.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a SignedPropertyReg16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out GeneratedStatusReg8 result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out SignedPropertyReg16 result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -304,7 +289,7 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         }
         if (IsHexPrefix(span))
         {
-            if (byte.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (ushort.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -312,7 +297,7 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
             result = default;
             return false;
         }
-        if (byte.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
+        if (ushort.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -321,25 +306,25 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return false;
     }
 
-    /// <summary>Parses a span of characters into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a SignedPropertyReg16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedStatusReg8 value.</returns>
-    public static GeneratedStatusReg8 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed SignedPropertyReg16 value.</returns>
+    public static SignedPropertyReg16 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
         if (IsHexPrefix(s))
-            return new(byte.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(byte.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
+            return new(ushort.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(ushort.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a SignedPropertyReg16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out GeneratedStatusReg8 result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SignedPropertyReg16 result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -353,7 +338,7 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         }
         if (IsHexPrefix(s))
         {
-            if (byte.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (ushort.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -361,7 +346,7 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
             result = default;
             return false;
         }
-        if (byte.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
+        if (ushort.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -370,18 +355,18 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return false;
     }
 
-    /// <summary>Parses a string into a GeneratedStatusReg8 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a SignedPropertyReg16 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed GeneratedStatusReg8 value.</returns>
+    /// <returns>The parsed SignedPropertyReg16 value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static SignedPropertyReg16 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a GeneratedStatusReg8 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a SignedPropertyReg16 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out GeneratedStatusReg8 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out SignedPropertyReg16 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -401,24 +386,24 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a GeneratedStatusReg8.</exception>
+    /// <exception cref="ArgumentException">obj is not a SignedPropertyReg16.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is GeneratedStatusReg8 other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type GeneratedStatusReg8", nameof(obj));
+        if (obj is SignedPropertyReg16 other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type SignedPropertyReg16", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another GeneratedStatusReg8 and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A GeneratedStatusReg8 to compare.</param>
+    /// <summary>Compares this instance to another SignedPropertyReg16 and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A SignedPropertyReg16 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(GeneratedStatusReg8 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedPropertyReg16 other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another GeneratedStatusReg8.</summary>
-    /// <param name="other">A GeneratedStatusReg8 to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another SignedPropertyReg16.</summary>
+    /// <param name="other">A SignedPropertyReg16 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(GeneratedStatusReg8 other) => Value == other.Value;
+    public bool Equals(SignedPropertyReg16 other) => Value == other.Value;
 
 }

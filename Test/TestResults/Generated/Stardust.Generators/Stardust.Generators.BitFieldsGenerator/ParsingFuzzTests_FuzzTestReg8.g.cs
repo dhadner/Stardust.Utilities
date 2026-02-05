@@ -24,7 +24,7 @@ public partial class ParsingFuzzTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => (byte)((Value >> 1) & 0x0F);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & 0xE1) | (((byte)value << 1) & 0x1E));
+            set => Value = (byte)((Value & 0xE1) | ((((byte)value) << 1) & 0x1E));
         }
 
         public partial bool Flag0

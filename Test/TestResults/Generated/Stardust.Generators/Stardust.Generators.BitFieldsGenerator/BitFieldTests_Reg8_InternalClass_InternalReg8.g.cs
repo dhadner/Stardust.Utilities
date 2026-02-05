@@ -26,7 +26,7 @@ public partial class BitFieldTests
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => (byte)((Value >> 3) & 0x03);
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => Value = (byte)((Value & 0xE7) | (((byte)value << 3) & 0x18));
+                set => Value = (byte)((Value & 0xE7) | ((((byte)value) << 3) & 0x18));
             }
 
             public partial bool FlagA

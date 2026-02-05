@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.4] - 2026-02-06
+### Added
+- Added support for signed properties in a BitFields struct.
+- Added fuzz testing for parsers.  No errors found.
+- Performance testing now runs on local dev machine.  Still disabled during CI builds.
+- Now does deterministic builds.
+
 ## [0.9.3] - 2026-02-05
 ### Added
 - Added support for .NET 7 and .NET 8 in addition to .NET 10.

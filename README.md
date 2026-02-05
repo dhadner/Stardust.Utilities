@@ -31,7 +31,7 @@ generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.3" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.4" />
 ```
 
 That's it, the source generator is included automatically.
@@ -82,7 +82,7 @@ The source generator emits **inline bit manipulation with compile-time constants
 
 **Key Findings:**
 - ✅ **Zero abstraction penalty** — `[MethodImpl(MethodImplOptions.AggressiveInlining)]` eliminates all property call overhead
-- ✅ **Identical to raw bit ops** — Generated properties are statistically indistinguishable from `(value & MASK) >> SHIFT` inline code
+- ✅ **Identical to raw bit ops** — Generated properties are statistically indistinguishable from `(value >> SHIFT) & MASK` inline code
 - ✅ **Compile-time constants** — All masks and shifts are computed at compile time
 - ✅ **No heap allocations** — Value types with no boxing
 
@@ -177,6 +177,34 @@ status = 0x42;                 // Converts from byte
 | `ushort` | 16 bits | `short` |
 | `uint` | 32 bits | `int` |
 | `ulong` | 64 bits | `long` |
+
+#### Signed Property Types (Sign Extension)
+
+When a property is declared with a signed type (`sbyte`, `short`, `int`, `long`), the generator automatically sign-extends the field value. This is essential for hardware registers with signed quantities like deltas or offsets:
+
+```csharp
+[BitFields(typeof(ushort))]
+public partial struct MotionRegister
+{
+    // 3-bit signed delta. Values: -4 to +3
+    [BitField(13, 15)] public partial sbyte DeltaX { get; set; }
+    
+    // 3-bit unsigned field. Values: 0 to 7 (no sign extension)
+    [BitField(10, 12)] public partial byte Speed { get; set; }
+}
+
+// Usage
+MotionRegister reg = 0;
+reg.DeltaX = -3;
+Console.WriteLine(reg.DeltaX);  // Output: -3 (correctly sign-extended)
+
+reg.Speed = 5;
+Console.WriteLine(reg.Speed);   // Output: 5 (unsigned, stays positive)
+```
+
+The sign extension is optimized to a single mask-and-shift operation with zero overhead for unsigned property types.
+
+
 
 #### Nested Structs
 

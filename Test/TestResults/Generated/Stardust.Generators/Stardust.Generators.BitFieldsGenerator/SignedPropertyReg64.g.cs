@@ -9,259 +9,214 @@ using System.Runtime.CompilerServices;
 
 namespace Stardust.Utilities.Tests;
 
-public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWideReg64>, IEquatable<GeneratedWideReg64>,
-                             IFormattable, ISpanFormattable, IParsable<GeneratedWideReg64>, ISpanParsable<GeneratedWideReg64>
+public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPropertyReg64>, IEquatable<SignedPropertyReg64>,
+                             IFormattable, ISpanFormattable, IParsable<SignedPropertyReg64>, ISpanParsable<SignedPropertyReg64>
 {
     private ulong Value;
 
-    /// <summary>Creates a new GeneratedWideReg64 with the specified raw value.</summary>
-    public GeneratedWideReg64(ulong value) { Value = value; }
+    /// <summary>Creates a new SignedPropertyReg64 with the specified raw value.</summary>
+    public SignedPropertyReg64(ulong value) { Value = value; }
 
-    public partial byte Status
+    public partial int HighInt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x00000000000000FFUL);
+        get => (int)((Value >> 32) & 0x00000000FFFFFFFFUL);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFFFFFFFF00UL) | (((ulong)value) & 0x00000000000000FFUL));
+        set => Value = (ulong)((Value & 0x00000000FFFFFFFFUL) | ((((ulong)value) << 32) & 0xFFFFFFFF00000000UL));
     }
 
-    public partial ushort Data
+    public partial uint LowUInt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 8) & 0x000000000000FFFFUL);
+        get => (uint)(Value & 0x00000000FFFFFFFFUL);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFFFF0000FFUL) | ((((ulong)value) << 8) & 0x0000000000FFFF00UL));
+        set => Value = (ulong)((Value & 0xFFFFFFFF00000000UL) | (((ulong)value) & 0x00000000FFFFFFFFUL));
     }
 
-    public partial uint Address
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> 24) & 0x00000000FFFFFFFFUL);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFF00000000FFFFFFUL) | ((((ulong)value) << 24) & 0x00FFFFFFFF000000UL));
-    }
+    /// <summary>Returns a SignedPropertyReg64 with the mask for the HighInt field (bits 32-63).</summary>
+    public static SignedPropertyReg64 HighIntMask => new((ulong)0xFFFFFFFF00000000UL);
 
-    public partial bool Valid
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0100000000000000UL) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ulong)(Value | 0x0100000000000000UL) : (ulong)(Value & 0xFEFFFFFFFFFFFFFFUL);
-    }
+    /// <summary>Returns a SignedPropertyReg64 with the mask for the LowUInt field (bits 0-31).</summary>
+    public static SignedPropertyReg64 LowUIntMask => new((ulong)0x00000000FFFFFFFFUL);
 
-    public partial bool Ready
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0200000000000000UL) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ulong)(Value | 0x0200000000000000UL) : (ulong)(Value & 0xFDFFFFFFFFFFFFFFUL);
-    }
-
-    /// <summary>Returns a GeneratedWideReg64 with only the Valid bit set.</summary>
-    public static GeneratedWideReg64 ValidBit => new((ulong)0x0100000000000000UL);
-
-    /// <summary>Returns a GeneratedWideReg64 with only the Ready bit set.</summary>
-    public static GeneratedWideReg64 ReadyBit => new((ulong)0x0200000000000000UL);
-
-    /// <summary>Returns a GeneratedWideReg64 with the mask for the Status field (bits 0-7).</summary>
-    public static GeneratedWideReg64 StatusMask => new((ulong)0x00000000000000FFUL);
-
-    /// <summary>Returns a GeneratedWideReg64 with the mask for the Data field (bits 8-23).</summary>
-    public static GeneratedWideReg64 DataMask => new((ulong)0x0000000000FFFF00UL);
-
-    /// <summary>Returns a GeneratedWideReg64 with the mask for the Address field (bits 24-55).</summary>
-    public static GeneratedWideReg64 AddressMask => new((ulong)0x00FFFFFFFF000000UL);
-
-    /// <summary>Returns a new GeneratedWideReg64 with the Valid flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg64 with the HighInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithValid(bool value) => new(value ? (ulong)(Value | 0x0100000000000000UL) : (ulong)(Value & 0xFEFFFFFFFFFFFFFFUL));
+    public SignedPropertyReg64 WithHighInt(int value) => new((ulong)((Value & 0x00000000FFFFFFFFUL) | (((ulong)value << 32) & 0xFFFFFFFF00000000UL)));
 
-    /// <summary>Returns a new GeneratedWideReg64 with the Ready flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg64 with the LowUInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithReady(bool value) => new(value ? (ulong)(Value | 0x0200000000000000UL) : (ulong)(Value & 0xFDFFFFFFFFFFFFFFUL));
-
-    /// <summary>Returns a new GeneratedWideReg64 with the Status field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithStatus(byte value) => new((ulong)((Value & 0xFFFFFFFFFFFFFF00UL) | (value & 0x00000000000000FFUL)));
-
-    /// <summary>Returns a new GeneratedWideReg64 with the Data field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithData(ushort value) => new((ulong)((Value & 0xFFFFFFFFFF0000FFUL) | (((ulong)value << 8) & 0x0000000000FFFF00UL)));
-
-    /// <summary>Returns a new GeneratedWideReg64 with the Address field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithAddress(uint value) => new((ulong)((Value & 0xFF00000000FFFFFFUL) | (((ulong)value << 24) & 0x00FFFFFFFF000000UL)));
+    public SignedPropertyReg64 WithLowUInt(uint value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | (value & 0x00000000FFFFFFFFUL)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator ~(GeneratedWideReg64 a) => new((ulong)~a.Value);
+    public static SignedPropertyReg64 operator ~(SignedPropertyReg64 a) => new((ulong)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator |(GeneratedWideReg64 a, GeneratedWideReg64 b) => new((ulong)(a.Value | b.Value));
+    public static SignedPropertyReg64 operator |(SignedPropertyReg64 a, SignedPropertyReg64 b) => new((ulong)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator &(GeneratedWideReg64 a, GeneratedWideReg64 b) => new((ulong)(a.Value & b.Value));
+    public static SignedPropertyReg64 operator &(SignedPropertyReg64 a, SignedPropertyReg64 b) => new((ulong)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator ^(GeneratedWideReg64 a, GeneratedWideReg64 b) => new((ulong)(a.Value ^ b.Value));
+    public static SignedPropertyReg64 operator ^(SignedPropertyReg64 a, SignedPropertyReg64 b) => new((ulong)(a.Value ^ b.Value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator &(GeneratedWideReg64 a, ulong b) => new(a.Value & b);
+    public static SignedPropertyReg64 operator &(SignedPropertyReg64 a, ulong b) => new(a.Value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator &(ulong a, GeneratedWideReg64 b) => new(a & b.Value);
+    public static SignedPropertyReg64 operator &(ulong a, SignedPropertyReg64 b) => new(a & b.Value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator |(GeneratedWideReg64 a, ulong b) => new(a.Value | b);
+    public static SignedPropertyReg64 operator |(SignedPropertyReg64 a, ulong b) => new(a.Value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator |(ulong a, GeneratedWideReg64 b) => new(a | b.Value);
+    public static SignedPropertyReg64 operator |(ulong a, SignedPropertyReg64 b) => new(a | b.Value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator ^(GeneratedWideReg64 a, ulong b) => new(a.Value ^ b);
+    public static SignedPropertyReg64 operator ^(SignedPropertyReg64 a, ulong b) => new(a.Value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator ^(ulong a, GeneratedWideReg64 b) => new(a ^ b.Value);
+    public static SignedPropertyReg64 operator ^(ulong a, SignedPropertyReg64 b) => new(a ^ b.Value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(GeneratedWideReg64 a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(SignedPropertyReg64 a, int b) => a.Value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, GeneratedWideReg64 b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, SignedPropertyReg64 b) => (ulong)a & b.Value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(GeneratedWideReg64 a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(SignedPropertyReg64 a, int b) => a.Value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, GeneratedWideReg64 b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, SignedPropertyReg64 b) => (ulong)a | b.Value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(GeneratedWideReg64 a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(SignedPropertyReg64 a, int b) => a.Value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, GeneratedWideReg64 b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, SignedPropertyReg64 b) => (ulong)a ^ b.Value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator +(GeneratedWideReg64 a) => a;
+    public static SignedPropertyReg64 operator +(SignedPropertyReg64 a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator -(GeneratedWideReg64 a) => new(unchecked((ulong)(0 - a.Value)));
+    public static SignedPropertyReg64 operator -(SignedPropertyReg64 a) => new(unchecked((ulong)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator +(GeneratedWideReg64 a, GeneratedWideReg64 b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static SignedPropertyReg64 operator +(SignedPropertyReg64 a, SignedPropertyReg64 b) => new(unchecked((ulong)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator +(GeneratedWideReg64 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static SignedPropertyReg64 operator +(SignedPropertyReg64 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator +(ulong a, GeneratedWideReg64 b) => new(unchecked((ulong)(a + b.Value)));
+    public static SignedPropertyReg64 operator +(ulong a, SignedPropertyReg64 b) => new(unchecked((ulong)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator -(GeneratedWideReg64 a, GeneratedWideReg64 b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static SignedPropertyReg64 operator -(SignedPropertyReg64 a, SignedPropertyReg64 b) => new(unchecked((ulong)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator -(GeneratedWideReg64 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static SignedPropertyReg64 operator -(SignedPropertyReg64 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator -(ulong a, GeneratedWideReg64 b) => new(unchecked((ulong)(a - b.Value)));
+    public static SignedPropertyReg64 operator -(ulong a, SignedPropertyReg64 b) => new(unchecked((ulong)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator *(GeneratedWideReg64 a, GeneratedWideReg64 b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static SignedPropertyReg64 operator *(SignedPropertyReg64 a, SignedPropertyReg64 b) => new(unchecked((ulong)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator *(GeneratedWideReg64 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static SignedPropertyReg64 operator *(SignedPropertyReg64 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator *(ulong a, GeneratedWideReg64 b) => new(unchecked((ulong)(a * b.Value)));
+    public static SignedPropertyReg64 operator *(ulong a, SignedPropertyReg64 b) => new(unchecked((ulong)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator /(GeneratedWideReg64 a, GeneratedWideReg64 b) => new((ulong)(a.Value / b.Value));
+    public static SignedPropertyReg64 operator /(SignedPropertyReg64 a, SignedPropertyReg64 b) => new((ulong)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator /(GeneratedWideReg64 a, ulong b) => new((ulong)(a.Value / b));
+    public static SignedPropertyReg64 operator /(SignedPropertyReg64 a, ulong b) => new((ulong)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator /(ulong a, GeneratedWideReg64 b) => new((ulong)(a / b.Value));
+    public static SignedPropertyReg64 operator /(ulong a, SignedPropertyReg64 b) => new((ulong)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator %(GeneratedWideReg64 a, GeneratedWideReg64 b) => new((ulong)(a.Value % b.Value));
+    public static SignedPropertyReg64 operator %(SignedPropertyReg64 a, SignedPropertyReg64 b) => new((ulong)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator %(GeneratedWideReg64 a, ulong b) => new((ulong)(a.Value % b));
+    public static SignedPropertyReg64 operator %(SignedPropertyReg64 a, ulong b) => new((ulong)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator %(ulong a, GeneratedWideReg64 b) => new((ulong)(a % b.Value));
+    public static SignedPropertyReg64 operator %(ulong a, SignedPropertyReg64 b) => new((ulong)(a % b.Value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator <<(GeneratedWideReg64 a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static SignedPropertyReg64 operator <<(SignedPropertyReg64 a, int b) => new(unchecked((ulong)(a.Value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator >>(GeneratedWideReg64 a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static SignedPropertyReg64 operator >>(SignedPropertyReg64 a, int b) => new(unchecked((ulong)(a.Value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 operator >>>(GeneratedWideReg64 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static SignedPropertyReg64 operator >>>(SignedPropertyReg64 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(GeneratedWideReg64 a, GeneratedWideReg64 b) => a.Value < b.Value;
+    public static bool operator <(SignedPropertyReg64 a, SignedPropertyReg64 b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(GeneratedWideReg64 a, GeneratedWideReg64 b) => a.Value > b.Value;
+    public static bool operator >(SignedPropertyReg64 a, SignedPropertyReg64 b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(GeneratedWideReg64 a, GeneratedWideReg64 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedPropertyReg64 a, SignedPropertyReg64 b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(GeneratedWideReg64 a, GeneratedWideReg64 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedPropertyReg64 a, SignedPropertyReg64 b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(GeneratedWideReg64 a, GeneratedWideReg64 b) => a.Value == b.Value;
+    public static bool operator ==(SignedPropertyReg64 a, SignedPropertyReg64 b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(GeneratedWideReg64 a, GeneratedWideReg64 b) => a.Value != b.Value;
+    public static bool operator !=(SignedPropertyReg64 a, SignedPropertyReg64 b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is GeneratedWideReg64 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedPropertyReg64 other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -270,10 +225,10 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(GeneratedWideReg64 value) => value.Value;
+    public static implicit operator ulong(SignedPropertyReg64 value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator GeneratedWideReg64(ulong value) => new(value);
+    public static implicit operator SignedPropertyReg64(ulong value) => new(value);
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -311,12 +266,12 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
         }
     }
 
-    /// <summary>Parses a string into a GeneratedWideReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a SignedPropertyReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedWideReg64 value.</returns>
+    /// <returns>The parsed SignedPropertyReg64 value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static GeneratedWideReg64 Parse(string s, IFormatProvider? provider)
+    public static SignedPropertyReg64 Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
@@ -327,12 +282,12 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
         return new(ulong.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a GeneratedWideReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a SignedPropertyReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out GeneratedWideReg64 result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out SignedPropertyReg64 result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -365,11 +320,11 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
         return false;
     }
 
-    /// <summary>Parses a span of characters into a GeneratedWideReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a SignedPropertyReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedWideReg64 value.</returns>
-    public static GeneratedWideReg64 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed SignedPropertyReg64 value.</returns>
+    public static SignedPropertyReg64 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
@@ -378,12 +333,12 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
         return new(ulong.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a GeneratedWideReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a SignedPropertyReg64. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out GeneratedWideReg64 result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SignedPropertyReg64 result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -414,18 +369,18 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
         return false;
     }
 
-    /// <summary>Parses a string into a GeneratedWideReg64 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a SignedPropertyReg64 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed GeneratedWideReg64 value.</returns>
+    /// <returns>The parsed SignedPropertyReg64 value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideReg64 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static SignedPropertyReg64 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a GeneratedWideReg64 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a SignedPropertyReg64 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out GeneratedWideReg64 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out SignedPropertyReg64 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -445,24 +400,24 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a GeneratedWideReg64.</exception>
+    /// <exception cref="ArgumentException">obj is not a SignedPropertyReg64.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is GeneratedWideReg64 other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type GeneratedWideReg64", nameof(obj));
+        if (obj is SignedPropertyReg64 other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type SignedPropertyReg64", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another GeneratedWideReg64 and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A GeneratedWideReg64 to compare.</param>
+    /// <summary>Compares this instance to another SignedPropertyReg64 and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A SignedPropertyReg64 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(GeneratedWideReg64 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedPropertyReg64 other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another GeneratedWideReg64.</summary>
-    /// <param name="other">A GeneratedWideReg64 to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another SignedPropertyReg64.</summary>
+    /// <param name="other">A SignedPropertyReg64 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(GeneratedWideReg64 other) => Value == other.Value;
+    public bool Equals(SignedPropertyReg64 other) => Value == other.Value;
 
 }

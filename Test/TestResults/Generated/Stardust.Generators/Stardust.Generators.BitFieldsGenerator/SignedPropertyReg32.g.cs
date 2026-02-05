@@ -9,244 +9,229 @@ using System.Runtime.CompilerServices;
 
 namespace Stardust.Utilities.Tests;
 
-public partial struct GeneratedControlReg32 : IComparable, IComparable<GeneratedControlReg32>, IEquatable<GeneratedControlReg32>,
-                             IFormattable, ISpanFormattable, IParsable<GeneratedControlReg32>, ISpanParsable<GeneratedControlReg32>
+public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPropertyReg32>, IEquatable<SignedPropertyReg32>,
+                             IFormattable, ISpanFormattable, IParsable<SignedPropertyReg32>, ISpanParsable<SignedPropertyReg32>
 {
     private uint Value;
 
-    /// <summary>Creates a new GeneratedControlReg32 with the specified raw value.</summary>
-    public GeneratedControlReg32(uint value) { Value = value; }
+    /// <summary>Creates a new SignedPropertyReg32 with the specified raw value.</summary>
+    public SignedPropertyReg32(uint value) { Value = value; }
 
-    public partial uint Address
+    public partial sbyte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)(Value & 0x00FFFFFFU);
+        get => (sbyte)((Value >> 24) & 0x000000FFU);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFF000000U) | (((uint)value) & 0x00FFFFFFU));
+        set => Value = (uint)((Value & 0x00FFFFFFU) | ((((uint)value) << 24) & 0xFF000000U));
     }
 
-    public partial byte Command
+    public partial short MiddleWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 24) & 0x0000000FU);
+        get => (short)((Value >> 8) & 0x0000FFFFU);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xF0FFFFFFU) | ((((uint)value) << 24) & 0x0F000000U));
+        set => Value = (uint)((Value & 0xFF0000FFU) | ((((uint)value) << 8) & 0x00FFFF00U));
     }
 
-    public partial bool Enable
+    public partial byte LowByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x10000000U) != 0;
+        get => (byte)(Value & 0x000000FFU);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (uint)(Value | 0x10000000U) : (uint)(Value & 0xEFFFFFFFU);
+        set => Value = (uint)((Value & 0xFFFFFF00U) | (((uint)value) & 0x000000FFU));
     }
 
-    public partial bool Interrupt
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x20000000U) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (uint)(Value | 0x20000000U) : (uint)(Value & 0xDFFFFFFFU);
-    }
+    /// <summary>Returns a SignedPropertyReg32 with the mask for the HighByte field (bits 24-31).</summary>
+    public static SignedPropertyReg32 HighByteMask => new((uint)0xFF000000U);
 
-    /// <summary>Returns a GeneratedControlReg32 with only the Enable bit set.</summary>
-    public static GeneratedControlReg32 EnableBit => new((uint)0x10000000U);
+    /// <summary>Returns a SignedPropertyReg32 with the mask for the MiddleWord field (bits 8-23).</summary>
+    public static SignedPropertyReg32 MiddleWordMask => new((uint)0x00FFFF00U);
 
-    /// <summary>Returns a GeneratedControlReg32 with only the Interrupt bit set.</summary>
-    public static GeneratedControlReg32 InterruptBit => new((uint)0x20000000U);
+    /// <summary>Returns a SignedPropertyReg32 with the mask for the LowByte field (bits 0-7).</summary>
+    public static SignedPropertyReg32 LowByteMask => new((uint)0x000000FFU);
 
-    /// <summary>Returns a GeneratedControlReg32 with the mask for the Address field (bits 0-23).</summary>
-    public static GeneratedControlReg32 AddressMask => new((uint)0x00FFFFFFU);
-
-    /// <summary>Returns a GeneratedControlReg32 with the mask for the Command field (bits 24-27).</summary>
-    public static GeneratedControlReg32 CommandMask => new((uint)0x0F000000U);
-
-    /// <summary>Returns a new GeneratedControlReg32 with the Enable flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg32 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithEnable(bool value) => new(value ? (uint)(Value | 0x10000000U) : (uint)(Value & 0xEFFFFFFFU));
+    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((Value & 0x00FFFFFFU) | (((uint)value << 24) & 0xFF000000U)));
 
-    /// <summary>Returns a new GeneratedControlReg32 with the Interrupt flag set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg32 with the MiddleWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithInterrupt(bool value) => new(value ? (uint)(Value | 0x20000000U) : (uint)(Value & 0xDFFFFFFFU));
+    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((Value & 0xFF0000FFU) | (((uint)value << 8) & 0x00FFFF00U)));
 
-    /// <summary>Returns a new GeneratedControlReg32 with the Address field set to the specified value.</summary>
+    /// <summary>Returns a new SignedPropertyReg32 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithAddress(uint value) => new((uint)((Value & 0xFF000000U) | (value & 0x00FFFFFFU)));
-
-    /// <summary>Returns a new GeneratedControlReg32 with the Command field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithCommand(byte value) => new((uint)((Value & 0xF0FFFFFFU) | (((uint)value << 24) & 0x0F000000U)));
+    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((Value & 0xFFFFFF00U) | (value & 0x000000FFU)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator ~(GeneratedControlReg32 a) => new((uint)~a.Value);
+    public static SignedPropertyReg32 operator ~(SignedPropertyReg32 a) => new((uint)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator |(GeneratedControlReg32 a, GeneratedControlReg32 b) => new((uint)(a.Value | b.Value));
+    public static SignedPropertyReg32 operator |(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator &(GeneratedControlReg32 a, GeneratedControlReg32 b) => new((uint)(a.Value & b.Value));
+    public static SignedPropertyReg32 operator &(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator ^(GeneratedControlReg32 a, GeneratedControlReg32 b) => new((uint)(a.Value ^ b.Value));
+    public static SignedPropertyReg32 operator ^(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value ^ b.Value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator &(GeneratedControlReg32 a, uint b) => new(a.Value & b);
+    public static SignedPropertyReg32 operator &(SignedPropertyReg32 a, uint b) => new(a.Value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator &(uint a, GeneratedControlReg32 b) => new(a & b.Value);
+    public static SignedPropertyReg32 operator &(uint a, SignedPropertyReg32 b) => new(a & b.Value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator |(GeneratedControlReg32 a, uint b) => new(a.Value | b);
+    public static SignedPropertyReg32 operator |(SignedPropertyReg32 a, uint b) => new(a.Value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator |(uint a, GeneratedControlReg32 b) => new(a | b.Value);
+    public static SignedPropertyReg32 operator |(uint a, SignedPropertyReg32 b) => new(a | b.Value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator ^(GeneratedControlReg32 a, uint b) => new(a.Value ^ b);
+    public static SignedPropertyReg32 operator ^(SignedPropertyReg32 a, uint b) => new(a.Value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator ^(uint a, GeneratedControlReg32 b) => new(a ^ b.Value);
+    public static SignedPropertyReg32 operator ^(uint a, SignedPropertyReg32 b) => new(a ^ b.Value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(GeneratedControlReg32 a, int b) => a.Value & (long)b;
+    public static long operator &(SignedPropertyReg32 a, int b) => a.Value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, GeneratedControlReg32 b) => (long)a & b.Value;
+    public static long operator &(int a, SignedPropertyReg32 b) => (long)a & b.Value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(GeneratedControlReg32 a, int b) => a.Value | (long)b;
+    public static long operator |(SignedPropertyReg32 a, int b) => a.Value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, GeneratedControlReg32 b) => (long)a | b.Value;
+    public static long operator |(int a, SignedPropertyReg32 b) => (long)a | b.Value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(GeneratedControlReg32 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(SignedPropertyReg32 a, int b) => a.Value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, GeneratedControlReg32 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, SignedPropertyReg32 b) => (long)a ^ b.Value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator +(GeneratedControlReg32 a) => a;
+    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator -(GeneratedControlReg32 a) => new(unchecked((uint)(0 - a.Value)));
+    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a) => new(unchecked((uint)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator +(GeneratedControlReg32 a, GeneratedControlReg32 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator +(GeneratedControlReg32 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator +(uint a, GeneratedControlReg32 b) => new(unchecked((uint)(a + b.Value)));
+    public static SignedPropertyReg32 operator +(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator -(GeneratedControlReg32 a, GeneratedControlReg32 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator -(GeneratedControlReg32 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator -(uint a, GeneratedControlReg32 b) => new(unchecked((uint)(a - b.Value)));
+    public static SignedPropertyReg32 operator -(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator *(GeneratedControlReg32 a, GeneratedControlReg32 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static SignedPropertyReg32 operator *(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator *(GeneratedControlReg32 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static SignedPropertyReg32 operator *(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator *(uint a, GeneratedControlReg32 b) => new(unchecked((uint)(a * b.Value)));
+    public static SignedPropertyReg32 operator *(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator /(GeneratedControlReg32 a, GeneratedControlReg32 b) => new((uint)(a.Value / b.Value));
+    public static SignedPropertyReg32 operator /(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator /(GeneratedControlReg32 a, uint b) => new((uint)(a.Value / b));
+    public static SignedPropertyReg32 operator /(SignedPropertyReg32 a, uint b) => new((uint)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator /(uint a, GeneratedControlReg32 b) => new((uint)(a / b.Value));
+    public static SignedPropertyReg32 operator /(uint a, SignedPropertyReg32 b) => new((uint)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator %(GeneratedControlReg32 a, GeneratedControlReg32 b) => new((uint)(a.Value % b.Value));
+    public static SignedPropertyReg32 operator %(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator %(GeneratedControlReg32 a, uint b) => new((uint)(a.Value % b));
+    public static SignedPropertyReg32 operator %(SignedPropertyReg32 a, uint b) => new((uint)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator %(uint a, GeneratedControlReg32 b) => new((uint)(a % b.Value));
+    public static SignedPropertyReg32 operator %(uint a, SignedPropertyReg32 b) => new((uint)(a % b.Value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator <<(GeneratedControlReg32 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static SignedPropertyReg32 operator <<(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.Value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator >>(GeneratedControlReg32 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static SignedPropertyReg32 operator >>(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.Value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 operator >>>(GeneratedControlReg32 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static SignedPropertyReg32 operator >>>(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.Value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(GeneratedControlReg32 a, GeneratedControlReg32 b) => a.Value < b.Value;
+    public static bool operator <(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(GeneratedControlReg32 a, GeneratedControlReg32 b) => a.Value > b.Value;
+    public static bool operator >(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(GeneratedControlReg32 a, GeneratedControlReg32 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(GeneratedControlReg32 a, GeneratedControlReg32 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(GeneratedControlReg32 a, GeneratedControlReg32 b) => a.Value == b.Value;
+    public static bool operator ==(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(GeneratedControlReg32 a, GeneratedControlReg32 b) => a.Value != b.Value;
+    public static bool operator !=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is GeneratedControlReg32 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedPropertyReg32 other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -255,10 +240,10 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(GeneratedControlReg32 value) => value.Value;
+    public static implicit operator uint(SignedPropertyReg32 value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator GeneratedControlReg32(uint value) => new(value);
+    public static implicit operator SignedPropertyReg32(uint value) => new(value);
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -296,12 +281,12 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
         }
     }
 
-    /// <summary>Parses a string into a GeneratedControlReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a SignedPropertyReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedControlReg32 value.</returns>
+    /// <returns>The parsed SignedPropertyReg32 value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static GeneratedControlReg32 Parse(string s, IFormatProvider? provider)
+    public static SignedPropertyReg32 Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
@@ -312,12 +297,12 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
         return new(uint.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a GeneratedControlReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a SignedPropertyReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out GeneratedControlReg32 result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out SignedPropertyReg32 result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -350,11 +335,11 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
         return false;
     }
 
-    /// <summary>Parses a span of characters into a GeneratedControlReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a SignedPropertyReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedControlReg32 value.</returns>
-    public static GeneratedControlReg32 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed SignedPropertyReg32 value.</returns>
+    public static SignedPropertyReg32 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
@@ -363,12 +348,12 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
         return new(uint.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a GeneratedControlReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a SignedPropertyReg32. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out GeneratedControlReg32 result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SignedPropertyReg32 result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -399,18 +384,18 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
         return false;
     }
 
-    /// <summary>Parses a string into a GeneratedControlReg32 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a SignedPropertyReg32 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed GeneratedControlReg32 value.</returns>
+    /// <returns>The parsed SignedPropertyReg32 value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedControlReg32 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static SignedPropertyReg32 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a GeneratedControlReg32 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a SignedPropertyReg32 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out GeneratedControlReg32 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out SignedPropertyReg32 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -430,24 +415,24 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a GeneratedControlReg32.</exception>
+    /// <exception cref="ArgumentException">obj is not a SignedPropertyReg32.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is GeneratedControlReg32 other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type GeneratedControlReg32", nameof(obj));
+        if (obj is SignedPropertyReg32 other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type SignedPropertyReg32", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another GeneratedControlReg32 and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A GeneratedControlReg32 to compare.</param>
+    /// <summary>Compares this instance to another SignedPropertyReg32 and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A SignedPropertyReg32 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(GeneratedControlReg32 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedPropertyReg32 other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another GeneratedControlReg32.</summary>
-    /// <param name="other">A GeneratedControlReg32 to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another SignedPropertyReg32.</summary>
+    /// <param name="other">A SignedPropertyReg32 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(GeneratedControlReg32 other) => Value == other.Value;
+    public bool Equals(SignedPropertyReg32 other) => Value == other.Value;
 
 }
