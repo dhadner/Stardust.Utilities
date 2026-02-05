@@ -28,7 +28,7 @@
 		<Deterministic>true</Deterministic>
 
 		<!-- Force deterministic source paths -->
-		<ContinuousIntegrationBuild >true</ContinuousIntegrationBuild>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 		
 		<!-- Embed source control info for debugging -->
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -49,7 +49,7 @@
 
 	<!-- Reference SourceLink -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All" />
 	</ItemGroup>
 
 	<!-- Reference the source generator -->

@@ -553,28 +553,60 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 
 ### Viewing generated code
 
-**In Visual Studio:**
-1. Expand your project in **Solution Explorer**
-2. Expand **Dependencies** ? **Analyzers** ? **Stardust.Generators**
-3. Expand the generator (e.g., **Stardust.Generators.BitFieldsGenerator**)
-4. Double-click any `.g.cs` file to view the generated source
+The easiest way to view generated code is to use **Go to Definition**:
 
-**On disk:**
-Generated files are located at:
-```
-obj/Debug/net*/generated/Stardust.Generators/
-    Stardust.Generators.BitFieldsGenerator/
-        YourTypeName.g.cs
-```
+1. In your code, place the cursor on any generated type (e.g., `StatusRegister`) or property (e.g., `.Ready`, `.Mode`)
+2. Press **F12** (or right-click → **Go to Definition**)
+3. Visual Studio opens the generated `.g.cs` file with full IntelliSense support
 
-**Tip:** To persist generated files to disk (useful for source control or debugging), add to your `.csproj`:
+This works because VS maintains the generated code in memory during compilation. From the opened file you can:
+- View all generated operators, properties, and methods
+- Use **Find All References** (Shift+F12) to see all usages
+- Navigate to other generated members
+
+**Note:** The file opens from a temporary location - this is normal and expected.
+
+### Saving generated code to disk
+
+If you need to persist generated files to disk (for source control, code review, or CI inspection), add this to your `.csproj`:
+
 ```xml
 <PropertyGroup>
   <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 </PropertyGroup>
+
+<!-- Exclude persisted files from compilation (the generator already compiles them) -->
+<ItemGroup>
+  <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+</ItemGroup>
 ```
-This creates a `Generated/` folder in your project with all generated `.cs` files.
+
+This creates a `Generated/` folder with all `.g.cs` files.
+
+**Important limitations:**
+- These files are **reference copies only** - not for interactive development
+- The files will **not appear in Solution Explorer** (they're excluded from the project)
+- IntelliSense and "Find All References" **do not work** from these disk files
+- For interactive development, use **F12 (Go to Definition)** instead
+
+To view the files, open them directly from File Explorer or use **File → Open → File** in Visual Studio.
+
+If you want to be able to open these files directly from the Visual Studio Solution Explorer,
+you can add them with their Build Action set to "None" by adding this to your `.csproj`:
+
+```
+<ItemGroup>
+  <!-- 
+       Exclude persisted generated files from compilation (they're already compiled by the generator)
+       but make them visible in Solution Explorer as non-compiled files.
+
+       NOTE: Visual Studio does not support full Intellisense for these files - only references within
+       the file itself.  Use the Shift+F12 "Find all references" method above to find usage across all your projects.
+  -->
+  <None Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+</ItemGroup>
+```
 
 ---
 
