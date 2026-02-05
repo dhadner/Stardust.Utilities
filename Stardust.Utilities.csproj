@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-<PropertyGroup>
-<TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
-<ImplicitUsings>enable</ImplicitUsings>
-<Nullable>enable</Nullable>
+	<PropertyGroup>
+		<TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
 		<!-- NuGet Package Settings -->
 		<IsPackable>true</IsPackable>
@@ -23,6 +23,18 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		
+		<!-- Ensures compiler output is identical for identical inputs -->
+		<Deterministic>true</Deterministic>
+
+		<!-- Force deterministic source paths -->
+		<ContinuousIntegrationBuild >true</ContinuousIntegrationBuild>
+		
+		<!-- Embed source control info for debugging -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+		<!-- Optional: lock down language version -->
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<!-- Exclude subfolders from compilation -->
@@ -39,7 +51,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
-	
+
 	<!-- Reference the source generator -->
 	<ItemGroup>
 		<ProjectReference Include="Generators\Stardust.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
