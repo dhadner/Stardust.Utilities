@@ -95,8 +95,8 @@ public struct HandCodedTestRegister
 /// </summary>
 public class BitFieldPerformanceTests
 {
-    private const int ITERATIONS = 100_000_000; // 100 million iterations
-    private const int WARMUP_ITERATIONS = 100_000_000;
+    private const int ITERATIONS = 500_000_000; // 100 million iterations
+    private const int WARMUP_ITERATIONS = 500_000_000;
 
     private readonly ITestOutputHelper _output;
 
@@ -105,33 +105,68 @@ public class BitFieldPerformanceTests
         _output = output;
     }
 
-    //[Fact]
-    private void BitFlag_Get_Performance()
+    /// <summary>
+    /// Outputs the performance result with a status indicator.
+    /// Does not fail the test - use FullSuite_Performance_Summary for rigorous testing.
+    /// </summary>
+    private void OutputPerformanceResult(double ratio)
     {
+        if (ratio > 1.50)
+        {
+            _output.WriteLine($"⚠️ WARNING: Generated code is >{(ratio - 1) * 100:F0}% slower than hand-coded.");
+            _output.WriteLine("   This may indicate a regression, or just system load/JIT variance.");
+            _output.WriteLine("   Run FullSuite_Performance_Summary for statistical analysis.");
+        }
+        else if (ratio > 1.25)
+        {
+            _output.WriteLine($"⚠️ CAUTION: Generated code is {(ratio - 1) * 100:F0}% slower than hand-coded.");
+            _output.WriteLine("   Run FullSuite_Performance_Summary for statistical analysis.");
+        }
+        else if (ratio < 0.75)
+        {
+            _output.WriteLine("ℹ️ Generated code is significantly faster than hand-coded (unexpected).");
+        }
+        else
+        {
+            _output.WriteLine("✓ Performance is within expected range.");
+        }
+    }
+
+    [Fact]
+    public void BitFlag_Get_Performance()
+    {
+        Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
+
         _output.WriteLine($"Testing BitFlag GET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
 
-        // Warmup
+        // Warmup both implementations
         WarmupGenerated();
         WarmupHandCoded();
 
-        // Test generated code
-        GeneratedTestRegister generatedReg = 0xAA;
-        var sw = Stopwatch.StartNew();
-        int trueCount = 0;
-        for (int i = 0; i < ITERATIONS; i++)
-        {
-            if (generatedReg.Ready) trueCount++;
-            if (generatedReg.Error) trueCount++;
-            if (generatedReg.Busy) trueCount++;
-        }
-        sw.Stop();
-        var generatedTime = sw.Elapsed;
-        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        // Run each test twice - first run pays "cold" penalty, second is accurate
+        // Run 1: Discard (warms up the specific test loop)
+        RunBitFlagGetTest(out _, out _);
+        
+        // Run 2: Actual measurement
+        RunBitFlagGetTest(out var generatedTime, out var handCodedTime);
 
-        // Test hand-coded
+        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+
+        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
+        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
+        _output.WriteLine("");
+
+        OutputPerformanceResult(ratio);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void RunBitFlagGetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
+    {
+        // Test hand-coded first (order doesn't matter after warmup)
         var handCodedReg = new HandCodedTestRegister { Value = 0xAA };
-        sw.Restart();
+        var sw = Stopwatch.StartNew();
         int trueCount2 = 0;
         for (int i = 0; i < ITERATIONS; i++)
         {
@@ -140,45 +175,55 @@ public class BitFieldPerformanceTests
             if (handCodedReg.Busy) trueCount2++;
         }
         sw.Stop();
-        var handCodedTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+        handCodedTime = sw.Elapsed;
+
+        // Test generated code
+        GeneratedTestRegister generatedReg = 0xAA;
+        sw.Restart();
+        int trueCount = 0;
+        for (int i = 0; i < ITERATIONS; i++)
+        {
+            if (generatedReg.Ready) trueCount++;
+            if (generatedReg.Error) trueCount++;
+            if (generatedReg.Busy) trueCount++;
+        }
+        sw.Stop();
+        generatedTime = sw.Elapsed;
 
         // Results should be identical
         trueCount.Should().Be(trueCount2);
-
-        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
-        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
-        _output.WriteLine("");
-
-        // Allow 5% variance for JIT jitter - fail if regression exceeds this
-        ratio.Should().BeInRange(0.95, 1.05, "Generated code should be within 5% of hand-coded");
     }
 
-    //[Fact]
-    private void BitFlag_Set_Performance()
+    [Fact]
+    public void BitFlag_Set_Performance()
     {
+        Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
+        
         _output.WriteLine($"Testing BitFlag SET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
 
         WarmupGenerated();
         WarmupHandCoded();
 
-        // Test generated code
-        GeneratedTestRegister generatedReg = 0;
-        var sw = Stopwatch.StartNew();
-        for (int i = 0; i < ITERATIONS; i++)
-        {
-            generatedReg.Ready = true;
-            generatedReg.Error = false;
-            generatedReg.Busy = true;
-        }
-        sw.Stop();
-        var generatedTime = sw.Elapsed;
-        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        // Run twice - first warms, second measures
+        RunBitFlagSetTest(out _, out _);
+        RunBitFlagSetTest(out var generatedTime, out var handCodedTime);
 
-        // Test hand-coded
+        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+
+        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
+        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
+        _output.WriteLine("");
+
+        OutputPerformanceResult(ratio);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void RunBitFlagSetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
+    {
         var handCodedReg = new HandCodedTestRegister();
-        sw.Restart();
+        var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
             handCodedReg.Ready = true;
@@ -186,138 +231,163 @@ public class BitFieldPerformanceTests
             handCodedReg.Busy = true;
         }
         sw.Stop();
-        var handCodedTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+        handCodedTime = sw.Elapsed;
 
-        // Values should be identical
+        GeneratedTestRegister generatedReg = 0;
+        sw.Restart();
+        for (int i = 0; i < ITERATIONS; i++)
+        {
+            generatedReg.Ready = true;
+            generatedReg.Error = false;
+            generatedReg.Busy = true;
+        }
+        sw.Stop();
+        generatedTime = sw.Elapsed;
+
         ((byte)generatedReg).Should().Be(handCodedReg.Value);
-
-        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
-        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
-        _output.WriteLine("");
-
-        ratio.Should().BeInRange(0.95, 1.05);
     }
 
-    //[Fact]
-    private void BitField_Get_Performance()
+    [Fact]
+    public void BitField_Get_Performance()
     {
+        Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
         _output.WriteLine($"Testing BitField GET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
 
         WarmupGenerated();
         WarmupHandCoded();
 
-        // Test generated code
-        var generatedReg = new GeneratedTestRegister(0xFF);
-        var sw = Stopwatch.StartNew();
-        int sum = 0;
-        for (int i = 0; i < ITERATIONS; i++)
-        {
-            sum += generatedReg.Mode;
-            sum += generatedReg.Priority;
-        }
-        sw.Stop();
-        var generatedTime = sw.Elapsed;
-        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        // Run twice - first warms, second measures
+        RunBitFieldGetTest(out _, out _);
+        RunBitFieldGetTest(out var generatedTime, out var handCodedTime);
 
-        // Test hand-coded
+        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+
+        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
+        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
+        _output.WriteLine("");
+
+        OutputPerformanceResult(ratio);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void RunBitFieldGetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
+    {
         var handCodedReg = new HandCodedTestRegister { Value = 0xFF };
-        sw.Restart();
         int sum2 = 0;
+        var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
             sum2 += handCodedReg.Mode;
             sum2 += handCodedReg.Priority;
         }
         sw.Stop();
-        var handCodedTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+        handCodedTime = sw.Elapsed;
+
+        var generatedReg = new GeneratedTestRegister(0xFF);
+        int sum = 0;
+        sw.Restart();
+        for (int i = 0; i < ITERATIONS; i++)
+        {
+            sum += generatedReg.Mode;
+            sum += generatedReg.Priority;
+        }
+        sw.Stop();
+        generatedTime = sw.Elapsed;
 
         sum.Should().Be(sum2);
-
-        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
-        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
-        _output.WriteLine("");
-
-        ratio.Should().BeInRange(0.95, 1.05);
     }
 
-    //[Fact]
-    private void BitField_Set_Performance()
+    [Fact]
+    public void BitField_Set_Performance()
     {
+        Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
+
         _output.WriteLine($"Testing BitField SET performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
 
         WarmupGenerated();
         WarmupHandCoded();
 
-        // Test generated code
-        GeneratedTestRegister generatedReg = 0;
-        var sw = Stopwatch.StartNew();
-        for (int i = 0; i < ITERATIONS; i++)
-        {
-            generatedReg.Mode = (byte)(i & 0x07);
-            generatedReg.Priority = (byte)(i & 0x03);
-        }
-        sw.Stop();
-        var generatedTime = sw.Elapsed;
-        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        // Run twice - first warms, second measures
+        RunBitFieldSetTest(out _, out _);
+        RunBitFieldSetTest(out var generatedTime, out var handCodedTime);
 
-        // Test hand-coded
+        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+
+        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
+        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
+        _output.WriteLine("");
+
+        OutputPerformanceResult(ratio);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void RunBitFieldSetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
+    {
         var handCodedReg = new HandCodedTestRegister();
-        sw.Restart();
+        var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
             handCodedReg.Mode = (byte)(i & 0x07);
             handCodedReg.Priority = (byte)(i & 0x03);
         }
         sw.Stop();
-        var handCodedTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+        handCodedTime = sw.Elapsed;
+
+        GeneratedTestRegister generatedReg = 0;
+        sw.Restart();
+        for (int i = 0; i < ITERATIONS; i++)
+        {
+            generatedReg.Mode = (byte)(i & 0x07);
+            generatedReg.Priority = (byte)(i & 0x03);
+        }
+        sw.Stop();
+        generatedTime = sw.Elapsed;
 
         ((byte)generatedReg).Should().Be(handCodedReg.Value);
-
-        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
-        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
-        _output.WriteLine("");
-
-        ratio.Should().BeInRange(0.95, 1.05);
     }
 
     /// <summary>
     /// Performance test for mixed read/write operations.
     /// Skipped in CI environments due to variable runner performance.
+    /// Runs normally when executed locally.
+    /// 
+    /// Note: This is a quick sanity check. For rigorous performance testing with
+    /// statistical analysis, run FullSuite_Performance_Summary instead.
     /// </summary>
-    [Fact(Skip = "Performance tests are unreliable in CI environments")]
+    [Fact]
     public void Mixed_ReadWrite_Performance()
     {
+        Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
+
         _output.WriteLine($"Testing mixed read/write performance ({ITERATIONS:N0} iterations)");
         _output.WriteLine(new string('=', 60));
 
         WarmupGenerated();
         WarmupHandCoded();
 
-        // Test generated code - realistic usage pattern
-        GeneratedTestRegister generatedReg = 0;
-        var sw = Stopwatch.StartNew();
-        for (int i = 0; i < ITERATIONS; i++)
-        {
-            generatedReg.Ready = true;
-            if (generatedReg.Ready && !generatedReg.Busy)
-            {
-                generatedReg.Mode = 5;
-                generatedReg.Priority = (byte)(generatedReg.Mode >> 1);
-            }
-            generatedReg.Busy = generatedReg.Priority > 1;
-        }
-        sw.Stop();
-        var generatedTime = sw.Elapsed;
-        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        // Run twice - first warms, second measures
+        RunMixedReadWriteTest(out _, out _);
+        RunMixedReadWriteTest(out var generatedTime, out var handCodedTime);
 
-        // Test hand-coded
+        _output.WriteLine($"Generated:  {generatedTime.TotalMilliseconds:F2} ms ({ITERATIONS / generatedTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+
+        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
+        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
+        _output.WriteLine("");
+
+        OutputPerformanceResult(ratio);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void RunMixedReadWriteTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
+    {
         var handCodedReg = new HandCodedTestRegister();
-        sw.Restart();
+        var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
             handCodedReg.Ready = true;
@@ -329,26 +399,36 @@ public class BitFieldPerformanceTests
             handCodedReg.Busy = handCodedReg.Priority > 1;
         }
         sw.Stop();
-        var handCodedTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded: {handCodedTime.TotalMilliseconds:F2} ms ({ITERATIONS / handCodedTime.TotalSeconds:N0} ops/sec)");
+        handCodedTime = sw.Elapsed;
+
+        GeneratedTestRegister generatedReg = 0;
+        sw.Restart();
+        for (int i = 0; i < ITERATIONS; i++)
+        {
+            generatedReg.Ready = true;
+            if (generatedReg.Ready && !generatedReg.Busy)
+            {
+                generatedReg.Mode = 5;
+                generatedReg.Priority = (byte)(generatedReg.Mode >> 1);
+            }
+            generatedReg.Busy = generatedReg.Priority > 1;
+        }
+        sw.Stop();
+        generatedTime = sw.Elapsed;
 
         ((byte)generatedReg).Should().Be(handCodedReg.Value);
-
-        var ratio = generatedTime.TotalMilliseconds / handCodedTime.TotalMilliseconds;
-        _output.WriteLine($"Ratio:      {ratio:F3}x (1.0 = identical, <1.0 = generated faster)");
-        _output.WriteLine("");
-
-        ratio.Should().BeInRange(0.85, 1.15);
     }
 
     /// <summary>
     /// Comprehensive performance test with statistical analysis.
     /// Skipped in CI environments due to variable runner performance.
-    /// Run locally to verify performance characteristics.
+    /// Runs normally when executed locally to verify performance characteristics.
     /// </summary>
-    [Fact(Skip = "Performance tests are unreliable in CI environments")]
+    [Fact]
     public void FullSuite_Performance_Summary()
     {
+        Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
+
         const int RUNS = 20;
         
         _output.WriteLine("=".PadRight(70, '='));
@@ -507,7 +587,7 @@ public class BitFieldPerformanceTests
         // Calculate and print statistics
         _output.WriteLine("");
         _output.WriteLine("=".PadRight(70, '='));
-        _output.WriteLine("STATISTICAL RESULTS (mean � std dev)");
+        _output.WriteLine("STATISTICAL RESULTS (mean with σ = std dev)");
         _output.WriteLine("=".PadRight(70, '='));
         _output.WriteLine("");
         _output.WriteLine("Test           Generated (ms)     Hand-coded (ms)    Ratio");
@@ -524,16 +604,33 @@ public class BitFieldPerformanceTests
 
             overallRatios.AddRange(data.Select(d => d.Ratio));
 
-            _output.WriteLine($"{testName,-14} {genStats.Mean,6:F0} � {genStats.StdDev,4:F0}      {handStats.Mean,6:F0} � {handStats.StdDev,4:F0}      {ratioStats.Mean:F3} � {ratioStats.StdDev:F3}");
+            _output.WriteLine($"{testName,-14} {genStats.Mean,6:F0} (σ={genStats.StdDev,4:F0})   {handStats.Mean,6:F0} (σ={handStats.StdDev,4:F0})   {ratioStats.Mean:F3} (σ={ratioStats.StdDev:F3})");
         }
 
         _output.WriteLine("-".PadRight(70, '-'));
 
         var overallStats = CalculateStats(overallRatios);
-        _output.WriteLine($"{"OVERALL",-14}                                        {overallStats.Mean:F3} ± {overallStats.StdDev:F3}");
+        int n = overallRatios.Count;
+        double standardError = overallStats.StdDev / Math.Sqrt(n);
+        double ciLow = overallStats.Mean - 1.96 * standardError;
+        double ciHigh = overallStats.Mean + 1.96 * standardError;
+
+        _output.WriteLine($"{"OVERALL",-14}                                        {overallStats.Mean:F3} (σ={overallStats.StdDev:F3})");
         _output.WriteLine("");
-        _output.WriteLine($"Result: Generated code is {(overallStats.Mean < 1 ? "FASTER" : "SLOWER")} by {Math.Abs(1 - overallStats.Mean) * 100:F1}% on average");
-        _output.WriteLine($"        95% confidence interval: {overallStats.Mean - 1.96 * overallStats.StdDev:F3} to {overallStats.Mean + 1.96 * overallStats.StdDev:F3}");
+        if (ciLow <= 1.0 && ciHigh >= 1.0)
+        {
+            _output.WriteLine("✓ Generated code performance statistically identical to hand-coded (95% CI includes 1.0).");
+        }
+        else if (overallStats.Mean > 1.0)
+        {
+            _output.WriteLine($"⚠️ Generated code is {(overallStats.Mean - 1) * 100:F1}% SLOWER on average.");
+        }
+        else
+        {
+            _output.WriteLine($"ℹ️ Generated code is {(1 - overallStats.Mean) * 100:F1}% FASTER on average.");
+        }
+        _output.WriteLine($"        σ (std dev) = {overallStats.StdDev:F4}, SE = {standardError:F4}, n = {n}");
+        _output.WriteLine($"        95% CI for mean = {ciLow:F3} to {ciHigh:F3}");
         _output.WriteLine("");
 
         // Overall should be within 20% - fail if regression exceeds this
@@ -586,7 +683,10 @@ public class BitFieldPerformanceTests
         return (name, generatedMs, handCodedMs);
     }
 
-    //[MethodImpl(MethodImplOptions.NoInlining)]
+    /// <summary>
+    /// Symmetric warmup for generated code - matches WarmupHandCoded structure exactly.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private void WarmupGenerated()
     {
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
@@ -595,19 +695,18 @@ public class BitFieldPerformanceTests
             reg.Ready = !reg.Ready;
             reg.Mode = (byte)(i & 7);
             _ = reg.Priority;
-            GeneratedTestRegister reg2 = (byte)i;
-            reg2.Ready = !reg2.Ready;
-            reg2.Mode = (byte)(i & 7);
-            _ = reg2.Priority;
         }
     }
 
-    //[MethodImpl(MethodImplOptions.NoInlining)]
+    /// <summary>
+    /// Symmetric warmup for hand-coded - matches WarmupGenerated structure exactly.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private void WarmupHandCoded()
     {
-        var reg = new HandCodedTestRegister { Value = 0x55 };
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
+            var reg = new HandCodedTestRegister { Value = (byte)i };
             reg.Ready = !reg.Ready;
             reg.Mode = (byte)(i & 7);
             _ = reg.Priority;

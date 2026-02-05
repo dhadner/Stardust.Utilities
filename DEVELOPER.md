@@ -100,6 +100,102 @@ The `Stardust.Utilities` NuGet package includes:
 | **Stardust.Generators** (source generator code) | Run `Build-Generator-NuGetPackage.ps1` or `Build-Combined-NuGetPackages.ps1` |
 | **build/*.props or build/*.targets** | Run `Build-Combined-NuGetPackages.ps1` |
 
+## Running Tests
+
+### Unit Tests
+
+Run all unit tests with:
+
+```powershell
+cd Stardust.Utilities
+dotnet test -c Release
+```
+
+This runs tests on all target frameworks (.NET 8, 9, and 10).
+
+To run tests on a specific framework:
+
+```powershell
+dotnet test -c Release --framework net10.0
+```
+
+### Performance Tests
+
+Performance tests compare the generated BitField code against hand-coded bit manipulation to verify
+there is no performance overhead from using the source generator.
+
+**Performance tests automatically skip in CI environments** but run normally when executed locally:
+- In CI (detected via environment variables like `CI`, `GITHUB_ACTIONS`, `TF_BUILD`): Tests are skipped
+- Locally: Tests run and produce timing results
+
+There are two performance tests:
+- **`Mixed_ReadWrite_Performance`**: Quick sanity check (single run, ~500ms), outputs results but doesn't fail on variance
+- **`FullSuite_Performance_Summary`**: Rigorous statistical analysis (20 runs, ~2 minutes), computes mean, σ, and 95% CI
+
+#### Running Performance Tests
+
+**Just run the tests normally** - they will execute locally and skip in CI:
+
+```powershell
+cd Stardust.Utilities
+
+# Run all tests including performance tests (they'll run locally, skip in CI)
+dotnet test -c Release
+
+# Run only performance tests
+dotnet test -c Release --filter "FullyQualifiedName~BitFieldPerformanceTests"
+
+# Run the comprehensive statistical suite
+dotnet test -c Release --filter "FullyQualifiedName~FullSuite_Performance_Summary" --framework net10.0
+```
+
+#### Understanding Performance Test Output
+
+The `Mixed_ReadWrite_Performance` test outputs timing results with a status indicator:
+- ✓ Performance is within expected range (ratio 0.75-1.25)
+- ⚠️ WARNING if generated code is >25% slower (may indicate regression or system load)
+
+The `FullSuite_Performance_Summary` test runs 20 iterations of each test and produces statistical output:
+
+```
+BITFIELD PERFORMANCE SUMMARY WITH STATISTICS
+Runs: 20, Iterations per run: 100,000,000
+
+============================================================
+
+| Test          | Generated | &sigma;  | Hand-coded | &sigma;  | Ratio | &sigma;     | 95% CI        |
+|---------------|-----------|----| -----------|----|-------|-------|---------------|
+| BitFlag GET   | 584 ms    | 14 | 568 ms     | 15 | 1.029 | 0.035 | 0.960 – 1.098 |
+| BitFlag SET   | 825 ms    | 27 | 821 ms     | 22 | 1.006 | 0.031 | 0.945 – 1.067 |
+| BitField GET  | 402 ms    | 36 | 405 ms     | 18 | 0.995 | 0.087 | 0.824 – 1.166 |
+| BitField SET  | 413 ms    | 9  | 410 ms     | 7  | 1.007 | 0.020 | 0.968 – 1.046 |
+| Mixed R/W     | 1031 ms   | 13 | 1030 ms    | 23 | 1.001 | 0.024 | 0.954 – 1.048 |
+| **Overall**   |           |    |            |    | 1.008 | 0.048 | 0.914 – 1.102 |
+```
+
+- **&sigma;**: Sample standard deviation of the measurements
+- **Ratio**: Generated time / Hand-coded time (1.0 = identical performance)
+- **95% CI**: 95% Confidence Interval for the mean = mean ± 1.96 × SE, where SE = &sigma;/√n
+
+**Expected results**: Ratio should be between 0.9 and 1.1 (within 10% of hand-coded performance).
+
+### Fuzz Tests
+
+Fuzz tests verify that parsing methods handle malformed, malicious, and edge-case inputs gracefully:
+
+```powershell
+# Run only fuzz tests
+dotnet test -c Release --filter "FullyQualifiedName~ParsingFuzzTests" --framework net10.0
+```
+
+Fuzz tests cover:
+- Null/empty/whitespace inputs
+- Overflow and boundary values
+- Injection attacks (SQL, XSS, command, path traversal)
+- Unicode homoglyphs and invisible characters
+- Control characters and embedded nulls
+- Random garbage data (1000+ random inputs)
+
 ## Build Scripts
 
 ### Build-Combined-NuGetPackages.ps1
@@ -107,6 +203,8 @@ The `Stardust.Utilities` NuGet package includes:
 **This is the primary build script.** It builds both NuGet packages and automatically publishes to the local feed:
 - `Stardust.Utilities.x.y.z.nupkg` - **The distributable package** (includes generator as embedded analyzer + utility types)
 - `Stardust.Generators.x.y.z.nupkg` - Local development package only (not for distribution)
+
+
 
 ```powershell
 # Show help
