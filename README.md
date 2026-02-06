@@ -160,9 +160,9 @@ status = 0x42;                 // Converts from byte
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields(typeof(T))]` | `T`: storage type | Marks struct; generator creates private `Value` field |
-| `[BitFlag(bit)]` | `bit`: 0-based position | Single-bit boolean flag |
-| `[BitField(startBit, endBit)]` | Rust-style inclusive range | Multi-bit field (width = endBit - startBit + 1) |
+| `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe` | Marks struct; generator creates private `Value` field |
+| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe` | Single-bit boolean flag |
+| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (width = endBit - startBit + 1) |
 
 **BitField Examples:**
 - `[BitField(0, 2)]` - 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
@@ -198,13 +198,80 @@ MotionRegister reg = 0;
 reg.DeltaX = -3;
 Console.WriteLine(reg.DeltaX);  // Output: -3 (correctly sign-extended)
 
+
 reg.Speed = 5;
 Console.WriteLine(reg.Speed);   // Output: 5 (unsigned, stays positive)
 ```
 
 The sign extension is optimized to a single mask-and-shift operation with zero overhead for unsigned property types.
 
+#### BitFields Composition
 
+BitFields structs can be used as property types within other BitFields structs, enabling reusable sub-structures:
+
+```csharp
+// Reusable flags structure
+[BitFields(typeof(byte))]
+public partial struct StatusFlags
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
+    [BitField(4, 7)] public partial byte Priority { get; set; }
+}
+
+// Header that embeds StatusFlags
+[BitFields(typeof(ushort))]
+public partial struct ProtocolHeader
+{
+    [BitField(0, 7)] public partial StatusFlags Status { get; set; }  // Embedded!
+    [BitField(8, 15)] public partial byte Length { get; set; }
+}
+
+// Usage - chained property access works
+ProtocolHeader header = 0;
+header.Status = new StatusFlags { Ready = true, Priority = 5 };
+bool ready = header.Status.Ready;  // true
+```
+
+#### Undefined and Reserved Bits
+
+When a struct doesn't define fields covering all bits of its storage type, those **undefined bits** can be controlled with `UndefinedBitsMustBe`:
+
+```csharp
+// Protocol header: undefined bits are always zero (clean serialization)
+[BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
+public partial struct SubHeader9
+{
+    [BitField(0, 3)] public partial byte TypeCode { get; set; }  // bits 0-3
+    [BitField(4, 8)] public partial byte Flags { get; set; }     // bits 4-8
+    // Bits 9-15: UNDEFINED — always forced to zero
+}
+
+SubHeader9 sub = 0xFFFF;  // Try to set all 16 bits
+ushort raw = sub;         // raw == 0x01FF (undefined bits masked off)
+```
+
+| `UndefinedBitsMustBe` Value | Behavior | Use Case |
+|-----------------------------|----------|----------|
+| `.Any` (default) | Preserved as raw data | Hardware registers |
+| `.Zeroes` | Always masked to zero | Protocol headers, serialization |
+| `.Ones` | Always set to one | Reserved-high protocols |
+
+This works with **sparse** undefined bits too (gaps between fields, not just high bits), and is enforced in the constructor so all operations — conversions, arithmetic, bitwise — produce consistent results.
+
+Individual fields and flags can also override their bits with `MustBe`:
+
+```csharp
+[BitFields(typeof(byte))]
+public partial struct PacketFlags
+{
+    [BitFlag(0)] public partial bool Valid { get; set; }      // Normal flag
+    [BitFlag(7, MustBe.One)] public partial bool Sync { get; set; }  // Always 1
+    [BitField(1, 3, MustBe.Zero)] public partial byte Reserved { get; set; }  // Always 0
+}
+```
+
+See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
 
 #### Nested Structs
 

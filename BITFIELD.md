@@ -303,6 +303,168 @@ This produces correct two's complement sign extension with only 3 operations (ma
 
 Unsigned property types (`byte`, `ushort`, `uint`, `ulong`) use the standard mask-and-shift pattern with no additional sign extension overhead.
 
+### BitFields Composition
+
+BitFields structs can be used as property types within other BitFields structs. This enables reusable sub-structures for protocols, file headers, and complex hardware registers.
+
+```csharp
+// Reusable 8-bit status flags structure
+[BitFields(typeof(byte))]
+public partial struct StatusFlags
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
+    [BitFlag(2)] public partial bool Busy { get; set; }
+    [BitFlag(3)] public partial bool Complete { get; set; }
+    [BitField(4, 7)] public partial byte Priority { get; set; }
+}
+
+// 16-bit protocol header that embeds StatusFlags
+[BitFields(typeof(ushort))]
+public partial struct ProtocolHeader
+{
+    [BitField(0, 7)] public partial StatusFlags Status { get; set; }   // Embedded BitFields!
+    [BitField(8, 15)] public partial byte Length { get; set; }
+}
+```
+
+**Usage:**
+
+```csharp
+ProtocolHeader header = 0;
+
+// Create and set embedded flags
+StatusFlags status = 0;
+status.Ready = true;
+status.Priority = 5;
+header.Status = status;
+header.Length = 64;
+
+// Read embedded struct properties (chained access)
+bool isReady = header.Status.Ready;      // true
+byte priority = header.Status.Priority;  // 5
+
+// Round-trip through raw value
+ushort raw = header;    // 0x4031 (Length=0x40, Status=0x31)
+header = raw;           // Restore from raw value
+```
+
+**How It Works:**
+
+Composition leverages implicit conversions. The generated getter casts to the property type, and the setter casts from it:
+
+```csharp
+public partial StatusFlags Status
+{
+    get => (StatusFlags)(Value & 0x00FF);           // Implicit ushort -> StatusFlags
+    set => Value = (ushort)((Value & 0xFF00) | ((ushort)value & 0x00FF));  // Implicit StatusFlags -> ushort
+}
+```
+
+**Use Cases:**
+- **Network protocols**: Reusable header fields, flags, and type codes
+- **File formats**: Magic numbers, version info, and metadata structures  
+- **Hardware registers**: Common flag patterns shared across multiple registers
+- **Layered structures**: Building complex formats from simpler building blocks
+
+### Partial-Width Embedding and Undefined Bits
+
+When a BitFields struct doesn't define fields covering all bits of its storage type, those undefined bits have specific behaviors controlled by the `UndefinedBitsMustBe` parameter:
+
+```csharp
+// 9-bit sub-header - undefined bits always zero
+[BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
+public partial struct SubHeader9
+{
+    [BitField(0, 3)] public partial byte TypeCode { get; set; }  // bits 0-3
+    [BitField(4, 8)] public partial byte Flags { get; set; }     // bits 4-8
+    // Bits 9-15: UNDEFINED - always zero
+}
+
+// 27-bit header - undefined bits always zero
+[BitFields(typeof(uint), UndefinedBitsMustBe.Zeroes)]
+public partial struct Header27
+{
+    [BitField(0, 8)] public partial SubHeader9 SubHeader { get; set; }  // 9 bits
+    [BitField(9, 18)] public partial ushort PayloadSize { get; set; }   // 10 bits
+    [BitField(19, 26)] public partial byte Sequence { get; set; }       // 8 bits
+    // Bits 27-31: UNDEFINED - always zero
+}
+
+// Hardware register - undefined bits preserved as-is (default)
+[BitFields(typeof(uint))]  // UndefinedBitsMustBe.Any is the default
+public partial struct HardwareReg
+{
+    [BitField(0, 7)] public partial byte Control { get; set; }
+    // Bits 8-31: May have hardware meaning, preserved as-is
+}
+```
+
+**Mode Behaviors:**
+
+| Mode | Undefined Bits | Use Case |
+|------|----------------|----------|
+| `UndefinedBitsMustBe.Any` (default) | Preserved as raw data | Hardware registers where undefined bits may be meaningful |
+| `UndefinedBitsMustBe.Zeroes` | Always masked to zero | Protocol headers, clean serialization |
+| `UndefinedBitsMustBe.Ones` | Always set to one | Protocols requiring 1s in reserved regions |
+
+**Sparse Undefined Bits:**
+
+Undefined bits don't have to be contiguous. The generator correctly handles sparse patterns:
+
+```csharp
+// Bits 0, 3, and 7 are undefined (gaps between defined bits)
+[BitFields(typeof(sbyte), UndefinedBitsMustBe.Zeroes)]
+public partial struct SparseReg
+{
+    // bit 0: UNDEFINED
+    [BitField(1, 2)] public partial byte LowField { get; set; }   // bits 1-2
+    // bit 3: UNDEFINED  
+    [BitField(4, 6)] public partial byte HighField { get; set; }  // bits 4-6
+    // bit 7: UNDEFINED
+}
+
+SparseReg reg = unchecked((sbyte)-1);  // Try to set all bits (0xFF)
+sbyte raw = reg;                        // raw == 0x76 (only defined bits set)
+
+// With UndefinedBitsMustBe.Zeroes:
+// - OR with 0x08 doesn't set bit 3 (undefined)
+// - Adding 1 doesn't set bit 0 (undefined)
+// - Arithmetic results are always masked through the constructor
+```
+
+**Example:**
+
+```csharp
+// UndefinedBitsMustBe.Zeroes - undefined bits are zeroed
+SubHeader9 sub = 0xFFFF;  // Try to set all 16 bits
+ushort raw = sub;         // raw == 0x01FF (only 9 defined bits)
+
+// UndefinedBitsMustBe.Any (default) - undefined bits preserved  
+SubHeader9Native nat = 0xFFFF;
+ushort rawNat = nat;      // rawNat == 0xFFFF (all bits preserved)
+
+// UndefinedBitsMustBe.Ones - undefined bits set to 1
+SubHeader9Ones ones = 0x0000;
+ushort rawOnes = ones;    // rawOnes == 0xFE00 (undefined bits are 1)
+```
+
+**Consistent Embedding:**
+
+With `UndefinedBitsMustBe.Zeroes`, embedded structs behave identically whether standalone or nested:
+
+```csharp
+SubHeader9 sub = 0xFFFF;           // Bits 9-15 masked off → 0x01FF
+Header27 header = 0;
+header.SubHeader = sub;            // Same 9 bits embedded
+SubHeader9 extracted = header.SubHeader;
+((ushort)extracted) == ((ushort)sub)  // true - identical behavior
+```
+
+**Implementation Note:**
+
+The `UndefinedBitsMustBe` mode is applied in the **constructor**, ensuring all operations (implicit conversions, operators, parsing) consistently handle undefined bits.
+
 ## Generated Code
 
 For the following user-defined struct:

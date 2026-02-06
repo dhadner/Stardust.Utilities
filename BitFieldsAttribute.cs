@@ -17,6 +17,10 @@ namespace Stardust.Utilities;
 /// MyRegister reg = 0xFF;       // From byte
 /// byte raw = reg;              // To byte
 /// var reg2 = new MyRegister(0x55);  // Constructor
+/// 
+/// // With undefined bits handling:
+/// [BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
+/// public partial struct ProtocolHeader { ... }
 /// </code>
 /// The generator creates:
 /// <list type="bullet">
@@ -35,11 +39,20 @@ public sealed class BitFieldsAttribute : Attribute
     public Type StorageType { get; }
 
     /// <summary>
+    /// Specifies how undefined bits (bits not covered by any field or flag) are handled.
+    /// Default is <see cref="UndefinedBitsMustBe.Any"/> which preserves raw data.
+    /// </summary>
+    public UndefinedBitsMustBe UndefinedBits { get; }
+
+    /// <summary>
     /// Creates a BitFields attribute with the specified storage type.
     /// </summary>
     /// <param name="storageType">The storage type (byte, ushort, uint, ulong, sbyte, short, int, or long).</param>
-    public BitFieldsAttribute(Type storageType)
+    /// <param name="undefinedBits">Specifies how undefined bits are handled. Defaults to <see cref="UndefinedBitsMustBe.Any"/>.</param>
+    public BitFieldsAttribute(Type storageType, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any)
     {
         StorageType = storageType;
+        UndefinedBits = undefinedBits;
     }
 }
+

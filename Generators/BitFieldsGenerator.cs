@@ -94,17 +94,33 @@ public class BitFieldsGenerator : IIncrementalGenerator
                 var attrName = attr.AttributeClass?.Name;
                 if (attrName == "BitFieldAttribute" && attr.ConstructorArguments.Length >= 2)
                 {
-                    // New API: [BitField(startBit, endBit)] - Rust-style inclusive range
+                    // [BitField(startBit, endBit, mustBe)] - Rust-style inclusive range
                     var startBit = (int)(attr.ConstructorArguments[0].Value ?? 0);
                     var endBit = (int)(attr.ConstructorArguments[1].Value ?? 0);
                     var width = endBit - startBit + 1;
                     var propType = member.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width));
+                    
+                    // Read optional MustBe parameter (3rd constructor arg)
+                    var valueOverride = MustBeValue.Any;
+                    if (attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int fieldMustBe)
+                    {
+                        valueOverride = (MustBeValue)fieldMustBe;
+                    }
+                    
+                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, valueOverride));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
                     var bit = (int)(attr.ConstructorArguments[0].Value ?? 0);
-                    flags.Add(new BitFlagInfo(member.Name, bit));
+                    
+                    // Read optional MustBe parameter (2nd constructor arg)
+                    var valueOverride = MustBeValue.Any;
+                    if (attr.ConstructorArguments.Length >= 2 && attr.ConstructorArguments[1].Value is int flagMustBe)
+                    {
+                        valueOverride = (MustBeValue)flagMustBe;
+                    }
+                    
+                    flags.Add(new BitFlagInfo(member.Name, bit, valueOverride));
                 }
             }
         }
@@ -132,6 +148,13 @@ public class BitFieldsGenerator : IIncrementalGenerator
             containingType = containingType.ContainingType;
         }
 
+        // Read UndefinedBitsMustBe from 2nd constructor argument (default is Any = 0)
+        var undefinedBitsMode = MustBeValue.Any;
+        if (bitFieldsAttr.ConstructorArguments.Length >= 2 && bitFieldsAttr.ConstructorArguments[1].Value is int modeValue)
+        {
+            undefinedBitsMode = (MustBeValue)modeValue;
+        }
+
         return new BitFieldsInfo(
             structSymbol.Name,
             ns,
@@ -141,7 +164,8 @@ public class BitFieldsGenerator : IIncrementalGenerator
             unsignedStorageType,
             fields,
             flags,
-            containingTypes);
+            containingTypes,
+            undefinedBitsMode);
     }
 
     private static string GetAccessibility(ISymbol symbol)
@@ -195,11 +219,48 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
         string memberIndent = new string(' ', (indentLevel + 1) * 4);
 
+        // Calculate the defined bits mask for handling undefined bits
+        ulong definedBitsMask = CalculateDefinedBitsMask(info);
+        int storageBits = GetStorageTypeBitWidth(info.StorageType);
+        ulong allBitsMask = storageBits == 64 ? ulong.MaxValue : (1UL << storageBits) - 1;
+        ulong undefinedBitsMask = allBitsMask & ~definedBitsMask;
+        bool hasUndefinedBits = undefinedBitsMask != 0;
+        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
+        string definedMaskHex = FormatHex(definedBitsMask, maskType);
+        string undefinedMaskHex = FormatHex(undefinedBitsMask, maskType);
+
         // Generate private Value field and constructor
         sb.AppendLine($"{memberIndent}private {info.StorageType} Value;");
         sb.AppendLine();
         sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw value.</summary>");
-        sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
+        
+        // Constructor applies undefined bits handling based on mode
+        if (!hasUndefinedBits || info.UndefinedBitsMode == MustBeValue.Any)
+        {
+            sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
+        }
+        else if (info.UndefinedBitsMode == MustBeValue.Zero)
+        {
+            if (info.StorageTypeIsSigned)
+            {
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) & {definedMaskHex}); }}");
+            }
+            else
+            {
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value & {definedMaskHex}); }}");
+            }
+        }
+        else // One
+        {
+            if (info.StorageTypeIsSigned)
+            {
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) | {undefinedMaskHex}); }}");
+            }
+            else
+            {
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value | {undefinedMaskHex}); }}");
+            }
+        }
         sb.AppendLine();
 
         // Generate property implementations with inline constants
@@ -212,6 +273,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
         {
             GenerateBitFlagProperty(sb, info, flag, memberIndent);
         }
+
 
         // Generate static Bit properties for each BitFlag
         foreach (var flag in info.Flags)
@@ -252,9 +314,11 @@ public class BitFieldsGenerator : IIncrementalGenerator
         GenerateEqualityOperators(sb, info, memberIndent);
 
         // Generate implicit conversions
+        // Note: The constructor handles undefined bits masking, so conversions just call new()
         sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{memberIndent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
         sb.AppendLine();
+        
         sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{memberIndent}public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
         sb.AppendLine();
@@ -450,6 +514,72 @@ public class BitFieldsGenerator : IIncrementalGenerator
             "long" => "long",
             _ => "int"
         };
+    }
+
+    /// <summary>
+    /// Gets the bit width of a storage type.
+    /// </summary>
+    private static int GetStorageTypeBitWidth(string storageType)
+    {
+        return storageType switch
+        {
+            "sbyte" or "byte" => 8,
+            "short" or "ushort" => 16,
+            "int" or "uint" => 32,
+            "long" or "ulong" => 64,
+            _ => 32
+        };
+    }
+
+    /// <summary>
+    /// Calculates the maximum bit index that is defined by any field or flag.
+    /// Returns -1 if no fields or flags are defined.
+    /// </summary>
+    private static int CalculateMaxDefinedBit(BitFieldsInfo info)
+    {
+        int maxBit = -1;
+
+        // Check all BitField properties
+        foreach (var field in info.Fields)
+        {
+            int fieldMaxBit = field.Shift + field.Width - 1;
+            if (fieldMaxBit > maxBit)
+                maxBit = fieldMaxBit;
+        }
+
+        // Check all BitFlag properties
+        foreach (var flag in info.Flags)
+        {
+            if (flag.Bit > maxBit)
+                maxBit = flag.Bit;
+        }
+
+        return maxBit;
+    }
+
+    /// <summary>
+    /// Calculates a bitmask of ALL defined bits (union of all field and flag bit positions).
+    /// This handles sparse undefined bits (e.g., bits 0, 3, 7 undefined with gaps).
+    /// </summary>
+    private static ulong CalculateDefinedBitsMask(BitFieldsInfo info)
+    {
+        ulong mask = 0;
+
+        // Add all BitField bit ranges
+        foreach (var field in info.Fields)
+        {
+            // For a field at shift with width, set bits [shift, shift+width-1]
+            ulong fieldMask = ((1UL << field.Width) - 1) << field.Shift;
+            mask |= fieldMask;
+        }
+
+        // Add all BitFlag bits
+        foreach (var flag in info.Flags)
+        {
+            mask |= 1UL << flag.Bit;
+        }
+
+        return mask;
     }
 
     /// <summary>
@@ -1369,6 +1499,15 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
 #region Info Classes
 
+/// <summary>
+/// Mirrors the MustBe enum values from the public API.
+/// </summary>
+internal enum MustBeValue
+{
+    Any = 0,
+    Zero = 1,
+    One = 2
+}
 
 internal sealed class BitFieldsInfo
 {
@@ -1381,12 +1520,16 @@ internal sealed class BitFieldsInfo
     public List<BitFieldInfo> Fields { get; }
     public List<BitFlagInfo> Flags { get; }
     /// <summary>
+    /// Specifies how undefined bits (bits not covered by any field or flag) are handled.
+    /// </summary>
+    public MustBeValue UndefinedBitsMode { get; }
+    /// <summary>
     /// List of containing types from outermost to innermost (closest to target struct).
     /// Each tuple contains (TypeKind, TypeName, Accessibility).
     /// </summary>
     public List<(string Kind, string Name, string Accessibility)> ContainingTypes { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, MustBeValue undefinedBitsMode = MustBeValue.Any)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -1397,6 +1540,7 @@ internal sealed class BitFieldsInfo
         Fields = fields;
         Flags = flags;
         ContainingTypes = containingTypes;
+        UndefinedBitsMode = undefinedBitsMode;
     }
 }
 
@@ -1406,13 +1550,18 @@ internal sealed class BitFieldInfo
     public string PropertyType { get; }
     public int Shift { get; }
     public int Width { get; }
+    /// <summary>
+    /// Override for this specific field's bits.
+    /// </summary>
+    public MustBeValue ValueOverride { get; }
 
-    public BitFieldInfo(string name, string propertyType, int shift, int width)
+    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBeValue valueOverride = MustBeValue.Any)
     {
         Name = name;
         PropertyType = propertyType;
         Shift = shift;
         Width = width;
+        ValueOverride = valueOverride;
     }
 }
 
@@ -1420,12 +1569,18 @@ internal sealed class BitFlagInfo
 {
     public string Name { get; }
     public int Bit { get; }
+    /// <summary>
+    /// Override for this specific flag's bit.
+    /// </summary>
+    public MustBeValue ValueOverride { get; }
 
-    public BitFlagInfo(string name, int bit)
+    public BitFlagInfo(string name, int bit, MustBeValue valueOverride = MustBeValue.Any)
     {
         Name = name;
         Bit = bit;
+        ValueOverride = valueOverride;
     }
 }
 
 #endregion
+

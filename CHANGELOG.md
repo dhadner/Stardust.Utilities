@@ -8,9 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.4] - 2026-02-06
 ### Added
 - Added support for signed properties in a BitFields struct.
-- Added fuzz testing for parsers.  No errors found.
-- Performance testing now runs on local dev machine.  Still disabled during CI builds.
-- Now does deterministic builds.
+- Although already supported, added testing and documentation for BitFields struct composition (using one BitFields type as a property type in another).
+- Added `UndefinedBitsMustBe` enum with `Any`, `Zeroes`, and `Ones` values for controlling undefined bit behavior in `[BitFields]`.
+- Added `MustBe` enum with `Any`, `Zero`, `One`, and `Ones` values for per-field/flag bit control.
+- Added `ValueOverride` parameter to `[BitField]` and `[BitFlag]` attributes for per-field/flag bit override.
+- Added support for sparse undefined bits (gaps between defined fields).
+- Added fuzz testing for parsers. No errors found.
+- Performance testing now runs on local dev machine. Still disabled during CI builds.
+- Builds are now deterministic.
+
+
+
+
+
+
 
 ## [0.9.3] - 2026-02-05
 ### Added

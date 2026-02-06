@@ -214,11 +214,12 @@ public partial class BitFieldTests
 
     /// <summary>
     /// Tests generated 32-bit BitFields struct - implicit conversion.
+    /// Note: GeneratedControlReg32 uses Native mode (default), so undefined bits are preserved.
     /// </summary>
     [Fact]
     public void GeneratedControlReg32_ImplicitConversion()
     {
-        // From uint
+        // From uint - Native mode preserves all bits including undefined
         GeneratedControlReg32 reg = 0xFFFFFFFF;
         ((uint)reg).Should().Be(0xFFFFFFFF);
         reg.Enable.Should().BeTrue();
@@ -232,6 +233,10 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+
+
+
 
     #region Generated 64-bit BitFields Struct Tests
 
@@ -273,11 +278,12 @@ public partial class BitFieldTests
 
     /// <summary>
     /// Tests generated 64-bit BitFields struct - implicit conversion.
+    /// Note: GeneratedWideReg64 uses Native mode (default), so undefined bits are preserved.
     /// </summary>
     [Fact]
     public void GeneratedWideReg64_ImplicitConversion()
     {
-        // From ulong
+        // From ulong - Native mode preserves all bits
         GeneratedWideReg64 reg = 0xFFFFFFFFFFFFFFFF;
         ((ulong)reg).Should().Be(0xFFFFFFFFFFFFFFFF);
         reg.Valid.Should().BeTrue();
@@ -294,6 +300,10 @@ public partial class BitFieldTests
     #endregion
 
     #region Edge Case Tests
+
+
+
+
 
     /// <summary>
     /// Tests that setting a field doesn't affect adjacent fields.

@@ -29,11 +29,20 @@ public sealed class BitFlagAttribute : Attribute
     public int Bit { get; }
 
     /// <summary>
+    /// Normally set to <see cref="MustBe.Any"/> and has no effect.
+    /// When set to <see cref="MustBe.Zero"/> or <see cref="MustBe.One"/>, it overrides the
+    /// flag's value. On write and during conversion of the underlying BitFields struct to/from other 
+    /// types, the flag's bit will be forced to zero or one respectively.
+    /// </summary>
+    public MustBe ValueOverride { get; }
+
+    /// <summary>
     /// Creates a new bit flag attribute.
     /// </summary>
     /// <param name="bit">The bit position (0-based).</param>
-    public BitFlagAttribute(int bit)
+    public BitFlagAttribute(int bit, MustBe mustBe = MustBe.Any)
     {
         Bit = bit;
+        ValueOverride = mustBe;
     }
 }
