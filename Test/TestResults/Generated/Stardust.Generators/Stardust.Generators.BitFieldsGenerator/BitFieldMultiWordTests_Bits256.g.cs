@@ -41,12 +41,16 @@ public partial class BitFieldMultiWordTests
         public static Bits256 Zero => default;
 
         /// <summary>Creates a new Bits256 from individual word values.</summary>
-        public Bits256(ulong w0, ulong w1, ulong w2, ulong w3)
+        /// <param name="lower">Bits 0-63 (least significant).</param>
+        /// <param name="midLower">Bits 64-127.</param>
+        /// <param name="midUpper">Bits 128-191.</param>
+        /// <param name="upper">Bits 192-255 (most significant).</param>
+        public Bits256(ulong lower, ulong midLower, ulong midUpper, ulong upper)
         {
-            _w0 = w0;
-            _w1 = w1;
-            _w2 = w2;
-            _w3 = w3;
+            _w0 = lower;
+            _w1 = midLower;
+            _w2 = midUpper;
+            _w3 = upper;
         }
 
         /// <summary>Creates a new Bits256 from a ulong value (zero-extended).</summary>

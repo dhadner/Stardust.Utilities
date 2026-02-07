@@ -86,6 +86,39 @@ internal static partial class BitFieldsMultiWordGenerator
         string t = info.TypeName;
         int wc = layout.WordCount;
 
+        // Decimal: generate arithmetic via native decimal operators
+        if (info.NativeWideType == "decimal")
+        {
+            sb.AppendLine($"{ind}/// <summary>Unary plus operator.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static {t} operator +({t} a) => a;");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Unary negation operator.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static {t} operator -({t} a) => -(decimal)a;");
+            sb.AppendLine();
+
+            foreach (var (op, name) in new[] { ("+", "Addition"), ("-", "Subtraction"), ("*", "Multiplication"), ("/", "Division"), ("%", "Modulus") })
+            {
+                sb.AppendLine($"{ind}/// <summary>{name} operator (decimal arithmetic).</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.AppendLine($"{ind}public static {t} operator {op}({t} a, {t} b) => (decimal)a {op} (decimal)b;");
+                sb.AppendLine();
+
+                sb.AppendLine($"{ind}/// <summary>{name} operator with decimal.</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.AppendLine($"{ind}public static {t} operator {op}({t} a, decimal b) => (decimal)a {op} b;");
+                sb.AppendLine();
+
+                sb.AppendLine($"{ind}/// <summary>{name} operator with decimal.</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.AppendLine($"{ind}public static {t} operator {op}(decimal a, {t} b) => a {op} (decimal)b;");
+                sb.AppendLine();
+            }
+            return;
+        }
+
         // Unary +
         sb.AppendLine($"{ind}/// <summary>Unary plus operator.</summary>");
         sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -283,6 +316,28 @@ internal static partial class BitFieldsMultiWordGenerator
         string t = info.TypeName;
         int wc = layout.WordCount;
 
+        // Decimal: compare via native decimal comparison
+        if (info.NativeWideType == "decimal")
+        {
+            sb.AppendLine($"{ind}/// <summary>Less than operator (decimal comparison).</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static bool operator <({t} a, {t} b) => (decimal)a < (decimal)b;");
+            sb.AppendLine();
+            sb.AppendLine($"{ind}/// <summary>Greater than operator (decimal comparison).</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static bool operator >({t} a, {t} b) => (decimal)a > (decimal)b;");
+            sb.AppendLine();
+            sb.AppendLine($"{ind}/// <summary>Less than or equal operator (decimal comparison).</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static bool operator <=({t} a, {t} b) => (decimal)a <= (decimal)b;");
+            sb.AppendLine();
+            sb.AppendLine($"{ind}/// <summary>Greater than or equal operator (decimal comparison).</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static bool operator >=({t} a, {t} b) => (decimal)a >= (decimal)b;");
+            sb.AppendLine();
+            return;
+        }
+
         sb.AppendLine($"{ind}/// <summary>Less than operator.</summary>");
         sb.AppendLine($"{ind}public static bool operator <({t} a, {t} b)");
         sb.AppendLine($"{ind}{{");
@@ -347,8 +402,16 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
 
-        sb.AppendLine($"{ind}/// <summary>Returns a hex string representation of the value.</summary>");
-        sb.AppendLine($"{ind}public override string ToString() => \"0x\" + ToBigInteger().ToString(\"X\");");
+        if (info.NativeWideType == "decimal")
+        {
+            sb.AppendLine($"{ind}/// <summary>Returns the decimal string representation of the value.</summary>");
+            sb.AppendLine($"{ind}public override string ToString() => ((decimal)this).ToString();");
+        }
+        else
+        {
+            sb.AppendLine($"{ind}/// <summary>Returns a hex string representation of the value.</summary>");
+            sb.AppendLine($"{ind}public override string ToString() => \"0x\" + ToBigInteger().ToString(\"X\");");
+        }
         sb.AppendLine();
     }
 }

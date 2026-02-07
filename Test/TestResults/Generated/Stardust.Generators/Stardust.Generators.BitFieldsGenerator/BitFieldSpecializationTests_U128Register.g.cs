@@ -39,10 +39,12 @@ public partial class BitFieldSpecializationTests
         public static U128Register Zero => default;
 
         /// <summary>Creates a new U128Register from individual word values.</summary>
-        public U128Register(ulong w0, ulong w1)
+        /// <param name="lower">Bits 0-63 (least significant).</param>
+        /// <param name="upper">Bits 64-127 (most significant).</param>
+        public U128Register(ulong lower, ulong upper)
         {
-            _w0 = w0;
-            _w1 = w1;
+            _w0 = lower;
+            _w1 = upper;
         }
 
         /// <summary>Creates a new U128Register from a ulong value (zero-extended).</summary>

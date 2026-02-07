@@ -113,6 +113,15 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             nativeWideType = "Int128";
             storageType = "ulong";
         }
+        else if (storageType == "decimal")
+        {
+            isMultiWord = true;
+            bitCount = 128;
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            nativeWideType = "decimal";
+            storageType = "ulong";
+        }
         // Validate storage type
         else if (storageType == "byte" || storageType == "ushort" || storageType == "uint" || storageType == "ulong")
         {

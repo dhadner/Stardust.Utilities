@@ -22,6 +22,7 @@ Type-safe, high-performance bitfield manipulation for hardware register emulatio
 **Examples**
 - [Hardware Registers (8/16/32/64-bit)](#examples)
 - [IEEE 754 Floating-Point Decomposition](#example-ieee-754-floating-point-decomposition)
+- [.NET Decimal Decomposition](#example-net-decimal-decomposition)
 - [Network Protocol Headers](#example-network-protocol-headers)
 
 **API Reference**
@@ -127,8 +128,9 @@ This is intentional because BitFields represent hardware registers where truncat
 | `ushort` | 16 | Signed alternative: `short` |
 | `uint` | 32 | Signed alternative: `int` |
 | `ulong` | 64 | Signed alternative: `long` |
-| `float` | 32 | IEEE 754 single-precision; full floating-point arithmetic |
-| `double` | 64 | IEEE 754 double-precision; full floating-point arithmetic |
+| `float` | 32 | IEEE 754 single-precision; backed by `uint`, user-facing type is `float` |
+| `double` | 64 | IEEE 754 double-precision; backed by `ulong`, user-facing type is `double` |
+| `decimal` | 128 | .NET decimal (96-bit coefficient + scale + sign); full decimal arithmetic |
 | `UInt128` | 128 | 128-bit unsigned with conversion operators |
 | `Int128` | 128 | 128-bit signed with conversion operators |
 | `[BitFields(N)]` | N | Arbitrary width from 1 to 16,384 bits |
@@ -168,10 +170,43 @@ var span = "0xFF".AsSpan();
 var reg4 = MyRegister.Parse(span, null);
 ```
 
-**Supported Formats:**
+**Supported Formats (integer storage types):**
 - Decimal: `"255"`, `"1234"`, `"1_000_000"`
 - Hexadecimal with prefix: `"0xFF"`, `"0XFF"`, `"0x1234_ABCD"`
 - Binary with prefix: `"0b1010"`, `"0B1111_0000"`
+
+### Floating-Point and Decimal Storage Types
+
+For `float`, `double`, and `decimal` storage types, parsing uses the native parser
+instead of integer hex/binary parsing. Values are parsed as their respective numeric
+types:
+
+```csharp
+[BitFields(typeof(double))]
+public partial struct IEEE754Double { /* ... */ }
+
+// Parse as a floating-point number (delegates to double.Parse)
+IEEE754Double pi = IEEE754Double.Parse("3.14159265358979", CultureInfo.InvariantCulture);
+
+// Scientific notation is supported (via double.Parse)
+IEEE754Double avogadro = IEEE754Double.Parse("6.022E23", CultureInfo.InvariantCulture);
+
+// TryParse works the same way
+IEEE754Double.TryParse("42.5", out var val);   // true
+IEEE754Double.TryParse("0xFF", out _);          // false (hex not supported for float/double/decimal)
+
+// float storage type works identically
+[BitFields(typeof(float))]
+public partial struct FloatReg { /* ... */ }
+
+FloatReg f = FloatReg.Parse("3.14", CultureInfo.InvariantCulture);
+
+// decimal storage type uses decimal.Parse
+[BitFields(typeof(decimal))]
+public partial struct DecimalReg { /* ... */ }
+
+DecimalReg d = DecimalReg.Parse("3.14", CultureInfo.InvariantCulture);
+```
 
 ## Formatting
 
@@ -193,6 +228,20 @@ if (value.TryFormat(buffer, out int written, "X4", null))
 {
     // buffer[..written] contains "00AB"
 }
+```
+
+For `float`, `double`, and `decimal` storage types, formatting uses the native
+formatter. The default `ToString()` returns the numeric representation (not the raw bits):
+
+```csharp
+IEEE754Double pi = Math.PI;
+pi.ToString();                                   // "3.141592653589793"
+pi.ToString("F2", CultureInfo.InvariantCulture); // "3.14"
+pi.ToString("E", CultureInfo.InvariantCulture);  // "3.141593E+000"
+
+DecimalReg price = 19.99m;
+price.ToString();                                // "19.99"
+price.ToString("C", CultureInfo.InvariantCulture); // "¤19.99"
 ```
 
 ## Performance
@@ -463,6 +512,55 @@ IEEE754Double x2 = (-b - Math.Sqrt(disc)) / (two * a);  // x2 = 2.0
 var onePointFive = IEEE754Double.Zero
     .WithExponent(1023)
     .WithMantissa(0x8_0000_0000_0000);       // 1.5 ✓
+```
+
+### Example: .NET Decimal Decomposition
+
+`[BitFields(typeof(decimal))]` decomposes .NET's 128-bit decimal representation into its constituent fields. The bit layout follows `decimal.GetBits()` canonical order:
+
+```
+Bits:  127 | 126-119 | 118-112 | 111-96   | 95 ────────────────── 0
+       Sign| Reserved| Scale   | Reserved | 96-bit unsigned coefficient
+       1   | 8 bits  | 7 bits  | 16 bits  |       96 bits
+```
+
+Value = (-1)^Sign × Coefficient / 10^Scale
+
+```csharp
+[BitFields(typeof(decimal))]
+public partial struct DecimalParts
+{
+    [BitField(0, 95)]   public partial UInt128 Coefficient { get; set; } // 96-bit integer
+    [BitField(112, 118)] public partial byte   Scale       { get; set; } // 0-28
+    [BitFlag(127)]       public partial bool   Sign        { get; set; } // sign bit
+}
+```
+
+**Inspect decimal values:**
+
+```csharp
+DecimalParts price = 19.99m;
+price.Sign;                   // false (positive)
+price.Scale;                  // 2 (divided by 10^2)
+price.Coefficient;            // 1999
+
+DecimalParts big = decimal.MaxValue;
+big.Scale;                    // 0
+big.Coefficient;              // 79228162514264337593543950335
+
+// Negate by flipping the sign bit
+DecimalParts val = 42m;
+val.Sign = !val.Sign;         // val == -42m ✓
+```
+
+**Full decimal arithmetic works through the generated operators:**
+
+```csharp
+DecimalParts a = 10.5m;
+DecimalParts b = 3m;
+decimal sum  = a + b;         // 13.5m
+decimal prod = a * b;         // 31.5m
+decimal quot = a / b;         // 3.5m
 ```
 
 ### Example: Network Protocol Headers
