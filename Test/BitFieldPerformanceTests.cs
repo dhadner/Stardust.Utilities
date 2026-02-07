@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Stardust.Utilities.Tests;
 
-#region Test Structs (must be at namespace level for generator)
+#region Test Structs
 
 /// <summary>
 /// Generated struct for performance testing.
@@ -96,8 +96,8 @@ public struct HandCodedTestRegister
 [Trait("Category", "Performance")]
 public class BitFieldPerformanceTests
 {
-    private const int ITERATIONS = 100_000_000;
-    private const int WARMUP_ITERATIONS = 50_000_000;
+    private const int ITERATIONS = 200_000_000;
+    private const int WARMUP_ITERATIONS = 100_000_000;
 
     private readonly ITestOutputHelper _output;
 
@@ -430,7 +430,7 @@ public class BitFieldPerformanceTests
     {
         Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests are skipped in CI environments due to variable runner performance.");
 
-        const int RUNS = 20;
+        const int RUNS = 40;
         
         _output.WriteLine("=".PadRight(70, '='));
         _output.WriteLine("BITFIELD PERFORMANCE SUMMARY WITH STATISTICS");
@@ -595,13 +595,13 @@ public class BitFieldPerformanceTests
         _output.WriteLine("-".PadRight(70, '-'));
 
         var overallRatios = new List<double>();
-
+        int discard = (int)Math.Round((double)(RUNS / 10));
         foreach (var testName in new[] { "BitFlag GET", "BitFlag SET", "BitField GET", "BitField SET", "Mixed R/W" })
         {
             var data = allResults[testName];
-            var genStats = CalculateStats(data.Select(d => d.Gen).ToList());
-            var handStats = CalculateStats(data.Select(d => d.Hand).ToList());
-            var ratioStats = CalculateStats(data.Select(d => d.Ratio).ToList());
+            var genStats = CalculateStats(data.Select(d => d.Gen).ToList(), discard);
+            var handStats = CalculateStats(data.Select(d => d.Hand).ToList(), discard);
+            var ratioStats = CalculateStats(data.Select(d => d.Ratio).ToList(), discard);
 
             overallRatios.AddRange(data.Select(d => d.Ratio));
 
@@ -611,7 +611,7 @@ public class BitFieldPerformanceTests
         _output.WriteLine("-".PadRight(70, '-'));
 
         var overallStats = CalculateStats(overallRatios);
-        int n = overallRatios.Count;
+        int n = (overallRatios.Count / 5) - discard * 2; // There are 5 named tests in each run, so don't count each ratio as independent
         double standardError = overallStats.StdDev / Math.Sqrt(n);
         double ciLow = overallStats.Mean - 1.96 * standardError;
         double ciHigh = overallStats.Mean + 1.96 * standardError;
@@ -658,10 +658,14 @@ public class BitFieldPerformanceTests
         return (generatedMs, handCodedMs);
     }
 
-    private static (double Mean, double StdDev) CalculateStats(List<double> values)
+    private static (double Mean, double StdDev) CalculateStats(List<double> values, int discard = 0)
     {
-        double mean = values.Average();
-        double variance = values.Sum(v => Math.Pow(v - mean, 2)) / values.Count;
+        // Throw out high and low measurements to reduce noise (e.g. from GC or background processes)
+        values.Sort();
+        var trimmed = values.Skip(discard).Take(values.Count - 2 * discard).ToList();
+
+        double mean = trimmed.Average();
+        double variance = trimmed.Sum(v => Math.Pow(v - mean, 2)) / trimmed.Count;
         double stdDev = Math.Sqrt(variance);
         return (mean, stdDev);
     }

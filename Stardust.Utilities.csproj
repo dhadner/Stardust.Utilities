@@ -64,6 +64,7 @@
 		<None Include=".github\ISSUE_TEMPLATE\feature_request.md" />
 		<None Include=".github\ISSUE_TEMPLATE\question.md" />
 		<None Include=".github\PULL_REQUEST_TEMPLATE.md" />
+		<None Include=".github\workflows\ci.yml" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>

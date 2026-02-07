@@ -1,8 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 <PropertyGroup>
-  <!-- CI override: pass /p:TargetFrameworks="net8.0;net9.0;net10.0" for multi-TFM validation -->
-  <TargetFramework>net10.0</TargetFramework>
+  <!--
+    Multi-target: net8.0, net9.0, net10.0.
+    When built as part of MySolution.sln (MSBuild sets SolutionPath), target only net10.0
+    to avoid solution-level restore overwriting the multi-TFM assets file.
+    CI and standalone builds get all three targets.
+  -->
+  <TargetFrameworks Condition="'$(SolutionPath)' == '' or '$(SolutionPath)' == '*Undefined*'">net8.0;net9.0;net10.0</TargetFrameworks>
+  <TargetFramework Condition="'$(SolutionPath)' != '' and '$(SolutionPath)' != '*Undefined*'">net10.0</TargetFramework>
   <IsPackable>false</IsPackable>
   <LangVersion>preview</LangVersion>
   <Nullable>enable</Nullable>
