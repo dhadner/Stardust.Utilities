@@ -29,24 +29,64 @@ internal static partial class BitFieldsMultiWordGenerator
         // NativeWide: add UInt128/Int128 conversion operators for 128-bit multi-word structs
         if (info.NativeWideType != null && layout.WordCount == 2)
         {
-            string wt = info.NativeWideType; // "UInt128" or "Int128"
+            string wt = info.NativeWideType; // "UInt128", "Int128", or "decimal"
             bool isSigned = wt == "Int128";
+            bool isDecimal = wt == "decimal";
 
-            sb.AppendLine($"{ind}/// <summary>Implicit conversion to {wt}.</summary>");
-            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            if (isSigned)
-                sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => (Int128)(((UInt128)value._w1 << 64) | value._w0);");
-            else
-                sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => ((UInt128)value._w1 << 64) | value._w0;");
-            sb.AppendLine();
+            if (isDecimal)
+            {
+                sb.AppendLine($"{ind}/// <summary>Implicit conversion to decimal.</summary>");
+                sb.AppendLine($"{ind}public static implicit operator decimal({t} value)");
+                sb.AppendLine($"{ind}{{");
+                sb.AppendLine($"{ind}    int lo = (int)(uint)value._w0;");
+                sb.AppendLine($"{ind}    int mid = (int)(uint)(value._w0 >> 32);");
+                sb.AppendLine($"{ind}    int hi = (int)(uint)value._w1;");
+                sb.AppendLine($"{ind}    int flags = (int)(uint)(value._w1 >> 32);");
+                sb.AppendLine($"{ind}    bool isNegative = (flags & unchecked((int)0x80000000)) != 0;");
+                sb.AppendLine($"{ind}    byte scale = (byte)((flags >> 16) & 0x7F);");
+                sb.AppendLine($"{ind}    return new decimal(lo, mid, hi, isNegative, scale);");
+                sb.AppendLine($"{ind}}}");
+                sb.AppendLine();
 
-            sb.AppendLine($"{ind}/// <summary>Implicit conversion from {wt}.</summary>");
-            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            if (isSigned)
-                sb.AppendLine($"{ind}public static implicit operator {t}({wt} value) {{ var u = (UInt128)value; return new((ulong)(u & ulong.MaxValue), (ulong)(u >> 64)); }}");
+                sb.AppendLine($"{ind}/// <summary>Implicit conversion from decimal.</summary>");
+                sb.AppendLine($"{ind}public static implicit operator {t}(decimal value)");
+                sb.AppendLine($"{ind}{{");
+                sb.AppendLine($"{ind}    Span<int> bits = stackalloc int[4];");
+                sb.AppendLine($"{ind}    decimal.GetBits(value, bits);");
+                sb.AppendLine($"{ind}    ulong w0 = (uint)bits[0] | ((ulong)(uint)bits[1] << 32);");
+                sb.AppendLine($"{ind}    ulong w1 = (uint)bits[2] | ((ulong)(uint)bits[3] << 32);");
+                sb.AppendLine($"{ind}    return new(w0, w1);");
+                sb.AppendLine($"{ind}}}");
+                sb.AppendLine();
+
+                sb.AppendLine($"{ind}/// <summary>Explicit conversion to raw bits (UInt128).</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.AppendLine($"{ind}public static explicit operator UInt128({t} value) => ((UInt128)value._w1 << 64) | value._w0;");
+                sb.AppendLine();
+
+                sb.AppendLine($"{ind}/// <summary>Explicit conversion from raw bits (UInt128).</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                sb.AppendLine($"{ind}public static explicit operator {t}(UInt128 value) => new((ulong)(value & ulong.MaxValue), (ulong)(value >> 64));");
+                sb.AppendLine();
+            }
             else
-                sb.AppendLine($"{ind}public static implicit operator {t}({wt} value) => new((ulong)(value & ulong.MaxValue), (ulong)(value >> 64));");
-            sb.AppendLine();
+            {
+                sb.AppendLine($"{ind}/// <summary>Implicit conversion to {wt}.</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                if (isSigned)
+                    sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => (Int128)(((UInt128)value._w1 << 64) | value._w0);");
+                else
+                    sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => ((UInt128)value._w1 << 64) | value._w0;");
+                sb.AppendLine();
+
+                sb.AppendLine($"{ind}/// <summary>Implicit conversion from {wt}.</summary>");
+                sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                if (isSigned)
+                    sb.AppendLine($"{ind}public static implicit operator {t}({wt} value) {{ var u = (UInt128)value; return new((ulong)(u & ulong.MaxValue), (ulong)(u >> 64)); }}");
+                else
+                    sb.AppendLine($"{ind}public static implicit operator {t}({wt} value) => new((ulong)(value & ulong.MaxValue), (ulong)(value >> 64));");
+                sb.AppendLine();
+            }
         }
     }
 
@@ -89,6 +129,60 @@ internal static partial class BitFieldsMultiWordGenerator
     private static void GenerateParsingMethods(StringBuilder sb, BitFieldsInfo info, string ind)
     {
         string t = info.TypeName;
+
+        // Decimal: parse as decimal, convert to bits
+        if (info.NativeWideType == "decimal")
+        {
+            sb.AppendLine($"{ind}/// <summary>Parses a string into a {t} by parsing a decimal value.</summary>");
+            sb.AppendLine($"{ind}public static {t} Parse(string s, IFormatProvider? provider)");
+            sb.AppendLine($"{ind}{{");
+            sb.AppendLine($"{ind}    ArgumentNullException.ThrowIfNull(s);");
+            sb.AppendLine($"{ind}    return decimal.Parse(s, provider);");
+            sb.AppendLine($"{ind}}}");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Tries to parse a string into a {t}.</summary>");
+            sb.AppendLine($"{ind}public static bool TryParse(string? s, IFormatProvider? provider, out {t} result)");
+            sb.AppendLine($"{ind}{{");
+            sb.AppendLine($"{ind}    if (s is not null && decimal.TryParse(s, provider, out var decValue))");
+            sb.AppendLine($"{ind}    {{");
+            sb.AppendLine($"{ind}        result = decValue;");
+            sb.AppendLine($"{ind}        return true;");
+            sb.AppendLine($"{ind}    }}");
+            sb.AppendLine($"{ind}    result = default;");
+            sb.AppendLine($"{ind}    return false;");
+            sb.AppendLine($"{ind}}}");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Parses a span of characters into a {t}.</summary>");
+            sb.AppendLine($"{ind}public static {t} Parse(ReadOnlySpan<char> s, IFormatProvider? provider)");
+            sb.AppendLine($"{ind}    => decimal.Parse(s, provider);");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Tries to parse a span of characters into a {t}.</summary>");
+            sb.AppendLine($"{ind}public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out {t} result)");
+            sb.AppendLine($"{ind}{{");
+            sb.AppendLine($"{ind}    if (decimal.TryParse(s, provider, out var decValue))");
+            sb.AppendLine($"{ind}    {{");
+            sb.AppendLine($"{ind}        result = decValue;");
+            sb.AppendLine($"{ind}        return true;");
+            sb.AppendLine($"{ind}    }}");
+            sb.AppendLine($"{ind}    result = default;");
+            sb.AppendLine($"{ind}    return false;");
+            sb.AppendLine($"{ind}}}");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Parses a string using invariant culture.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static {t} Parse(string s) => Parse(s, CultureInfo.InvariantCulture);");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Tries to parse a string using invariant culture.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public static bool TryParse(string? s, out {t} result) => TryParse(s, CultureInfo.InvariantCulture, out result);");
+            sb.AppendLine();
+            return;
+        }
 
         sb.AppendLine($"{ind}private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');");
         sb.AppendLine($"{ind}private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');");
@@ -149,6 +243,20 @@ internal static partial class BitFieldsMultiWordGenerator
 
     private static void GenerateFormattingMethods(StringBuilder sb, BitFieldsInfo info, WordLayout layout, string ind)
     {
+        // Decimal: format via native decimal
+        if (info.NativeWideType == "decimal")
+        {
+            sb.AppendLine($"{ind}/// <summary>Formats the value using the specified format and format provider.</summary>");
+            sb.AppendLine($"{ind}public string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Tries to format the value into the provided span of characters.</summary>");
+            sb.AppendLine($"{ind}public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)");
+            sb.AppendLine($"{ind}    => ((decimal)this).TryFormat(destination, out charsWritten, format, provider);");
+            sb.AppendLine();
+            return;
+        }
+
         sb.AppendLine($"{ind}/// <summary>Formats the value using the specified format and format provider.</summary>");
         sb.AppendLine($"{ind}public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);");
         sb.AppendLine();
@@ -183,18 +291,29 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
 
-        sb.AppendLine($"{ind}/// <summary>Compares this instance to another {t}.</summary>");
-        sb.AppendLine($"{ind}public int CompareTo({t} other)");
-        sb.AppendLine($"{ind}{{");
-        for (int i = wc - 1; i >= 0; i--)
+        // Decimal: compare via native decimal comparison
+        if (info.NativeWideType == "decimal")
         {
-            string rdThis = layout.Read("", i);
-            string rdOther = layout.Read("other.", i);
-            sb.AppendLine($"{ind}    if ({rdThis} != {rdOther}) return {rdThis}.CompareTo({rdOther});");
+            sb.AppendLine($"{ind}/// <summary>Compares this instance to another {t}.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}public int CompareTo({t} other) => ((decimal)this).CompareTo((decimal)other);");
+            sb.AppendLine();
         }
-        sb.AppendLine($"{ind}    return 0;");
-        sb.AppendLine($"{ind}}}");
-        sb.AppendLine();
+        else
+        {
+            sb.AppendLine($"{ind}/// <summary>Compares this instance to another {t}.</summary>");
+            sb.AppendLine($"{ind}public int CompareTo({t} other)");
+            sb.AppendLine($"{ind}{{");
+            for (int i = wc - 1; i >= 0; i--)
+            {
+                string rdThis = layout.Read("", i);
+                string rdOther = layout.Read("other.", i);
+                sb.AppendLine($"{ind}    if ({rdThis} != {rdOther}) return {rdThis}.CompareTo({rdOther});");
+            }
+            sb.AppendLine($"{ind}    return 0;");
+            sb.AppendLine($"{ind}}}");
+            sb.AppendLine();
+        }
 
         sb.AppendLine($"{ind}/// <summary>Indicates whether this instance is equal to another {t}.</summary>");
         sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");

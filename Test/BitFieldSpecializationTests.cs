@@ -66,6 +66,19 @@ public partial class BitFieldSpecializationTests
         [BitField(64, 127)] public partial ulong High { get; set; } // bits 64-127
     }
 
+    /// <summary>
+    /// Decimal register decomposing .NET's decimal layout via GetBits() canonical order:
+    /// bits 0-31: lo, bits 32-63: mid, bits 64-95: hi (96-bit coefficient),
+    /// bits 112-118: scale, bit 127: sign.
+    /// </summary>
+    [BitFields(typeof(decimal))]
+    public partial struct DecimalRegister
+    {
+        [BitField(0, 95)] public partial UInt128 Coefficient { get; set; }   // 96-bit unsigned integer
+        [BitField(112, 118)] public partial byte Scale { get; set; }         // 0-28 (power of 10 divisor)
+        [BitFlag(127)] public partial bool Sign { get; set; }                // sign bit
+    }
+
     #endregion
 
     #region NativeFloat: Construction Tests
@@ -822,6 +835,216 @@ public partial class BitFieldSpecializationTests
                           + (val.IsNaN ? 1 : 0);
             trueCount.Should().Be(1, $"{category} should match exactly one classification");
         }
+    }
+
+    #endregion
+
+    #region Decimal: Construction and Round-Trip Tests
+
+    [Fact]
+    public void DecimalRegister_FromDecimal_RoundTrips()
+    {
+        DecimalRegister reg = 3.14m;
+        decimal result = reg;
+        result.Should().Be(3.14m);
+    }
+
+    [Fact]
+    public void DecimalRegister_FromDecimal_Zero()
+    {
+        DecimalRegister reg = 0m;
+        decimal result = reg;
+        result.Should().Be(0m);
+    }
+
+    [Fact]
+    public void DecimalRegister_FromDecimal_Negative()
+    {
+        DecimalRegister reg = -1.5m;
+        decimal result = reg;
+        result.Should().Be(-1.5m);
+        reg.Sign.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DecimalRegister_Sign_Positive()
+    {
+        DecimalRegister reg = 42m;
+        reg.Sign.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DecimalRegister_Sign_FlipNegates()
+    {
+        DecimalRegister reg = 100m;
+        reg.Sign = true;
+        ((decimal)reg).Should().Be(-100m);
+    }
+
+    [Fact]
+    public void DecimalRegister_Scale_ReflectsDecimalPlaces()
+    {
+        // 1.23 has scale 2 (divided by 10^2)
+        DecimalRegister reg = 1.23m;
+        reg.Scale.Should().Be(2);
+    }
+
+    [Fact]
+    public void DecimalRegister_Coefficient_WholeNumber()
+    {
+        // 42 has coefficient 42 and scale 0
+        DecimalRegister reg = 42m;
+        reg.Coefficient.Should().Be(42);
+        reg.Scale.Should().Be(0);
+    }
+
+    [Fact]
+    public void DecimalRegister_MaxValue_RoundTrips()
+    {
+        DecimalRegister reg = decimal.MaxValue;
+        decimal result = reg;
+        result.Should().Be(decimal.MaxValue);
+    }
+
+    [Fact]
+    public void DecimalRegister_MinValue_RoundTrips()
+    {
+        DecimalRegister reg = decimal.MinValue;
+        decimal result = reg;
+        result.Should().Be(decimal.MinValue);
+    }
+
+    #endregion
+
+    #region Decimal: Arithmetic Tests
+
+    [Fact]
+    public void DecimalRegister_Addition()
+    {
+        DecimalRegister a = 1.5m;
+        DecimalRegister b = 2.5m;
+        decimal result = a + b;
+        result.Should().Be(4.0m);
+    }
+
+    [Fact]
+    public void DecimalRegister_Subtraction()
+    {
+        DecimalRegister a = 10m;
+        DecimalRegister b = 3.5m;
+        decimal result = a - b;
+        result.Should().Be(6.5m);
+    }
+
+    [Fact]
+    public void DecimalRegister_Multiplication()
+    {
+        DecimalRegister a = 3m;
+        DecimalRegister b = 7m;
+        decimal result = a * b;
+        result.Should().Be(21m);
+    }
+
+    [Fact]
+    public void DecimalRegister_Division()
+    {
+        DecimalRegister a = 10m;
+        DecimalRegister b = 4m;
+        decimal result = a / b;
+        result.Should().Be(2.5m);
+    }
+
+    [Fact]
+    public void DecimalRegister_Negation()
+    {
+        DecimalRegister reg = 42m;
+        decimal result = -reg;
+        result.Should().Be(-42m);
+    }
+
+    [Fact]
+    public void DecimalRegister_MixedArithmetic_WithDecimal()
+    {
+        DecimalRegister reg = 10m;
+        decimal result = reg + 5m;
+        result.Should().Be(15m);
+    }
+
+    #endregion
+
+    #region Decimal: Comparison Tests
+
+    [Fact]
+    public void DecimalRegister_LessThan()
+    {
+        DecimalRegister a = 1m;
+        DecimalRegister b = 2m;
+        (a < b).Should().BeTrue();
+        (b < a).Should().BeFalse();
+    }
+
+    [Fact]
+    public void DecimalRegister_CompareTo()
+    {
+        DecimalRegister a = 5m;
+        DecimalRegister b = 10m;
+        a.CompareTo(b).Should().BeNegative();
+        b.CompareTo(a).Should().BePositive();
+        a.CompareTo(a).Should().Be(0);
+    }
+
+    [Fact]
+    public void DecimalRegister_Equality()
+    {
+        DecimalRegister a = 3.14m;
+        DecimalRegister b = 3.14m;
+        (a == b).Should().BeTrue();
+        (a != b).Should().BeFalse();
+    }
+
+    #endregion
+
+    #region Decimal: Parsing and Formatting Tests
+
+    [Fact]
+    public void DecimalRegister_Parse()
+    {
+        var reg = DecimalRegister.Parse("3.14", CultureInfo.InvariantCulture);
+        ((decimal)reg).Should().Be(3.14m);
+    }
+
+    [Fact]
+    public void DecimalRegister_TryParse_Valid()
+    {
+        DecimalRegister.TryParse("42.5", out var result).Should().BeTrue();
+        ((decimal)result).Should().Be(42.5m);
+    }
+
+    [Fact]
+    public void DecimalRegister_TryParse_Invalid()
+    {
+        DecimalRegister.TryParse("not_a_number", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void DecimalRegister_TryParse_Null()
+    {
+        DecimalRegister.TryParse(null, out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void DecimalRegister_ToString_Default()
+    {
+        DecimalRegister reg = 3.14m;
+        reg.ToString().Should().Be(3.14m.ToString());
+    }
+
+    [Fact]
+    public void DecimalRegister_ToString_Format()
+    {
+        DecimalRegister reg = 3.14159m;
+        var str = reg.ToString("F2", CultureInfo.InvariantCulture);
+        str.Should().Be("3.14");
     }
 
     #endregion

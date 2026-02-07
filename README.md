@@ -171,12 +171,17 @@ status = 0x42;                 // Converts from byte
 
 #### Supported Storage Types
 
-| Storage Type | Size | Signed Alternative |
-|--------------|------|-------------------|
-| `byte` | 8 bits | `sbyte` |
-| `ushort` | 16 bits | `short` |
-| `uint` | 32 bits | `int` |
-| `ulong` | 64 bits | `long` |
+| Storage Type | Size | Notes |
+|--------------|------|-------|
+| `byte` | 8 bits | Signed alternative: `sbyte` |
+| `ushort` | 16 bits | Signed alternative: `short` |
+| `uint` | 32 bits | Signed alternative: `int` |
+| `ulong` | 64 bits | Signed alternative: `long` |
+| `float` | 32 bits | IEEE 754 single-precision |
+| `double` | 64 bits | IEEE 754 double-precision |
+| `decimal` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
+| `UInt128` | 128 bits | Signed alternative: `Int128` |
+| `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
 
 #### Signed Property Types (Sign Extension)
 

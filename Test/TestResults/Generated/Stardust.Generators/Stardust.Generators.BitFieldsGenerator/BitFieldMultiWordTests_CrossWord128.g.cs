@@ -39,10 +39,12 @@ public partial class BitFieldMultiWordTests
         public static CrossWord128 Zero => default;
 
         /// <summary>Creates a new CrossWord128 from individual word values.</summary>
-        public CrossWord128(ulong w0, ulong w1)
+        /// <param name="lower">Bits 0-63 (least significant).</param>
+        /// <param name="upper">Bits 64-127 (most significant).</param>
+        public CrossWord128(ulong lower, ulong upper)
         {
-            _w0 = w0;
-            _w1 = w1;
+            _w0 = lower;
+            _w1 = upper;
         }
 
         /// <summary>Creates a new CrossWord128 from a ulong value (zero-extended).</summary>

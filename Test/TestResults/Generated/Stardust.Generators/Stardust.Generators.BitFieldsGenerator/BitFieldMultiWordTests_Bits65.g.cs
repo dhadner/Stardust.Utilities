@@ -39,10 +39,12 @@ public partial class BitFieldMultiWordTests
         public static Bits65 Zero => default;
 
         /// <summary>Creates a new Bits65 from individual word values.</summary>
-        public Bits65(ulong w0, byte w1)
+        /// <param name="lower">Bits 0-63 (least significant).</param>
+        /// <param name="upper">Bits 64-64 (most significant).</param>
+        public Bits65(ulong lower, byte upper)
         {
-            _w0 = w0;
-            _w1 = w1;
+            _w0 = lower;
+            _w1 = upper;
         }
 
         /// <summary>Creates a new Bits65 from a ulong value (zero-extended).</summary>

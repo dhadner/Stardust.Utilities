@@ -38,7 +38,7 @@ namespace Stardust.Utilities;
 public sealed class BitFieldsAttribute : Attribute
 {
     /// <summary>
-    /// The storage type (byte, ushort, uint, ulong, float, double, UInt128, Int128, sbyte, short, int, or long).
+    /// The storage type (byte, ushort, uint, ulong, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).
     /// Null when using the bit-count constructor for arbitrary-size bitfields.
     /// </summary>
     public Type? StorageType { get; }
@@ -58,7 +58,7 @@ public sealed class BitFieldsAttribute : Attribute
     /// <summary>
     /// Creates a BitFields attribute with the specified storage type.
     /// </summary>
-    /// <param name="storageType">The storage type (byte, ushort, uint, ulong, float, double, UInt128, Int128, sbyte, short, int, or long).</param>
+    /// <param name="storageType">The storage type (byte, ushort, uint, ulong, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).</param>
     /// <param name="undefinedBits">Specifies how undefined bits are handled. Defaults to <see cref="UndefinedBitsMustBe.Any"/>.</param>
     public BitFieldsAttribute(Type storageType, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any)
     {

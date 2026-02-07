@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -211,15 +211,15 @@ internal static partial class BitFieldsMultiWordGenerator
         public string Zero(int i) => Literal(i, 0);
 
         /// <summary>Maximum word count for which a full-word positional constructor is generated.</summary>
-        public const int MaxConstructorWords = 4;
+        public const int MAX_CONSTRUCTOR_WORDS = 4;
 
         /// <summary>True if the type has a positional constructor accepting all words.</summary>
-        public bool HasFullConstructor => WordCount <= MaxConstructorWords;
+        public bool HasFullConstructor => WordCount <= MAX_CONSTRUCTOR_WORDS;
     }
 
     /// <summary>
     /// Returns an inline <c>new(expr0, expr1, ...)</c> expression for ?4 word types.
-    /// For >4 words, returns null � caller must use <see cref="EmitBlockConstruction"/>.
+    /// For >4 words, returns null — caller must use <see cref="EmitBlockConstruction"/>.
     /// </summary>
     private static string? InlineNew(WordLayout layout, string[] wordExprs)
     {
@@ -256,6 +256,19 @@ internal static partial class BitFieldsMultiWordGenerator
         }
     }
 
+    /// <summary>
+    /// Returns a descriptive parameter name for word index i out of wc total words.
+    /// Names indicate significance rather than offset to avoid endianness confusion.
+    /// </summary>
+    private static string WordParamName(int i, int wc) => wc switch
+    {
+        1 => "value",
+        2 => i == 0 ? "lower" : "upper",
+        3 => i switch { 0 => "lower", 1 => "middle", _ => "upper" },
+        4 => i switch { 0 => "lower", 1 => "midLower", 2 => "midUpper", _ => "upper" },
+        _ => $"w{i}" // fallback (shouldn't happen, constructor only generated for <=4 words)
+    };
+
     private static void GenerateConstructors(StringBuilder sb, BitFieldsInfo info, WordLayout layout, string ind)
     {
         int wc = layout.WordCount;
@@ -264,22 +277,33 @@ internal static partial class BitFieldsMultiWordGenerator
             ? (layout.RemainderType == "byte" ? 8 : layout.RemainderType == "ushort" ? 16 : layout.RemainderType == "uint" ? 32 : 64)
             : 64);
 
-        // Full word constructor - only for ?4 words (beyond that, use span or fluent API)
+        // Full word constructor - only for ≤4 words (beyond that, use span or fluent API)
         if (wc <= 4)
         {
-            var paramList = string.Join(", ", Enumerable.Range(0, wc).Select(i => $"{layout.FieldType(i)} w{i}"));
+            var paramList = string.Join(", ", Enumerable.Range(0, wc).Select(i =>
+                $"{layout.FieldType(i)} {WordParamName(i, wc)}"));
+
             sb.AppendLine($"{ind}/// <summary>Creates a new {info.TypeName} from individual word values.</summary>");
+            for (int i = 0; i < wc; i++)
+            {
+                int lo = i * 64;
+                int hi = System.Math.Min(lo + (layout.IsRemainder(i) ? layout.RemainderBits - 1 : 63), info.TotalBits - 1);
+                string sig = i == 0 ? "least significant" : i == wc - 1 ? "most significant" : "";
+                string suffix = sig.Length > 0 ? $" ({sig})" : "";
+                sb.AppendLine($"{ind}/// <param name=\"{WordParamName(i, wc)}\">Bits {lo}-{hi}{suffix}.</param>");
+            }
             sb.AppendLine($"{ind}public {info.TypeName}({paramList})");
             sb.AppendLine($"{ind}{{");
             for (int i = 0; i < wc; i++)
             {
+                string pn = WordParamName(i, wc);
                 bool isLast = i == wc - 1;
                 if (isLast && mustMaskLast && info.UndefinedBitsMode == MustBeValue.Zero)
-                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong)w{i} & LastWordMask")};");
+                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} & LastWordMask")};");
                 else if (isLast && mustMaskLast && info.UndefinedBitsMode == MustBeValue.One)
-                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong)w{i} | ~LastWordMask")};");
+                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} | ~LastWordMask")};");
                 else
-                    sb.AppendLine($"{ind}    _w{i} = w{i};");
+                    sb.AppendLine($"{ind}    _w{i} = {pn};");
             }
             sb.AppendLine($"{ind}}}");
             sb.AppendLine();
