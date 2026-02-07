@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, dev ]
   pull_request:
     branches: [ main, master ]
 
@@ -14,20 +14,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup .NET 8
+    - name: Setup .NET 7, 8, 9, and 10
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-
-    - name: Setup .NET 10
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
+        dotnet-version: |
+          7.0.x
+          8.0.x
+          9.0.x
+          10.0.x
 
     - name: Restore dependencies
       run: dotnet restore
@@ -35,10 +29,10 @@ jobs:
     - name: Build Generator
       run: dotnet build Generators/Stardust.Generators.csproj -c Release --no-restore
 
-    - name: Build Library
+    - name: 'Build Library (multi-target: net7.0, net8.0, net9.0, net10.0)'
       run: dotnet build Stardust.Utilities.csproj -c Release --no-restore
 
-    - name: Build Tests
+    - name: 'Build Tests (multi-target: net8.0, net9.0, net10.0)'
       run: dotnet build Test/Stardust.Utilities.Tests.csproj -c Release --no-restore
 
     - name: Run Tests (.NET 8)
