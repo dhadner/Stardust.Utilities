@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(SparseUndefinedZeroJsonConverter))]
 public partial struct SparseUndefinedZero : IComparable, IComparable<SparseUndefinedZero>, IEquatable<SparseUndefinedZero>,
                              IFormattable, ISpanFormattable, IParsable<SparseUndefinedZero>, ISpanParsable<SparseUndefinedZero>
 {
     private sbyte Value;
 
-    /// <summary>Creates a new SparseUndefinedZero with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 1;
+
+    /// <summary>Returns a SparseUndefinedZero with all bits set to zero.</summary>
+    public static SparseUndefinedZero Zero => default;
+
+    /// <summary>Creates a new SparseUndefinedZero with the specified raw bits value.</summary>
     public SparseUndefinedZero(sbyte value) { Value = (sbyte)(((byte)value) & 0x76); }
 
     public partial byte LowField
@@ -185,6 +195,57 @@ public partial struct SparseUndefinedZero : IComparable, IComparable<SparseUndef
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SparseUndefinedZero(int value) => new(unchecked((sbyte)value));
+
+    /// <summary>Creates a new SparseUndefinedZero from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public SparseUndefinedZero(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = unchecked((sbyte)bytes[0]);
+    }
+
+    /// <summary>Creates a new SparseUndefinedZero by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized SparseUndefinedZero.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SparseUndefinedZero ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        destination[0] = unchecked((byte)Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -375,5 +436,22 @@ public partial struct SparseUndefinedZero : IComparable, IComparable<SparseUndef
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(SparseUndefinedZero other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes SparseUndefinedZero as a string.</summary>
+    private sealed class SparseUndefinedZeroJsonConverter : JsonConverter<SparseUndefinedZero>
+    {
+        /// <summary>Reads a SparseUndefinedZero from a JSON string.</summary>
+        public override SparseUndefinedZero Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : SparseUndefinedZero.Parse(s);
+        }
+
+        /// <summary>Writes a SparseUndefinedZero to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, SparseUndefinedZero value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

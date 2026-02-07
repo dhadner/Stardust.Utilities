@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using Xunit;
 
@@ -907,6 +908,160 @@ public partial class BitFieldTests
         // SecondKeyCode (bits 0-6) = 0x00
         // Expected: 0x9A00
         ((ushort)result).Should().Be(0x9A00);
+    }
+
+    #endregion
+
+    #region Byte Span Tests
+
+    [Fact]
+    public void Reg8_SizeInBytes_Is1()
+    {
+        GeneratedStatusReg8.SizeInBytes.Should().Be(1);
+    }
+
+    [Fact]
+    public void Reg8_SpanConstructor_RoundTrips()
+    {
+        GeneratedStatusReg8 original = 0xAB;
+        var bytes = original.ToByteArray();
+        bytes.Length.Should().Be(1);
+        var restored = new GeneratedStatusReg8((ReadOnlySpan<byte>)bytes);
+        ((byte)restored).Should().Be(0xAB);
+    }
+
+    [Fact]
+    public void Reg16_SpanConstructor_RoundTrips()
+    {
+        GeneratedKeyboardReg16 original = 0x9A00;
+        var bytes = original.ToByteArray();
+        bytes.Length.Should().Be(2);
+        var restored = new GeneratedKeyboardReg16((ReadOnlySpan<byte>)bytes);
+        ((ushort)restored).Should().Be(0x9A00);
+    }
+
+    [Fact]
+    public void Reg32_SpanConstructor_RoundTrips()
+    {
+        GeneratedControlReg32 original = 0xDEADBEEF;
+        var bytes = original.ToByteArray();
+        bytes.Length.Should().Be(4);
+        var restored = new GeneratedControlReg32((ReadOnlySpan<byte>)bytes);
+        ((uint)restored).Should().Be(0xDEADBEEF);
+    }
+
+    [Fact]
+    public void Reg64_SpanConstructor_RoundTrips()
+    {
+        GeneratedWideReg64 original = 0xCAFEBABE_DEADBEEF;
+        var bytes = original.ToByteArray();
+        bytes.Length.Should().Be(8);
+        var restored = new GeneratedWideReg64((ReadOnlySpan<byte>)bytes);
+        ((ulong)restored).Should().Be(0xCAFEBABE_DEADBEEF);
+    }
+
+    [Fact]
+    public void Reg32_WriteTo_LittleEndian()
+    {
+        GeneratedControlReg32 value = 0x01020304;
+        Span<byte> buf = stackalloc byte[GeneratedControlReg32.SizeInBytes];
+        value.WriteTo(buf);
+        buf[0].Should().Be(0x04);
+        buf[1].Should().Be(0x03);
+        buf[2].Should().Be(0x02);
+        buf[3].Should().Be(0x01);
+    }
+
+    [Fact]
+    public void Reg64_TryWriteTo_SucceedsWithExactSize()
+    {
+        GeneratedWideReg64 value = 42;
+        Span<byte> buf = stackalloc byte[GeneratedWideReg64.SizeInBytes];
+        value.TryWriteTo(buf, out int written).Should().BeTrue();
+        written.Should().Be(GeneratedWideReg64.SizeInBytes);
+    }
+
+    [Fact]
+    public void Reg64_TryWriteTo_FailsWithTooSmallSpan()
+    {
+        GeneratedWideReg64 value = 42;
+        Span<byte> buf = stackalloc byte[GeneratedWideReg64.SizeInBytes - 1];
+        value.TryWriteTo(buf, out int written).Should().BeFalse();
+        written.Should().Be(0);
+    }
+
+    [Fact]
+    public void Reg8_SpanConstructor_ThrowsOnEmpty()
+    {
+        var act = () => new GeneratedStatusReg8(ReadOnlySpan<byte>.Empty);
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Reg8_ReadFrom_MatchesConstructor()
+    {
+        GeneratedStatusReg8 original = 0x42;
+        var bytes = original.ToByteArray();
+        var fromReadFrom = GeneratedStatusReg8.ReadFrom(bytes);
+        ((byte)fromReadFrom).Should().Be(0x42);
+    }
+
+    #endregion
+
+    #region JSON Serialization Tests
+
+    [Fact]
+    public void Reg8_JsonRoundTrip()
+    {
+        GeneratedStatusReg8 original = 0xAB;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<GeneratedStatusReg8>(json);
+        ((byte)restored).Should().Be(0xAB);
+    }
+
+    [Fact]
+    public void Reg32_JsonRoundTrip()
+    {
+        GeneratedControlReg32 original = 0xDEADBEEF;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<GeneratedControlReg32>(json);
+        ((uint)restored).Should().Be(0xDEADBEEF);
+    }
+
+    [Fact]
+    public void Reg64_JsonRoundTrip()
+    {
+        GeneratedWideReg64 original = 0xCAFEBABE_DEADBEEF;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<GeneratedWideReg64>(json);
+        ((ulong)restored).Should().Be(0xCAFEBABE_DEADBEEF);
+    }
+
+    [Fact]
+    public void Reg8_JsonSerializesAsString()
+    {
+        GeneratedStatusReg8 value = 0xFF;
+        var json = JsonSerializer.Serialize(value);
+        // Should be a JSON string, not a number
+        json.Should().StartWith("\"");
+    }
+
+    [Fact]
+    public void Reg32_JsonDefaultRoundTrip()
+    {
+        GeneratedControlReg32 original = default;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<GeneratedControlReg32>(json);
+        ((uint)restored).Should().Be(0);
+    }
+
+    [Fact]
+    public void Reg8_JsonDeserializeInContainer()
+    {
+        var container = new TestContainer { Status = 0xAB };
+        var json = JsonSerializer.Serialize(container);
+        var restored = JsonSerializer.Deserialize<TestContainer>(json);
+        ((byte)restored!.Status).Should().Be(0xAB);
     }
 
     #endregion

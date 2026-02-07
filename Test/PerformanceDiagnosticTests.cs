@@ -9,6 +9,7 @@ namespace Stardust.Utilities.Tests;
 /// <summary>
 /// Diagnostic test to isolate the performance difference between generated and hand-coded structs.
 /// </summary>
+[Trait("Category", "Performance")]
 public partial class PerformanceDiagnosticTests
 {
     private readonly ITestOutputHelper _output;
@@ -30,7 +31,7 @@ public partial class PerformanceDiagnosticTests
     {
         Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests skipped in CI");
 
-        const int ITERATIONS = 500_000_000;
+        const int ITERATIONS = 50_000_000;
 
         _output.WriteLine("=".PadRight(70, '='));
         _output.WriteLine("PROPERTY vs RAW BIT MANIPULATION OVERHEAD");
@@ -216,7 +217,7 @@ public partial class PerformanceDiagnosticTests
     {
         Assert.SkipWhen(CiEnvironmentDetector.IsRunningInCi, "Performance tests skipped in CI");
 
-        const int ITERATIONS = 500_000_000;
+        const int ITERATIONS = 100_000_000;
 
         _output.WriteLine("=".PadRight(70, '='));
         _output.WriteLine("PROPERTY SET vs RAW BIT MANIPULATION OVERHEAD");

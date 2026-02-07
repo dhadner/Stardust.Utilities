@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(GeneratedWideReg64JsonConverter))]
 public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWideReg64>, IEquatable<GeneratedWideReg64>,
                              IFormattable, ISpanFormattable, IParsable<GeneratedWideReg64>, ISpanParsable<GeneratedWideReg64>
 {
     private ulong Value;
 
-    /// <summary>Creates a new GeneratedWideReg64 with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 8;
+
+    /// <summary>Returns a GeneratedWideReg64 with all bits set to zero.</summary>
+    public static GeneratedWideReg64 Zero => default;
+
+    /// <summary>Creates a new GeneratedWideReg64 with the specified raw bits value.</summary>
     public GeneratedWideReg64(ulong value) { Value = value; }
 
     public partial byte Status
@@ -132,27 +142,27 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static GeneratedWideReg64 operator ^(ulong a, GeneratedWideReg64 b) => new(a ^ b.Value);
 
-    /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator &(GeneratedWideReg64 a, int b) => a.Value & (ulong)b;
 
-    /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator &(int a, GeneratedWideReg64 b) => (ulong)a & b.Value;
 
-    /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator |(GeneratedWideReg64 a, int b) => a.Value | (ulong)b;
 
-    /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator |(int a, GeneratedWideReg64 b) => (ulong)a | b.Value;
 
-    /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator ^(GeneratedWideReg64 a, int b) => a.Value ^ (ulong)b;
 
-    /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator ^(int a, GeneratedWideReg64 b) => (ulong)a ^ b.Value;
 
@@ -274,6 +284,57 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator GeneratedWideReg64(ulong value) => new(value);
+
+    /// <summary>Creates a new GeneratedWideReg64 from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public GeneratedWideReg64(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new GeneratedWideReg64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized GeneratedWideReg64.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static GeneratedWideReg64 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -464,5 +525,22 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(GeneratedWideReg64 other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes GeneratedWideReg64 as a string.</summary>
+    private sealed class GeneratedWideReg64JsonConverter : JsonConverter<GeneratedWideReg64>
+    {
+        /// <summary>Reads a GeneratedWideReg64 from a JSON string.</summary>
+        public override GeneratedWideReg64 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : GeneratedWideReg64.Parse(s);
+        }
+
+        /// <summary>Writes a GeneratedWideReg64 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, GeneratedWideReg64 value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

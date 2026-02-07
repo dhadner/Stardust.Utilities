@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(SignedPropertyReg64JsonConverter))]
 public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPropertyReg64>, IEquatable<SignedPropertyReg64>,
                              IFormattable, ISpanFormattable, IParsable<SignedPropertyReg64>, ISpanParsable<SignedPropertyReg64>
 {
     private ulong Value;
 
-    /// <summary>Creates a new SignedPropertyReg64 with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 8;
+
+    /// <summary>Returns a SignedPropertyReg64 with all bits set to zero.</summary>
+    public static SignedPropertyReg64 Zero => default;
+
+    /// <summary>Creates a new SignedPropertyReg64 with the specified raw bits value.</summary>
     public SignedPropertyReg64(ulong value) { Value = value; }
 
     public partial int HighInt
@@ -87,27 +97,27 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedPropertyReg64 operator ^(ulong a, SignedPropertyReg64 b) => new(a ^ b.Value);
 
-    /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator &(SignedPropertyReg64 a, int b) => a.Value & (ulong)b;
 
-    /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator &(int a, SignedPropertyReg64 b) => (ulong)a & b.Value;
 
-    /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator |(SignedPropertyReg64 a, int b) => a.Value | (ulong)b;
 
-    /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator |(int a, SignedPropertyReg64 b) => (ulong)a | b.Value;
 
-    /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator ^(SignedPropertyReg64 a, int b) => a.Value ^ (ulong)b;
 
-    /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator ^(int a, SignedPropertyReg64 b) => (ulong)a ^ b.Value;
 
@@ -229,6 +239,57 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedPropertyReg64(ulong value) => new(value);
+
+    /// <summary>Creates a new SignedPropertyReg64 from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public SignedPropertyReg64(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new SignedPropertyReg64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized SignedPropertyReg64.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SignedPropertyReg64 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -419,5 +480,22 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(SignedPropertyReg64 other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes SignedPropertyReg64 as a string.</summary>
+    private sealed class SignedPropertyReg64JsonConverter : JsonConverter<SignedPropertyReg64>
+    {
+        /// <summary>Reads a SignedPropertyReg64 from a JSON string.</summary>
+        public override SignedPropertyReg64 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : SignedPropertyReg64.Parse(s);
+        }
+
+        /// <summary>Writes a SignedPropertyReg64 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, SignedPropertyReg64 value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

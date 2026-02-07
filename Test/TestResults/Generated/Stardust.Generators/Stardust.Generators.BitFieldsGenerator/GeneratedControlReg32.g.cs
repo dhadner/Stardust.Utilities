@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(GeneratedControlReg32JsonConverter))]
 public partial struct GeneratedControlReg32 : IComparable, IComparable<GeneratedControlReg32>, IEquatable<GeneratedControlReg32>,
                              IFormattable, ISpanFormattable, IParsable<GeneratedControlReg32>, ISpanParsable<GeneratedControlReg32>
 {
     private uint Value;
 
-    /// <summary>Creates a new GeneratedControlReg32 with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 4;
+
+    /// <summary>Returns a GeneratedControlReg32 with all bits set to zero.</summary>
+    public static GeneratedControlReg32 Zero => default;
+
+    /// <summary>Creates a new GeneratedControlReg32 with the specified raw bits value.</summary>
     public GeneratedControlReg32(uint value) { Value = value; }
 
     public partial uint Address
@@ -260,6 +270,57 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator GeneratedControlReg32(uint value) => new(value);
 
+    /// <summary>Creates a new GeneratedControlReg32 from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public GeneratedControlReg32(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new GeneratedControlReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized GeneratedControlReg32.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static GeneratedControlReg32 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
+
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
 
@@ -449,5 +510,22 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(GeneratedControlReg32 other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes GeneratedControlReg32 as a string.</summary>
+    private sealed class GeneratedControlReg32JsonConverter : JsonConverter<GeneratedControlReg32>
+    {
+        /// <summary>Reads a GeneratedControlReg32 from a JSON string.</summary>
+        public override GeneratedControlReg32 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : GeneratedControlReg32.Parse(s);
+        }
+
+        /// <summary>Writes a GeneratedControlReg32 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, GeneratedControlReg32 value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

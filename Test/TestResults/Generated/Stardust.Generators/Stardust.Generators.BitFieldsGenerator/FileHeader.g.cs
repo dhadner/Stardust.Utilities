@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(FileHeaderJsonConverter))]
 public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquatable<FileHeader>,
                              IFormattable, ISpanFormattable, IParsable<FileHeader>, ISpanParsable<FileHeader>
 {
     private ulong Value;
 
-    /// <summary>Creates a new FileHeader with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 8;
+
+    /// <summary>Returns a FileHeader with all bits set to zero.</summary>
+    public static FileHeader Zero => default;
+
+    /// <summary>Creates a new FileHeader with the specified raw bits value.</summary>
     public FileHeader(ulong value) { Value = value; }
 
     public partial ushort Magic
@@ -132,27 +142,27 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static FileHeader operator ^(ulong a, FileHeader b) => new(a ^ b.Value);
 
-    /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator &(FileHeader a, int b) => a.Value & (ulong)b;
 
-    /// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator &(int a, FileHeader b) => (ulong)a & b.Value;
 
-    /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator |(FileHeader a, int b) => a.Value | (ulong)b;
 
-    /// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator |(int a, FileHeader b) => (ulong)a | b.Value;
 
-    /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator ^(FileHeader a, int b) => a.Value ^ (ulong)b;
 
-    /// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>
+    /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong operator ^(int a, FileHeader b) => (ulong)a ^ b.Value;
 
@@ -274,6 +284,57 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator FileHeader(ulong value) => new(value);
+
+    /// <summary>Creates a new FileHeader from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public FileHeader(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new FileHeader by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized FileHeader.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FileHeader ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -464,5 +525,22 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(FileHeader other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes FileHeader as a string.</summary>
+    private sealed class FileHeaderJsonConverter : JsonConverter<FileHeader>
+    {
+        /// <summary>Reads a FileHeader from a JSON string.</summary>
+        public override FileHeader Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : FileHeader.Parse(s);
+        }
+
+        /// <summary>Writes a FileHeader to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, FileHeader value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

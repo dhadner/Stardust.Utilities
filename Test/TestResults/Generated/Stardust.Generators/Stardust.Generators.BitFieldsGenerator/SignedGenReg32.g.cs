@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(SignedGenReg32JsonConverter))]
 public partial struct SignedGenReg32 : IComparable, IComparable<SignedGenReg32>, IEquatable<SignedGenReg32>,
                              IFormattable, ISpanFormattable, IParsable<SignedGenReg32>, ISpanParsable<SignedGenReg32>
 {
     private int Value;
 
-    /// <summary>Creates a new SignedGenReg32 with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 4;
+
+    /// <summary>Returns a SignedGenReg32 with all bits set to zero.</summary>
+    public static SignedGenReg32 Zero => default;
+
+    /// <summary>Creates a new SignedGenReg32 with the specified raw bits value.</summary>
     public SignedGenReg32(int value) { Value = value; }
 
     public partial ushort LowWord
@@ -236,6 +246,57 @@ public partial struct SignedGenReg32 : IComparable, IComparable<SignedGenReg32>,
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedGenReg32(int value) => new(value);
 
+    /// <summary>Creates a new SignedGenReg32 from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public SignedGenReg32(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadInt32LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new SignedGenReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized SignedGenReg32.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SignedGenReg32 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteInt32LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
+
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
 
@@ -425,5 +486,22 @@ public partial struct SignedGenReg32 : IComparable, IComparable<SignedGenReg32>,
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(SignedGenReg32 other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes SignedGenReg32 as a string.</summary>
+    private sealed class SignedGenReg32JsonConverter : JsonConverter<SignedGenReg32>
+    {
+        /// <summary>Reads a SignedGenReg32 from a JSON string.</summary>
+        public override SignedGenReg32 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : SignedGenReg32.Parse(s);
+        }
+
+        /// <summary>Writes a SignedGenReg32 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, SignedGenReg32 value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

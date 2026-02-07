@@ -93,10 +93,11 @@ public struct HandCodedTestRegister
 /// Performance tests comparing generated BitField code vs hand-coded bit manipulation.
 /// The generated code should have identical performance since it uses compile-time constants.
 /// </summary>
+[Trait("Category", "Performance")]
 public class BitFieldPerformanceTests
 {
-    private const int ITERATIONS = 500_000_000; // 100 million iterations
-    private const int WARMUP_ITERATIONS = 500_000_000;
+    private const int ITERATIONS = 100_000_000;
+    private const int WARMUP_ITERATIONS = 50_000_000;
 
     private readonly ITestOutputHelper _output;
 

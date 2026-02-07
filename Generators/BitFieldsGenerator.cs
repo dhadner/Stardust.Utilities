@@ -12,7 +12,7 @@ namespace Stardust.Generators;
 /// Generates inline bit manipulation code with compile-time constants for maximum performance.
 /// </summary>
 [Generator]
-public class BitFieldsGenerator : IIncrementalGenerator
+public partial class BitFieldsGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -42,25 +42,79 @@ public class BitFieldsGenerator : IIncrementalGenerator
             return null;
 
         string? storageType = null;
+        bool isMultiWord = false;
+        int bitCount = 0;
 
-        // Get type from attribute: [BitFields(typeof(byte))]
+        // Detect constructor form: [BitFields(typeof(T))] vs [BitFields(int)]
         if (bitFieldsAttr.ConstructorArguments.Length >= 1)
         {
-            var storageTypeArg = bitFieldsAttr.ConstructorArguments[0];
-            if (storageTypeArg.Value is INamedTypeSymbol storageTypeSymbol)
+            var firstArg = bitFieldsAttr.ConstructorArguments[0];
+            if (firstArg.Value is INamedTypeSymbol storageTypeSymbol)
             {
+                // Type-based constructor: [BitFields(typeof(byte))]
                 storageType = storageTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            }
+            else if (firstArg.Value is int bitCountValue)
+            {
+                // Int-based constructor: [BitFields(200)]
+                isMultiWord = true;
+                bitCount = bitCountValue;
+                if (bitCount < 1 || bitCount > BitFieldsMultiWordGenerator.MAX_BIT_COUNT)
+                    return null;
             }
         }
 
-        if (storageType == null)
+        if (storageType == null && !isMultiWord)
             return null;
 
         bool storageTypeIsSigned;
         string unsignedStorageType;
+        string? floatingPointType = null;
+        string? nativeWideType = null;
 
+        if (isMultiWord)
+        {
+            // MultiWord mode: storage is multiple ulongs
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            storageType = "ulong"; // placeholder for compatibility
+        }
+        // Float/double: NativeFloat mode — stored as uint/ulong, user-facing type is float/double
+        else if (storageType == "float")
+        {
+            storageTypeIsSigned = false;
+            unsignedStorageType = "uint";
+            floatingPointType = "float";
+            storageType = "uint"; // internal storage is uint
+        }
+        else if (storageType == "double")
+        {
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            floatingPointType = "double";
+            storageType = "ulong"; // internal storage is ulong
+        }
+        // UInt128/Int128: route through multi-word (2 ulongs) with native type conversions
+        else if (storageType == "UInt128")
+        {
+            isMultiWord = true;
+            bitCount = 128;
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            nativeWideType = "UInt128";
+            storageType = "ulong";
+        }
+        else if (storageType == "Int128")
+        {
+            isMultiWord = true;
+            bitCount = 128;
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            nativeWideType = "Int128";
+            storageType = "ulong";
+        }
         // Validate storage type
-        if (storageType == "byte" || storageType == "ushort" || storageType == "uint" || storageType == "ulong")
+        else if (storageType == "byte" || storageType == "ushort" || storageType == "uint" || storageType == "ulong")
         {
             storageTypeIsSigned = false;
             unsignedStorageType = storageType;
@@ -155,17 +209,46 @@ public class BitFieldsGenerator : IIncrementalGenerator
             undefinedBitsMode = (MustBeValue)modeValue;
         }
 
+        // Determine storage mode, word count, and total bits
+        StorageMode mode;
+        int wordCount;
+        int totalBits;
+
+        if (isMultiWord)
+        {
+            mode = StorageMode.MultiWord;
+            wordCount = (bitCount + 63) / 64;
+            totalBits = bitCount;
+        }
+        else if (floatingPointType != null)
+        {
+            mode = StorageMode.NativeFloat;
+            wordCount = 1;
+            totalBits = GetStorageTypeBitWidth(storageType!);
+        }
+        else
+        {
+            mode = StorageMode.NativeInteger;
+            wordCount = 1;
+            totalBits = GetStorageTypeBitWidth(storageType!);
+        }
+
         return new BitFieldsInfo(
             structSymbol.Name,
             ns,
             GetAccessibility(structSymbol),
-            storageType,
+            storageType!,
             storageTypeIsSigned,
             unsignedStorageType,
             fields,
             flags,
             containingTypes,
-            undefinedBitsMode);
+            undefinedBitsMode,
+            mode,
+            wordCount,
+            totalBits,
+            floatingPointType,
+            nativeWideType);
     }
 
     private static string GetAccessibility(ISymbol symbol)
@@ -182,6 +265,13 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
     private static void Execute(SourceProductionContext context, BitFieldsInfo info)
     {
+        // Dispatch to the appropriate generator based on storage mode
+        if (info.Mode == StorageMode.MultiWord)
+        {
+            BitFieldsMultiWordGenerator.Execute(context, info);
+            return;
+        }
+
         var sb = new StringBuilder();
 
         sb.AppendLine("// <auto-generated>");
@@ -192,8 +282,11 @@ public class BitFieldsGenerator : IIncrementalGenerator
         // When mixing signed int with ulong registers, sign extension to 64 bits is the expected behavior.
         sb.AppendLine("#pragma warning disable CS0675");
         sb.AppendLine("using System;");
+        sb.AppendLine("using System.Buffers.Binary;");
         sb.AppendLine("using System.Globalization;");
         sb.AppendLine("using System.Runtime.CompilerServices;");
+        sb.AppendLine("using System.Text.Json;");
+        sb.AppendLine("using System.Text.Json.Serialization;");
         sb.AppendLine();
 
         if (!string.IsNullOrEmpty(info.Namespace))
@@ -213,6 +306,7 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
         string indent = new string(' ', indentLevel * 4);
 
+        sb.AppendLine($"{indent}[JsonConverter(typeof({info.TypeName}JsonConverter))]");
         sb.AppendLine($"{indent}{info.Accessibility} partial struct {info.TypeName} : IComparable, IComparable<{info.TypeName}>, IEquatable<{info.TypeName}>,");
         sb.AppendLine($"{indent}                             IFormattable, ISpanFormattable, IParsable<{info.TypeName}>, ISpanParsable<{info.TypeName}>");
         sb.AppendLine($"{indent}{{");
@@ -232,7 +326,14 @@ public class BitFieldsGenerator : IIncrementalGenerator
         // Generate private Value field and constructor
         sb.AppendLine($"{memberIndent}private {info.StorageType} Value;");
         sb.AppendLine();
-        sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw value.</summary>");
+        int sizeInBytes = GetStorageTypeBitWidth(info.StorageType) / 8;
+        sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes.</summary>");
+        sb.AppendLine($"{memberIndent}public const int SizeInBytes = {sizeInBytes};");
+        sb.AppendLine();
+        sb.AppendLine($"{memberIndent}/// <summary>Returns a {info.TypeName} with all bits set to zero.</summary>");
+        sb.AppendLine($"{memberIndent}public static {info.TypeName} Zero => default;");
+        sb.AppendLine();
+        sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw bits value.</summary>");
         
         // Constructor applies undefined bits handling based on mode
         if (!hasUndefinedBits || info.UndefinedBitsMode == MustBeValue.Any)
@@ -263,87 +364,55 @@ public class BitFieldsGenerator : IIncrementalGenerator
         }
         sb.AppendLine();
 
-        // Generate property implementations with inline constants
-        foreach (var field in info.Fields)
+        // NativeFloat: add floating-point constructor
+        if (info.Mode == StorageMode.NativeFloat)
         {
-            GenerateBitFieldProperty(sb, info, field, memberIndent);
-        }
-
-        foreach (var flag in info.Flags)
-        {
-            GenerateBitFlagProperty(sb, info, flag, memberIndent);
-        }
-
-
-        // Generate static Bit properties for each BitFlag
-        foreach (var flag in info.Flags)
-        {
-            GenerateStaticBitProperty(sb, info, flag, memberIndent);
-        }
-
-        // Generate static Mask properties for each BitField
-        foreach (var field in info.Fields)
-        {
-            GenerateStaticMaskProperty(sb, info, field, memberIndent);
-        }
-
-        // Generate With{Name} methods for fluent API
-        foreach (var flag in info.Flags)
-        {
-            GenerateWithBitFlagMethod(sb, info, flag, memberIndent);
-        }
-
-        foreach (var field in info.Fields)
-        {
-            GenerateWithBitFieldMethod(sb, info, field, memberIndent);
-        }
-
-        // Generate bitwise operators
-        GenerateBitwiseOperators(sb, info, memberIndent);
-
-        // Generate arithmetic operators
-        GenerateArithmeticOperators(sb, info, memberIndent);
-
-        // Generate shift operators
-        GenerateShiftOperators(sb, info, memberIndent);
-
-        // Generate comparison operators
-        GenerateComparisonOperators(sb, info, memberIndent);
-
-        // Generate equality operators
-        GenerateEqualityOperators(sb, info, memberIndent);
-
-        // Generate implicit conversions
-        // Note: The constructor handles undefined bits masking, so conversions just call new()
-        sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{memberIndent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
-        sb.AppendLine();
-        
-        sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{memberIndent}public static implicit operator {info.TypeName}({info.StorageType} value) => new(value);");
-        sb.AppendLine();
-
-        // For small types, add implicit conversion from int to allow intuitive patterns like:
-        //   MyBitFields x = (bits >> n) & 1;
-        // This is safe because BitFields types inherently represent narrower values,
-        // and truncation is expected (similar to assigning int to byte explicitly).
-        if (info.StorageType == "byte" || info.StorageType == "sbyte" || 
-            info.StorageType == "short" || info.StorageType == "ushort")
-        {
-            sb.AppendLine($"{memberIndent}/// <summary>Implicit conversion from int. Truncates to storage type.</summary>");
+            string fp = info.FloatingPointType!;
+            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
+            sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} from a {fp} value.</summary>");
             sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{memberIndent}public static implicit operator {info.TypeName}(int value) => new(unchecked(({info.StorageType})value));");
+            sb.AppendLine($"{memberIndent}public {info.TypeName}({fp} value) : this({toBits}(value)) {{ }}");
             sb.AppendLine();
         }
 
-        // Generate parsing methods (IParsable<T> and ISpanParsable<T>)
+        // Generate property implementations with inline constants
+        foreach (var field in info.Fields)
+            GenerateBitFieldProperty(sb, info, field, memberIndent);
+        foreach (var flag in info.Flags)
+            GenerateBitFlagProperty(sb, info, flag, memberIndent);
+
+        // Generate static Bit/Mask properties
+        foreach (var flag in info.Flags)
+            GenerateStaticBitProperty(sb, info, flag, memberIndent);
+        foreach (var field in info.Fields)
+            GenerateStaticMaskProperty(sb, info, field, memberIndent);
+
+        // Generate With{Name} methods for fluent API
+        foreach (var flag in info.Flags)
+            GenerateWithBitFlagMethod(sb, info, flag, memberIndent);
+        foreach (var field in info.Fields)
+            GenerateWithBitFieldMethod(sb, info, field, memberIndent);
+
+        // Generate operators
+        GenerateBitwiseOperators(sb, info, memberIndent);
+        GenerateArithmeticOperators(sb, info, memberIndent);
+        GenerateShiftOperators(sb, info, memberIndent);
+        GenerateComparisonOperators(sb, info, memberIndent);
+        GenerateEqualityOperators(sb, info, memberIndent);
+
+        // Generate conversions
+        GenerateConversions(sb, info, memberIndent);
+
+        // Generate byte span serialization methods
+        GenerateByteSpanMethods(sb, info, memberIndent);
+
+        // Generate parsing, formatting, and comparison interface methods
         GenerateParsingMethods(sb, info, memberIndent);
-
-        // Generate formatting methods (IFormattable and ISpanFormattable)
         GenerateFormattingMethods(sb, info, memberIndent);
-
-        // Generate comparison and equality interface methods
         GenerateComparisonMethods(sb, info, memberIndent);
+
+        // Generate JSON converter
+        GenerateJsonConverter(sb, info, memberIndent);
 
         sb.AppendLine($"{indent}}}");
 
@@ -361,1226 +430,4 @@ public class BitFieldsGenerator : IIncrementalGenerator
 
         context.AddSource(fileName, SourceText.From(sb.ToString(), Encoding.UTF8));
     }
-
-
-
-
-    /// <summary>
-    /// Generates a BitField property with inline constants for maximum performance.
-    /// For signed property types (sbyte, short, int, long), sign extension is performed
-    /// when the field width is smaller than the property type width.
-    /// </summary>
-    private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
-    {
-        int shift = field.Shift;
-        int width = field.Width;
-        int endBit = shift + width - 1;
-        
-        // Calculate masks as compile-time constants
-        ulong mask = (1UL << width) - 1;
-        ulong shiftedMask = mask << shift;
-        ulong invertedShiftedMask = ~shiftedMask;
-
-        // For signed types, use unsigned type for mask operations to avoid sign extension issues
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        
-        // Format masks - always use unsigned representation for masks
-        string maskHex = FormatHex(mask, maskType);
-        string shiftedMaskHex = FormatHex(shiftedMask, maskType);
-        string invertedMaskHex = FormatHex(invertedShiftedMask, maskType);
-
-        // Check if the property type is signed and needs sign extension
-        bool propertyTypeIsSigned = IsSignedType(field.PropertyType);
-        int propertyTypeBitWidth = GetTypeBitWidth(field.PropertyType);
-        bool needsSignExtension = propertyTypeIsSigned && width < propertyTypeBitWidth;
-
-        sb.AppendLine($"{indent}public partial {field.PropertyType} {field.Name}");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        
-        // Getter: For signed property types with field width < type width, perform sign extension
-        if (needsSignExtension)
-        {
-            // Optimized sign extension: mask in place, then shift left/right for sign extension.
-            // This is more efficient than extract-then-extend (saves one shift operation).
-            // Formula: ((signExtendType)(Value & shiftedMask) << leftShift) >> rightShift
-            // - leftShift positions the field's MSB at the sign bit of the intermediate type
-            // - rightShift propagates the sign and moves the result to bits [0, width-1]
-            string signExtendType = GetSignExtendIntermediateType(field.PropertyType);
-            int intermediateTypeBitWidth = signExtendType == "long" ? 64 : 32;
-            int leftShift = intermediateTypeBitWidth - 1 - endBit;  // Put field MSB at bit 31 (or 63)
-            int rightShift = intermediateTypeBitWidth - width;       // Propagate sign to result width
-            
-            if (info.StorageTypeIsSigned)
-            {
-                // For signed storage, cast to unsigned first to avoid unwanted sign extension
-                sb.AppendLine($"{indent}    get => ({field.PropertyType})((({signExtendType})((({info.UnsignedStorageType})Value) & {shiftedMaskHex}) << {leftShift}) >> {rightShift});");
-            }
-            else
-            {
-                sb.AppendLine($"{indent}    get => ({field.PropertyType})((({signExtendType})(Value & {shiftedMaskHex}) << {leftShift}) >> {rightShift});");
-            }
-        }
-        else
-        {
-            // No sign extension needed - original behavior
-            if (info.StorageTypeIsSigned)
-            {
-                if (shift == 0)
-                {
-                    sb.AppendLine($"{indent}    get => ({field.PropertyType})((({info.UnsignedStorageType})Value) & {maskHex});");
-                }
-                else
-                {
-                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(((({info.UnsignedStorageType})Value) >> {shift}) & {maskHex});");
-                }
-            }
-            else
-            {
-                if (shift == 0)
-                {
-                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(Value & {maskHex});");
-                }
-                else
-                {
-                    sb.AppendLine($"{indent}    get => ({field.PropertyType})((Value >> {shift}) & {maskHex});");
-                }
-            }
-        }
-
-        sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        
-        // Setter: For signed types, do operations in unsigned space then cast back
-        // Setter masks off any sign-extended bits, so no change needed
-        if (info.StorageTypeIsSigned)
-        {
-            if (shift == 0)
-            {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | ((({info.UnsignedStorageType})value) & {shiftedMaskHex}));");
-            }
-            else
-            {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex}));");
-            }
-        }
-        else
-        {
-            if (shift == 0)
-            {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value) & {shiftedMaskHex}));");
-            }
-            else
-            {
-                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType})value) << {shift}) & {shiftedMaskHex}));");
-            }
-        }
-        
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Determines if a type name represents a signed integer type.
-    /// </summary>
-    private static bool IsSignedType(string typeName)
-    {
-        return typeName == "sbyte" || typeName == "short" || typeName == "int" || typeName == "long";
-    }
-
-    /// <summary>
-    /// Gets the bit width of a numeric type.
-    /// </summary>
-    private static int GetTypeBitWidth(string typeName)
-    {
-        return typeName switch
-        {
-            "sbyte" or "byte" => 8,
-            "short" or "ushort" => 16,
-            "int" or "uint" => 32,
-            "long" or "ulong" => 64,
-            _ => 32 // Default to int size for unknown types
-        };
-    }
-
-    /// <summary>
-    /// Gets the signed intermediate type to use for sign extension.
-    /// For sbyte/short, we use int. For int, we use int. For long, we use long.
-    /// </summary>
-    private static string GetSignExtendIntermediateType(string propertyType)
-    {
-        return propertyType switch
-        {
-            "sbyte" or "short" or "int" => "int",
-            "long" => "long",
-            _ => "int"
-        };
-    }
-
-    /// <summary>
-    /// Gets the bit width of a storage type.
-    /// </summary>
-    private static int GetStorageTypeBitWidth(string storageType)
-    {
-        return storageType switch
-        {
-            "sbyte" or "byte" => 8,
-            "short" or "ushort" => 16,
-            "int" or "uint" => 32,
-            "long" or "ulong" => 64,
-            _ => 32
-        };
-    }
-
-    /// <summary>
-    /// Calculates the maximum bit index that is defined by any field or flag.
-    /// Returns -1 if no fields or flags are defined.
-    /// </summary>
-    private static int CalculateMaxDefinedBit(BitFieldsInfo info)
-    {
-        int maxBit = -1;
-
-        // Check all BitField properties
-        foreach (var field in info.Fields)
-        {
-            int fieldMaxBit = field.Shift + field.Width - 1;
-            if (fieldMaxBit > maxBit)
-                maxBit = fieldMaxBit;
-        }
-
-        // Check all BitFlag properties
-        foreach (var flag in info.Flags)
-        {
-            if (flag.Bit > maxBit)
-                maxBit = flag.Bit;
-        }
-
-        return maxBit;
-    }
-
-    /// <summary>
-    /// Calculates a bitmask of ALL defined bits (union of all field and flag bit positions).
-    /// This handles sparse undefined bits (e.g., bits 0, 3, 7 undefined with gaps).
-    /// </summary>
-    private static ulong CalculateDefinedBitsMask(BitFieldsInfo info)
-    {
-        ulong mask = 0;
-
-        // Add all BitField bit ranges
-        foreach (var field in info.Fields)
-        {
-            // For a field at shift with width, set bits [shift, shift+width-1]
-            ulong fieldMask = ((1UL << field.Width) - 1) << field.Shift;
-            mask |= fieldMask;
-        }
-
-        // Add all BitFlag bits
-        foreach (var flag in info.Flags)
-        {
-            mask |= 1UL << flag.Bit;
-        }
-
-        return mask;
-    }
-
-    /// <summary>
-    /// Generates a BitFlag property with inline constants for maximum performance.
-    /// </summary>
-    private static void GenerateBitFlagProperty(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
-    {
-        int bit = flag.Bit;
-        
-        // Calculate mask as compile-time constant
-        ulong mask = 1UL << bit;
-        ulong invertedMask = ~mask;
-
-        // For signed types, use unsigned type for mask operations
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        
-        string maskHex = FormatHex(mask, maskType);
-        string invertedMaskHex = FormatHex(invertedMask, maskType);
-
-
-        sb.AppendLine($"{indent}public partial bool {flag.Name}");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        
-        if (info.StorageTypeIsSigned)
-        {
-            sb.AppendLine($"{indent}    get => ((({info.UnsignedStorageType})Value) & {maskHex}) != 0;");
-            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}    set => Value = value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex});");
-        }
-        else
-        {
-            sb.AppendLine($"{indent}    get => (Value & {maskHex}) != 0;");
-            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}    set => Value = value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex});");
-        }
-        
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates a static property that returns a struct with only the specified bit set.
-    /// E.g., CA1_VblBit returns a new IFRFields with only the CA1_Vbl bit set.
-    /// </summary>
-    private static void GenerateStaticBitProperty(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
-    {
-        int bit = flag.Bit;
-        ulong mask = 1UL << bit;
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        string maskHex = FormatHex(mask, maskType);
-
-        // For signed types, we need unchecked for values that exceed signed max
-        string castExpr = info.StorageTypeIsSigned 
-            ? $"unchecked(({info.StorageType}){maskHex})"
-            : $"({info.StorageType}){maskHex}";
-
-        sb.AppendLine($"{indent}/// <summary>Returns a {info.TypeName} with only the {flag.Name} bit set.</summary>");
-        sb.AppendLine($"{indent}public static {info.TypeName} {flag.Name}Bit => new({castExpr});");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates a static property that returns a struct with the mask for the specified field.
-    /// E.g., SoundMask returns a new RegAFields with bits 0-2 set (0x07).
-    /// </summary>
-    private static void GenerateStaticMaskProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
-    {
-        int shift = field.Shift;
-        int width = field.Width;
-        ulong mask = ((1UL << width) - 1) << shift;
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        string maskHex = FormatHex(mask, maskType);
-
-        // For signed types, we need unchecked for values that exceed signed max
-        string castExpr = info.StorageTypeIsSigned 
-            ? $"unchecked(({info.StorageType}){maskHex})"
-            : $"({info.StorageType}){maskHex}";
-
-        sb.AppendLine($"{indent}/// <summary>Returns a {info.TypeName} with the mask for the {field.Name} field (bits {shift}-{shift + width - 1}).</summary>");
-        sb.AppendLine($"{indent}public static {info.TypeName} {field.Name}Mask => new({castExpr});");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates a With{Name} method for a BitFlag that returns a new struct with the flag set/cleared.
-    /// E.g., WithReady(true) returns a new IFRFields with the Ready bit set.
-    /// </summary>
-    private static void GenerateWithBitFlagMethod(StringBuilder sb, BitFieldsInfo info, BitFlagInfo flag, string indent)
-    {
-        int bit = flag.Bit;
-        ulong mask = 1UL << bit;
-        ulong invertedMask = ~mask;
-
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        string maskHex = FormatHex(mask, maskType);
-        string invertedMaskHex = FormatHex(invertedMask, maskType);
-
-        sb.AppendLine($"{indent}/// <summary>Returns a new {info.TypeName} with the {flag.Name} flag set to the specified value.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-
-        if (info.StorageTypeIsSigned)
-        {
-            sb.AppendLine($"{indent}public {info.TypeName} With{flag.Name}(bool value) => new(value ? ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex}) : ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex}));");
-        }
-        else
-        {
-            sb.AppendLine($"{indent}public {info.TypeName} With{flag.Name}(bool value) => new(value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex}));");
-        }
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates a With{Name} method for a BitField that returns a new struct with the field set to a value.
-    /// E.g., WithSound(5) returns a new RegAFields with the Sound field set to 5.
-    /// </summary>
-    private static void GenerateWithBitFieldMethod(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
-    {
-        int shift = field.Shift;
-        int width = field.Width;
-
-        ulong mask = (1UL << width) - 1;
-        ulong shiftedMask = mask << shift;
-        ulong invertedShiftedMask = ~shiftedMask;
-
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        string shiftedMaskHex = FormatHex(shiftedMask, maskType);
-        string invertedMaskHex = FormatHex(invertedShiftedMask, maskType);
-
-        sb.AppendLine($"{indent}/// <summary>Returns a new {info.TypeName} with the {field.Name} field set to the specified value.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-
-        if (info.StorageTypeIsSigned)
-        {
-            if (shift == 0)
-            {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex})));");
-            }
-            else
-            {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {shift}) & {shiftedMaskHex})));");
-            }
-        }
-        else
-        {
-            if (shift == 0)
-            {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex})));");
-            }
-            else
-            {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {shift}) & {shiftedMaskHex})));");
-            }
-        }
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates bitwise operators: |, &amp;, ^, ~
-    /// For small types (byte, sbyte, short, ushort), generates widening operators with int.
-    /// For larger types, generates mixed operators with the storage type.
-    /// </summary>
-    private static void GenerateBitwiseOperators(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-        string s = info.StorageType;
-
-        // Unary complement ~
-        sb.AppendLine($"{indent}/// <summary>Bitwise complement operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator ~({t} a) => new(({s})~a.Value);");
-        sb.AppendLine();
-
-        // Binary OR | (same type)
-        sb.AppendLine($"{indent}/// <summary>Bitwise OR operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator |({t} a, {t} b) => new(({s})(a.Value | b.Value));");
-        sb.AppendLine();
-
-        // Binary AND & (same type)
-        sb.AppendLine($"{indent}/// <summary>Bitwise AND operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator &({t} a, {t} b) => new(({s})(a.Value & b.Value));");
-        sb.AppendLine();
-
-        // Binary XOR ^ (same type)
-        sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator ^({t} a, {t} b) => new(({s})(a.Value ^ b.Value));");
-        sb.AppendLine();
-
-        // For small types (byte, sbyte, short, ushort), DON'T generate mixed int operators.
-        // The shift operators return int (widening), so `(bits >> 1) & 1` works with native int ops.
-        // This avoids ambiguity with the implicit conversion to storage type.
-        if (s == "byte" || s == "sbyte" || s == "short" || s == "ushort")
-        {
-            // No mixed operators - shift returns int, use native int operators for `& 1` etc.
-        }
-        // For int storage type: generate mixed operators with int (storage type).
-        else if (s == "int")
-        {
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &({t} a, int b) => new(a.Value & b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &(int a, {t} b) => new(a & b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |({t} a, int b) => new(a.Value | b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |(int a, {t} b) => new(a | b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^({t} a, int b) => new(a.Value ^ b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^(int a, {t} b) => new(a ^ b.Value);");
-            sb.AppendLine();
-        }
-        // For uint storage type: generate both uint operators and widening int operators (returning long)
-        else if (s == "uint")
-        {
-            // Storage type operators
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with uint.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &({t} a, uint b) => new(a.Value & b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with uint.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &(uint a, {t} b) => new(a & b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with uint.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |({t} a, uint b) => new(a.Value | b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with uint.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |(uint a, {t} b) => new(a | b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with uint.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^({t} a, uint b) => new(a.Value ^ b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with uint.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^(uint a, {t} b) => new(a ^ b.Value);");
-            sb.AppendLine();
-
-            // Widening int operators (return long)
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator &({t} a, int b) => a.Value & (long)b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator &(int a, {t} b) => (long)a & b.Value;");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator |({t} a, int b) => a.Value | (long)b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator |(int a, {t} b) => (long)a | b.Value;");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator ^({t} a, int b) => a.Value ^ (long)b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator ^(int a, {t} b) => (long)a ^ b.Value;");
-            sb.AppendLine();
-        }
-        // For long storage type: generate both long operators and widening int operators
-        else if (s == "long")
-        {
-            // Storage type operators
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &({t} a, long b) => new(a.Value & b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &(long a, {t} b) => new(a & b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |({t} a, long b) => new(a.Value | b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |(long a, {t} b) => new(a | b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^({t} a, long b) => new(a.Value ^ b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^(long a, {t} b) => new(a ^ b.Value);");
-            sb.AppendLine();
-
-            // Widening int operators (return long)
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator &({t} a, int b) => a.Value & b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator &(int a, {t} b) => a & b.Value;");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator |({t} a, int b) => a.Value | b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator |(int a, {t} b) => a | b.Value;");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator ^({t} a, int b) => a.Value ^ b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns long.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator ^(int a, {t} b) => a ^ b.Value;");
-            sb.AppendLine();
-        }
-        // For ulong storage type: generate both ulong operators and widening int operators
-        else if (s == "ulong")
-        {
-            // Storage type operators
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &({t} a, ulong b) => new(a.Value & b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator &(ulong a, {t} b) => new(a & b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |({t} a, ulong b) => new(a.Value | b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator |(ulong a, {t} b) => new(a | b.Value);");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^({t} a, ulong b) => new(a.Value ^ b);");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator ^(ulong a, {t} b) => new(a ^ b.Value);");
-            sb.AppendLine();
-
-            // Widening int operators (return ulong via cast)
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static ulong operator &({t} a, int b) => a.Value & (ulong)b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static ulong operator &(int a, {t} b) => (ulong)a & b.Value;");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static ulong operator |({t} a, int b) => a.Value | (ulong)b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static ulong operator |(int a, {t} b) => (ulong)a | b.Value;");
-            sb.AppendLine();
-
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static ulong operator ^({t} a, int b) => a.Value ^ (ulong)b;");
-            sb.AppendLine();
-            sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns ulong.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static ulong operator ^(int a, {t} b) => (ulong)a ^ b.Value;");
-            sb.AppendLine();
-        }
-    }
-
-    /// <summary>
-    /// Generates arithmetic operators: +, -, *, /, %
-    /// Note: Unary +/- are provided for all types for convenience, though native unsigned types
-    /// don't support unary -. Behavior matches Int32Be pattern with two's complement semantics.
-    /// </summary>
-    private static void GenerateArithmeticOperators(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-        string s = info.StorageType;
-
-        // Unary + (native types return int for byte/sbyte/short/ushort, but we return self for consistency)
-        sb.AppendLine($"{indent}/// <summary>Unary plus operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({t} a) => a;");
-        sb.AppendLine();
-
-        // Unary - (native unsigned types don't support this, but we provide it for convenience like Int32Be)
-        sb.AppendLine($"{indent}/// <summary>Unary negation operator. Returns two's complement negation.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        if (info.StorageTypeIsSigned)
-        {
-            // For signed types, use unchecked to match native wraparound behavior
-            // e.g., -sbyte.MinValue wraps to sbyte.MinValue (-128)
-            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(-a.Value)));");
-        }
-        else
-        {
-            // For unsigned types, compute two's complement negation
-            // This is an extension since native unsigned types don't support unary -
-            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(0 - a.Value)));");
-        }
-        sb.AppendLine();
-
-        // Binary + (use unchecked to match native wraparound behavior)
-        sb.AppendLine($"{indent}/// <summary>Addition operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({t} a, {t} b) => new(unchecked(({s})(a.Value + b.Value)));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Addition operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({t} a, {s} b) => new(unchecked(({s})(a.Value + b)));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Addition operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({s} a, {t} b) => new(unchecked(({s})(a + b.Value)));");
-        sb.AppendLine();
-
-        // Binary -
-        sb.AppendLine($"{indent}/// <summary>Subtraction operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator -({t} a, {t} b) => new(unchecked(({s})(a.Value - b.Value)));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Subtraction operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator -({t} a, {s} b) => new(unchecked(({s})(a.Value - b)));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Subtraction operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator -({s} a, {t} b) => new(unchecked(({s})(a - b.Value)));");
-        sb.AppendLine();
-
-        // Binary *
-        sb.AppendLine($"{indent}/// <summary>Multiplication operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator *({t} a, {t} b) => new(unchecked(({s})(a.Value * b.Value)));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Multiplication operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator *({t} a, {s} b) => new(unchecked(({s})(a.Value * b)));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Multiplication operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator *({s} a, {t} b) => new(unchecked(({s})(a * b.Value)));");
-        sb.AppendLine();
-
-        // Binary /
-        sb.AppendLine($"{indent}/// <summary>Division operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator /({t} a, {t} b) => new(({s})(a.Value / b.Value));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Division operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator /({t} a, {s} b) => new(({s})(a.Value / b));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Division operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator /({s} a, {t} b) => new(({s})(a / b.Value));");
-        sb.AppendLine();
-
-        // Binary %
-        sb.AppendLine($"{indent}/// <summary>Modulus operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator %({t} a, {t} b) => new(({s})(a.Value % b.Value));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Modulus operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator %({t} a, {s} b) => new(({s})(a.Value % b));");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}/// <summary>Modulus operator with storage type.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator %({s} a, {t} b) => new(({s})(a % b.Value));");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates shift operators: &lt;&lt;, &gt;&gt;, &gt;&gt;&gt;
-    /// Shift amount is always int, matching native behavior.
-    /// For small types (byte, sbyte, short, ushort), returns int to enable intuitive use like `(bits >> 1) & 1`.
-    /// </summary>
-    private static void GenerateShiftOperators(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-        string s = info.StorageType;
-
-        // For small types, shift returns int to enable `(bits >> 1) & 1` without ambiguity
-        if (s == "byte" || s == "sbyte" || s == "short" || s == "ushort")
-        {
-            // Left shift << (returns int)
-            sb.AppendLine($"{indent}/// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static int operator <<({t} a, int b) => a.Value << b;");
-            sb.AppendLine();
-
-            // Right shift >> (returns int)
-            sb.AppendLine($"{indent}/// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static int operator >>({t} a, int b) => a.Value >> b;");
-            sb.AppendLine();
-
-            // Unsigned right shift >>> (returns int)
-            sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static int operator >>>({t} a, int b) => a.Value >>> b;");
-            sb.AppendLine();
-        }
-        else
-        {
-            // Left shift <<
-            sb.AppendLine($"{indent}/// <summary>Left shift operator.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator <<({t} a, int b) => new(unchecked(({s})(a.Value << b)));");
-            sb.AppendLine();
-
-            // Right shift >>
-            sb.AppendLine($"{indent}/// <summary>Right shift operator.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator >>({t} a, int b) => new(unchecked(({s})(a.Value >> b)));");
-            sb.AppendLine();
-
-            // Unsigned right shift >>> (C# 11+)
-            sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator.</summary>");
-            sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator >>>({t} a, int b) => new(unchecked(({s})(a.Value >>> b)));");
-            sb.AppendLine();
-        }
-    }
-
-    /// <summary>
-    /// Generates comparison operators: &lt;, &gt;, &lt;=, &gt;=
-    /// </summary>
-    private static void GenerateComparisonOperators(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-
-        // < operator
-        sb.AppendLine($"{indent}/// <summary>Less than operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator <({t} a, {t} b) => a.Value < b.Value;");
-        sb.AppendLine();
-
-        // > operator
-        sb.AppendLine($"{indent}/// <summary>Greater than operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator >({t} a, {t} b) => a.Value > b.Value;");
-        sb.AppendLine();
-
-        // <= operator
-        sb.AppendLine($"{indent}/// <summary>Less than or equal operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator <=({t} a, {t} b) => a.Value <= b.Value;");
-        sb.AppendLine();
-
-        // >= operator
-        sb.AppendLine($"{indent}/// <summary>Greater than or equal operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator >=({t} a, {t} b) => a.Value >= b.Value;");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates equality operators: ==, !=
-    /// Also generates Equals and GetHashCode overrides.
-    /// </summary>
-    private static void GenerateEqualityOperators(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-        string s = info.StorageType;
-
-        // == operator
-        sb.AppendLine($"{indent}/// <summary>Equality operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator ==({t} a, {t} b) => a.Value == b.Value;");
-        sb.AppendLine();
-
-        // != operator
-        sb.AppendLine($"{indent}/// <summary>Inequality operator.</summary>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator !=({t} a, {t} b) => a.Value != b.Value;");
-        sb.AppendLine();
-
-        // Equals override
-        sb.AppendLine($"{indent}/// <summary>Determines whether the specified object is equal to the current object.</summary>");
-        sb.AppendLine($"{indent}public override bool Equals(object? obj) => obj is {t} other && Value == other.Value;");
-        sb.AppendLine();
-
-        // GetHashCode override
-        sb.AppendLine($"{indent}/// <summary>Returns the hash code for this instance.</summary>");
-        sb.AppendLine($"{indent}public override int GetHashCode() => Value.GetHashCode();");
-        sb.AppendLine();
-
-        // ToString override
-        sb.AppendLine($"{indent}/// <summary>Returns a string representation of the value.</summary>");
-        sb.AppendLine($"{indent}public override string ToString() => $\"0x{{Value:X}}\";");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates parsing methods implementing IParsable&lt;T&gt; and ISpanParsable&lt;T&gt;.
-    /// Also generates convenience overloads without IFormatProvider.
-    /// Handles decimal, hex (0x/0X prefix), and binary (0b/0B prefix) formats.
-    /// Supports C#-style underscore digit separators in all formats.
-    /// </summary>
-    private static void GenerateParsingMethods(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-        string s = info.StorageType;
-
-        // Helper methods for detecting prefixes and removing underscores
-        sb.AppendLine($"{indent}private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');");
-        sb.AppendLine($"{indent}private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}private static string RemoveUnderscores(ReadOnlySpan<char> s)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    // Fast path: no underscores");
-        sb.AppendLine($"{indent}    bool hasUnderscore = false;");
-        sb.AppendLine($"{indent}    foreach (var c in s) {{ if (c == '_') {{ hasUnderscore = true; break; }} }}");
-        sb.AppendLine($"{indent}    if (!hasUnderscore) return s.ToString();");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}    // Remove underscores");
-        sb.AppendLine($"{indent}    var sb = new System.Text.StringBuilder(s.Length);");
-        sb.AppendLine($"{indent}    foreach (var c in s) {{ if (c != '_') sb.Append(c); }}");
-        sb.AppendLine($"{indent}    return sb.ToString();");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}private static {s} ParseBinary(ReadOnlySpan<char> s)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    var clean = RemoveUnderscores(s);");
-        sb.AppendLine($"{indent}    return Convert.To{GetConvertMethodName(s)}(clean, 2);");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-        sb.AppendLine($"{indent}private static bool TryParseBinary(ReadOnlySpan<char> s, out {s} result)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    try");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        result = ParseBinary(s);");
-        sb.AppendLine($"{indent}        return true;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    catch");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        result = default;");
-        sb.AppendLine($"{indent}        return false;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-
-        // IParsable<T>.Parse(string, IFormatProvider?)
-        sb.AppendLine($"{indent}/// <summary>Parses a string into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
-        sb.AppendLine($"{indent}/// <returns>The parsed {t} value.</returns>");
-        sb.AppendLine($"{indent}/// <exception cref=\"ArgumentNullException\">s is null.</exception>");
-        sb.AppendLine($"{indent}public static {t} Parse(string s, IFormatProvider? provider)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    ArgumentNullException.ThrowIfNull(s);");
-        sb.AppendLine($"{indent}    var span = s.AsSpan();");
-        sb.AppendLine($"{indent}    if (IsBinaryPrefix(span))");
-        sb.AppendLine($"{indent}        return new(ParseBinary(span.Slice(2)));");
-        sb.AppendLine($"{indent}    if (IsHexPrefix(span))");
-        sb.AppendLine($"{indent}        return new({s}.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));");
-        sb.AppendLine($"{indent}    return new({s}.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-
-        // IParsable<T>.TryParse(string?, IFormatProvider?, out T)
-        sb.AppendLine($"{indent}/// <summary>Tries to parse a string into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"result\">When this method returns, contains the parsed value if successful.</param>");
-        sb.AppendLine($"{indent}/// <returns>true if parsing succeeded; otherwise, false.</returns>");
-        sb.AppendLine($"{indent}public static bool TryParse(string? s, IFormatProvider? provider, out {t} result)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (s is null) {{ result = default; return false; }}");
-        sb.AppendLine($"{indent}    var span = s.AsSpan();");
-        sb.AppendLine($"{indent}    if (IsBinaryPrefix(span))");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        if (TryParseBinary(span.Slice(2), out var binValue))");
-        sb.AppendLine($"{indent}        {{");
-        sb.AppendLine($"{indent}            result = new(binValue);");
-        sb.AppendLine($"{indent}            return true;");
-        sb.AppendLine($"{indent}        }}");
-        sb.AppendLine($"{indent}        result = default;");
-        sb.AppendLine($"{indent}        return false;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    if (IsHexPrefix(span))");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        if ({s}.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))");
-        sb.AppendLine($"{indent}        {{");
-        sb.AppendLine($"{indent}            result = new(hexValue);");
-        sb.AppendLine($"{indent}            return true;");
-        sb.AppendLine($"{indent}        }}");
-        sb.AppendLine($"{indent}        result = default;");
-        sb.AppendLine($"{indent}        return false;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    if ({s}.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        result = new(value);");
-        sb.AppendLine($"{indent}        return true;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    result = default;");
-        sb.AppendLine($"{indent}    return false;");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-
-        // ISpanParsable<T>.Parse(ReadOnlySpan<char>, IFormatProvider?)
-        sb.AppendLine($"{indent}/// <summary>Parses a span of characters into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"s\">The span of characters to parse.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
-        sb.AppendLine($"{indent}/// <returns>The parsed {t} value.</returns>");
-        sb.AppendLine($"{indent}public static {t} Parse(ReadOnlySpan<char> s, IFormatProvider? provider)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (IsBinaryPrefix(s))");
-        sb.AppendLine($"{indent}        return new(ParseBinary(s.Slice(2)));");
-        sb.AppendLine($"{indent}    if (IsHexPrefix(s))");
-        sb.AppendLine($"{indent}        return new({s}.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));");
-        sb.AppendLine($"{indent}    return new({s}.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-
-        // ISpanParsable<T>.TryParse(ReadOnlySpan<char>, IFormatProvider?, out T)
-        sb.AppendLine($"{indent}/// <summary>Tries to parse a span of characters into a {t}. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"s\">The span of characters to parse.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"provider\">An object that provides culture-specific formatting information.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"result\">When this method returns, contains the parsed value if successful.</param>");
-        sb.AppendLine($"{indent}/// <returns>true if parsing succeeded; otherwise, false.</returns>");
-        sb.AppendLine($"{indent}public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out {t} result)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (IsBinaryPrefix(s))");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        if (TryParseBinary(s.Slice(2), out var binValue))");
-        sb.AppendLine($"{indent}        {{");
-        sb.AppendLine($"{indent}            result = new(binValue);");
-        sb.AppendLine($"{indent}            return true;");
-        sb.AppendLine($"{indent}        }}");
-        sb.AppendLine($"{indent}        result = default;");
-        sb.AppendLine($"{indent}        return false;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    if (IsHexPrefix(s))");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        if ({s}.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))");
-        sb.AppendLine($"{indent}        {{");
-        sb.AppendLine($"{indent}            result = new(hexValue);");
-        sb.AppendLine($"{indent}            return true;");
-        sb.AppendLine($"{indent}        }}");
-        sb.AppendLine($"{indent}        result = default;");
-        sb.AppendLine($"{indent}        return false;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    if ({s}.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))");
-        sb.AppendLine($"{indent}    {{");
-        sb.AppendLine($"{indent}        result = new(value);");
-        sb.AppendLine($"{indent}        return true;");
-        sb.AppendLine($"{indent}    }}");
-        sb.AppendLine($"{indent}    result = default;");
-        sb.AppendLine($"{indent}    return false;");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-
-        // Convenience overload: Parse(string)
-        sb.AppendLine($"{indent}/// <summary>Parses a string into a {t} using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
-        sb.AppendLine($"{indent}/// <returns>The parsed {t} value.</returns>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} Parse(string s) => Parse(s, CultureInfo.InvariantCulture);");
-        sb.AppendLine();
-
-        // Convenience overload: TryParse(string?, out T)
-        sb.AppendLine($"{indent}/// <summary>Tries to parse a string into a {t} using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"s\">The string to parse.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"result\">When this method returns, contains the parsed value if successful.</param>");
-        sb.AppendLine($"{indent}/// <returns>true if parsing succeeded; otherwise, false.</returns>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool TryParse(string? s, out {t} result) => TryParse(s, CultureInfo.InvariantCulture, out result);");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Gets the Convert.ToXxx method name for a given storage type.
-    /// </summary>
-    private static string GetConvertMethodName(string storageType)
-    {
-        return storageType switch
-        {
-            "byte" => "Byte",
-            "sbyte" => "SByte",
-            "short" => "Int16",
-            "ushort" => "UInt16",
-            "int" => "Int32",
-            "uint" => "UInt32",
-            "long" => "Int64",
-            "ulong" => "UInt64",
-            _ => "Int32"
-        };
-    }
-
-    /// <summary>
-    /// Generates formatting methods implementing IFormattable and ISpanFormattable.
-    /// </summary>
-    private static void GenerateFormattingMethods(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-        string s = info.StorageType;
-
-        // IFormattable.ToString(string?, IFormatProvider?)
-        sb.AppendLine($"{indent}/// <summary>Formats the value using the specified format and format provider.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"format\">The format to use, or null for the default format.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"formatProvider\">The provider to use for culture-specific formatting.</param>");
-        sb.AppendLine($"{indent}/// <returns>The formatted string representation of the value.</returns>");
-        sb.AppendLine($"{indent}public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);");
-        sb.AppendLine();
-
-        // ISpanFormattable.TryFormat
-        sb.AppendLine($"{indent}/// <summary>Tries to format the value into the provided span of characters.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"destination\">The span to write to.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"charsWritten\">The number of characters written.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"format\">The format to use.</param>");
-        sb.AppendLine($"{indent}/// <param name=\"provider\">The provider to use for culture-specific formatting.</param>");
-        sb.AppendLine($"{indent}/// <returns>true if the formatting was successful; otherwise, false.</returns>");
-        sb.AppendLine($"{indent}public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)");
-        sb.AppendLine($"{indent}    => Value.TryFormat(destination, out charsWritten, format, provider);");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Generates comparison and equality interface methods: IComparable, IComparable&lt;T&gt;, IEquatable&lt;T&gt;.
-    /// </summary>
-    private static void GenerateComparisonMethods(StringBuilder sb, BitFieldsInfo info, string indent)
-    {
-        string t = info.TypeName;
-
-        // IComparable.CompareTo(object?)
-        sb.AppendLine($"{indent}/// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"obj\">An object to compare, or null.</param>");
-        sb.AppendLine($"{indent}/// <returns>A value indicating the relative order of the objects being compared.</returns>");
-        sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">obj is not a {t}.</exception>");
-        sb.AppendLine($"{indent}public int CompareTo(object? obj)");
-        sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (obj is null) return 1;");
-        sb.AppendLine($"{indent}    if (obj is {t} other) return CompareTo(other);");
-        sb.AppendLine($"{indent}    throw new ArgumentException(\"Object must be of type {t}\", nameof(obj));");
-        sb.AppendLine($"{indent}}}");
-        sb.AppendLine();
-
-        // IComparable<T>.CompareTo(T)
-        sb.AppendLine($"{indent}/// <summary>Compares this instance to another {t} and returns an integer indicating their relative order.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"other\">A {t} to compare.</param>");
-        sb.AppendLine($"{indent}/// <returns>A value indicating the relative order of the instances being compared.</returns>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public int CompareTo({t} other) => Value.CompareTo(other.Value);");
-        sb.AppendLine();
-
-        // IEquatable<T>.Equals(T)
-        sb.AppendLine($"{indent}/// <summary>Indicates whether this instance is equal to another {t}.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"other\">A {t} to compare with this instance.</param>");
-        sb.AppendLine($"{indent}/// <returns>true if the two instances are equal; otherwise, false.</returns>");
-        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public bool Equals({t} other) => Value == other.Value;");
-        sb.AppendLine();
-    }
-
-    /// <summary>
-    /// Formats a value as a hex literal appropriate for the storage type.
-    /// For signed types, uses unchecked cast from unsigned to avoid overflow issues.
-    /// </summary>
-    private static string FormatHex(ulong value, string storageType)
-    {
-        return storageType switch
-        {
-            "byte" => $"0x{(byte)value:X2}",
-            "ushort" => $"0x{(ushort)value:X4}",
-            "uint" => $"0x{(uint)value:X8}U",
-            "ulong" => $"0x{value:X16}UL",
-            // For signed types, we need unchecked casts because mask values can exceed signed max
-            "sbyte" => $"unchecked((sbyte)0x{(byte)value:X2})",
-            "short" => $"unchecked((short)0x{(ushort)value:X4})",
-            "int" => $"unchecked((int)0x{(uint)value:X8}U)",
-            "long" => $"unchecked((long)0x{value:X16}UL)",
-            _ => $"0x{value:X}"
-        };
-    }
 }
-
-#region Info Classes
-
-/// <summary>
-/// Mirrors the MustBe enum values from the public API.
-/// </summary>
-internal enum MustBeValue
-{
-    Any = 0,
-    Zero = 1,
-    One = 2
-}
-
-internal sealed class BitFieldsInfo
-{
-    public string TypeName { get; }
-    public string? Namespace { get; }
-    public string Accessibility { get; }
-    public string StorageType { get; }
-    public bool StorageTypeIsSigned { get; }
-    public string UnsignedStorageType { get; }
-    public List<BitFieldInfo> Fields { get; }
-    public List<BitFlagInfo> Flags { get; }
-    /// <summary>
-    /// Specifies how undefined bits (bits not covered by any field or flag) are handled.
-    /// </summary>
-    public MustBeValue UndefinedBitsMode { get; }
-    /// <summary>
-    /// List of containing types from outermost to innermost (closest to target struct).
-    /// Each tuple contains (TypeKind, TypeName, Accessibility).
-    /// </summary>
-    public List<(string Kind, string Name, string Accessibility)> ContainingTypes { get; }
-
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, MustBeValue undefinedBitsMode = MustBeValue.Any)
-    {
-        TypeName = typeName;
-        Namespace = ns;
-        Accessibility = accessibility;
-        StorageType = storageType;
-        UnsignedStorageType = unsignedStorageType;
-        StorageTypeIsSigned = storageTypeIsSigned;
-        Fields = fields;
-        Flags = flags;
-        ContainingTypes = containingTypes;
-        UndefinedBitsMode = undefinedBitsMode;
-    }
-}
-
-internal sealed class BitFieldInfo
-{
-    public string Name { get; }
-    public string PropertyType { get; }
-    public int Shift { get; }
-    public int Width { get; }
-    /// <summary>
-    /// Override for this specific field's bits.
-    /// </summary>
-    public MustBeValue ValueOverride { get; }
-
-    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBeValue valueOverride = MustBeValue.Any)
-    {
-        Name = name;
-        PropertyType = propertyType;
-        Shift = shift;
-        Width = width;
-        ValueOverride = valueOverride;
-    }
-}
-
-internal sealed class BitFlagInfo
-{
-    public string Name { get; }
-    public int Bit { get; }
-    /// <summary>
-    /// Override for this specific flag's bit.
-    /// </summary>
-    public MustBeValue ValueOverride { get; }
-
-    public BitFlagInfo(string name, int bit, MustBeValue valueOverride = MustBeValue.Any)
-    {
-        Name = name;
-        Bit = bit;
-        ValueOverride = valueOverride;
-    }
-}
-
-#endregion
-

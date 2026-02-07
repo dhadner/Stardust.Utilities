@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(SignedReg64JsonConverter))]
 public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEquatable<SignedReg64>,
                              IFormattable, ISpanFormattable, IParsable<SignedReg64>, ISpanParsable<SignedReg64>
 {
     private long Value;
 
-    /// <summary>Creates a new SignedReg64 with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 8;
+
+    /// <summary>Returns a SignedReg64 with all bits set to zero.</summary>
+    public static SignedReg64 Zero => default;
+
+    /// <summary>Creates a new SignedReg64 with the specified raw bits value.</summary>
     public SignedReg64(long value) { Value = value; }
 
     public partial uint LowDword
@@ -260,6 +270,57 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedReg64(long value) => new(value);
 
+    /// <summary>Creates a new SignedReg64 from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public SignedReg64(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadInt64LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new SignedReg64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized SignedReg64.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SignedReg64 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteInt64LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
+
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
 
@@ -449,5 +510,22 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(SignedReg64 other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes SignedReg64 as a string.</summary>
+    private sealed class SignedReg64JsonConverter : JsonConverter<SignedReg64>
+    {
+        /// <summary>Reads a SignedReg64 from a JSON string.</summary>
+        public override SignedReg64 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : SignedReg64.Parse(s);
+        }
+
+        /// <summary>Writes a SignedReg64 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, SignedReg64 value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

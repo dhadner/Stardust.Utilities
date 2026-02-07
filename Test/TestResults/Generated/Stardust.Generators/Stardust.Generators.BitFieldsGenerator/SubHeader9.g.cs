@@ -4,17 +4,27 @@
 #nullable enable
 #pragma warning disable CS0675
 using System;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Stardust.Utilities.Tests;
 
+[JsonConverter(typeof(SubHeader9JsonConverter))]
 public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquatable<SubHeader9>,
                              IFormattable, ISpanFormattable, IParsable<SubHeader9>, ISpanParsable<SubHeader9>
 {
     private ushort Value;
 
-    /// <summary>Creates a new SubHeader9 with the specified raw value.</summary>
+    /// <summary>Size of this struct in bytes.</summary>
+    public const int SizeInBytes = 2;
+
+    /// <summary>Returns a SubHeader9 with all bits set to zero.</summary>
+    public static SubHeader9 Zero => default;
+
+    /// <summary>Creates a new SubHeader9 with the specified raw bits value.</summary>
     public SubHeader9(ushort value) { Value = (ushort)(value & 0x01FF); }
 
     public partial byte TypeCode
@@ -185,6 +195,57 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SubHeader9(int value) => new(unchecked((ushort)value));
+
+    /// <summary>Creates a new SubHeader9 from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public SubHeader9(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+    }
+
+    /// <summary>Creates a new SubHeader9 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <returns>The deserialized SubHeader9.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SubHeader9 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+
+    /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <exception cref="ArgumentException">The span is too short.</exception>
+    public void WriteTo(Span<byte> destination)
+    {
+        if (destination.Length < SizeInBytes)
+            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+    }
+
+    /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
+    /// <param name="destination">The destination span.</param>
+    /// <param name="bytesWritten">The number of bytes written on success.</param>
+    /// <returns>true if the destination span was large enough; otherwise, false.</returns>
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
+    {
+        if (destination.Length < SizeInBytes)
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        WriteTo(destination);
+        bytesWritten = SizeInBytes;
+        return true;
+    }
+
+    /// <summary>Returns the value as a new little-endian byte array.</summary>
+    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    public byte[] ToByteArray()
+    {
+        var bytes = new byte[SizeInBytes];
+        WriteTo(bytes);
+        return bytes;
+    }
 
     private static bool IsHexPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
     private static bool IsBinaryPrefix(ReadOnlySpan<char> s) => s.Length >= 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B');
@@ -375,5 +436,22 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(SubHeader9 other) => Value == other.Value;
+
+    /// <summary>JSON converter that serializes SubHeader9 as a string.</summary>
+    private sealed class SubHeader9JsonConverter : JsonConverter<SubHeader9>
+    {
+        /// <summary>Reads a SubHeader9 from a JSON string.</summary>
+        public override SubHeader9 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            return s is null ? default : SubHeader9.Parse(s);
+        }
+
+        /// <summary>Writes a SubHeader9 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, SubHeader9 value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
 
 }

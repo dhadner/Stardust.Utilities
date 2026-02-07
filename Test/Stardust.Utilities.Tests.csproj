@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 <PropertyGroup>
-  <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+  <!-- CI override: pass /p:TargetFrameworks="net8.0;net9.0;net10.0" for multi-TFM validation -->
+  <TargetFramework>net10.0</TargetFramework>
   <IsPackable>false</IsPackable>
   <LangVersion>preview</LangVersion>
   <Nullable>enable</Nullable>

@@ -2,6 +2,40 @@
 
 Type-safe, high-performance bitfield manipulation for hardware register emulation.
 
+## Table of Contents
+
+**Getting Started**
+- [Quick Start](#quick-start)
+- [Attributes](#attributes)
+- [Supported Storage Types](#supported-storage-types)
+
+**Usage**
+- [Parsing](#parsing)
+- [Formatting](#formatting)
+- [Shift-and-Mask Pattern](#shift-and-mask-pattern)
+
+**Features**
+- [Signed Property Types (Sign Extension)](#signed-property-types-sign-extension)
+- [BitFields Composition](#bitfields-composition)
+- [Undefined Bits Control](#partial-width-embedding-and-undefined-bits)
+
+**Examples**
+- [Hardware Registers (8/16/32/64-bit)](#examples)
+- [IEEE 754 Floating-Point Decomposition](#example-ieee-754-floating-point-decomposition)
+- [Network Protocol Headers](#example-network-protocol-headers)
+
+**API Reference**
+- [Static Bit and Mask Properties](#static-bit-properties)
+- [Fluent With{Name} Methods](#fluent-withname-methods-v080)
+- [Operators](#operators-and-static-properties)
+- [Interface Implementations](#interface-implementations)
+
+**Appendix**
+- [Generated Code Listing](#generated-code)
+- [Performance](#performance)
+
+---
+
 ## Quick Start
 
 ```csharp
@@ -87,12 +121,17 @@ This is intentional because BitFields represent hardware registers where truncat
 
 ## Supported Storage Types
 
-| Storage | Bits | Signed Alternative |
-|---------|------|-------------------|
-| `byte` | 8 | `sbyte` |
-| `ushort` | 16 | `short` |
-| `uint` | 32 | `int` |
-| `ulong` | 64 | `long` |
+| Storage | Bits | Notes |
+|---------|------|-------|
+| `byte` | 8 | Signed alternative: `sbyte` |
+| `ushort` | 16 | Signed alternative: `short` |
+| `uint` | 32 | Signed alternative: `int` |
+| `ulong` | 64 | Signed alternative: `long` |
+| `float` | 32 | IEEE 754 single-precision; full floating-point arithmetic |
+| `double` | 64 | IEEE 754 double-precision; full floating-point arithmetic |
+| `UInt128` | 128 | 128-bit unsigned with conversion operators |
+| `Int128` | 128 | 128-bit signed with conversion operators |
+| `[BitFields(N)]` | N | Arbitrary width from 1 to 16,384 bits |
 
 ## Parsing
 
@@ -302,6 +341,241 @@ This produces correct two's complement sign extension with only 3 operations (ma
 **Zero Overhead for Unsigned Properties:**
 
 Unsigned property types (`byte`, `ushort`, `uint`, `ulong`) use the standard mask-and-shift pattern with no additional sign extension overhead.
+
+### Example: IEEE 754 Floating-Point Decomposition
+
+This example demonstrates how `[BitFields(typeof(double))]` can decompose IEEE 754 floating-point values into their constituent bit fields. Because the struct is `partial`, you can add your own computed properties alongside the generated bit-field accessors.
+
+```csharp
+[BitFields(typeof(double))]
+public partial struct IEEE754Double
+{
+    // ── Generated bit-field properties ──────────────────────────────
+    [BitField(0, 51)]  public partial ulong  Mantissa { get; set; } // 52-bit fractional
+    [BitField(52, 62)] public partial ushort Exponent { get; set; } // 11-bit biased exponent
+    [BitFlag(63)]      public partial bool   Sign     { get; set; } // sign bit
+
+    // ── User-defined computed properties (not generated) ───────────
+
+    /// <summary>True if the value is NaN (exponent = all 1s, mantissa ≠ 0).</summary>
+    public bool IsNaN => Exponent == 0x7FF && Mantissa != 0;
+
+    /// <summary>True if the value is ±Infinity (exponent = all 1s, mantissa = 0).</summary>
+    public bool IsInfinity => Exponent == 0x7FF && Mantissa == 0;
+
+    /// <summary>True if the value is a denormalized number (exponent = 0, mantissa ≠ 0).</summary>
+    public bool IsDenormalized => Exponent == 0 && Mantissa != 0;
+
+    /// <summary>True if the value is a normalized number (0 &lt; exponent &lt; 0x7FF).</summary>
+    public bool IsNormal => Exponent > 0 && Exponent < 0x7FF;
+
+    /// <summary>True if the value is ±0 (exponent = 0, mantissa = 0).</summary>
+    public bool IsZero => Exponent == 0 && Mantissa == 0;
+
+    /// <summary>The unbiased exponent (biased − 1023), or null for non-normal values (zero, denormalized, infinity, NaN).</summary>
+    public int? UnbiasedExponent => IsNormal ? Exponent - 1023 : null;
+}
+```
+
+**IEEE 754 double-precision layout:**
+
+```
+Bit:  63 | 62 ─── 52 | 51 ──────────────────── 0
+      S  | Exponent   | Mantissa (fractional)
+      1  |   11 bits  |       52 bits
+```
+
+Value = (-1)^S × 2^(Exponent - 1023) × (1 + Mantissa / 2^52)
+
+**Construct values from their bit-level components:**
+
+```csharp
+// Build π from its IEEE 754 fields
+IEEE754Double pi = default;
+pi.Sign = false;
+pi.Exponent = 1024;                // bias 1023 + 1, since 2 ≤ π < 4
+pi.Mantissa = 0x921FB54442D18;     // the fractional bits of π
+double result = pi;                // result == Math.PI ✓
+
+// Construct special values
+IEEE754Double inf = default;
+inf.Exponent = 0x7FF;
+inf.IsInfinity;                     // true — exponent all 1s, mantissa 0
+inf.IsNaN;                          // false
+
+IEEE754Double nan = default;
+nan.Exponent = 0x7FF;
+nan.Mantissa = 1;                   // any non-zero mantissa
+nan.IsNaN;                          // true
+
+// Smallest positive value: denormalized
+IEEE754Double tiny = double.Epsilon;
+tiny.IsDenormalized;                // true — exponent 0, mantissa ≠ 0
+tiny.IsNormal;                      // false
+tiny.UnbiasedExponent;              // null (not a normal number)
+
+// Normal numbers
+IEEE754Double pi2 = Math.PI;
+pi2.IsNormal;                       // true
+pi2.UnbiasedExponent;               // 1 (2^1 range, since 2 ≤ π < 4)
+
+// Negate by flipping just the sign bit
+IEEE754Double val = 42.0;
+val.Sign = !val.Sign;              // val == -42.0 ✓
+```
+
+**Decompose and inspect any double:**
+
+```csharp
+IEEE754Double e = Math.E;           // 2.71828...
+e.Sign;                             // false (positive)
+e.Exponent;                         // 1024 (2^1 range, since 2 ≤ e < 4)
+e.UnbiasedExponent;                 // 1
+
+// Powers of 2 always have zero mantissa
+IEEE754Double eight = 8.0;
+eight.UnbiasedExponent;             // 3 (i.e. 2^3)
+eight.Mantissa;                     // 0 (exact power of 2)
+
+// Classify any value
+IEEE754Double zero = 0.0;
+zero.IsZero;                        // true
+zero.IsNormal;                      // false
+zero.UnbiasedExponent;              // null
+```
+
+**Full floating-point arithmetic works through the generated operators:**
+
+```csharp
+// Compute the golden ratio: φ = (1 + √5) / 2
+IEEE754Double one = 1.0;
+IEEE754Double sqrt5 = Math.Sqrt(5.0);
+IEEE754Double two = 2.0;
+IEEE754Double phi = (one + sqrt5) / two;    // ≈ 1.618033988749895
+
+// Solve the quadratic x² - 5x + 6 = 0  →  x = 3, 2
+IEEE754Double a = 1.0, b = -5.0, c = 6.0;
+IEEE754Double disc = b * b - 4.0 * a * c;  // discriminant = 1.0
+IEEE754Double x1 = (-b + Math.Sqrt(disc)) / (two * a);  // x1 = 3.0
+IEEE754Double x2 = (-b - Math.Sqrt(disc)) / (two * a);  // x2 = 2.0
+
+// Fluent construction
+var onePointFive = IEEE754Double.Zero
+    .WithExponent(1023)
+    .WithMantissa(0x8_0000_0000_0000);       // 1.5 ✓
+```
+
+### Example: Network Protocol Headers
+
+This example models real Ethernet/IPv4/TCP packet headers using BitFields composition.
+Small flag structs (3-bit IPv4 flags, 9-bit TCP flags) are embedded into the 32-bit
+header words that contain them.
+
+```csharp
+// 3-bit IPv4 flags — embedded into a 3-bit field of the fragment word
+[BitFields(typeof(byte), UndefinedBitsMustBe.Zeroes)]
+public partial struct IPv4Flags
+{
+    [BitFlag(0)] public partial bool MoreFragments { get; set; } // MF
+    [BitFlag(1)] public partial bool DontFragment { get; set; }  // DF
+    [BitFlag(2)] public partial bool Reserved { get; set; }      // must be 0
+}
+
+// 9-bit TCP control flags — embedded into a 9-bit field of the control word
+[BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
+public partial struct TcpFlags
+{
+    [BitFlag(0)] public partial bool FIN { get; set; } // finish
+    [BitFlag(1)] public partial bool SYN { get; set; } // synchronize
+    [BitFlag(2)] public partial bool RST { get; set; } // reset
+    [BitFlag(3)] public partial bool PSH { get; set; } // push
+    [BitFlag(4)] public partial bool ACK { get; set; } // acknowledge
+    [BitFlag(5)] public partial bool URG { get; set; } // urgent
+    [BitFlag(6)] public partial bool ECE { get; set; } // ECN-Echo
+    [BitFlag(7)] public partial bool CWR { get; set; } // congestion window reduced
+    [BitFlag(8)] public partial bool NS { get; set; }  // ECN-nonce
+}
+
+// IPv4 header word 0: Version(4) | IHL(4) | DSCP(6) | ECN(2) | TotalLength(16)
+[BitFields(typeof(uint))]
+public partial struct IPv4VersionWord
+{
+    [BitField(28, 31)] public partial byte Version { get; set; }
+    [BitField(24, 27)] public partial byte IHL { get; set; }
+    [BitField(18, 23)] public partial byte DSCP { get; set; }
+    [BitField(16, 17)] public partial byte ECN { get; set; }
+    [BitField(0, 15)]  public partial ushort TotalLength { get; set; }
+}
+
+// IPv4 fragment word — embeds IPv4Flags in a 3-bit field
+[BitFields(typeof(uint))]
+public partial struct IPv4FragmentWord
+{
+    [BitField(16, 31)] public partial ushort Identification { get; set; }
+    [BitField(13, 15)] public partial IPv4Flags Flags { get; set; }       // ← composed!
+    [BitField(0, 12)]  public partial ushort FragmentOffset { get; set; }
+}
+
+// TCP control word — embeds TcpFlags in a 9-bit field
+[BitFields(typeof(uint))]
+public partial struct TcpControlWord
+{
+    [BitField(28, 31)] public partial byte DataOffset { get; set; }
+    [BitField(25, 27)] public partial byte Reserved { get; set; }
+    [BitField(16, 24)] public partial TcpFlags Flags { get; set; }        // ← composed!
+    [BitField(0, 15)]  public partial ushort WindowSize { get; set; }
+}
+```
+
+**Assemble an Ethernet/IPv4/TCP packet carrying "Hello world!":**
+
+```csharp
+byte[] payload = Encoding.ASCII.GetBytes("Hello world!");  // 12 bytes
+
+// TCP: push data, acknowledge previous segment
+var tcp = TcpControlWord.Zero
+    .WithDataOffset(5)                                      // 20-byte header
+    .WithFlags(TcpFlags.Zero.WithPSH(true).WithACK(true))
+    .WithWindowSize(65535);
+
+// IPv4: version 4, 20-byte header, total = IP + TCP + payload
+var ip = IPv4VersionWord.Zero
+    .WithVersion(4)
+    .WithIHL(5)
+    .WithTotalLength((ushort)(20 + 20 + payload.Length));    // 52 bytes
+
+// Don't fragment this packet
+var frag = IPv4FragmentWord.Zero
+    .WithIdentification(0x1A2B)
+    .WithFlags(IPv4Flags.Zero.WithDontFragment(true));
+
+// Read through composition
+tcp.Flags.PSH;                       // true
+tcp.Flags.ACK;                       // true
+frag.Flags.DontFragment;             // true
+ip.TotalLength;                      // 52
+
+// Total frame: 14 (Ethernet) + 52 (IP total) = 66 bytes
+
+// TCP three-way handshake using static Bit properties
+var syn    = TcpFlags.SYNBit;                       // SYN
+var synAck = TcpFlags.SYNBit | TcpFlags.ACKBit;     // SYN+ACK
+var ack    = TcpFlags.ACKBit;                        // ACK
+```
+
+**Bit packing is verifiable:**
+
+```csharp
+// Version=4 (0100) at bits 28-31, IHL=5 (0101) at bits 24-27
+var word = IPv4VersionWord.Zero.WithVersion(4).WithIHL(5);
+((uint)word) == 0x4500_0000;          // true ✓
+```
+
+**Why this works:** `IPv4Flags` (3 bits in a `byte`) and `TcpFlags` (9 bits in a `ushort`) are
+full BitFields types with their own operators and `With{Name}` methods. When embedded in a
+wider struct's field, the generated implicit conversions handle the packing and unpacking
+automatically. `UndefinedBitsMustBe.Zeroes` ensures clean serialization — only the defined
+flag bits survive.
 
 ### BitFields Composition
 
