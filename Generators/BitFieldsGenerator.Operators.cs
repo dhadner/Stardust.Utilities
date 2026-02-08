@@ -143,8 +143,8 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
-            string fromBits = fp == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string toBits = ToBitsMethod(fp);
+            string fromBits = FromBitsMethod(fp);
 
             sb.AppendLine($"{indent}/// <summary>Unary plus operator.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -324,7 +324,7 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string fromBits = fp == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string fromBits = FromBitsMethod(fp);
 
             foreach (var (op, name) in new[] { ("<", "Less than"), (">", "Greater than"), ("<=", "Less than or equal"), (">=", "Greater than or equal") })
             {
@@ -374,7 +374,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <summary>Returns a string representation of the value.</summary>");
         if (info.Mode == StorageMode.NativeFloat)
         {
-            string fromBits = info.FloatingPointType == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string fromBits = FromBitsMethod(info.FloatingPointType!);
             sb.AppendLine($"{indent}public override string ToString() => {fromBits}(Value).ToString();");
         }
         else

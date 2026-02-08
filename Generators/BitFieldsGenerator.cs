@@ -79,7 +79,14 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             unsignedStorageType = "ulong";
             storageType = "ulong"; // placeholder for compatibility
         }
-        // Float/double: NativeFloat mode — stored as uint/ulong, user-facing type is float/double
+        // Half/float/double: NativeFloat mode — stored as ushort/uint/ulong, user-facing type is Half/float/double
+        else if (storageType == "Half")
+        {
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ushort";
+            floatingPointType = "Half";
+            storageType = "ushort"; // internal storage is ushort
+        }
         else if (storageType == "float")
         {
             storageTypeIsSigned = false;
@@ -377,10 +384,9 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
             sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} from a {fp} value.</summary>");
             sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{memberIndent}public {info.TypeName}({fp} value) : this({toBits}(value)) {{ }}");
+            sb.AppendLine($"{memberIndent}public {info.TypeName}({fp} value) : this({ToBitsMethod(fp)}(value)) {{ }}");
             sb.AppendLine();
         }
 

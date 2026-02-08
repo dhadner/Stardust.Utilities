@@ -12,10 +12,10 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
-            string fromBits = fp == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string toBits = ToBitsMethod(fp);
+            string fromBits = FromBitsMethod(fp);
 
-            // Implicit float/double conversions
+            // Implicit float/double/Half conversions
             sb.AppendLine($"{indent}/// <summary>Implicit conversion to {fp}.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             sb.AppendLine($"{indent}public static implicit operator {fp}({info.TypeName} value) => {fromBits}(value.Value);");
@@ -75,9 +75,9 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
+            string toBits = ToBitsMethod(fp);
 
-            // For NativeFloat: parse as float/double, convert to bits
+            // For NativeFloat: parse as Half/float/double, convert to bits
             sb.AppendLine($"{indent}/// <summary>Parses a string into a {t} by parsing a {fp} value.</summary>");
             sb.AppendLine($"{indent}public static {t} Parse(string s, IFormatProvider? provider)");
             sb.AppendLine($"{indent}{{");
@@ -304,7 +304,7 @@ public partial class BitFieldsGenerator
 
         // For NativeFloat, format the floating-point value rather than raw bits
         string fmtExpr = info.Mode == StorageMode.NativeFloat
-            ? $"{(info.FloatingPointType == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble")}(Value)"
+            ? $"{FromBitsMethod(info.FloatingPointType!)}(Value)"
             : "Value";
 
         sb.AppendLine($"{indent}/// <summary>Formats the value using the specified format and format provider.</summary>");
@@ -350,7 +350,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         if (info.Mode == StorageMode.NativeFloat)
         {
-            string fromBits = info.FloatingPointType == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string fromBits = FromBitsMethod(info.FloatingPointType!);
             sb.AppendLine($"{indent}public int CompareTo({t} other) => {fromBits}(Value).CompareTo({fromBits}(other.Value));");
         }
         else

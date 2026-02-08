@@ -130,6 +130,7 @@ This is intentional because BitFields represent hardware registers where truncat
 | `ulong` | 64 | Signed alternative: `long` |
 | `float` | 32 | IEEE 754 single-precision; backed by `uint`, user-facing type is `float` |
 | `double` | 64 | IEEE 754 double-precision; backed by `ulong`, user-facing type is `double` |
+| `Half` | 16 | IEEE 754 half-precision; backed by `ushort`, user-facing type is `Half` |
 | `decimal` | 128 | .NET decimal (96-bit coefficient + scale + sign); full decimal arithmetic |
 | `UInt128` | 128 | 128-bit unsigned with conversion operators |
 | `Int128` | 128 | 128-bit signed with conversion operators |
@@ -177,7 +178,7 @@ var reg4 = MyRegister.Parse(span, null);
 
 ### Floating-Point and Decimal Storage Types
 
-For `float`, `double`, and `decimal` storage types, parsing uses the native parser
+For `Half`, `float`, `double`, and `decimal` storage types, parsing uses the native parser
 instead of integer hex/binary parsing. Values are parsed as their respective numeric
 types:
 
@@ -193,15 +194,19 @@ IEEE754Double avogadro = IEEE754Double.Parse("6.022E23", CultureInfo.InvariantCu
 
 // TryParse works the same way
 IEEE754Double.TryParse("42.5", out var val);   // true
-IEEE754Double.TryParse("0xFF", out _);          // false (hex not supported for float/double/decimal)
+IEEE754Double.TryParse("0xFF", out _);          // false (hex not supported for Half/float/double/decimal)
 
-// float storage type works identically
+// Half, float, and decimal storage types work identically
+[BitFields(typeof(Half))]
+public partial struct HalfReg { /* ... */ }
+
+HalfReg h = HalfReg.Parse("3.14", CultureInfo.InvariantCulture);
+
 [BitFields(typeof(float))]
 public partial struct FloatReg { /* ... */ }
 
 FloatReg f = FloatReg.Parse("3.14", CultureInfo.InvariantCulture);
 
-// decimal storage type uses decimal.Parse
 [BitFields(typeof(decimal))]
 public partial struct DecimalReg { /* ... */ }
 
@@ -230,7 +235,7 @@ if (value.TryFormat(buffer, out int written, "X4", null))
 }
 ```
 
-For `float`, `double`, and `decimal` storage types, formatting uses the native
+For `Half`, `float`, `double`, and `decimal` storage types, formatting uses the native
 formatter. The default `ToString()` returns the numeric representation (not the raw bits):
 
 ```csharp
@@ -513,6 +518,27 @@ var onePointFive = IEEE754Double.Zero
     .WithExponent(1023)
     .WithMantissa(0x8_0000_0000_0000);       // 1.5 ✓
 ```
+
+The same pattern works for `Half` (16-bit) and `float` (32-bit) IEEE 754 types:
+
+```csharp
+[BitFields(typeof(Half))]
+public partial struct IEEE754Half
+{
+    [BitField(0, 9)]   public partial ushort Mantissa { get; set; } // 10-bit fractional
+    [BitField(10, 14)] public partial byte  Exponent { get; set; } // 5-bit biased exponent (bias 15)
+    [BitFlag(15)]      public partial bool  Sign     { get; set; } // sign bit
+}
+
+IEEE754Half h = (Half)1.5;
+h.Sign;                           // false
+h.Exponent;                       // 15 (bias for 2^0)
+h.Mantissa;                       // 0x200 (bit 9 set = 0.5)
+```
+
+> **Note:** `Half` is backed by `ushort`. The literal `0` is ambiguous between the
+> `ushort` and `Half` constructors; use `new MyHalfType((ushort)0)` for raw bits or
+> `new MyHalfType(Half.Zero)` for the floating-point value.
 
 ### Example: .NET Decimal Decomposition
 

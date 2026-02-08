@@ -3,6 +3,30 @@ namespace Stardust.Generators;
 public partial class BitFieldsGenerator
 {
     /// <summary>
+    /// Returns the BitConverter method name that converts a floating-point value to its raw bits.
+    /// E.g., "BitConverter.HalfToUInt16Bits" for Half.
+    /// </summary>
+    private static string ToBitsMethod(string floatingPointType) => floatingPointType switch
+    {
+        "Half" => "BitConverter.HalfToUInt16Bits",
+        "float" => "BitConverter.SingleToUInt32Bits",
+        "double" => "BitConverter.DoubleToUInt64Bits",
+        _ => throw new System.ArgumentException($"Unknown floating-point type: {floatingPointType}")
+    };
+
+    /// <summary>
+    /// Returns the BitConverter method name that converts raw bits to a floating-point value.
+    /// E.g., "BitConverter.UInt16BitsToHalf" for Half.
+    /// </summary>
+    private static string FromBitsMethod(string floatingPointType) => floatingPointType switch
+    {
+        "Half" => "BitConverter.UInt16BitsToHalf",
+        "float" => "BitConverter.UInt32BitsToSingle",
+        "double" => "BitConverter.UInt64BitsToDouble",
+        _ => throw new System.ArgumentException($"Unknown floating-point type: {floatingPointType}")
+    };
+
+    /// <summary>
     /// Formats a value as a hex literal appropriate for the storage type.
     /// For signed types, uses unchecked cast from unsigned to avoid overflow issues.
     /// </summary>

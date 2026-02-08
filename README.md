@@ -46,15 +46,22 @@ That's it, the source generator is included automatically.
 
 **The easiest way to work with hardware registers and bit-packed data.**
 
-The BitField feature automatically creates property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
+The BitField feature automatically creates property implementations for bit fields and flags within a struct. 
+This eliminates boilerplate code and makes working with hardware registers, S/W floating point, nested
+protocol headers, instruction opcodes, file headers, and other bit-packed structures highly performant, 
+readable and maintainable.
 
-See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for comprehensive documentation and examples.
+See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for comprehensive 
+documentation and examples.
 
 #### :white_check_mark: Zero Performance Overhead
 
-The source generator emits **inline bit manipulation with compile-time constants** — the exact same code you would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no heap allocations.
+The source generator emits **inline bit manipulation (shift and mask) with compile-time constants** — the exact same code you 
+would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no heap allocations.
 
-> **TL;DR for Architects:** You can confidently use BitFields in performance-critical code. The JIT compiler completely eliminates property accessor overhead through inlining, resulting in **identical performance to raw bit manipulation**.
+> **TL;DR for Architects:** You can confidently use BitFields in performance-critical code. The JIT compiler 
+completely eliminates property accessor overhead through inlining, resulting in **identical performance to raw 
+bit manipulation**.
 
 **Property Accessors vs Raw Bit Manipulation** (500M iterations, .NET 10):
 
@@ -177,10 +184,11 @@ status = 0x42;                 // Converts from byte
 | `ushort` | 16 bits | Signed alternative: `short` |
 | `uint` | 32 bits | Signed alternative: `int` |
 | `ulong` | 64 bits | Signed alternative: `long` |
+| `UInt128` | 128 bits | Signed alternative: `Int128` |
+| `Half` | 16 bits | IEEE 754 half-precision |
 | `float` | 32 bits | IEEE 754 single-precision |
 | `double` | 64 bits | IEEE 754 double-precision |
 | `decimal` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
-| `UInt128` | 128 bits | Signed alternative: `Int128` |
 | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
 
 #### Signed Property Types (Sign Extension)
