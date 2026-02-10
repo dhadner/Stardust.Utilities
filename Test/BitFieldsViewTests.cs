@@ -23,7 +23,7 @@ public partial class BitFieldsViewTests
     ///   Bits 4-11:  Traffic Class (8 bits)
     ///   Bits 12-31: Flow Label (20 bits)
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct IPv6HeaderView
     {
         [BitField(0, 3)] public partial byte Version { get; set; }
@@ -35,7 +35,7 @@ public partial class BitFieldsViewTests
     /// Simple 1-byte view with flags - big-endian, MSB-first.
     /// Bit 0 = MSB of byte 0.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct ByteFlagsView
     {
         [BitFlag(0)] public partial bool MsbFlag { get; set; }
@@ -58,7 +58,7 @@ public partial class BitFieldsViewTests
     /// <summary>
     /// 16-bit big-endian field spanning two bytes.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct TwoByteView
     {
         [BitField(0, 15)] public partial ushort FullWord { get; set; }
@@ -95,7 +95,7 @@ public partial class BitFieldsViewTests
     /// the struct-level default is BE. This ensures the wire format matches
     /// what ProtocolHeader16.ReadFrom(span) expects.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct BeViewWithLeHeader
     {
         [BitField(0, 15)] public partial ProtocolHeader16 Header { get; set; }
@@ -106,7 +106,7 @@ public partial class BitFieldsViewTests
     /// Same ProtocolHeader16 embedded in a little-endian view.
     /// This is the "correct" pairing since ProtocolHeader16 uses LE internally.
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct LeViewWithLeHeader
     {
         [BitField(0, 15)] public partial ProtocolHeader16 Header { get; set; }
@@ -117,7 +117,7 @@ public partial class BitFieldsViewTests
     /// Byte-backed BitFields (StatusFlags) in a big-endian view.
     /// Single-byte fields are endianness-agnostic, so this always works.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct BeViewWithByteFlags
     {
         [BitField(0, 7)] public partial StatusFlags Flags { get; set; }
@@ -129,7 +129,7 @@ public partial class BitFieldsViewTests
     /// The cast (ProtocolHeader16)(ushort)(byte_value) truncates the upper byte.
     /// Writing a full ProtocolHeader16 and reading it back loses data.
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct ViewWithTruncatedHeader
     {
         [BitField(0, 7)] public partial ProtocolHeader16 TruncatedHeader { get; set; }
@@ -140,7 +140,7 @@ public partial class BitFieldsViewTests
     /// Byte-backed BitFields (StatusFlags) in a WIDER field (16 bits).
     /// The upper 8 bits are always zero; the flags occupy only the low byte.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct ViewWithWideFlags
     {
         [BitField(0, 15)] public partial StatusFlags WideFlags { get; set; }
@@ -148,10 +148,10 @@ public partial class BitFieldsViewTests
     }
 
     /// <summary>
-    /// Tests [BitFields] with MsbFirst bit ordering.
+    /// Tests [BitFields] with MsbIsBitZero bit ordering.
     /// </summary>
-    [BitFields(typeof(byte), bitOrder: BitOrder.MsbFirst)]
-    public partial struct MsbFirstRegister
+    [BitFields(typeof(byte), bitOrder: BitOrder.MsbIsBitZero)]
+    public partial struct MsbIsBitZeroRegister
     {
         [BitField(0, 3)] public partial byte HighNibble { get; set; }
         [BitField(4, 7)] public partial byte LowNibble { get; set; }
@@ -207,14 +207,14 @@ public partial class BitFieldsViewTests
     /// <summary>
     /// Big-endian MSB-first outer with byte-aligned sub-view.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct OuterBigEndian
     {
         [BitField(0, 7)] public partial byte Header { get; set; }
         [BitField(16, 23)] public partial InnerViewBE Inner { get; set; }
     }
 
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct InnerViewBE
     {
         [BitField(0, 7)] public partial byte Value { get; set; }
@@ -227,7 +227,7 @@ public partial class BitFieldsViewTests
     /// LE struct with a BE field: UInt32Be property type forces big-endian read/write
     /// for that field even though the struct default is little-endian.
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct MixedEndianView
     {
         [BitField(0, 15)]  public partial ushort LeField { get; set; }
@@ -238,7 +238,7 @@ public partial class BitFieldsViewTests
     /// <summary>
     /// BE struct with a LE field: UInt32Le property type forces little-endian read/write.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct MixedEndianBEView
     {
         [BitField(0, 15)]  public partial ushort BeField { get; set; }
@@ -250,7 +250,7 @@ public partial class BitFieldsViewTests
     /// Should produce identical wire format to using plain native types
     /// in a LE struct (the override matches the default).
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct ExplicitSameEndianLeView
     {
         [BitField(0, 15)]   public partial UInt16Le U16 { get; set; }
@@ -266,7 +266,7 @@ public partial class BitFieldsViewTests
     /// Should produce identical wire format to using plain native types
     /// in a BE struct (the override matches the default).
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct ExplicitSameEndianBeView
     {
         [BitField(0, 15)]    public partial UInt16Be U16 { get; set; }
@@ -280,7 +280,7 @@ public partial class BitFieldsViewTests
     /// <summary>
     /// LE struct with all BE endian-aware types (every field overrides the default).
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct AllBeInLeView
     {
         [BitField(0, 15)]    public partial UInt16Be U16 { get; set; }
@@ -296,7 +296,7 @@ public partial class BitFieldsViewTests
     /// Each field is at a byte-aligned position, full-width for its type.
     /// Total: 2+2+4+4+8+8 = 28 bytes (224 bits).
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct MultiTypeBigEndianView
     {
         [BitField(0, 15)]    public partial ushort UShortField { get; set; }
@@ -311,7 +311,7 @@ public partial class BitFieldsViewTests
     /// Little-endian view with all supported multi-byte property types.
     /// Same layout as MultiTypeBigEndianView but with reversed byte order.
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct MultiTypeLittleEndianView
     {
         [BitField(0, 15)]    public partial ushort UShortField { get; set; }
@@ -328,7 +328,7 @@ public partial class BitFieldsViewTests
     /// Narrow fields packed into a single byte for overflow and adjacency testing.
     /// LSB-first: bit 0 = physical bit 0.
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct NarrowFieldsView
     {
         [BitField(0, 2)]  public partial byte ThreeBit { get; set; }  // max 7
@@ -340,7 +340,7 @@ public partial class BitFieldsViewTests
     /// MSB-first nibble view: four adjacent 4-bit fields packed into two bytes.
     /// Tests that writes to one nibble never bleed into neighbors.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct NibbleView
     {
         [BitField(0, 3)]   public partial byte N0 { get; set; }
@@ -353,7 +353,7 @@ public partial class BitFieldsViewTests
     /// Overlapping fields -- union-style access to the same bits.
     /// FullWord, HighByte, and LowByte all overlap intentionally.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct OverlappingFieldsView
     {
         [BitField(0, 15)] public partial ushort FullWord { get; set; }
@@ -376,7 +376,7 @@ public partial class BitFieldsViewTests
     /// Signed property type on a narrow field -- documents that no sign extension occurs.
     /// An 8-bit field returning short will yield 0..255, never negative.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct SignedNarrowView
     {
         [BitField(0, 7)]  public partial short Narrow8 { get; set; }  // 8 bits in a 16-bit type
@@ -387,7 +387,7 @@ public partial class BitFieldsViewTests
     /// UInt32Be on a 16-bit field: wider endian-aware type on a narrower bit span.
     /// The value is truncated to 16 bits on write; read returns only 16 bits cast to UInt32Be.
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
     public partial record struct EndianWidthMismatchView
     {
         [BitField(0, 15)] public partial UInt32Be WideTypeNarrowField { get; set; }
@@ -397,7 +397,7 @@ public partial class BitFieldsViewTests
     /// <summary>
     /// Full 64-bit field to test mask == ulong.MaxValue edge case.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct Full64BitView
     {
         [BitField(0, 63)] public partial ulong Value { get; set; }
@@ -407,7 +407,7 @@ public partial class BitFieldsViewTests
     /// Field at a high bit position, requiring a large buffer.
     /// Tests SizeInBytes computation for distant fields.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
     public partial record struct DistantFieldView
     {
         [BitField(0, 7)]     public partial byte First { get; set; }
@@ -420,7 +420,7 @@ public partial class BitFieldsViewTests
     /// Demonstrates nested sub-views: an IPv4 packet containing a UDP datagram.
     /// Assumes standard 20-byte IPv4 header (IHL=5, no options).
     /// </summary>
-    [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbFirst)]
+    [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
     public partial record struct IPv4UdpPacketView
     {
         [BitField(0, 159)]   public partial IPv4HeaderView Ip { get; set; }
@@ -597,7 +597,7 @@ public partial class BitFieldsViewTests
     #region MSB-First Flag Tests
 
     [Fact]
-    public void MsbFirst_Flag0_Is_MSB()
+    public void MsbIsBitZero_Flag0_Is_MSB()
     {
         // Bit 0 = MSB of byte 0 = 0x80
         var data = new byte[] { 0x80 };
@@ -607,7 +607,7 @@ public partial class BitFieldsViewTests
     }
 
     [Fact]
-    public void MsbFirst_Flag7_Is_LSB()
+    public void MsbIsBitZero_Flag7_Is_LSB()
     {
         // Bit 7 = LSB of byte 0 = 0x01
         var data = new byte[] { 0x01 };
@@ -617,7 +617,7 @@ public partial class BitFieldsViewTests
     }
 
     [Fact]
-    public void MsbFirst_SetFlags()
+    public void MsbIsBitZero_SetFlags()
     {
         var data = new byte[1];
         var view = new ByteFlagsView(data);
@@ -628,7 +628,7 @@ public partial class BitFieldsViewTests
     }
 
     [Fact]
-    public void MsbFirst_MiddleField()
+    public void MsbIsBitZero_MiddleField()
     {
         // Bits 1-4 in MSB-first = bits 6-3 from LSB in byte 0
         // Value 0xF (all 4 bits set) => byte = 0x78 (0111_1000)
@@ -642,7 +642,7 @@ public partial class BitFieldsViewTests
     #region LSB-First Tests (Hardware Convention)
 
     [Fact]
-    public void LsbFirst_Flag0_Is_LSB()
+    public void LsbIsBitZero_Flag0_Is_LSB()
     {
         // Bit 0 = LSB of byte 0 = 0x01
         var data = new byte[] { 0x01 };
@@ -652,7 +652,7 @@ public partial class BitFieldsViewTests
     }
 
     [Fact]
-    public void LsbFirst_Flag7_Is_MSB()
+    public void LsbIsBitZero_Flag7_Is_MSB()
     {
         // Bit 7 = MSB of byte 0 = 0x80
         var data = new byte[] { 0x80 };
@@ -662,7 +662,7 @@ public partial class BitFieldsViewTests
     }
 
     [Fact]
-    public void LsbFirst_MiddleField()
+    public void LsbIsBitZero_MiddleField()
     {
         // Bits 1-4 in LSB-first = bits 1-4 from LSB in byte 0
         // Value 0xF (all 4 bits set) => byte = 0x1E (0001_1110)
@@ -734,63 +734,63 @@ public partial class BitFieldsViewTests
 
     #endregion
 
-    #region BitFields MsbFirst Tests
+    #region BitFields MsbIsBitZero Tests
 
     [Fact]
-    public void BitFields_MsbFirst_HighNibble()
+    public void BitFields_MsbIsBitZero_HighNibble()
     {
-        // [BitField(0, 3)] with MsbFirst means top 4 bits
+        // [BitField(0, 3)] with MsbIsBitZero means top 4 bits
         // Value 0xA0 => HighNibble = 0x0A
-        MsbFirstRegister reg = 0xA0;
+        MsbIsBitZeroRegister reg = 0xA0;
         reg.HighNibble.Should().Be(0x0A);
     }
 
     [Fact]
-    public void BitFields_MsbFirst_LowNibble()
+    public void BitFields_MsbIsBitZero_LowNibble()
     {
-        // [BitField(4, 7)] with MsbFirst means bottom 4 bits
-        MsbFirstRegister reg = 0x05;
+        // [BitField(4, 7)] with MsbIsBitZero means bottom 4 bits
+        MsbIsBitZeroRegister reg = 0x05;
         reg.LowNibble.Should().Be(0x05);
     }
 
     [Fact]
-    public void BitFields_MsbFirst_SetHighNibble()
+    public void BitFields_MsbIsBitZero_SetHighNibble()
     {
-        MsbFirstRegister reg = 0;
+        MsbIsBitZeroRegister reg = 0;
         reg.HighNibble = 0x0F;
         ((byte)reg).Should().Be(0xF0);
     }
 
     [Fact]
-    public void BitFields_MsbFirst_SetLowNibble()
+    public void BitFields_MsbIsBitZero_SetLowNibble()
     {
-        MsbFirstRegister reg = 0;
+        MsbIsBitZeroRegister reg = 0;
         reg.LowNibble = 0x0A;
         ((byte)reg).Should().Be(0x0A);
     }
 
     [Fact]
-    public void BitFields_MsbFirst_MsbFlag()
+    public void BitFields_MsbIsBitZero_MsbFlag()
     {
-        // [BitFlag(0)] with MsbFirst = MSB = bit 7 in physical terms = 0x80
-        MsbFirstRegister reg = 0x80;
+        // [BitFlag(0)] with MsbIsBitZero = MSB = bit 7 in physical terms = 0x80
+        MsbIsBitZeroRegister reg = 0x80;
         reg.MsbFlag.Should().BeTrue();
         reg.LsbFlag.Should().BeFalse();
     }
 
     [Fact]
-    public void BitFields_MsbFirst_LsbFlag()
+    public void BitFields_MsbIsBitZero_LsbFlag()
     {
-        // [BitFlag(7)] with MsbFirst = LSB = bit 0 in physical terms = 0x01
-        MsbFirstRegister reg = 0x01;
+        // [BitFlag(7)] with MsbIsBitZero = LSB = bit 0 in physical terms = 0x01
+        MsbIsBitZeroRegister reg = 0x01;
         reg.MsbFlag.Should().BeFalse();
         reg.LsbFlag.Should().BeTrue();
     }
 
     [Fact]
-    public void BitFields_MsbFirst_RoundTrip()
+    public void BitFields_MsbIsBitZero_RoundTrip()
     {
-        MsbFirstRegister reg = 0;
+        MsbIsBitZeroRegister reg = 0;
         reg.HighNibble = 0x0C;
         reg.LowNibble = 0x03;
         reg.HighNibble.Should().Be(0x0C);

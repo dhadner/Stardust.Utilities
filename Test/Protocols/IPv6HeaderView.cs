@@ -22,7 +22,7 @@ namespace Stardust.Utilities.Protocols;
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </code>
 /// </summary>
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbFirst)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
 public partial record struct IPv6FullHeaderView
 {
     [BitField(0, 3)]     public partial byte Version { get; set; }

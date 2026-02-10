@@ -30,7 +30,7 @@ namespace Stardust.Utilities;
 /// }
 ///
 /// // Network protocol: big-endian, MSB-first (RFC convention)
-/// [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+/// [BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
 /// public partial record struct IPv6Header
 /// {
 ///     [BitField(0, 3)]   public partial byte Version { get; set; }
@@ -52,8 +52,8 @@ public sealed class BitFieldsViewAttribute : Attribute
 
     /// <summary>
     /// The bit numbering convention used for field positions.
-    /// Default is <see cref="BitOrder.LsbFirst"/> (bit 0 = least significant), matching <see cref="BitFieldsAttribute"/>.
-    /// Use <see cref="BitOrder.MsbFirst"/> for RFC/network protocol conventions.
+    /// Default is <see cref="BitOrder.LsbIsBitZero"/> (bit 0 = least significant), matching <see cref="BitFieldsAttribute"/>.
+    /// Use <see cref="BitOrder.MsbIsBitZero"/> for RFC/network protocol conventions.
     /// </summary>
     public BitOrder BitOrder { get; }
 
@@ -61,8 +61,8 @@ public sealed class BitFieldsViewAttribute : Attribute
     /// Creates a BitFieldsView attribute with the specified byte order and bit order.
     /// </summary>
     /// <param name="byteOrder">Byte order for multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
-    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.LsbFirst"/>.</param>
-    public BitFieldsViewAttribute(ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.LsbFirst)
+    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.LsbIsBitZero"/>.</param>
+    public BitFieldsViewAttribute(ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.LsbIsBitZero)
     {
         ByteOrder = byteOrder;
         BitOrder = bitOrder;

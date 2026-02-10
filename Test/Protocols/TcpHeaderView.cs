@@ -22,7 +22,7 @@ namespace Stardust.Utilities.Protocols;
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </code>
 /// </summary>
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbFirst)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
 public partial record struct TcpHeaderView
 {
     [BitField(0, 15)]    public partial ushort SourcePort { get; set; }

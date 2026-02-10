@@ -44,8 +44,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         if (attr.ConstructorArguments.Length >= 1 && attr.ConstructorArguments[0].Value is int bo)
             byteOrder = (ByteOrderValue)bo;
 
-        // Read BitOrder (arg 1, default LsbFirst = 1)
-        var bitOrder = BitOrderValue.LsbFirst;
+        // Read BitOrder (arg 1, default LsbIsBitZero = 1)
+        var bitOrder = BitOrderValue.LsbIsBitZero;
         if (attr.ConstructorArguments.Length >= 2 && attr.ConstructorArguments[1].Value is int bi)
             bitOrder = (BitOrderValue)bi;
 
@@ -331,7 +331,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         int readBits = readWidth * 8;
 
         int rightShift;
-        if (info.BitOrder == BitOrderValue.MsbFirst)
+        if (info.BitOrder == BitOrderValue.MsbIsBitZero)
         {
             int fieldEndInWindow = endBit - firstByte * 8;
             rightShift = readBits - 1 - fieldEndInWindow;
@@ -418,7 +418,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string ind, int startBit, int width, int oReadWidth, string oReadType,
         string oReadMethod, string oMaskLiteral)
     {
-        bool isMsb = info.BitOrder == BitOrderValue.MsbFirst;
+        bool isMsb = info.BitOrder == BitOrderValue.MsbIsBitZero;
         int oReadBits = oReadWidth * 8;
         string cast = GetterCast(field);
 
@@ -490,7 +490,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string ind, int startBit, int width, int oReadWidth, string oReadType,
         string oReadMethod, string oWriteMethod, ulong mask, string oMaskLiteral)
     {
-        bool isMsb = info.BitOrder == BitOrderValue.MsbFirst;
+        bool isMsb = info.BitOrder == BitOrderValue.MsbIsBitZero;
         int oReadBits = oReadWidth * 8;
 
         sb.AppendLine($"{ind}int ep = {startBit} + _bitOffset;");
@@ -537,7 +537,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     private static void GenerateFlagProperty(StringBuilder sb, BitFieldsViewInfo info, BitFlagInfo flag, string ind)
     {
         int bitPos = flag.Bit;
-        bool isMsb = info.BitOrder == BitOrderValue.MsbFirst;
+        bool isMsb = info.BitOrder == BitOrderValue.MsbIsBitZero;
 
         int byteIdx = bitPos / 8;
         int bitInByte = isMsb ? 7 - (bitPos % 8) : bitPos % 8;

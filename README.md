@@ -521,7 +521,7 @@ public partial record struct RegisterView
 }
 
 // For network protocols: big-endian, MSB-first (RFC convention)
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
 public partial record struct IPv6Header
 {
     [BitField(0, 3)]   public partial byte Version { get; set; }
@@ -539,7 +539,7 @@ byte version = header.Version;   // reads from packet[0]
 
 - **Zero-copy** -- operates directly on the underlying buffer, no data duplication
 - **Configurable byte order** -- `ByteOrder.LittleEndian` (default) or `ByteOrder.BigEndian` (network)
-- **Configurable bit numbering** -- `BitOrder.LsbFirst` (default) or `BitOrder.MsbFirst` (RFC)
+- **Configurable bit numbering** -- `BitOrder.LsbIsBitZero` (default) or `BitOrder.MsbIsBitZero` (RFC)
 - **Per-field endian override** -- use `UInt32Be`, `UInt16Le`, etc. to override the view's default byte order for individual fields
 - **Nestable** -- `[BitFields]` types work as property types inside `[BitFieldsView]`
 - **Sub-view nesting** -- nest `[BitFieldsView]` types inside each other for layered protocols
@@ -590,7 +590,7 @@ public partial struct StatusFlags
 }
 
 // Network capture header (big-endian, MSB-first)
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbFirst)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
 public partial record struct CaptureHeaderView
 {
     [BitField(0, 15)]  public partial ushort Protocol { get; set; }
@@ -598,7 +598,7 @@ public partial record struct CaptureHeaderView
 }
 
 // x86 file blob (little-endian), embedding both
-[BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbFirst)]
+[BitFieldsView(ByteOrder.LittleEndian, BitOrder.LsbIsBitZero)]
 public partial record struct FileBlobView
 {
     [BitField(0, 7)]     public partial StatusFlags Flags { get; set; }  // BitFields inside

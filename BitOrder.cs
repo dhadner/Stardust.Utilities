@@ -10,12 +10,26 @@ public enum BitOrder
     /// This matches how protocol fields are described in RFCs and network specifications.
     /// <para>Example (IPv6 header): <c>[BitField(0, 3)]</c> = Version (top nibble of byte 0).</para>
     /// </summary>
-    MsbFirst = 0,
+    MsbIsBitZero = 0,
+
+    /// <summary>
+    /// RFC (network) order. Bit 0 is the most significant bit of byte 0.
+    /// This matches how protocol fields are described in RFCs and network specifications.
+    /// <para>Example (IPv6 header): <c>[BitField(0, 3)]</c> = Version (top nibble of byte 0).</para>
+    /// </summary>
+    RfcNetworkOrder = MsbIsBitZero,
 
     /// <summary>
     /// LSB-first (hardware/register convention). Bit 0 is the least significant bit of byte 0.
     /// This matches the convention used by <see cref="BitFieldsAttribute"/> for hardware registers.
     /// <para>Example: <c>[BitField(0, 3)]</c> = bottom nibble of byte 0.</para>
     /// </summary>
-    LsbFirst = 1
+    LsbIsBitZero = 1,
+
+    /// <summary>
+    /// LSB-first (hardware/register convention). Bit 0 is the least significant bit of byte 0.
+    /// This matches the convention used by <see cref="BitFieldsAttribute"/> for hardware registers.
+    /// <para>Example: <c>[BitField(0, 3)]</c> = bottom nibble of byte 0.</para>
+    /// </summary>
+    HwRegisterOrder = LsbIsBitZero,
 }

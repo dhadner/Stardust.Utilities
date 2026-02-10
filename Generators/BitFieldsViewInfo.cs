@@ -16,8 +16,8 @@ internal enum ByteOrderValue
 /// </summary>
 internal enum BitOrderValue
 {
-    MsbFirst = 0,
-    LsbFirst = 1
+    MsbIsBitZero = 0,
+    LsbIsBitZero = 1
 }
 
 /// <summary>
