@@ -20,7 +20,7 @@ namespace Stardust.Utilities.Protocols;
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </code>
 /// </summary>
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
     [BitField(0, 3)]     public partial byte Version { get; set; }

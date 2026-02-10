@@ -225,8 +225,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             undefinedBitsMode = (MustBeValue)modeValue;
         }
 
-        // Read BitOrder from 3rd constructor argument (default is LsbIsBitZero = 1)
-        var bitOrder = BitOrderValue.LsbIsBitZero;
+        // Read BitOrder from 3rd constructor argument (default is BitZeroIsLsb = 1)
+        var bitOrder = BitOrderValue.BitZeroIsLsb;
         if (bitFieldsAttr.ConstructorArguments.Length >= 3 && bitFieldsAttr.ConstructorArguments[2].Value is int bitOrderValue)
         {
             bitOrder = (BitOrderValue)bitOrderValue;
@@ -266,7 +266,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // If MSB-first bit ordering, convert all positions to LSB-first (physical) positions.
         // This lets all downstream code generation remain unchanged.
         // MSB-first: user bit N maps to physical bit (totalBits - 1 - N).
-        if (bitOrder == BitOrderValue.MsbIsBitZero)
+        if (bitOrder == BitOrderValue.BitZeroIsMsb)
         {
             for (int i = 0; i < fields.Count; i++)
             {

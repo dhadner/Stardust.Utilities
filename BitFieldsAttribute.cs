@@ -27,7 +27,7 @@ namespace Stardust.Utilities;
 /// public partial struct WideRegister { ... }
 /// 
 /// // MSB-first bit numbering (for datasheets that number from the MSB):
-/// [BitFields(typeof(byte), bitOrder: BitOrder.MsbIsBitZero)]
+/// [BitFields(typeof(byte), bitOrder: BitOrder.BitZeroIsMsb)]
 /// public partial struct MsbRegister
 /// {
 ///     [BitField(0, 3)] public partial byte HighNibble { get; set; }  // top 4 bits
@@ -76,7 +76,7 @@ public sealed class BitFieldsAttribute : Attribute
 
     /// <summary>
     /// The bit numbering convention used for field positions.
-    /// Default is <see cref="BitOrder.LsbIsBitZero"/> (hardware register convention: bit 0 = least significant bit).
+    /// Default is <see cref="BitOrder.BitZeroIsLsb"/> (hardware register convention: bit 0 = least significant bit).
     /// </summary>
     public BitOrder BitOrder { get; }
 
@@ -85,9 +85,9 @@ public sealed class BitFieldsAttribute : Attribute
     /// </summary>
     /// <param name="storageType">The storage type (byte, ushort, uint, ulong, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).</param>
     /// <param name="undefinedBits">Specifies how undefined bits are handled. Defaults to <see cref="UndefinedBitsMustBe.Any"/>.</param>
-    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.LsbIsBitZero"/>.</param>
+    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>
     /// <param name="byteOrder">Byte order for serialization. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
-    public BitFieldsAttribute(Type storageType, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any, BitOrder bitOrder = BitOrder.LsbIsBitZero, ByteOrder byteOrder = ByteOrder.LittleEndian)
+    public BitFieldsAttribute(Type storageType, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any, BitOrder bitOrder = BitOrder.BitZeroIsLsb, ByteOrder byteOrder = ByteOrder.LittleEndian)
     {
         StorageType = storageType;
         UndefinedBits = undefinedBits;
@@ -102,9 +102,9 @@ public sealed class BitFieldsAttribute : Attribute
     /// </summary>
     /// <param name="bitCount">The number of bits in the bitfield (1 to 16,384).</param>
     /// <param name="undefinedBits">Specifies how undefined bits are handled. Defaults to <see cref="UndefinedBitsMustBe.Any"/>.</param>
-    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.LsbIsBitZero"/>.</param>
+    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>
     /// <param name="byteOrder">Byte order for serialization. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
-    public BitFieldsAttribute(int bitCount, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any, BitOrder bitOrder = BitOrder.LsbIsBitZero, ByteOrder byteOrder = ByteOrder.LittleEndian)
+    public BitFieldsAttribute(int bitCount, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any, BitOrder bitOrder = BitOrder.BitZeroIsLsb, ByteOrder byteOrder = ByteOrder.LittleEndian)
     {
         BitCount = bitCount;
         UndefinedBits = undefinedBits;

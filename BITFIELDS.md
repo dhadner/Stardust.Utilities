@@ -81,7 +81,7 @@ parsing, formatting, and implicit conversions. Zero heap allocations, zero abstr
 ## Quick Start -- BitFieldsView (Buffer View)
 
 ```csharp
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
     [BitField(0, 3)]     public partial byte Version { get; set; }
@@ -149,8 +149,8 @@ Both attributes support configurable byte order and bit numbering:
 | `ByteOrder.LittleEndian` | Yes | LSB first in memory | x86 registers, USB, PCI, PE files |
 | `ByteOrder.BigEndian` | No | MSB first in memory | Network protocols, Java class files |
 | `ByteOrder.NetworkEndian` | No | Synonym for `BigEndian` | Readability in protocol code |
-| `BitOrder.LsbIsBitZero` | Yes | Bit 0 = least significant | Hardware datasheets, x86 convention |
-| `BitOrder.MsbIsBitZero` | No | Bit 0 = most significant | RFCs, IETF specifications |
+| `BitOrder.BitZeroIsLsb` | Yes | Bit 0 = least significant | Hardware datasheets, x86 convention |
+| `BitOrder.BitZeroIsMsb` | No | Bit 0 = most significant | RFCs, IETF specifications |
 
 For `[BitFields]`, only `BitOrder` applies (the value is stored in a native integer).
 For `[BitFieldsView]`, both `ByteOrder` and `BitOrder` apply.
@@ -177,7 +177,7 @@ With MSB-first, bit positions in `[BitField]` attributes match RFC diagrams dire
 // |Version|  IHL  |Type of Service|          Total Length         |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4Word0
 {
     [BitField(0, 3)]   public partial byte Version { get; set; }      // matches RFC diagram
@@ -609,7 +609,7 @@ For individual fields that differ from the struct default, use endian-aware type
 
 ```csharp
 // Embedded network capture header -- big-endian
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct CaptureHeaderView
 {
     [BitField(0, 15)]  public partial ushort Protocol { get; set; }
@@ -629,7 +629,7 @@ public partial record struct FileBlobView
 }
 
 // Outer transport -- big-endian, wrapping the LE blob
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TransportView
 {
     [BitField(0, 15)]   public partial ushort MessageType { get; set; }
@@ -843,7 +843,7 @@ var ack    = TcpFlags.ACKBit;
 ### Buffer-View Approach (BitFieldsView)
 
 For zero-copy parsing of complete headers over byte buffers, use `[BitFieldsView]` with
-`ByteOrder.NetworkEndian` and `BitOrder.MsbIsBitZero` so that bit positions match RFC diagrams directly.
+`ByteOrder.NetworkEndian` and `BitOrder.BitZeroIsMsb` so that bit positions match RFC diagrams directly.
 Plain `ushort` and `uint` properties are all you need -- the struct-level `ByteOrder` handles
 serialization.
 
@@ -870,7 +870,7 @@ See `Test/Protocols/IPv4HeaderView.cs` for a copy-pasteable implementation.
 ```
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
     [BitField(0, 3)]     public partial byte Version { get; set; }
@@ -915,7 +915,7 @@ See `Test/Protocols/TcpHeaderView.cs` for a copy-pasteable implementation.
 ```
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TcpHeaderView
 {
     [BitField(0, 15)]    public partial ushort SourcePort { get; set; }
@@ -946,7 +946,7 @@ public partial record struct TcpHeaderView
 See `Test/Protocols/UdpHeaderView.cs` for a copy-pasteable implementation.
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct UdpHeaderView
 {
     [BitField(0, 15)]  public partial ushort SourcePort { get; set; }
@@ -961,7 +961,7 @@ public partial record struct UdpHeaderView
 See `Test/Protocols/IPv6HeaderView.cs` for a copy-pasteable implementation.
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.MsbIsBitZero)]
+[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv6HeaderView
 {
     [BitField(0, 3)]     public partial byte Version { get; set; }

@@ -7,7 +7,8 @@ public enum ByteOrder
 {
     /// <summary>
     /// Big-endian (network byte order). Most significant byte first.
-    /// This is the standard for network protocols (TCP/IP, DNS, HTTP/2, etc.).
+    /// This is the standard for network protocols (TCP/IP, DNS, HTTP/2, etc.)
+    /// and some legacy and third-party processors and .NET distributions.
     /// </summary>
     BigEndian = 0,
 
@@ -19,7 +20,8 @@ public enum ByteOrder
 
     /// <summary>
     /// Little-endian (native byte order on x86/ARM). Least significant byte first.
-    /// This matches the native memory layout on most modern processors.
+    /// This matches the native memory layout on most modern processors and every
+    /// Microsoft .NET distribution.
     /// </summary>
     LittleEndian = 1
 }
