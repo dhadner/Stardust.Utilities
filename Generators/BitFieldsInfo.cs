@@ -58,8 +58,10 @@ internal sealed class BitFieldsInfo
     public string? FloatingPointType { get; }
     /// <summary>If non-null, the multi-word struct generates implicit conversions to/from this native wide type ("UInt128" or "Int128").</summary>
     public string? NativeWideType { get; }
+    /// <summary>The byte order for serialization (ReadFrom/WriteTo). Default is LittleEndian.</summary>
+    public ByteOrderValue ByteOrder { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, MustBeValue undefinedBitsMode = MustBeValue.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, MustBeValue undefinedBitsMode = MustBeValue.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrderValue byteOrder = ByteOrderValue.LittleEndian)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -76,6 +78,7 @@ internal sealed class BitFieldsInfo
         TotalBits = totalBits;
         FloatingPointType = floatingPointType;
         NativeWideType = nativeWideType;
+        ByteOrder = byteOrder;
     }
 }
 
@@ -86,20 +89,33 @@ internal sealed class BitFieldInfo
 {
     public string Name { get; }
     public string PropertyType { get; }
+    /// <summary>
+    /// The underlying native CLR type used for BinaryPrimitives read/write and cast logic.
+    /// For endian-aware types (e.g., UInt32Be -> uint), this differs from <see cref="PropertyType"/>.
+    /// For plain types, this equals <see cref="PropertyType"/>.
+    /// </summary>
+    public string NativeType { get; }
     public int Shift { get; }
     public int Width { get; }
     /// <summary>
     /// Override for this specific field's bits.
     /// </summary>
     public MustBeValue ValueOverride { get; }
+    /// <summary>
+    /// Per-field byte order override inferred from endian-aware property types
+    /// (e.g., UInt32Be forces BigEndian). Null means use the struct-level default.
+    /// </summary>
+    public ByteOrderOverride? FieldByteOrder { get; }
 
-    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBeValue valueOverride = MustBeValue.Any)
+    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBeValue valueOverride = MustBeValue.Any, ByteOrderOverride? fieldByteOrder = null, string? nativeType = null)
     {
         Name = name;
         PropertyType = propertyType;
+        NativeType = nativeType ?? propertyType;
         Shift = shift;
         Width = width;
         ValueOverride = valueOverride;
+        FieldByteOrder = fieldByteOrder;
     }
 }
 

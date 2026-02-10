@@ -225,6 +225,20 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             undefinedBitsMode = (MustBeValue)modeValue;
         }
 
+        // Read BitOrder from 3rd constructor argument (default is LsbFirst = 1)
+        var bitOrder = BitOrderValue.LsbFirst;
+        if (bitFieldsAttr.ConstructorArguments.Length >= 3 && bitFieldsAttr.ConstructorArguments[2].Value is int bitOrderValue)
+        {
+            bitOrder = (BitOrderValue)bitOrderValue;
+        }
+
+        // Read ByteOrder from 4th constructor argument (default is LittleEndian = 1)
+        var byteOrder = ByteOrderValue.LittleEndian;
+        if (bitFieldsAttr.ConstructorArguments.Length >= 4 && bitFieldsAttr.ConstructorArguments[3].Value is int byteOrderValue)
+        {
+            byteOrder = (ByteOrderValue)byteOrderValue;
+        }
+
         // Determine storage mode, word count, and total bits
         StorageMode mode;
         int wordCount;
@@ -249,6 +263,28 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             totalBits = GetStorageTypeBitWidth(storageType!);
         }
 
+        // If MSB-first bit ordering, convert all positions to LSB-first (physical) positions.
+        // This lets all downstream code generation remain unchanged.
+        // MSB-first: user bit N maps to physical bit (totalBits - 1 - N).
+        if (bitOrder == BitOrderValue.MsbFirst)
+        {
+            for (int i = 0; i < fields.Count; i++)
+            {
+                var f = fields[i];
+                // User says [BitField(startBit, endBit)] in MSB-first.
+                // Convert: physical startBit = totalBits - 1 - userEndBit, width stays the same.
+                int userEndBit = f.Shift + f.Width - 1;
+                int physicalShift = totalBits - 1 - userEndBit;
+                fields[i] = new BitFieldInfo(f.Name, f.PropertyType, physicalShift, f.Width, f.ValueOverride);
+            }
+            for (int i = 0; i < flags.Count; i++)
+            {
+                var f = flags[i];
+                int physicalBit = totalBits - 1 - f.Bit;
+                flags[i] = new BitFlagInfo(f.Name, physicalBit, f.ValueOverride);
+            }
+        }
+
         return new BitFieldsInfo(
             structSymbol.Name,
             ns,
@@ -264,7 +300,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             wordCount,
             totalBits,
             floatingPointType,
-            nativeWideType);
+            nativeWideType,
+            byteOrder);
     }
 
     private static string GetAccessibility(ISymbol symbol)

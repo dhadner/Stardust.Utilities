@@ -168,16 +168,22 @@ public partial class BitFieldsGenerator
     /// Gets the BinaryPrimitives read method name for a given storage type.
     /// Returns null for byte/sbyte since those don't need BinaryPrimitives.
     /// </summary>
-    private static string? GetBinaryPrimitivesReadMethod(string storageType)
+    private static string? GetBinaryPrimitivesReadMethod(string storageType, bool bigEndian = false)
     {
-        return storageType switch
+        return (storageType, bigEndian) switch
         {
-            "short" => "ReadInt16LittleEndian",
-            "ushort" => "ReadUInt16LittleEndian",
-            "int" => "ReadInt32LittleEndian",
-            "uint" => "ReadUInt32LittleEndian",
-            "long" => "ReadInt64LittleEndian",
-            "ulong" => "ReadUInt64LittleEndian",
+            ("short", false)  => "ReadInt16LittleEndian",
+            ("short", true)   => "ReadInt16BigEndian",
+            ("ushort", false) => "ReadUInt16LittleEndian",
+            ("ushort", true)  => "ReadUInt16BigEndian",
+            ("int", false)    => "ReadInt32LittleEndian",
+            ("int", true)     => "ReadInt32BigEndian",
+            ("uint", false)   => "ReadUInt32LittleEndian",
+            ("uint", true)    => "ReadUInt32BigEndian",
+            ("long", false)   => "ReadInt64LittleEndian",
+            ("long", true)    => "ReadInt64BigEndian",
+            ("ulong", false)  => "ReadUInt64LittleEndian",
+            ("ulong", true)   => "ReadUInt64BigEndian",
             _ => null
         };
     }
@@ -186,16 +192,22 @@ public partial class BitFieldsGenerator
     /// Gets the BinaryPrimitives write method name for a given storage type.
     /// Returns null for byte/sbyte since those don't need BinaryPrimitives.
     /// </summary>
-    private static string? GetBinaryPrimitivesWriteMethod(string storageType)
+    private static string? GetBinaryPrimitivesWriteMethod(string storageType, bool bigEndian = false)
     {
-        return storageType switch
+        return (storageType, bigEndian) switch
         {
-            "short" => "WriteInt16LittleEndian",
-            "ushort" => "WriteUInt16LittleEndian",
-            "int" => "WriteInt32LittleEndian",
-            "uint" => "WriteUInt32LittleEndian",
-            "long" => "WriteInt64LittleEndian",
-            "ulong" => "WriteUInt64LittleEndian",
+            ("short", false)  => "WriteInt16LittleEndian",
+            ("short", true)   => "WriteInt16BigEndian",
+            ("ushort", false) => "WriteUInt16LittleEndian",
+            ("ushort", true)  => "WriteUInt16BigEndian",
+            ("int", false)    => "WriteInt32LittleEndian",
+            ("int", true)     => "WriteInt32BigEndian",
+            ("uint", false)   => "WriteUInt32LittleEndian",
+            ("uint", true)    => "WriteUInt32BigEndian",
+            ("long", false)   => "WriteInt64LittleEndian",
+            ("long", true)    => "WriteInt64BigEndian",
+            ("ulong", false)  => "WriteUInt64LittleEndian",
+            ("ulong", true)   => "WriteUInt64BigEndian",
             _ => null
         };
     }

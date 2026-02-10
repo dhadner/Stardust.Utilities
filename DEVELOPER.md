@@ -88,7 +88,8 @@ Stardust.Utilities/
 ├── Stardust.Utilities.csproj            # Main library (types, attributes)
 ├── Generators/
 │   ├── Stardust.Generators.csproj       # Source generator project
-│   └── BitFieldsGenerator.cs            # [BitFields] generator
+│   ├── BitFieldsGenerator.cs            # [BitFields] generator
+│   └── BitFieldsViewGenerator.cs         # [BitFieldsView] generator
 ├── Test/
 │   └── Stardust.Utilities.Tests.csproj
 ├── build/
