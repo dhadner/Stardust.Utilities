@@ -113,9 +113,9 @@ public partial class BitFieldMultiWordTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("CrossField", 60, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("HighBit", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("CrossField", 60, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("HighBit", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Bitwise complement operator.</summary>

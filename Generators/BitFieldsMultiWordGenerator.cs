@@ -161,13 +161,13 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             var qualifiedType = f.PropertyType.StartsWith("global::") ? f.PropertyType.Substring("global::".Length) : f.PropertyType;
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, qualifiedType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
         }
 
         foreach (var f in info.DeclaredFlags)
         {
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, null);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
         }
 
         sb.AppendLine($"{ind}}};");

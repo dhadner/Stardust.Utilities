@@ -66,9 +66,9 @@ public partial class BitFieldProtocolTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("MoreFragments", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("DontFragment", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Reserved", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("MoreFragments", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 1),
+            new("DontFragment", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 1),
+            new("Reserved", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 1),
         };
 
         /// <summary>Returns a new IPv4Flags with the MoreFragments flag set to the specified value.</summary>

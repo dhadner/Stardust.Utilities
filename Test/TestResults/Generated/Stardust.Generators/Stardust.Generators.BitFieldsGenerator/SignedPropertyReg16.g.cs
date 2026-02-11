@@ -75,10 +75,10 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("UnsignedField", 10, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("SignedNibble", 6, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Offset", 0, 6, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("UnsignedField", 10, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("SignedNibble", 6, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Offset", 0, 6, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new SignedPropertyReg16 with the Delta field set to the specified value.</summary>

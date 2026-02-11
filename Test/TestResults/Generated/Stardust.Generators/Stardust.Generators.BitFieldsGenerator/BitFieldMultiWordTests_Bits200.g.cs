@@ -147,11 +147,11 @@ public partial class BitFieldMultiWordTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Word0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Word1", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Word2", 128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Tag", 193, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Valid", 192, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Word0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 200, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Word1", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 200, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Word2", 128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 200, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Tag", 193, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 200, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Valid", 192, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 200, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Bitwise complement operator.</summary>

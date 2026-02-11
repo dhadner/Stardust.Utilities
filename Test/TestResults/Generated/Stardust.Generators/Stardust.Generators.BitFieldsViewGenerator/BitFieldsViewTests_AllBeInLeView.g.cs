@@ -291,12 +291,12 @@ public partial class BitFieldsViewTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("U16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
-            new("S16", 16, 16, "Stardust.Utilities.Int16Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
-            new("U32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
-            new("S32", 64, 32, "Stardust.Utilities.Int32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
-            new("U64", 96, 64, "Stardust.Utilities.UInt64Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
-            new("S64", 160, 64, "Stardust.Utilities.Int64Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
+            new("U16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 224, FieldMustBe: 0),
+            new("S16", 16, 16, "Stardust.Utilities.Int16Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 224, FieldMustBe: 0),
+            new("U32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 224, FieldMustBe: 0),
+            new("S32", 64, 32, "Stardust.Utilities.Int32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 224, FieldMustBe: 0),
+            new("U64", 96, 64, "Stardust.Utilities.UInt64Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 224, FieldMustBe: 0),
+            new("S64", 160, 64, "Stardust.Utilities.Int64Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 224, FieldMustBe: 0),
         };
 
     }

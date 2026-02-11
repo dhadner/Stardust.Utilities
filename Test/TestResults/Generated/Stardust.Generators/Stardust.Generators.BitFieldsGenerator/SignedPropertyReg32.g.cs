@@ -64,9 +64,9 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("HighByte", 24, 8, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("MiddleWord", 8, 16, "short", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("LowByte", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("HighByte", 24, 8, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("MiddleWord", 8, 16, "short", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("LowByte", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new SignedPropertyReg32 with the HighByte field set to the specified value.</summary>

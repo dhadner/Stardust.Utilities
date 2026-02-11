@@ -86,11 +86,11 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Priority", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Busy", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Complete", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Priority", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Busy", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Complete", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new StatusFlags with the Ready flag set to the specified value.</summary>

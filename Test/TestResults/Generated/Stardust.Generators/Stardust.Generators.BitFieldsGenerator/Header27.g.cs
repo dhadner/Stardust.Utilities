@@ -64,9 +64,9 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("SubHeader", 0, 9, "Stardust.Utilities.Tests.SubHeader9", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("PayloadSize", 9, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Sequence", 19, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("SubHeader", 0, 9, "Stardust.Utilities.Tests.SubHeader9", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 1),
+        new("PayloadSize", 9, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 1),
+        new("Sequence", 19, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 1),
     };
 
     /// <summary>Returns a new Header27 with the SubHeader field set to the specified value.</summary>

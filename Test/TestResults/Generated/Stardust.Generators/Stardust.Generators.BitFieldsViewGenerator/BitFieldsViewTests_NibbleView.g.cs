@@ -207,10 +207,10 @@ public partial class BitFieldsViewTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("N0", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("N1", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("N2", 8, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("N3", 12, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("N0", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 16, FieldMustBe: 0),
+            new("N1", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 16, FieldMustBe: 0),
+            new("N2", 8, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 16, FieldMustBe: 0),
+            new("N3", 12, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 16, FieldMustBe: 0),
         };
 
     }

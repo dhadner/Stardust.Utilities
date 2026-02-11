@@ -94,8 +94,8 @@ public partial class BitFieldMultiWordTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Low", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("High", 64, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Low", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 72, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("High", 64, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 72, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Bitwise complement operator.</summary>

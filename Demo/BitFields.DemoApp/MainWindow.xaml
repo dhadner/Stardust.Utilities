@@ -124,7 +124,7 @@
 
                         <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
                             <TextBlock Text="RFC-Style Bit Field Diagrams" FontSize="16" FontWeight="Bold" />
-                            <TextBlock Text="Generated from struct metadata via BitFieldDiagram.Render()" Margin="0,4,0,0" Opacity="0.6" />
+                            <TextBlock Text="Generated from struct metadata via BitFieldDiagram.Render() and RenderList()" Margin="0,4,0,0" Opacity="0.6" />
 
                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                                 <TextBlock Text="Struct:" VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -132,6 +132,7 @@
                                 <TextBlock Text="Bits/Row:" VerticalAlignment="Center" Margin="16,0,8,0" />
                                 <ComboBox x:Name="RfcBitsPerRow" Width="70" SelectionChanged="OnRfcStructChanged" />
                                 <CheckBox x:Name="RfcShowDescriptions" Content="Show Descriptions" VerticalAlignment="Center" Margin="16,0,0,0" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
+                                <CheckBox x:Name="RfcShowByteOffset" Content="Show Byte Offset" VerticalAlignment="Center" Margin="16,0,0,0" IsChecked="False" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
                                 <Button Content="Copy to Clipboard" Padding="12,4" Margin="16,0,0,0" Click="OnCopyRfcDiagram" />
                             </StackPanel>
                         </StackPanel>

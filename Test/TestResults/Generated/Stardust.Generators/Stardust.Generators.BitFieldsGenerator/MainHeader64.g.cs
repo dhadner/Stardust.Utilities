@@ -64,9 +64,9 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Protocol", 0, 27, "Stardust.Utilities.Tests.Header27", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Priority", 27, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Protocol", 0, 27, "Stardust.Utilities.Tests.Header27", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Priority", 27, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new MainHeader64 with the Protocol field set to the specified value.</summary>

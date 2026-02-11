@@ -77,10 +77,10 @@ public partial class BitFieldsViewTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("HighNibble", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("LowNibble", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("MsbFlag", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("LsbFlag", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("HighNibble", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("LowNibble", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("MsbFlag", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("LsbFlag", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the MsbFlag flag set to the specified value.</summary>

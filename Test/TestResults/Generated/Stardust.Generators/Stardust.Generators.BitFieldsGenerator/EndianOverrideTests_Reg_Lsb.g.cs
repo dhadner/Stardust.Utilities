@@ -66,9 +66,9 @@ public partial class EndianOverrideTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("BeU16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("LeU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("BeU32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("BeU16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("LeU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("BeU32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new Reg_Lsb with the BeU16 field set to the specified value.</summary>

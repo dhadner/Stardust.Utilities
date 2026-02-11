@@ -53,8 +53,8 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Length", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Length", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new ProtocolHeader16 with the Status field set to the specified value.</summary>

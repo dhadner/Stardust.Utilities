@@ -75,10 +75,10 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("LowDword", 1, 31, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("HighDword", 32, 31, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Sign", 63, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("LowDword", 1, 31, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("HighDword", 32, 31, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Sign", 63, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new SignedReg64 with the Flag0 flag set to the specified value.</summary>

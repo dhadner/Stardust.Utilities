@@ -55,8 +55,8 @@ public partial class ParsingFuzzTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Field1", 1, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Field1", 1, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new FuzzTestReg8 with the Flag0 flag set to the specified value.</summary>

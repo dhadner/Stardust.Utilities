@@ -23,6 +23,16 @@ namespace Stardust.Utilities;
 /// When set, <paramref name="Description"/> is treated as a resource key and resolved
 /// via this type's static <c>ResourceManager</c> property.
 /// </param>
+/// <param name="StructTotalBits">
+/// The total number of bits in the containing struct (e.g., 16 for <c>typeof(ushort)</c>,
+/// 256 for <c>[BitFields(256)]</c>). Used by diagram renderers to show undefined trailing bits.
+/// </param>
+/// <param name="FieldMustBe">
+/// Per-field MustBe constraint: 0 = no constraint, 1 = must be zero, 2 = must be one.
+/// </param>
+/// <param name="StructUndefinedMustBe">
+/// Struct-level UndefinedBitsMustBe mode: 0 = any, 1 = zeroes, 2 = ones.
+/// </param>
 public sealed record BitFieldInfo(
     string Name,
     int StartBit,
@@ -32,7 +42,10 @@ public sealed record BitFieldInfo(
     ByteOrder ByteOrder = ByteOrder.LittleEndian,
     BitOrder BitOrder = BitOrder.BitZeroIsLsb,
     string? Description = null,
-    Type? DescriptionResourceType = null)
+    Type? DescriptionResourceType = null,
+    int StructTotalBits = 0,
+    int FieldMustBe = 0,
+    int StructUndefinedMustBe = 0)
 {
     /// <summary>The ending bit position (inclusive, 0-based, as declared by the user).</summary>
     public int EndBit => StartBit + BitLength - 1;

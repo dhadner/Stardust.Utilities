@@ -88,11 +88,11 @@ public partial class BitFieldProtocolTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Version", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("IHL", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("DSCP", 18, 6, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("ECN", 16, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("TotalLength", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Version", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("IHL", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("DSCP", 18, 6, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("ECN", 16, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("TotalLength", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new IPv4VersionWord with the Version field set to the specified value.</summary>

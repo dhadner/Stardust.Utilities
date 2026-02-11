@@ -786,6 +786,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     {
         string structBitOrder = info.BitOrder == BitOrderValue.BitZeroIsMsb
             ? "BitOrder.BitZeroIsMsb" : "BitOrder.BitZeroIsLsb";
+        int totalBits = ComputeMinBytes(info) * 8;
 
         sb.AppendLine($"{ind}/// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>");
         sb.AppendLine($"{ind}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
@@ -797,7 +798,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             string effectiveByteOrder = IsEffectiveBigEndian(info, f.FieldByteOrder)
                 ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {effectiveByteOrder}, {structBitOrder}{descArgs}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {effectiveByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {totalBits}, FieldMustBe: {(int)f.ValueOverride}),");
         }
 
         foreach (var f in info.Flags)
@@ -805,7 +806,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
                 ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {totalBits}, FieldMustBe: {(int)f.ValueOverride}),");
         }
 
         sb.AppendLine($"{ind}}};");

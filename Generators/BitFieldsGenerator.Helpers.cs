@@ -164,13 +164,13 @@ public partial class BitFieldsGenerator
         {
             var qualifiedType = StripGlobalPrefix(f.PropertyType);
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}),");
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
         }
 
         foreach (var f in info.DeclaredFlags)
         {
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}),");
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
         }
 
         sb.AppendLine($"{indent}}};");

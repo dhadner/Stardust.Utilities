@@ -66,9 +66,9 @@ public partial class BitFieldProtocolTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("TTL", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Protocol", 16, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("HeaderChecksum", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("TTL", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Protocol", 16, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("HeaderChecksum", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new IPv4TtlWord with the TTL field set to the specified value.</summary>

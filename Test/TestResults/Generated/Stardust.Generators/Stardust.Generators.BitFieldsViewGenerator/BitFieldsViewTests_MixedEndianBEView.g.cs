@@ -135,8 +135,8 @@ public partial class BitFieldsViewTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("BeField", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("LeField", 16, 32, "Stardust.Utilities.UInt32Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
+            new("BeField", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 48, FieldMustBe: 0),
+            new("LeField", 16, 32, "Stardust.Utilities.UInt32Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 48, FieldMustBe: 0),
         };
 
     }

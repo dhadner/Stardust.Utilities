@@ -66,9 +66,9 @@ public partial class BitFieldProtocolTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Identification", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Flags", 13, 3, "Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("FragmentOffset", 0, 13, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Identification", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Flags", 13, 3, "Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("FragmentOffset", 0, 13, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new IPv4FragmentWord with the Identification field set to the specified value.</summary>

@@ -75,10 +75,10 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Address", 0, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Command", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Enable", 28, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Interrupt", 29, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Address", 0, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Command", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Enable", 28, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Interrupt", 29, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new GeneratedControlReg32 with the Enable flag set to the specified value.</summary>

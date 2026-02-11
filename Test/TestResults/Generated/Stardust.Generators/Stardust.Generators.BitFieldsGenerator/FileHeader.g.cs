@@ -86,11 +86,11 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>

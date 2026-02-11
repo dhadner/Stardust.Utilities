@@ -1121,16 +1121,24 @@ IPv4 header at 32 bits per row:
         0                   1                   2                   3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-0x00   |Version|  Ihl  | Dscp  |Ecn|         TotalLength              |
+0x00   |Version|  Ihl  |   Undefined   |          TotalLength          |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-0x04   |      Identification      |ReservedFlag|DontFragment|MoreFragments|  FragmentOffset  |
+0x04   |                           Undefined                           |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-0x08   |TimeToLive| Protocol|     HeaderChecksum      |
+0x08   |   Undefined   |   Protocol    |           Undefined           |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-0x0C   |                    SourceAddress                              |
+0x0C   |                         SourceAddress                         |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-0x10   |                 DestinationAddress                            |
+0x10   |                      DestinationAddress                       |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  U/Undefined = bits not defined in the struct
+  Version (bits 0-3): IP protocol version (always 4 for IPv4)
+  Ihl (bits 4-7): Internet Header Length in 32-bit words (min 5 = 20 bytes)
+  TotalLength (bits 16-31): Total packet length in bytes, including header and payload
+  Protocol (bits 72-79): Upper-layer protocol number (6=TCP, 17=UDP, 1=ICMP)
+  SourceAddress (bits 96-127): 32-bit source IPv4 address
+  DestinationAddress (bits 128-159): 32-bit destination IPv4 address
 ```
 
 CPU status register with descriptions:

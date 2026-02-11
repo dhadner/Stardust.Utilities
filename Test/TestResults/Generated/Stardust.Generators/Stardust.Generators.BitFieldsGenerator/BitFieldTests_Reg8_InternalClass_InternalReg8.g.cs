@@ -68,9 +68,9 @@ public partial class BitFieldTests
             /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
             public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
             {
-                new("FieldC", 3, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-                new("FlagA", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-                new("FlagB", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+                new("FieldC", 3, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+                new("FlagA", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+                new("FlagB", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
             };
 
             /// <summary>Returns a new InternalReg8 with the FlagA flag set to the specified value.</summary>

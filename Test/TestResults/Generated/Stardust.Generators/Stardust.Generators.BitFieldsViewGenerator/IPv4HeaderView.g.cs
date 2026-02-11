@@ -613,21 +613,21 @@ public partial record struct IPv4HeaderView
     /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Ihl", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Dscp", 8, 6, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Ecn", 14, 2, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("TotalLength", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Identification", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("FragmentOffset", 51, 13, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("TimeToLive", 64, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Protocol", 72, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("HeaderChecksum", 80, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("SourceAddress", 96, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("DestinationAddress", 128, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("ReservedFlag", 48, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("DontFragment", 49, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("MoreFragments", 50, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("Ihl", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("Dscp", 8, 6, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("Ecn", 14, 2, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("TotalLength", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("Identification", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("FragmentOffset", 51, 13, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("TimeToLive", 64, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("Protocol", 72, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("HeaderChecksum", 80, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("SourceAddress", 96, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("DestinationAddress", 128, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("ReservedFlag", 48, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("DontFragment", 49, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
+        new("MoreFragments", 50, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 160, FieldMustBe: 0),
     };
 
 }

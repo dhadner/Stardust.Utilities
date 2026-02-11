@@ -77,10 +77,10 @@ public partial class BitFieldProtocolTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("DataOffset", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Reserved", 25, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Flags", 16, 9, "Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("WindowSize", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("DataOffset", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Reserved", 25, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Flags", 16, 9, "Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("WindowSize", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new TcpControlWord with the DataOffset field set to the specified value.</summary>

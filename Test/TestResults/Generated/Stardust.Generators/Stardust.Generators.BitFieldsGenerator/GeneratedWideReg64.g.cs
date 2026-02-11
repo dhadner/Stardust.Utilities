@@ -86,11 +86,11 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Status", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Data", 8, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Address", 24, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Valid", 56, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Ready", 57, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Status", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Data", 8, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Address", 24, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Valid", 56, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Ready", 57, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new GeneratedWideReg64 with the Valid flag set to the specified value.</summary>

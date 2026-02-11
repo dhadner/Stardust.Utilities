@@ -219,10 +219,10 @@ public partial class MixedEndianScenarioTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Magic", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("CapturedSrcIp", 64, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
-            new("RecordCount", 96, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Magic", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 176, FieldMustBe: 0),
+            new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 176, FieldMustBe: 0),
+            new("CapturedSrcIp", 64, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 176, FieldMustBe: 0),
+            new("RecordCount", 96, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 176, FieldMustBe: 0),
         };
 
     }

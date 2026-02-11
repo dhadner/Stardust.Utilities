@@ -53,8 +53,8 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("SignedNibble", 9, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("SignedNibble", 9, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new SignedPropertyRegSigned16 with the Delta field set to the specified value.</summary>

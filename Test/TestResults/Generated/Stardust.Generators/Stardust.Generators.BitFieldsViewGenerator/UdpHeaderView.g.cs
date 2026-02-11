@@ -217,10 +217,10 @@ public partial record struct UdpHeaderView
     /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("SourcePort", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("DestinationPort", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Length", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("Checksum", 48, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("SourcePort", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
+        new("DestinationPort", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
+        new("Length", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
+        new("Checksum", 48, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
     };
 
 }

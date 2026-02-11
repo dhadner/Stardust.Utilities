@@ -70,9 +70,9 @@ public partial class BitFieldSpecializationTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Mantissa", 0, 23, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Exponent", 23, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Sign", 31, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Mantissa", 0, 23, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Exponent", 23, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Sign", 31, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Returns a new FloatRegister with the Sign flag set to the specified value.</summary>

@@ -135,8 +135,8 @@ public partial class EndianOverrideTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("NativeU16", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
-            new("ExplicitU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
+            new("NativeU16", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 32, FieldMustBe: 0),
+            new("ExplicitU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 32, FieldMustBe: 0),
         };
 
     }

@@ -177,9 +177,9 @@ public partial class MixedEndianScenarioTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Protocol", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("Length", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("SequenceNum", 32, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("Protocol", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
+            new("Length", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
+            new("SequenceNum", 32, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 64, FieldMustBe: 0),
         };
 
     }

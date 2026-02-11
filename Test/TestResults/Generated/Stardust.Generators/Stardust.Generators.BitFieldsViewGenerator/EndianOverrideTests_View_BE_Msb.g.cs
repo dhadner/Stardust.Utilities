@@ -219,10 +219,10 @@ public partial class EndianOverrideTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("NativeU16", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-            new("LeU32", 16, 32, "Stardust.Utilities.UInt32Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
-            new("LeS16", 48, 16, "Stardust.Utilities.Int16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
-            new("LeU64", 64, 64, "Stardust.Utilities.UInt64Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
+            new("NativeU16", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 128, FieldMustBe: 0),
+            new("LeU32", 16, 32, "Stardust.Utilities.UInt32Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 128, FieldMustBe: 0),
+            new("LeS16", 48, 16, "Stardust.Utilities.Int16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 128, FieldMustBe: 0),
+            new("LeU64", 64, 64, "Stardust.Utilities.UInt64Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 128, FieldMustBe: 0),
         };
 
     }

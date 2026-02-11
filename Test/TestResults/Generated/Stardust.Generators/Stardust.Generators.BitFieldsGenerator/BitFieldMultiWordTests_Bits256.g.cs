@@ -132,10 +132,10 @@ public partial class BitFieldMultiWordTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("W1", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("W2", 128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("W3", 192, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W1", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W2", 128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W3", 192, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Bitwise complement operator.</summary>

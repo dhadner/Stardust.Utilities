@@ -460,16 +460,16 @@ public partial record struct IPv6FullHeaderView
     /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("TrafficClass", 4, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("FlowLabel", 12, 20, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("PayloadLength", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("NextHeader", 48, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("HopLimit", 56, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("SourceAddressHigh", 64, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("SourceAddressLow", 128, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("DestinationAddressHigh", 192, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
-        new("DestinationAddressLow", 256, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("TrafficClass", 4, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("FlowLabel", 12, 20, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("PayloadLength", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("NextHeader", 48, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("HopLimit", 56, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("SourceAddressHigh", 64, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("SourceAddressLow", 128, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("DestinationAddressHigh", 192, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
+        new("DestinationAddressLow", 256, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 320, FieldMustBe: 0),
     };
 
 }

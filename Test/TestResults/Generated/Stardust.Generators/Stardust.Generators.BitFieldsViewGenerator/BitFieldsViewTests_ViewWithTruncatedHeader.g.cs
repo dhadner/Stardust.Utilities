@@ -125,8 +125,8 @@ public partial class BitFieldsViewTests
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("TruncatedHeader", 0, 8, "Stardust.Utilities.Tests.ProtocolHeader16", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Other", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("TruncatedHeader", 0, 8, "Stardust.Utilities.Tests.ProtocolHeader16", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0),
+            new("Other", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0),
         };
 
     }

@@ -303,22 +303,41 @@ public partial class MainWindow : Window
         }
     }
 
-    // ?? RFC Diagram ??????????????????????????????????????????????
+    // ── RFC Diagram ──────────────────────────────────────────────
 
-    private readonly record struct DiagramSource(string Label, BitFieldInfo[] Fields);
+    private readonly record struct DiagramSource(string Label, DiagramSection[] Sections);
 
     private DiagramSource[] _diagramSources = [];
+
+    private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
+        new(label, [new("", fields)]);
 
     private void InitRfcTab()
     {
         _diagramSources =
         [
-            new("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
-            new("TCP Header", TcpHeaderView.Fields.ToArray()),
-            new("DOS Header", DosHeaderView.Fields.ToArray()),
-            new("COFF Header", CoffHeaderView.Fields.ToArray()),
-            new("Optional Header", OptionalHeaderView.Fields.ToArray()),
-            new("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
+            Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
+            Single("TCP Header", TcpHeaderView.Fields.ToArray()),
+            Single("DOS Header", DosHeaderView.Fields.ToArray()),
+            Single("COFF Header", CoffHeaderView.Fields.ToArray()),
+            Single("Optional Header", OptionalHeaderView.Fields.ToArray()),
+            Single("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
+            new("68020 Register Set",
+            [
+                new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
+                new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
+                new("PC", M68020PC.Fields.ToArray()),
+                new("SR", M68020SR.Fields.ToArray()),
+                new("CCR", M68020CCR.Fields.ToArray()),
+                new("USP", M68020USP.Fields.ToArray()),
+                new("ISP", M68020ISP.Fields.ToArray()),
+                new("MSP", M68020MSP.Fields.ToArray()),
+                new("VBR", M68020VBR.Fields.ToArray()),
+                new("SFC", M68020SFC.Fields.ToArray()),
+                new("DFC", M68020DFC.Fields.ToArray()),
+                new("CACR", M68020CACR.Fields.ToArray()),
+                new("CAAR", M68020CAAR.Fields.ToArray()),
+            ]),
         ];
 
         RfcStructPicker.Items.Clear();
@@ -345,8 +364,10 @@ public partial class MainWindow : Window
         var source = _diagramSources[RfcStructPicker.SelectedIndex];
         int bitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
         bool showDesc = RfcShowDescriptions.IsChecked == true;
+        bool showOffset = RfcShowByteOffset.IsChecked == true;
 
-        RfcDiagramOutput.Text = BitFieldDiagram.RenderToString(source.Fields, bitsPerRow, showDesc);
+        RfcDiagramOutput.Text = BitFieldDiagram.RenderListToString(
+            source.Sections, bitsPerRow, showDesc, showOffset);
     }
 
     private void OnCopyRfcDiagram(object sender, RoutedEventArgs e)

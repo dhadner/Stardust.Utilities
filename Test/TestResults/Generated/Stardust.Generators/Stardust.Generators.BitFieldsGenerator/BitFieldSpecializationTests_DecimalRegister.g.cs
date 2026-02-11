@@ -113,9 +113,9 @@ public partial class BitFieldSpecializationTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Coefficient", 0, 96, "System.UInt128", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Scale", 112, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-            new("Sign", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Coefficient", 0, 96, "System.UInt128", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Scale", 112, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Sign", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
         };
 
         /// <summary>Bitwise complement operator.</summary>

@@ -75,10 +75,10 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("SecondKeyCode", 0, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("FirstKeyCode", 8, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("SecondKeyUp", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("FirstKeyUp", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("SecondKeyCode", 0, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("FirstKeyCode", 8, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("SecondKeyUp", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("FirstKeyUp", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the SecondKeyUp flag set to the specified value.</summary>

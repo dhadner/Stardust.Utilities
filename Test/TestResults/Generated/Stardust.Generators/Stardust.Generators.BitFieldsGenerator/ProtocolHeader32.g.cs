@@ -75,10 +75,10 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Command", 8, 4, "Stardust.Utilities.Tests.CommandCode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Version", 12, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
-        new("Sequence", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Command", 8, 4, "Stardust.Utilities.Tests.CommandCode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Version", 12, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Sequence", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
     /// <summary>Returns a new ProtocolHeader32 with the Status field set to the specified value.</summary>
