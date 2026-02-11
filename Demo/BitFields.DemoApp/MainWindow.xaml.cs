@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,16 +21,17 @@ public partial class MainWindow : Window
 
     private static readonly Color[] Palette =
     [
-        Rgb(0x61,0xAF,0xEF), Rgb(0xC6,0x78,0xDD), Rgb(0x98,0xC3,0x79), Rgb(0xE5,0xC0,0x7B),
-        Rgb(0xE0,0x6C,0x75), Rgb(0x56,0xB6,0xC2), Rgb(0xD1,0x9A,0x66), Rgb(0xBE,0x50,0x46),
-        Rgb(0x7E,0xC8,0xE3), Rgb(0xFF,0x79,0xC6), Rgb(0x50,0xFA,0x7B), Rgb(0xF1,0xFA,0x8C),
-        Rgb(0xBD,0x93,0xF9), Rgb(0xFF,0xB8,0x6C), Rgb(0x8B,0xE9,0xFD), Rgb(0xFF,0x55,0x55),
-        Rgb(0xA9,0xDC,0x76), Rgb(0xCC,0x99,0xCD), Rgb(0x6A,0x99,0x55), Rgb(0x9E,0xA0,0xA6),
+        Rgb(0x61,0xAF,0xEF), Rgb(0xC6,0x78,0xDD), Rgb(0x56,0x9C,0x3B), Rgb(0xC4,0x8A,0x1A),
+        Rgb(0xE0,0x6C,0x75), Rgb(0x2E,0x9E,0xAF), Rgb(0xC0,0x7A,0x30), Rgb(0xBE,0x50,0x46),
+        Rgb(0x3E,0x9C,0xBB), Rgb(0xDB,0x50,0x9E), Rgb(0x30,0xA0,0x50), Rgb(0x9E,0x6B,0xD1),
+        Rgb(0xBD,0x93,0xF9), Rgb(0xD0,0x86,0x30), Rgb(0x2F,0x8D,0xA8), Rgb(0xFF,0x55,0x55),
+        Rgb(0x6A,0x99,0x55), Rgb(0xAA,0x6E,0xAB), Rgb(0x3F,0x7F,0x3F), Rgb(0x7E,0x80,0x86),
     ];
 
     public MainWindow()
     {
         InitializeComponent();
+        InitRfcTab();
         SeedPacketSample();
         UpdateCpuUi();
         MixedEndianSummary.Text = MixedEndianDemo.Summarize();
@@ -301,6 +303,71 @@ public partial class MainWindow : Window
         }
     }
 
+    // ?? RFC Diagram ??????????????????????????????????????????????
+
+    private readonly record struct DiagramSource(string Label, BitFieldInfo[] Fields);
+
+    private DiagramSource[] _diagramSources = [];
+
+    private void InitRfcTab()
+    {
+        _diagramSources =
+        [
+            new("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
+            new("TCP Header", TcpHeaderView.Fields.ToArray()),
+            new("DOS Header", DosHeaderView.Fields.ToArray()),
+            new("COFF Header", CoffHeaderView.Fields.ToArray()),
+            new("Optional Header", OptionalHeaderView.Fields.ToArray()),
+            new("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
+        ];
+
+        RfcStructPicker.Items.Clear();
+        foreach (var s in _diagramSources)
+            RfcStructPicker.Items.Add(s.Label);
+        RfcStructPicker.SelectedIndex = 0;
+
+        RfcBitsPerRow.Items.Clear();
+        RfcBitsPerRow.Items.Add("8");
+        RfcBitsPerRow.Items.Add("16");
+        RfcBitsPerRow.Items.Add("32");
+        RfcBitsPerRow.Items.Add("64");
+        RfcBitsPerRow.SelectedIndex = 2; // default 32
+    }
+
+    private void OnRfcStructChanged(object sender, RoutedEventArgs e) => UpdateRfcDiagram();
+    private void OnRfcStructChanged(object sender, SelectionChangedEventArgs e) => UpdateRfcDiagram();
+
+    private void UpdateRfcDiagram()
+    {
+        if (RfcStructPicker.SelectedIndex < 0 || RfcBitsPerRow.SelectedItem == null)
+            return;
+
+        var source = _diagramSources[RfcStructPicker.SelectedIndex];
+        int bitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
+        bool showDesc = RfcShowDescriptions.IsChecked == true;
+
+        RfcDiagramOutput.Text = BitFieldDiagram.RenderToString(source.Fields, bitsPerRow, showDesc);
+    }
+
+    private void OnCopyRfcDiagram(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(RfcDiagramOutput.Text))
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    Clipboard.SetText(RfcDiagramOutput.Text);
+                    return;
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    Thread.Sleep(50);
+                }
+            }
+        }
+    }
+
     // ?? Shared Three-Panel Display ?????????????????????????????
 
     private sealed record FieldDef(string Name, int StartBit, int EndBit, Color Color, string Value, BitOrder BitOrder = BitOrder.BitZeroIsLsb, string? Description = null);
@@ -331,7 +398,7 @@ public partial class MainWindow : Window
             var bg = new SolidColorBrush(Color.FromArgb(0x30, f.Color.R, f.Color.G, f.Color.B));
 
             var nameBlock = new TextBlock { Text = f.Name, FontSize = 10, Foreground = brush, FontWeight = FontWeights.Bold };
-            var valueBlock = new TextBlock { Text = f.Value, Foreground = Brushes.White, FontFamily = new FontFamily("Consolas"), FontSize = 13 };
+            var valueBlock = new TextBlock { Text = f.Value, FontFamily = new FontFamily("Consolas"), FontSize = 13 };
 
             var stack = new StackPanel();
             stack.Children.Add(nameBlock);
@@ -525,9 +592,9 @@ public partial class MainWindow : Window
                 if (isSelected)
                 {
                     border.Background = new SolidColorBrush(borderTag.Color);
-                    border.BorderBrush = Brushes.White;
+                    border.BorderBrush = SystemColors.HighlightBrush;
                     border.BorderThickness = new Thickness(2);
-                    SetDescendantForeground(border.Child, Colors.Black);
+                    SetDescendantForeground(border.Child, SystemColors.HighlightTextColor);
                 }
                 else
                 {
@@ -593,11 +660,15 @@ public partial class MainWindow : Window
                 if (child is TextBlock tb)
                 {
                     if (tb.FontWeight == FontWeights.Bold)
+                    {
+                        // Name label: restore to field color
                         tb.Foreground = new SolidColorBrush(c);
-                    else if (tb.FontSize <= 10)
-                        tb.Foreground = new SolidColorBrush(Color.FromArgb(0xBB, c.R, c.G, c.B));
+                    }
                     else
-                        tb.Foreground = new SolidColorBrush(c);
+                    {
+                        // Value text: clear local foreground to re-inherit theme color
+                        tb.ClearValue(TextBlock.ForegroundProperty);
+                    }
                 }
             }
         }

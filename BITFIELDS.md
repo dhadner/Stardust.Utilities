@@ -52,6 +52,9 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 - [Parsing a Captured Network Packet](#parsing-a-captured-network-packet)
 - [Mixed-Endian Capture File](#mixed-endian-capture-file)
 
+**Visualization**
+- [RFC Diagram Generator](#rfc-diagram-generator)
+
 **Reference**
 - [Performance](#performance)
 - [Generated Code Listing](#generated-code-listing)
@@ -1059,6 +1062,92 @@ The pcap headers (LE) and network headers (BE) each declare their own byte order
 No manual byte-swapping. No endian-aware types needed for the common case.
 `UInt32Be` / `UInt16Le` per-field overrides are only needed for the uncommon case
 where a single struct mixes endianness at the individual field level.
+
+---
+
+## RFC Diagram Generator
+
+`BitFieldDiagram` generates RFC 2360-style ASCII bit field diagrams from any `[BitFields]` or
+`[BitFieldsView]` struct. It reads the generated `Fields` metadata property and produces a
+text diagram with bit-position headers, byte offsets, and auto-sized cells.
+
+### Basic Usage
+
+```csharp
+using Stardust.Utilities;
+
+// Render as a list of lines
+List<string> lines = BitFieldDiagram.Render(IPv4HeaderView.Fields);
+
+// Render as a single string with newlines
+string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
+```
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `bitsPerRow` | 32 | Number of bits per row. Common values: 8, 16, 32, 64. |
+| `includeDescriptions` | false | Appends a legend with `[Description]` text for each field. |
+
+```csharp
+// 8 bits per row for small registers
+string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, bitsPerRow: 8);
+
+// 64-bit wide display
+string diagram = BitFieldDiagram.RenderToString(TcpHeaderView.Fields, bitsPerRow: 64);
+
+// Include field descriptions
+string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, includeDescriptions: true);
+```
+
+### Features
+
+- **Auto-sized cells** -- Cell width adjusts automatically so all field names fit without truncation.
+- **Byte offsets** -- Each content row shows the hex byte offset (e.g., `0x00`, `0x04`) on the left.
+- **Bit-position headers** -- Tens and ones digit rows in standard RFC format, with digits centered
+  over cell dashes.
+- **Undefined bits** -- Gaps between defined fields are labeled `Undefined` (or `U` if the span is
+  too narrow). A legend is appended when undefined bits are present.
+- **Struct-sized rows** -- The last row ends at the struct's last defined bit rather than padding
+  to `bitsPerRow`.
+- **Single separators** -- One `+-+-+` line between rows, matching RFC 791 style.
+
+### Example Output
+
+IPv4 header at 32 bits per row:
+
+```
+        0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+0x00   |Version|  Ihl  | Dscp  |Ecn|         TotalLength              |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+0x04   |      Identification      |ReservedFlag|DontFragment|MoreFragments|  FragmentOffset  |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+0x08   |TimeToLive| Protocol|     HeaderChecksum      |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+0x0C   |                    SourceAddress                              |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+0x10   |                 DestinationAddress                            |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+```
+
+CPU status register with descriptions:
+
+```csharp
+string diagram = BitFieldDiagram.RenderToString(
+    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true);
+```
+
+### Demo Application
+
+The demo app (`Demo/BitFields.DemoApp`) includes an RFC Diagram tab with:
+
+- Struct picker for all registered `[BitFields]` and `[BitFieldsView]` types
+- Bits/Row selector (8, 16, 32, 64)
+- Show Descriptions toggle
+- Copy to Clipboard button
 
 ---
 

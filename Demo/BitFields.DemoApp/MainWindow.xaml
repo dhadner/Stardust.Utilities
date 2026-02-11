@@ -1,14 +1,12 @@
 <Window x:Class="BitFields.DemoApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Stardust BitFields Playground" Height="820" Width="1200"
-        Background="{DynamicResource AppBackground}"
-        Foreground="White">
+        Title="Stardust BitFields Playground" Height="820" Width="1200">
     <Grid Margin="12">
-        <TabControl Background="{DynamicResource PanelBackground}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
+        <TabControl>
             <TabItem Header="PE Viewer">
                 <ScrollViewer x:Name="PeScroller" VerticalScrollBarVisibility="Auto">
-                    <Grid TextElement.Foreground="White" MinHeight="{Binding ViewportHeight, ElementName=PeScroller}">
+                    <Grid MinHeight="{Binding ViewportHeight, ElementName=PeScroller}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -25,25 +23,25 @@
                             <WrapPanel x:Name="PeFieldSummaryPanel" />
 
                             <TextBlock Text="&#x25B8; Header Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
                                 <WrapPanel x:Name="PeHexBytesPanel" />
                             </Border>
 
                             <TextBlock Text="&#x25B8; Header Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
                                 <WrapPanel x:Name="PeBinaryBitsPanel" />
                             </Border>
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Text="&#x25B8; Raw Bytes" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
-                        <TextBox Grid.Row="2" x:Name="PeRawBytes" Margin="16,0,16,16" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
+                        <TextBox Grid.Row="2" x:Name="PeRawBytes" Margin="16,0,16,16" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" IsReadOnly="True" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Network Packet Viewer">
                 <ScrollViewer x:Name="NetScroller" VerticalScrollBarVisibility="Auto">
-                    <Grid TextElement.Foreground="White" MinHeight="{Binding ViewportHeight, ElementName=NetScroller}">
+                    <Grid MinHeight="{Binding ViewportHeight, ElementName=NetScroller}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -52,42 +50,37 @@
 
                         <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
                             <TextBlock Text="Paste IPv4/TCP packet bytes (hex, spaces allowed):" />
-                            <TextBox x:Name="PacketHexInput" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" TextChanged="OnPacketHexInputChanged" />
+                            <TextBox x:Name="PacketHexInput" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" TextChanged="OnPacketHexInputChanged" />
 
                             <TextBlock Text="&#x25B8; Fields" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
                             <WrapPanel x:Name="FieldSummaryPanel" />
 
                             <TextBlock Text="&#x25B8; Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
                                 <WrapPanel x:Name="HexBytesPanel" />
                             </Border>
 
                             <TextBlock Text="&#x25B8; Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
                                 <WrapPanel x:Name="BinaryBitsPanel" />
                             </Border>
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Text="&#x25B8; HTTP Payload" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
-                        <TextBox Grid.Row="2" x:Name="HttpPayload" Margin="16,0,16,16" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
+                        <TextBox Grid.Row="2" x:Name="HttpPayload" Margin="16,0,16,16" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" IsReadOnly="True" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="CPU Register Lab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16" Orientation="Vertical" TextElement.Foreground="White">
+                    <StackPanel Margin="16" Orientation="Vertical">
                         <TextBlock Text="Status Register (16-bit)" FontSize="16" FontWeight="Bold" />
                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                             <TextBlock Text="Raw Hex" VerticalAlignment="Center" Margin="0,0,8,0" />
-                            <TextBox x:Name="CpuRawHex" Width="100" Height="28" Background="#FF0B1220" Foreground="White" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="Consolas" FontSize="14" Padding="4,2" TextChanged="OnCpuRawHexChanged" />
+                            <TextBox x:Name="CpuRawHex" Width="100" Height="28" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="Consolas" FontSize="14" Padding="4,2" TextChanged="OnCpuRawHexChanged" />
                         </StackPanel>
                         <WrapPanel Margin="0,8,0,0" ItemHeight="30" ItemWidth="140">
-                            <WrapPanel.Resources>
-                                <Style TargetType="CheckBox">
-                                    <Setter Property="Foreground" Value="White" />
-                                </Style>
-                            </WrapPanel.Resources>
                             <CheckBox x:Name="FlagCarry" Content="Carry" Checked="OnCpuFlagChanged" Unchecked="OnCpuFlagChanged" />
                             <CheckBox x:Name="FlagZero" Content="Zero" Checked="OnCpuFlagChanged" Unchecked="OnCpuFlagChanged" />
                             <CheckBox x:Name="FlagInterrupt" Content="Interrupt" Checked="OnCpuFlagChanged" Unchecked="OnCpuFlagChanged" />
@@ -105,18 +98,47 @@
                         <WrapPanel x:Name="CpuFieldSummaryPanel" />
 
                         <TextBlock Text="&#x25B8; Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                        <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
                             <WrapPanel x:Name="CpuHexBytesPanel" />
                         </Border>
 
                         <TextBlock Text="&#x25B8; Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                        <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
                             <WrapPanel x:Name="CpuBinaryBitsPanel" />
                         </Border>
 
                         <TextBlock Text="Mixed Endian Demo" FontWeight="Bold" Margin="0,12,0,4" />
                         <TextBlock x:Name="MixedEndianSummary" />
                     </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="RFC Diagram">
+                <ScrollViewer x:Name="RfcScroller" VerticalScrollBarVisibility="Auto">
+                    <Grid MinHeight="{Binding ViewportHeight, ElementName=RfcScroller}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="40" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
+                            <TextBlock Text="RFC-Style Bit Field Diagrams" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="Generated from struct metadata via BitFieldDiagram.Render()" Margin="0,4,0,0" Opacity="0.6" />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <TextBlock Text="Struct:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <ComboBox x:Name="RfcStructPicker" Width="220" SelectionChanged="OnRfcStructChanged" />
+                                <TextBlock Text="Bits/Row:" VerticalAlignment="Center" Margin="16,0,8,0" />
+                                <ComboBox x:Name="RfcBitsPerRow" Width="70" SelectionChanged="OnRfcStructChanged" />
+                                <CheckBox x:Name="RfcShowDescriptions" Content="Show Descriptions" VerticalAlignment="Center" Margin="16,0,0,0" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
+                                <Button Content="Copy to Clipboard" Padding="12,4" Margin="16,0,0,0" Click="OnCopyRfcDiagram" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="&#x25B8; Diagram" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
+                        <TextBox Grid.Row="2" x:Name="RfcDiagramOutput" Margin="16,0,16,16" Padding="8,4" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="13" />
+                    </Grid>
                 </ScrollViewer>
             </TabItem>
         </TabControl>

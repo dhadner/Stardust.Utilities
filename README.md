@@ -21,6 +21,7 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
     - [BitFields (Value Types)](#bitfields-value-types)
     - [BitFieldsView (Zero-Copy Views)](#bitfieldsview-zero-copy-views)
     - [Choosing Between BitFields and BitFieldsView](#choosing-between-bitfields-and-bitfieldsview)
+    - [RFC Diagram Generator](#rfc-diagram-generator)
   - [Result Types](#result-types)
   - [Endian Types](#endian-types)
   - [Extension Methods](#extension-methods)
@@ -616,6 +617,23 @@ on the same underlying buffer.
 
 See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
 full documentation on nesting, mixed-endian scenarios, and write-through semantics.
+
+#### RFC Diagram Generator
+
+`BitFieldDiagram` generates RFC 2360-style ASCII bit field diagrams directly from struct metadata.
+Cells auto-size to fit field names, byte offsets label each row, and undefined bits are clearly
+marked.
+
+```csharp
+// Generate a diagram from any [BitFields] or [BitFieldsView] struct
+string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
+
+// Custom width and descriptions
+string diagram = BitFieldDiagram.RenderToString(
+    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true);
+```
+
+See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
 
 ---
 
