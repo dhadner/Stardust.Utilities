@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -47,7 +48,7 @@ public partial class BitFieldsViewTests
         /// <summary>Gets the underlying memory buffer.</summary>
         public Memory<byte> Data => _data;
 
-        public partial StatusFlags WideFlags
+        public partial global::Stardust.Utilities.Tests.StatusFlags WideFlags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -55,13 +56,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (StatusFlags)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0)) & 0xFFFF);
+                    return (global::Stardust.Utilities.Tests.StatusFlags)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0)) & 0xFFFF);
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
-                return (StatusFlags)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.Tests.StatusFlags)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -127,6 +128,13 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("WideFlags", 0, 16, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
+            new("Payload", 16, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        };
 
     }
 }

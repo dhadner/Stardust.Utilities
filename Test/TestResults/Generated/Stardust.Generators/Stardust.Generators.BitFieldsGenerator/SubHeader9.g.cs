@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -48,6 +49,13 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
 
     /// <summary>Returns a SubHeader9 with the mask for the Flags field (bits 4-8).</summary>
     public static SubHeader9 FlagsMask => new((ushort)0x01F0);
+
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("TypeCode", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Flags", 4, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
 
     /// <summary>Returns a new SubHeader9 with the TypeCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

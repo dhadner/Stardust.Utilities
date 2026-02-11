@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -100,6 +101,12 @@ public partial class BitFieldsViewTests
                 src.Slice(0, global::Stardust.Utilities.Tests.BitFieldsViewTests.InnerView.SizeInBytes).CopyTo(_data.Span.Slice(0));
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("LowNibble", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

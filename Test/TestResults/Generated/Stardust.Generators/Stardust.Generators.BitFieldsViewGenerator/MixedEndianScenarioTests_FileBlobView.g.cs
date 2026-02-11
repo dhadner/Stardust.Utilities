@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -127,7 +128,7 @@ public partial class MixedEndianScenarioTests
             }
         }
 
-        public partial UInt32Be CapturedSrcIp
+        public partial global::Stardust.Utilities.UInt32Be CapturedSrcIp
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -135,12 +136,12 @@ public partial class MixedEndianScenarioTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
                 }
                 int ep = 64 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (UInt32Be)(uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
+                return (global::Stardust.Utilities.UInt32Be)(uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -214,6 +215,15 @@ public partial class MixedEndianScenarioTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { value.Data.Span.Slice(0, global::Stardust.Utilities.Tests.MixedEndianScenarioTests.CaptureHeaderView.SizeInBytes).CopyTo(_data.Span.Slice(14)); }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Magic", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("CapturedSrcIp", 64, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
+            new("RecordCount", 96, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

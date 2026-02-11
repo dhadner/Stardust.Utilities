@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Protocols;
 
@@ -608,5 +609,25 @@ public partial record struct IPv4HeaderView
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
         }
     }
+
+    /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Ihl", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Dscp", 8, 6, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Ecn", 14, 2, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("TotalLength", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Identification", 32, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("FragmentOffset", 51, 13, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("TimeToLive", 64, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Protocol", 72, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("HeaderChecksum", 80, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("SourceAddress", 96, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("DestinationAddress", 128, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("ReservedFlag", 48, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("DontFragment", 49, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("MoreFragments", 50, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+    };
 
 }

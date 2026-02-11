@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -70,6 +71,15 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
 
     /// <summary>Returns a SignedReg64 with the mask for the HighDword field (bits 32-62).</summary>
     public static SignedReg64 HighDwordMask => new(unchecked((long)0x7FFFFFFF00000000UL));
+
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("LowDword", 1, 31, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("HighDword", 32, 31, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Sign", 63, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
 
     /// <summary>Returns a new SignedReg64 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -72,6 +73,15 @@ public partial class BitFieldsViewTests
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the LowNibble field (bits 0-3).</summary>
         public static BitZeroIsMsbRegister LowNibbleMask => new((byte)0x0F);
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("HighNibble", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("LowNibble", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("MsbFlag", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("LsbFlag", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the MsbFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

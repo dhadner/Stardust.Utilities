@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -65,6 +66,14 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a HalfRegister with the mask for the Exponent field (bits 10-14).</summary>
         public static HalfRegister ExponentMask => new((ushort)0x7C00);
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Mantissa", 0, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Exponent", 10, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Sign", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
         /// <summary>Returns a new HalfRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

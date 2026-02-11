@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -87,7 +88,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial UInt32Be BeField
+        public partial global::Stardust.Utilities.UInt32Be BeField
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -95,12 +96,12 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(2)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(2)) & 0xFFFFFFFFU);
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (UInt32Be)(uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
+                return (global::Stardust.Utilities.UInt32Be)(uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -127,7 +128,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial UInt16Le ExplicitLeField
+        public partial global::Stardust.Utilities.UInt16Le ExplicitLeField
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -135,12 +136,12 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt16Le)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(6)) & 0xFFFF);
+                    return (global::Stardust.Utilities.UInt16Le)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(6)) & 0xFFFF);
                 }
                 int ep = 48 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (UInt16Le)(ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.UInt16Le)(ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -166,6 +167,14 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("LeField", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("BeField", 16, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
+            new("ExplicitLeField", 48, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

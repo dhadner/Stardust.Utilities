@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -45,10 +46,10 @@ public partial class BitFieldProtocolTests
             set => Value = (uint)((Value & 0xF1FFFFFFU) | ((((uint)value) << 25) & 0x0E000000U));
         }
 
-        public partial TcpFlags Flags
+        public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (TcpFlags)((Value >> 16) & 0x000001FFU);
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((Value >> 16) & 0x000001FFU);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Value = (uint)((Value & 0xFE00FFFFU) | ((((uint)value) << 16) & 0x01FF0000U));
         }
@@ -73,6 +74,15 @@ public partial class BitFieldProtocolTests
         /// <summary>Returns a TcpControlWord with the mask for the WindowSize field (bits 0-15).</summary>
         public static TcpControlWord WindowSizeMask => new((uint)0x0000FFFFU);
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("DataOffset", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Reserved", 25, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Flags", 16, 9, "Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("WindowSize", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Returns a new TcpControlWord with the DataOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TcpControlWord WithDataOffset(byte value) => new((uint)((Value & 0x0FFFFFFFU) | (((uint)value << 28) & 0xF0000000U)));
@@ -83,7 +93,7 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new TcpControlWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithFlags(TcpFlags value) => new((uint)((Value & 0xFE00FFFFU) | (((uint)value << 16) & 0x01FF0000U)));
+        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((Value & 0xFE00FFFFU) | (((uint)value << 16) & 0x01FF0000U)));
 
         /// <summary>Returns a new TcpControlWord with the WindowSize field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -146,6 +146,66 @@ public partial class BitFieldsGenerator
     }
 
     /// <summary>
+    /// Generates a static <c>Fields</c> property that returns a
+    /// <see cref="System.ReadOnlySpan{T}"/> of <c>BitFieldInfo</c> describing
+    /// every field and flag declared on this struct, using the original user-declared bit positions.
+    /// </summary>
+    private static void GenerateFieldMetadata(System.Text.StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+            ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
+        string structBitOrder = "BitOrder.BitZeroIsLsb"; // [BitFields] default; MSB conversion happens internally
+
+        sb.AppendLine($"{indent}/// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>");
+        sb.AppendLine($"{indent}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
+        sb.AppendLine($"{indent}{{");
+
+        foreach (var f in info.DeclaredFields)
+        {
+            var qualifiedType = StripGlobalPrefix(f.PropertyType);
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}),");
+        }
+
+        foreach (var f in info.DeclaredFlags)
+        {
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}),");
+        }
+
+        sb.AppendLine($"{indent}}};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Formats the optional Description and DescriptionResourceType arguments for a BitFieldInfo constructor call.
+    /// Returns an empty string when no description is set, or the trailing named arguments otherwise.
+    /// </summary>
+    private static string FormatDescriptionArgs(string? description, string? descriptionResourceType)
+    {
+        if (description is null)
+            return "";
+
+        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        if (descriptionResourceType is null)
+            return $", \"{escaped}\"";
+
+        var resType = StripGlobalPrefix(descriptionResourceType);
+        return $", \"{escaped}\", typeof({resType})";
+    }
+
+    /// <summary>
+    /// Strips only the <c>global::</c> prefix, preserving the full namespace-qualified type name.
+    /// </summary>
+    private static string StripGlobalPrefix(string qualifiedName)
+    {
+        const string globalPrefix = "global::";
+        return qualifiedName.StartsWith(globalPrefix)
+            ? qualifiedName.Substring(globalPrefix.Length)
+            : qualifiedName;
+    }
+
+    /// <summary>
     /// Gets the Convert.ToXxx method name for a given storage type.
     /// </summary>
     private static string GetConvertMethodName(string storageType)

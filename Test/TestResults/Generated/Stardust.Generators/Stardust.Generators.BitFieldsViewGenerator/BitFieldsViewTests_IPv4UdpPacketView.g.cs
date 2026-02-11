@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -62,6 +63,11 @@ public partial class BitFieldsViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { value.Data.Span.Slice(0, global::Stardust.Utilities.Protocols.UdpHeaderView.SizeInBytes).CopyTo(_data.Span.Slice(20)); }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+        };
 
     }
 }

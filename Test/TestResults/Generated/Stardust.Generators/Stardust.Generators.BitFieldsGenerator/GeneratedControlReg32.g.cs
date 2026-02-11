@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -70,6 +71,15 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
 
     /// <summary>Returns a GeneratedControlReg32 with the mask for the Command field (bits 24-27).</summary>
     public static GeneratedControlReg32 CommandMask => new((uint)0x0F000000U);
+
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Address", 0, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Command", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Enable", 28, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Interrupt", 29, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
 
     /// <summary>Returns a new GeneratedControlReg32 with the Enable flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

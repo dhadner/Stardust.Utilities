@@ -76,8 +76,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                     else
                     {
                         var width = endBit - startBit + 1;
-                        var propType = member.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                        var (nativeType, fieldByteOrder) = ResolveEndianType(propType);
+                        var qualifiedName = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        var (nativeType, fieldByteOrder) = ResolveEndianType(qualifiedName);
 
                         // If no endian-type override, check if the property type is a [BitFields]
                         // struct with a declared ByteOrder — use that as a per-field override.
@@ -96,13 +96,16 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                             }
                         }
 
-                        fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType));
+                        var (desc, descResType) = ReadDescriptionArgs(memberAttr);
+
+                        fields.Add(new BitFieldInfo(member.Name, qualifiedName, startBit, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType, description: desc, descriptionResourceType: descResType));
                     }
                 }
                 else if (attrName == "BitFlagAttribute" && memberAttr.ConstructorArguments.Length >= 1)
                 {
                     var bit = (int)(memberAttr.ConstructorArguments[0].Value ?? 0);
-                    flags.Add(new BitFlagInfo(member.Name, bit));
+                    var (desc, descResType) = ReadDescriptionArgs(memberAttr);
+                    flags.Add(new BitFlagInfo(member.Name, bit, description: desc, descriptionResourceType: descResType));
                 }
             }
         }
@@ -154,6 +157,26 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             fields, flags, subViews, containingTypes, minBytes);
     }
 
+    /// <summary>
+    /// Reads the optional Description and DescriptionResourceType named arguments
+    /// from a [BitField] or [BitFlag] attribute.
+    /// </summary>
+    private static (string? description, string? descriptionResourceType) ReadDescriptionArgs(AttributeData attr)
+    {
+        string? desc = null;
+        string? descResType = null;
+
+        foreach (var named in attr.NamedArguments)
+        {
+            if (named.Key == "Description" && named.Value.Value is string d)
+                desc = d;
+            else if (named.Key == "DescriptionResourceType" && named.Value.Value is INamedTypeSymbol resType)
+                descResType = resType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
+        return (desc, descResType);
+    }
+
     private static string GetAccessibility(INamedTypeSymbol symbol)
     {
         return symbol.DeclaredAccessibility switch
@@ -179,6 +202,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Buffers.Binary;");
         sb.AppendLine("using System.Runtime.CompilerServices;");
+        sb.AppendLine("using Stardust.Utilities;");
         sb.AppendLine();
 
         if (info.Namespace != null)
@@ -261,7 +285,11 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         foreach (var sv in info.SubViews)
             GenerateSubViewProperty(sb, info, sv, mind);
 
+        // Generate field metadata
+        GenerateFieldMetadata(sb, info, mind);
+
         sb.AppendLine($"{ind}}}");
+
 
 
         // Close containing types
@@ -663,23 +691,23 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// the underlying native type and the byte order they imply.
     /// Returns the original type unchanged if it is not an endian-aware type.
     /// </summary>
-    private static (string resolvedType, ByteOrderOverride? byteOrder) ResolveEndianType(string propType)
+    private static (string resolvedType, ByteOrderOverride? byteOrder) ResolveEndianType(string qualifiedType)
     {
-        return propType switch
+        return qualifiedType switch
         {
-            "UInt16Be" => ("ushort", ByteOrderOverride.BigEndian),
-            "Int16Be"  => ("short",  ByteOrderOverride.BigEndian),
-            "UInt32Be" => ("uint",   ByteOrderOverride.BigEndian),
-            "Int32Be"  => ("int",    ByteOrderOverride.BigEndian),
-            "UInt64Be" => ("ulong",  ByteOrderOverride.BigEndian),
-            "Int64Be"  => ("long",   ByteOrderOverride.BigEndian),
-            "UInt16Le" => ("ushort", ByteOrderOverride.LittleEndian),
-            "Int16Le"  => ("short",  ByteOrderOverride.LittleEndian),
-            "UInt32Le" => ("uint",   ByteOrderOverride.LittleEndian),
-            "Int32Le"  => ("int",    ByteOrderOverride.LittleEndian),
-            "UInt64Le" => ("ulong",  ByteOrderOverride.LittleEndian),
-            "Int64Le"  => ("long",   ByteOrderOverride.LittleEndian),
-            _ => (propType, null)
+            "global::Stardust.Utilities.UInt16Be" => ("ushort", ByteOrderOverride.BigEndian),
+            "global::Stardust.Utilities.Int16Be"  => ("short",  ByteOrderOverride.BigEndian),
+            "global::Stardust.Utilities.UInt32Be" => ("uint",   ByteOrderOverride.BigEndian),
+            "global::Stardust.Utilities.Int32Be"  => ("int",    ByteOrderOverride.BigEndian),
+            "global::Stardust.Utilities.UInt64Be" => ("ulong",  ByteOrderOverride.BigEndian),
+            "global::Stardust.Utilities.Int64Be"  => ("long",   ByteOrderOverride.BigEndian),
+            "global::Stardust.Utilities.UInt16Le" => ("ushort", ByteOrderOverride.LittleEndian),
+            "global::Stardust.Utilities.Int16Le"  => ("short",  ByteOrderOverride.LittleEndian),
+            "global::Stardust.Utilities.UInt32Le" => ("uint",   ByteOrderOverride.LittleEndian),
+            "global::Stardust.Utilities.Int32Le"  => ("int",    ByteOrderOverride.LittleEndian),
+            "global::Stardust.Utilities.UInt64Le" => ("ulong",  ByteOrderOverride.LittleEndian),
+            "global::Stardust.Utilities.Int64Le"  => ("long",   ByteOrderOverride.LittleEndian),
+            _ => (qualifiedType, null)
         };
     }
 
@@ -748,6 +776,69 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             _ => $"0x{mask:X}UL"
         };
     }
+
+    /// <summary>
+    /// Generates a static <c>Fields</c> property that returns a
+    /// <see cref="System.ReadOnlySpan{T}"/> of <c>BitFieldInfo</c> describing
+    /// every field and flag declared on this view struct.
+    /// </summary>
+    private static void GenerateFieldMetadata(StringBuilder sb, BitFieldsViewInfo info, string ind)
+    {
+        string structBitOrder = info.BitOrder == BitOrderValue.BitZeroIsMsb
+            ? "BitOrder.BitZeroIsMsb" : "BitOrder.BitZeroIsLsb";
+
+        sb.AppendLine($"{ind}/// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>");
+        sb.AppendLine($"{ind}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
+        sb.AppendLine($"{ind}{{");
+
+        foreach (var f in info.Fields)
+        {
+            var qualifiedType = StripGlobalPrefix(f.PropertyType);
+            string effectiveByteOrder = IsEffectiveBigEndian(info, f.FieldByteOrder)
+                ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {effectiveByteOrder}, {structBitOrder}{descArgs}),");
+        }
+
+        foreach (var f in info.Flags)
+        {
+            string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+                ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}),");
+        }
+
+        sb.AppendLine($"{ind}}};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Formats the optional Description and DescriptionResourceType arguments for a BitFieldInfo constructor call.
+    /// </summary>
+    private static string FormatDescriptionArgs(string? description, string? descriptionResourceType)
+    {
+        if (description is null)
+            return "";
+
+        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        if (descriptionResourceType is null)
+            return $", \"{escaped}\"";
+
+        var resType = StripGlobalPrefix(descriptionResourceType);
+        return $", \"{escaped}\", typeof({resType})";
+    }
+
+    /// <summary>
+    /// Strips only the <c>global::</c> prefix, preserving the full namespace-qualified type name.
+    /// </summary>
+    private static string StripGlobalPrefix(string qualifiedName)
+    {
+        const string globalPrefix = "global::";
+        return qualifiedName.StartsWith(globalPrefix)
+            ? qualifiedName.Substring(globalPrefix.Length)
+            : qualifiedName;
+    }
+
 
     private static void FormatShiftedMasks(string readType, ulong shiftedMask,
         out string invMaskLit, out string smaskLit)

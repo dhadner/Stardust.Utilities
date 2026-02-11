@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -87,7 +88,7 @@ public partial class EndianOverrideTests
             }
         }
 
-        public partial UInt16Le ExplicitU16
+        public partial global::Stardust.Utilities.UInt16Le ExplicitU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -95,12 +96,12 @@ public partial class EndianOverrideTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt16Le)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(2)) & 0xFFFF);
+                    return (global::Stardust.Utilities.UInt16Le)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(2)) & 0xFFFF);
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (UInt16Le)(ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.UInt16Le)(ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -126,6 +127,13 @@ public partial class EndianOverrideTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("NativeU16", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("ExplicitU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

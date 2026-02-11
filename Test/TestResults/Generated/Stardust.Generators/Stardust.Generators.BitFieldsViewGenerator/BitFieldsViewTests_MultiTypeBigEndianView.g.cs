@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -298,6 +299,17 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("UShortField", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("ShortField", 16, 16, "short", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("UIntField", 32, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("IntField", 64, 32, "int", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("ULongField", 96, 64, "ulong", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("LongField", 160, 64, "long", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        };
 
     }
 }

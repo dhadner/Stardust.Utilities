@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -47,7 +48,7 @@ public partial class BitFieldsViewTests
         /// <summary>Gets the underlying memory buffer.</summary>
         public Memory<byte> Data => _data;
 
-        public partial UInt16Be U16
+        public partial global::Stardust.Utilities.UInt16Be U16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -55,13 +56,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt16Be)(ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
+                    return (global::Stardust.Utilities.UInt16Be)(ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
-                return (UInt16Be)(ushort)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.UInt16Be)(ushort)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -89,7 +90,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial Int16Be S16
+        public partial global::Stardust.Utilities.Int16Be S16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -97,13 +98,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (Int16Be)(short)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
+                    return (global::Stardust.Utilities.Int16Be)(short)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
-                return (Int16Be)(short)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.Int16Be)(short)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -131,7 +132,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial UInt32Be U32
+        public partial global::Stardust.Utilities.UInt32Be U32
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -139,13 +140,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4)) & 0xFFFFFFFFU);
                 }
                 int ep = 32 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
-                return (UInt32Be)(uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
+                return (global::Stardust.Utilities.UInt32Be)(uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -173,7 +174,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial Int32Be S32
+        public partial global::Stardust.Utilities.Int32Be S32
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -181,13 +182,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (Int32Be)(int)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.Int32Be)(int)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
                 }
                 int ep = 64 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
-                return (Int32Be)(int)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
+                return (global::Stardust.Utilities.Int32Be)(int)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -215,7 +216,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial UInt64Be U64
+        public partial global::Stardust.Utilities.UInt64Be U64
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -223,13 +224,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt64Be)(ulong)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(12)) & 0xFFFFFFFFFFFFFFFFUL);
+                    return (global::Stardust.Utilities.UInt64Be)(ulong)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(12)) & 0xFFFFFFFFFFFFFFFFUL);
                 }
                 int ep = 96 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
-                return (UInt64Be)(ulong)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
+                return (global::Stardust.Utilities.UInt64Be)(ulong)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -257,7 +258,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial Int64Be S64
+        public partial global::Stardust.Utilities.Int64Be S64
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -265,13 +266,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (Int64Be)(long)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(20)) & 0xFFFFFFFFFFFFFFFFUL);
+                    return (global::Stardust.Utilities.Int64Be)(long)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(20)) & 0xFFFFFFFFFFFFFFFFUL);
                 }
                 int ep = 160 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
-                return (Int64Be)(long)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
+                return (global::Stardust.Utilities.Int64Be)(long)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -298,6 +299,17 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("U16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("S16", 16, 16, "Stardust.Utilities.Int16Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("U32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("S32", 64, 32, "Stardust.Utilities.Int32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("U64", 96, 64, "Stardust.Utilities.UInt64Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("S64", 160, 64, "Stardust.Utilities.Int64Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        };
 
     }
 }

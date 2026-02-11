@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -47,7 +48,7 @@ public partial class BitFieldsViewTests
         /// <summary>Gets the underlying memory buffer.</summary>
         public Memory<byte> Data => _data;
 
-        public partial UInt32Be WideTypeNarrowField
+        public partial global::Stardust.Utilities.UInt32Be WideTypeNarrowField
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -55,12 +56,12 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt32Be)(uint)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
+                    return (global::Stardust.Utilities.UInt32Be)(uint)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (UInt32Be)(uint)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.UInt32Be)(uint)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -126,6 +127,13 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("WideTypeNarrowField", 0, 16, "Stardust.Utilities.UInt32Be", false, ByteOrder.BigEndian, BitOrder.BitZeroIsLsb),
+            new("Neighbor", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -47,7 +48,7 @@ public partial class BitFieldsViewTests
         /// <summary>Gets the underlying memory buffer.</summary>
         public Memory<byte> Data => _data;
 
-        public partial ProtocolHeader16 Header
+        public partial global::Stardust.Utilities.Tests.ProtocolHeader16 Header
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -55,12 +56,12 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (ProtocolHeader16)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0)) & 0xFFFF);
+                    return (global::Stardust.Utilities.Tests.ProtocolHeader16)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0)) & 0xFFFF);
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (ProtocolHeader16)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.Tests.ProtocolHeader16)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -123,6 +124,13 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Header", 0, 16, "Stardust.Utilities.Tests.ProtocolHeader16", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Tag", 16, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

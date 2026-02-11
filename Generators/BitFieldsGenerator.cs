@@ -168,29 +168,35 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     var startBit = (int)(attr.ConstructorArguments[0].Value ?? 0);
                     var endBit = (int)(attr.ConstructorArguments[1].Value ?? 0);
                     var width = endBit - startBit + 1;
-                    var propType = member.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                    
+                    var propType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
                     // Read optional MustBe parameter (3rd constructor arg)
                     var valueOverride = MustBeValue.Any;
                     if (attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int fieldMustBe)
                     {
                         valueOverride = (MustBeValue)fieldMustBe;
                     }
-                    
-                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, valueOverride));
+
+                    // Read optional Description / DescriptionResourceType named arguments
+                    var (desc, descResType) = ReadDescriptionArgs(attr);
+
+                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, valueOverride, description: desc, descriptionResourceType: descResType));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
                     var bit = (int)(attr.ConstructorArguments[0].Value ?? 0);
-                    
+
                     // Read optional MustBe parameter (2nd constructor arg)
                     var valueOverride = MustBeValue.Any;
                     if (attr.ConstructorArguments.Length >= 2 && attr.ConstructorArguments[1].Value is int flagMustBe)
                     {
                         valueOverride = (MustBeValue)flagMustBe;
                     }
-                    
-                    flags.Add(new BitFlagInfo(member.Name, bit, valueOverride));
+
+                    // Read optional Description / DescriptionResourceType named arguments
+                    var (desc, descResType) = ReadDescriptionArgs(attr);
+
+                    flags.Add(new BitFlagInfo(member.Name, bit, valueOverride, desc, descResType));
                 }
             }
         }
@@ -266,6 +272,10 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // If MSB-first bit ordering, convert all positions to LSB-first (physical) positions.
         // This lets all downstream code generation remain unchanged.
         // MSB-first: user bit N maps to physical bit (totalBits - 1 - N).
+        // Save the original positions for metadata before converting.
+        var declaredFields = fields.ToList();
+        var declaredFlags = flags.ToList();
+
         if (bitOrder == BitOrderValue.BitZeroIsMsb)
         {
             for (int i = 0; i < fields.Count; i++)
@@ -301,7 +311,29 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             totalBits,
             floatingPointType,
             nativeWideType,
-            byteOrder);
+            byteOrder,
+            declaredFields,
+            declaredFlags);
+    }
+
+    /// <summary>
+    /// Reads the optional Description and DescriptionResourceType named arguments
+    /// from a [BitField] or [BitFlag] attribute.
+    /// </summary>
+    private static (string? description, string? descriptionResourceType) ReadDescriptionArgs(AttributeData attr)
+    {
+        string? desc = null;
+        string? descResType = null;
+
+        foreach (var named in attr.NamedArguments)
+        {
+            if (named.Key == "Description" && named.Value.Value is string d)
+                desc = d;
+            else if (named.Key == "DescriptionResourceType" && named.Value.Value is INamedTypeSymbol resType)
+                descResType = resType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
+        return (desc, descResType);
     }
 
     private static string GetAccessibility(ISymbol symbol)
@@ -340,6 +372,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine("using System.Runtime.CompilerServices;");
         sb.AppendLine("using System.Text.Json;");
         sb.AppendLine("using System.Text.Json.Serialization;");
+        sb.AppendLine("using Stardust.Utilities;");
         sb.AppendLine();
 
         if (!string.IsNullOrEmpty(info.Namespace))
@@ -438,6 +471,9 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             GenerateStaticBitProperty(sb, info, flag, memberIndent);
         foreach (var field in info.Fields)
             GenerateStaticMaskProperty(sb, info, field, memberIndent);
+
+        // Generate field metadata
+        GenerateFieldMetadata(sb, info, memberIndent);
 
         // Generate With{Name} methods for fluent API
         foreach (var flag in info.Flags)

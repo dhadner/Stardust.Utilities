@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -172,6 +173,14 @@ public partial class MixedEndianScenarioTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Protocol", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("Length", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("SequenceNum", 32, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        };
 
     }
 }

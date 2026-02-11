@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -29,26 +30,26 @@ public partial class EndianOverrideTests
         /// <summary>Creates a new Reg_Msb with the specified raw bits value.</summary>
         public Reg_Msb(ulong value) { Value = value; }
 
-        public partial UInt16Be BeU16
+        public partial global::Stardust.Utilities.UInt16Be BeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (UInt16Be)((Value >> 48) & 0x000000000000FFFFUL);
+            get => (global::Stardust.Utilities.UInt16Be)((Value >> 48) & 0x000000000000FFFFUL);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Value = (ulong)((Value & 0x0000FFFFFFFFFFFFUL) | ((((ulong)value) << 48) & 0xFFFF000000000000UL));
         }
 
-        public partial UInt16Le LeU16
+        public partial global::Stardust.Utilities.UInt16Le LeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (UInt16Le)((Value >> 32) & 0x000000000000FFFFUL);
+            get => (global::Stardust.Utilities.UInt16Le)((Value >> 32) & 0x000000000000FFFFUL);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Value = (ulong)((Value & 0xFFFF0000FFFFFFFFUL) | ((((ulong)value) << 32) & 0x0000FFFF00000000UL));
         }
 
-        public partial UInt32Be BeU32
+        public partial global::Stardust.Utilities.UInt32Be BeU32
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (UInt32Be)(Value & 0x00000000FFFFFFFFUL);
+            get => (global::Stardust.Utilities.UInt32Be)(Value & 0x00000000FFFFFFFFUL);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Value = (ulong)((Value & 0xFFFFFFFF00000000UL) | (((ulong)value) & 0x00000000FFFFFFFFUL));
         }
@@ -62,17 +63,25 @@ public partial class EndianOverrideTests
         /// <summary>Returns a Reg_Msb with the mask for the BeU32 field (bits 0-31).</summary>
         public static Reg_Msb BeU32Mask => new((ulong)0x00000000FFFFFFFFUL);
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("BeU16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("LeU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("BeU32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Returns a new Reg_Msb with the BeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithBeU16(UInt16Be value) => new((ulong)((Value & 0x0000FFFFFFFFFFFFUL) | (((ulong)value << 48) & 0xFFFF000000000000UL)));
+        public Reg_Msb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & 0x0000FFFFFFFFFFFFUL) | (((ulong)value << 48) & 0xFFFF000000000000UL)));
 
         /// <summary>Returns a new Reg_Msb with the LeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithLeU16(UInt16Le value) => new((ulong)((Value & 0xFFFF0000FFFFFFFFUL) | (((ulong)value << 32) & 0x0000FFFF00000000UL)));
+        public Reg_Msb WithLeU16(global::Stardust.Utilities.UInt16Le value) => new((ulong)((Value & 0xFFFF0000FFFFFFFFUL) | (((ulong)value << 32) & 0x0000FFFF00000000UL)));
 
         /// <summary>Returns a new Reg_Msb with the BeU32 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithBeU32(UInt32Be value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | (value & 0x00000000FFFFFFFFUL)));
+        public Reg_Msb WithBeU32(global::Stardust.Utilities.UInt32Be value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | (value & 0x00000000FFFFFFFFUL)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

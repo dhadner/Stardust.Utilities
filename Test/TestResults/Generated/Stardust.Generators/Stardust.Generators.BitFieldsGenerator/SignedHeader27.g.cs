@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -27,10 +28,10 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     /// <summary>Creates a new SignedHeader27 with the specified raw bits value.</summary>
     public SignedHeader27(int value) { Value = (int)(((uint)value) & 0x07FFFFFFU); }
 
-    public partial SubHeader9 SubHeader
+    public partial global::Stardust.Utilities.Tests.SubHeader9 SubHeader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (SubHeader9)(((uint)Value) & 0x000001FFU);
+        get => (global::Stardust.Utilities.Tests.SubHeader9)(((uint)Value) & 0x000001FFU);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (int)((((uint)Value) & 0xFFFFFE00U) | (((uint)value) & 0x000001FFU));
     }
@@ -60,9 +61,17 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     /// <summary>Returns a SignedHeader27 with the mask for the Sequence field (bits 19-26).</summary>
     public static SignedHeader27 SequenceMask => new(unchecked((int)0x07F80000U));
 
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("SubHeader", 0, 9, "Stardust.Utilities.Tests.SubHeader9", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("PayloadSize", 9, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Sequence", 19, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
+
     /// <summary>Returns a new SignedHeader27 with the SubHeader field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedHeader27 WithSubHeader(SubHeader9 value) => new((int)((((uint)Value) & 0xFFFFFE00U) | ((uint)value & 0x000001FFU)));
+    public SignedHeader27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((int)((((uint)Value) & 0xFFFFFE00U) | ((uint)value & 0x000001FFU)));
 
     /// <summary>Returns a new SignedHeader27 with the PayloadSize field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

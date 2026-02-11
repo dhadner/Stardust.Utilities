@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Protocols;
 
@@ -650,5 +651,28 @@ public partial record struct TcpHeaderView
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
         }
     }
+
+    /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("SourcePort", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("DestinationPort", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("SequenceNumber", 32, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("AcknowledgmentNumber", 64, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("DataOffset", 96, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Reserved", 100, 3, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("WindowSize", 112, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("Checksum", 128, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("UrgentPointer", 144, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("NS", 103, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("CWR", 104, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("ECE", 105, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("URG", 106, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("ACK", 107, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("PSH", 108, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("RST", 109, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("SYN", 110, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        new("FIN", 111, 1, "bool", true, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+    };
 
 }

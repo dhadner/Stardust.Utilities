@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -60,10 +61,10 @@ public partial class BitFieldSpecializationTests
             _w1 = fill;
         }
 
-        public partial UInt128 Coefficient
+        public partial global::System.UInt128 Coefficient
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (UInt128)((_w0 >> 0) | ((_w1 & 0xFFFFFFFFUL) << 64));
+            get => (global::System.UInt128)((_w0 >> 0) | ((_w1 & 0xFFFFFFFFUL) << 64));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
@@ -103,7 +104,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new DecimalRegister with the Coefficient field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DecimalRegister WithCoefficient(UInt128 value) { var copy = this; copy.Coefficient = value; return copy; }
+        public DecimalRegister WithCoefficient(global::System.UInt128 value) { var copy = this; copy.Coefficient = value; return copy; }
 
         /// <summary>Returns a new DecimalRegister with the Scale field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -151,6 +152,14 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Bit0", 0, 1, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Bit1", 1, 1, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Rest", 2, 6, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
     }
 }

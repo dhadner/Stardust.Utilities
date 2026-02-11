@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -180,6 +181,14 @@ public partial class MixedEndianScenarioTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { value.Data.Span.Slice(0, global::Stardust.Utilities.Tests.MixedEndianScenarioTests.FileBlobView.SizeInBytes).CopyTo(_data.Span.Slice(8)); }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("MessageType", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("PayloadLength", 16, 32, "uint", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("Checksum", 48, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+        };
 
     }
 }

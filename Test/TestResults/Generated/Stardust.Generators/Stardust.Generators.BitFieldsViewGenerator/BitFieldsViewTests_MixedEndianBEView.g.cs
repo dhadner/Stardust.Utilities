@@ -5,6 +5,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -89,7 +90,7 @@ public partial class BitFieldsViewTests
             }
         }
 
-        public partial UInt32Le LeField
+        public partial global::Stardust.Utilities.UInt32Le LeField
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -97,13 +98,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (UInt32Le)(uint)(BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(2)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.UInt32Le)(uint)(BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(2)) & 0xFFFFFFFFU);
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
-                return (UInt32Le)(uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
+                return (global::Stardust.Utilities.UInt32Le)(uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -130,6 +131,13 @@ public partial class BitFieldsViewTests
                 }
             }
         }
+
+        /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("BeField", 0, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb),
+            new("LeField", 16, 32, "Stardust.Utilities.UInt32Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb),
+        };
 
     }
 }

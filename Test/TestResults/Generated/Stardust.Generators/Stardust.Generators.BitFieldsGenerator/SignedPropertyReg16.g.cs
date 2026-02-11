@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -70,6 +71,15 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Offset field (bits 0-5).</summary>
     public static SignedPropertyReg16 OffsetMask => new((ushort)0x003F);
+
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("UnsignedField", 10, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("SignedNibble", 6, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("Offset", 0, 6, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
 
     /// <summary>Returns a new SignedPropertyReg16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

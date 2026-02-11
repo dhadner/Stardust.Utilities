@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -70,6 +71,15 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
 
     /// <summary>Returns a GeneratedKeyboardReg16 with the mask for the FirstKeyCode field (bits 8-14).</summary>
     public static GeneratedKeyboardReg16 FirstKeyCodeMask => new((ushort)0x7F00);
+
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("SecondKeyCode", 0, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("FirstKeyCode", 8, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("SecondKeyUp", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("FirstKeyUp", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the SecondKeyUp flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

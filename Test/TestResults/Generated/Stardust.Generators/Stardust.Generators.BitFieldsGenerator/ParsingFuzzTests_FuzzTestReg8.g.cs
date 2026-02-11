@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -50,6 +51,13 @@ public partial class ParsingFuzzTests
 
         /// <summary>Returns a FuzzTestReg8 with the mask for the Field1 field (bits 1-4).</summary>
         public static FuzzTestReg8 Field1Mask => new((byte)0x1E);
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Field1", 1, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
 
         /// <summary>Returns a new FuzzTestReg8 with the Flag0 flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

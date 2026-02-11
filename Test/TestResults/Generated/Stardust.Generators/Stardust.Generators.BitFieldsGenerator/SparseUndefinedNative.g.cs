@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -48,6 +49,13 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
 
     /// <summary>Returns a SparseUndefinedNative with the mask for the HighField field (bits 4-6).</summary>
     public static SparseUndefinedNative HighFieldMask => new(unchecked((sbyte)0x70));
+
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("LowField", 1, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        new("HighField", 4, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+    };
 
     /// <summary>Returns a new SparseUndefinedNative with the LowField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
