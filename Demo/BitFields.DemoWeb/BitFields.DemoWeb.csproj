@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>BitFields.DemoWeb</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0-*" PrivateAssets="all" />
+    <PackageReference Include="Stardust.Utilities" Version="0.9.4" />
+  </ItemGroup>
+  <!-- Share model and utility files from the WPF demo (source generator runs on them here too) -->
+  <ItemGroup>
+    <Compile Include="..\BitFields.DemoApp\Models\NetworkViews.cs"  Link="Models\NetworkViews.cs" />
+    <Compile Include="..\BitFields.DemoApp\Models\PeViews.cs"       Link="Models\PeViews.cs" />
+    <Compile Include="..\BitFields.DemoApp\Models\CpuRegisters.cs"  Link="Models\CpuRegisters.cs" />
+    <Compile Include="..\BitFields.DemoApp\Models\M68020Registers.cs" Link="Models\M68020Registers.cs" />
+    <Compile Include="..\BitFields.DemoApp\Utilities\HexUtils.cs"   Link="Utilities\HexUtils.cs" />
+    <Compile Include="..\BitFields.DemoApp\Utilities\SampleData.cs" Link="Utilities\SampleData.cs" />
+  </ItemGroup>
+</Project>

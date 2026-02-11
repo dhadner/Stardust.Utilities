@@ -114,14 +114,14 @@ public partial struct M68020CAAR
 [BitFields(typeof(uint))]
 public partial struct M68020MSP
 {
-    [BitField(0, 31, Description = "A7* ()Master Stack Pointer")]
+    [BitField(0, 31, Description = "A7* (Master Stack Pointer)")]
     public partial uint MSP { get; set; }
 }
 
 [BitFields(typeof(uint))]
 public partial struct M68020ISP
 {
-    [BitField(0, 31, Description = "A7* ()Interrupt Stack Pointer")]
+    [BitField(0, 31, Description = "A7* (Interrupt Stack Pointer)")]
     public partial uint ISP { get; set; }
 }
 

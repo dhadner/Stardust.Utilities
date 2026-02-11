@@ -1,0 +1,189 @@
+@page "/"
+@using System.Text
+
+<h2 class="page-title">PE Viewer</h2>
+<p class="page-subtitle">Drop or select a .exe/.dll to inspect its PE headers</p>
+
+<div class="file-input-wrapper">
+    <InputFile OnChange="OnFileSelected" accept=".exe,.dll" />
+    @if (!string.IsNullOrEmpty(_fileName))
+    {
+        <span class="file-path">@_fileName</span>
+    }
+</div>
+
+@if (_error != null)
+{
+    <div style="color: #E06C75; margin-bottom: 12px;">@_error</div>
+}
+
+@if (_fields.Count > 0)
+{
+    <div class="section-header">&#x25B8; Fields</div>
+    <div class="field-chips">
+        @foreach (var f in _fields)
+        {
+            <div class="field-chip @(f.Name == _activeField ? "active" : "")"
+                 style="border-color: @f.Color; background: @Palette.WithAlpha(f.Color, 0.18); color: @f.Color;"
+                 title="@f.Description"
+                 @onclick="() => ToggleField(f.Name)">
+                <span class="chip-name">@f.Name</span>
+                <span class="chip-value">@f.Value</span>
+            </div>
+        }
+    </div>
+
+    <div class="section-header">&#x25B8; Header Hex</div>
+    <div class="hex-display">
+        @for (int i = 0; i < _displayBytes; i++)
+        {
+            var idx = i;
+            var info = GetByteInfo(idx);
+            <span class="hex-byte @(info.Name == _activeField ? "active" : "")"
+                  style="color: @info.Color;"
+                  @onclick="() => ToggleField(info.Name)">@_bytes[idx].ToString("X2") </span>
+        }
+    </div>
+
+    <div class="section-header">&#x25B8; Header Binary</div>
+    <div class="binary-display">
+        @foreach (var f in _fields)
+        {
+            <div class="binary-segment @(f.Name == _activeField ? "active" : "")"
+                 style="background: @Palette.WithAlpha(f.Color, 0.14); color: @f.Color;"
+                 @onclick="() => ToggleField(f.Name)">
+                <span class="seg-label">@f.Name</span>
+                <span class="seg-bits">@f.Bits</span>
+            </div>
+        }
+    </div>
+
+    <div class="section-header">&#x25B8; Raw Bytes</div>
+    <div class="raw-bytes">@_rawHex</div>
+}
+
+@code {
+    private record FieldDef(string Name, int StartBit, int EndBit, string Color, string Value, string Bits, string? Description);
+    private record ByteInfo(string? Name, string Color);
+
+    private byte[] _bytes = [];
+    private int _displayBytes;
+    private string _fileName = "";
+    private string _rawHex = "";
+    private string? _error;
+    private List<FieldDef> _fields = [];
+    private string? _activeField;
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _fields.Clear();
+        _activeField = null;
+
+        var file = e.File;
+        _fileName = file.Name;
+
+        using var ms = new MemoryStream();
+        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
+        _bytes = ms.ToArray();
+
+        _rawHex = HexUtils.ToHex(_bytes, 32768);
+        ParsePe();
+    }
+
+    private void ParsePe()
+    {
+        if (_bytes.Length < DosHeaderView.SizeInBytes)
+        {
+            _error = "File too small for a PE header.";
+            return;
+        }
+
+        var dos = new DosHeaderView(_bytes);
+        int peOffset = (int)dos.Lfanew;
+        int coffByteOffset = peOffset + 4;
+
+        if (_bytes.Length < coffByteOffset + CoffHeaderView.SizeInBytes)
+        {
+            _error = "Missing PE header.";
+            return;
+        }
+
+        var signature = BitConverter.ToUInt32(_bytes, peOffset);
+        var coff = new CoffHeaderView(_bytes, coffByteOffset);
+        int optByteOffset = coffByteOffset + CoffHeaderView.SizeInBytes;
+        int optHeaderSize = Math.Min((int)coff.SizeOfOptionalHeader, OptionalHeaderView.SizeInBytes);
+        bool hasOptional = coff.SizeOfOptionalHeader > 0 && _bytes.Length >= optByteOffset + optHeaderSize;
+
+        _displayBytes = hasOptional
+            ? Math.Min(optByteOffset + optHeaderSize, _bytes.Length)
+            : Math.Min(coffByteOffset + CoffHeaderView.SizeInBytes, _bytes.Length);
+
+        int ci = 0;
+
+        foreach (var m in DosHeaderView.Fields)
+            AddField(ref ci, m.Name, m.StartBit, m.EndBit, Palette.FormatField(dos, m), m.BitOrder, m.GetDescription());
+
+        int sigBitBase = peOffset * 8;
+        _fields.Add(new("PE Sig", sigBitBase, sigBitBase + 31, Palette.Get(ci++),
+            signature == PeHeader.Signature ? @"PE\0\0" : $"0x{signature:X8}",
+            BuildBits(sigBitBase, sigBitBase + 31, BitOrder.BitZeroIsLsb),
+            "PE signature magic bytes"));
+
+        int coffBitBase = coffByteOffset * 8;
+        foreach (var m in CoffHeaderView.Fields)
+            AddField(ref ci, m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette.FormatField(coff, m), m.BitOrder, m.GetDescription());
+
+        if (hasOptional)
+        {
+            int optBitBase = optByteOffset * 8;
+            var opt = new OptionalHeaderView(_bytes, optByteOffset);
+            foreach (var m in OptionalHeaderView.Fields)
+            {
+                int gs = m.StartBit + optBitBase;
+                int ge = m.EndBit + optBitBase;
+                if (ge / 8 < _displayBytes)
+                    AddField(ref ci, m.Name, gs, ge, Palette.FormatField(opt, m), m.BitOrder, m.GetDescription());
+            }
+        }
+    }
+
+    private void AddField(ref int ci, string name, int startBit, int endBit, string value, BitOrder order, string? desc)
+    {
+        _fields.Add(new(name, startBit, endBit, Palette.Get(ci++), value, BuildBits(startBit, endBit, order), desc));
+    }
+
+    private string BuildBits(int startBit, int endBit, BitOrder order)
+    {
+        bool isMsb = order == BitOrder.BitZeroIsMsb;
+        int width = endBit - startBit + 1;
+        var sb = new StringBuilder();
+        for (int i = 0; i < width; i++)
+        {
+            int bit = isMsb ? startBit + i : endBit - i;
+            if (bit / 8 >= _bytes.Length) break;
+            int byteIdx = bit / 8;
+            int shift = isMsb ? 7 - (bit % 8) : bit % 8;
+            sb.Append((_bytes[byteIdx] >> shift) & 1);
+            if ((i + 1) % 4 == 0 && i != width - 1) sb.Append(' ');
+        }
+        return sb.ToString();
+    }
+
+    private ByteInfo GetByteInfo(int byteIndex)
+    {
+        int bitStart = byteIndex * 8;
+        int bitEnd = bitStart + 7;
+        foreach (var f in _fields)
+        {
+            if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+                return new(f.Name, f.Color);
+        }
+        return new(null, "#888");
+    }
+
+    private void ToggleField(string? name)
+    {
+        _activeField = _activeField == name ? null : name;
+    }
+}

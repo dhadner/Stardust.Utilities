@@ -135,9 +135,10 @@ public static class BitFieldDiagram
             BitOrder rowOrder = prevBitOrder ?? BitOrder.BitZeroIsLsb;
             for (int b = rowStartBit; b <= rowEndBit; b++)
             {
-                if (cellMap[b] != null)
+                var bitFieldInfo = cellMap[b];
+                if (bitFieldInfo != null)
                 {
-                    rowOrder = cellMap[b].BitOrder;
+                    rowOrder = bitFieldInfo.BitOrder;
                     break;
                 }
             }

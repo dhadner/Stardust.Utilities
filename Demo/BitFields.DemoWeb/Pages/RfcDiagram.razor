@@ -1,0 +1,104 @@
+@page "/rfc"
+@inject IJSRuntime JS
+
+<h2 class="page-title">RFC-Style Bit Field Diagrams</h2>
+<p class="page-subtitle">Generated from struct metadata via BitFieldDiagram.Render() and RenderList()</p>
+
+<div class="toolbar">
+    <label>Struct:</label>
+    <select @bind="_selectedIndex" @bind:after="UpdateDiagram">
+        @for (int i = 0; i < _sources.Length; i++)
+        {
+            <option value="@i">@_sources[i].Label</option>
+        }
+    </select>
+
+    <label>Bits/Row:</label>
+    <select @bind="_bitsPerRow" @bind:after="UpdateDiagram">
+        <option value="8">8</option>
+        <option value="16">16</option>
+        <option value="32">32</option>
+        <option value="64">64</option>
+    </select>
+
+    <label><input type="checkbox" @bind="_showDescriptions" @bind:after="UpdateDiagram" /> Descriptions</label>
+    <label><input type="checkbox" @bind="_showByteOffset" @bind:after="UpdateDiagram" /> Byte Offset</label>
+
+    <button @onclick="CopyToClipboard">Copy to Clipboard</button>
+    @if (_copied)
+    {
+        <span style="color: var(--accent); font-size: 0.8rem;">Copied!</span>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Diagram</div>
+<div class="diagram-output">@_diagramText</div>
+
+@code {
+    private record struct DiagramSource(string Label, DiagramSection[] Sections);
+
+    private DiagramSource[] _sources = [];
+    private int _selectedIndex;
+    private int _bitsPerRow = 32;
+    private bool _showDescriptions;
+    private bool _showByteOffset;
+    private string _diagramText = "";
+    private bool _copied;
+
+    private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
+        new(label, [new("", fields)]);
+
+    protected override void OnInitialized()
+    {
+        _sources =
+        [
+            Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
+            Single("TCP Header", TcpHeaderView.Fields.ToArray()),
+            Single("DOS Header", DosHeaderView.Fields.ToArray()),
+            Single("COFF Header", CoffHeaderView.Fields.ToArray()),
+            Single("Optional Header", OptionalHeaderView.Fields.ToArray()),
+            Single("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
+            new("68020 Register Set",
+            [
+                new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
+                new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
+                new("PC", M68020PC.Fields.ToArray()),
+                new("SR", M68020SR.Fields.ToArray()),
+                new("CCR", M68020CCR.Fields.ToArray()),
+                new("USP", M68020USP.Fields.ToArray()),
+                new("ISP", M68020ISP.Fields.ToArray()),
+                new("MSP", M68020MSP.Fields.ToArray()),
+                new("VBR", M68020VBR.Fields.ToArray()),
+                new("SFC", M68020SFC.Fields.ToArray()),
+                new("DFC", M68020DFC.Fields.ToArray()),
+                new("CACR", M68020CACR.Fields.ToArray()),
+                new("CAAR", M68020CAAR.Fields.ToArray()),
+            ]),
+        ];
+        UpdateDiagram();
+    }
+
+    private void UpdateDiagram()
+    {
+        if (_selectedIndex < 0 || _selectedIndex >= _sources.Length) return;
+        var source = _sources[_selectedIndex];
+        _diagramText = BitFieldDiagram.RenderListToString(
+            source.Sections, _bitsPerRow, _showDescriptions, _showByteOffset);
+    }
+
+    private async Task CopyToClipboard()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", _diagramText);
+            _copied = true;
+            StateHasChanged();
+            await Task.Delay(1500);
+            _copied = false;
+        }
+        catch
+        {
+            // Clipboard API may be blocked in some contexts
+        }
+    }
+}
