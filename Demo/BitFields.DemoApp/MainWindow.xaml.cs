@@ -31,7 +31,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         SeedPacketSample();
-        OnParsePacket(this, new RoutedEventArgs());
         UpdateCpuUi();
         MixedEndianSummary.Text = MixedEndianDemo.Summarize();
         LoadDemoPeFile();
@@ -70,7 +69,7 @@ public partial class MainWindow : Window
     {
         var bytes = File.ReadAllBytes(filePath);
         PeFilePath.Text = filePath;
-        PeRawBytes.Text = HexUtils.ToHex(bytes, 512);
+        PeRawBytes.Text = HexUtils.ToHex(bytes, 32768);
 
         PeFieldSummaryPanel.Children.Clear();
         PeHexBytesPanel.Children.Clear();
@@ -84,54 +83,74 @@ public partial class MainWindow : Window
 
         var dos = new DosHeaderView(bytes);
         int peOffset = (int)dos.Lfanew;
-        if (bytes.Length < peOffset + 4 + CoffHeaderView.SizeInBytes)
+        int coffByteOffset = peOffset + 4;
+
+        if (bytes.Length < coffByteOffset + CoffHeaderView.SizeInBytes)
         {
             AddInfoCard(PeFieldSummaryPanel, "Error", "Missing PE header", Colors.Red);
             return;
         }
 
         var signature = BitConverter.ToUInt32(bytes, peOffset);
+        var coff = new CoffHeaderView(bytes, coffByteOffset);
+        int optByteOffset = coffByteOffset + CoffHeaderView.SizeInBytes;
+        int optHeaderSize = Math.Min((int)coff.SizeOfOptionalHeader, OptionalHeaderView.SizeInBytes);
+        bool hasOptional = coff.SizeOfOptionalHeader > 0 && bytes.Length >= optByteOffset + optHeaderSize;
 
-        // Build field cards from generated metadata
+        // Determine total display byte count
+        int totalDisplayBytes = hasOptional
+            ? Math.Min(optByteOffset + optHeaderSize, bytes.Length)
+            : Math.Min(coffByteOffset + CoffHeaderView.SizeInBytes, bytes.Length);
+
+        // Build field list with GLOBAL bit positions (byte offset * 8)
         var allFields = new List<FieldDef>();
         int ci = 0;
 
+        // DOS header fields: view starts at byte 0, so bit positions are already global
         foreach (var m in DosHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(dos, m), m.BitOrder));
+            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(dos, m), m.BitOrder, m.GetDescription()));
 
-        allFields.Add(new FieldDef("PE Sig", 0, 31, Palette[ci++ % Palette.Length],
-            signature == PeHeader.Signature ? "PE\\0\\0" : $"0x{signature:X8}"));
+        // PE signature: 4 bytes at peOffset
+        int sigBitBase = peOffset * 8;
+        allFields.Add(new FieldDef("PE Sig", sigBitBase, sigBitBase + 31, Palette[ci++ % Palette.Length],
+            signature == PeHeader.Signature ? "PE\\0\\0" : $"0x{signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
 
-        int coffColorStart = ci;
+        // COFF header fields
+        int coffBitBase = coffByteOffset * 8;
         foreach (var m in CoffHeaderView.Fields)
+            allFields.Add(new FieldDef(m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(coff, m), m.BitOrder, m.GetDescription()));
+
+        // Optional header fields (if present)
+        if (hasOptional)
         {
-            var coff = new CoffHeaderView(bytes, peOffset + 4);
-            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(coff, m), m.BitOrder));
+            int optBitBase = optByteOffset * 8;
+            var opt = new OptionalHeaderView(bytes, optByteOffset);
+            foreach (var m in OptionalHeaderView.Fields)
+            {
+                int globalStart = m.StartBit + optBitBase;
+                int globalEnd = m.EndBit + optBitBase;
+                if (globalEnd / 8 < totalDisplayBytes)
+                    allFields.Add(new FieldDef(m.Name, globalStart, globalEnd, Palette[ci++ % Palette.Length], FormatViewField(opt, m), m.BitOrder, m.GetDescription()));
+            }
         }
 
         _activePeField = null;
         PopulateFieldSummary(PeFieldSummaryPanel, allFields, nameof(_activePeField));
-
-        // COFF header hex/binary
-        int coffByteOffset = peOffset + 4;
-        int coffLen = Math.Min(CoffHeaderView.SizeInBytes, bytes.Length - coffByteOffset);
-        var coffBytes = bytes.AsSpan(coffByteOffset, coffLen).ToArray();
-
-        var coffFields = new List<FieldDef>();
-        ci = coffColorStart;
-        foreach (var m in CoffHeaderView.Fields)
-        {
-            var coff = new CoffHeaderView(bytes, peOffset + 4);
-            coffFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(coff, m), m.BitOrder));
-        }
-
-        PopulateHexDisplay(PeHexBytesPanel, coffBytes, coffLen, coffFields, nameof(_activePeField));
-        PopulateBinaryDisplay(PeBinaryBitsPanel, coffBytes, coffLen, coffFields, nameof(_activePeField));
+        PopulateHexDisplay(PeHexBytesPanel, bytes, totalDisplayBytes, allFields, nameof(_activePeField));
+        PopulateBinaryDisplay(PeBinaryBitsPanel, bytes, totalDisplayBytes, allFields, nameof(_activePeField));
     }
 
     // ?? Network Packet Viewer ??????????????????????????????????
 
-    private void OnParsePacket(object sender, RoutedEventArgs e)
+    private void OnPacketHexInputChanged(object sender, TextChangedEventArgs e)
+    {
+        // Auto-parse whenever the input text changes
+        ParsePacket();
+    }
+
+    private void OnParsePacket(object sender, RoutedEventArgs e) => ParsePacket();
+
+    private void ParsePacket()
     {
         FieldSummaryPanel.Children.Clear();
         HexBytesPanel.Children.Clear();
@@ -169,13 +188,13 @@ public partial class MainWindow : Window
         foreach (var m in IPv4HeaderView.Fields)
         {
             string val = FormatViewField(ip, m);
-            fields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], val, m.BitOrder));
+            fields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
         }
 
         foreach (var m in TcpHeaderView.Fields)
         {
             string val = FormatViewField(tcp, m);
-            fields.Add(new FieldDef(m.Name, m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, Palette[ci++ % Palette.Length], val, m.BitOrder));
+            fields.Add(new FieldDef(m.Name, m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
         }
 
         _activePacketField = null;
@@ -191,13 +210,16 @@ public partial class MainWindow : Window
 
     // ?? CPU Register Lab ???????????????????????????????????????
 
-    private void OnApplyCpuRaw(object sender, RoutedEventArgs e)
+    private void OnCpuRawHexChanged(object sender, TextChangedEventArgs e)
     {
+        if (_suppressCpuUpdate)
+            return;
+
         if (!HexUtils.TryParseUShort(CpuRawHex.Text, out var value))
             return;
 
         _statusRegister = value;
-        UpdateCpuUi();
+        UpdateCpuUi(skipHexBox: true);
     }
 
     private void OnCpuFlagChanged(object sender, RoutedEventArgs e)
@@ -212,7 +234,18 @@ public partial class MainWindow : Window
         _statusRegister.Overflow = FlagOverflow.IsChecked == true;
         _statusRegister.Negative = FlagNegative.IsChecked == true;
 
-        UpdateCpuUi();
+        string? flagName = sender switch
+        {
+            CheckBox cb when cb == FlagCarry     => nameof(CpuStatusRegister.Carry),
+            CheckBox cb when cb == FlagZero      => nameof(CpuStatusRegister.ZeroFlag),
+            CheckBox cb when cb == FlagInterrupt => nameof(CpuStatusRegister.InterruptDisable),
+            CheckBox cb when cb == FlagDecimal   => nameof(CpuStatusRegister.Decimal),
+            CheckBox cb when cb == FlagOverflow  => nameof(CpuStatusRegister.Overflow),
+            CheckBox cb when cb == FlagNegative  => nameof(CpuStatusRegister.Negative),
+            _ => null
+        };
+
+        UpdateCpuUi(highlightField: flagName);
     }
 
     private void OnCpuModeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -221,13 +254,14 @@ public partial class MainWindow : Window
             return;
 
         _statusRegister.Mode = (byte)e.NewValue;
-        UpdateCpuUi();
+        UpdateCpuUi(highlightField: "Mode");
     }
 
-    private void UpdateCpuUi()
+    private void UpdateCpuUi(bool skipHexBox = false, string? highlightField = null)
     {
         _suppressCpuUpdate = true;
-        CpuRawHex.Text = $"0x{(ushort)_statusRegister:X4}";
+        if (!skipHexBox)
+            CpuRawHex.Text = $"0x{(ushort)_statusRegister:X4}";
         FlagCarry.IsChecked = _statusRegister.Carry;
         FlagZero.IsChecked = _statusRegister.ZeroFlag;
         FlagInterrupt.IsChecked = _statusRegister.InterruptDisable;
@@ -238,10 +272,10 @@ public partial class MainWindow : Window
         CpuModeValue.Text = _statusRegister.Mode.ToString();
         _suppressCpuUpdate = false;
 
-        BuildCpuFieldDisplay();
+        BuildCpuFieldDisplay(highlightField);
     }
 
-    private void BuildCpuFieldDisplay()
+    private void BuildCpuFieldDisplay(string? highlightField = null)
     {
         var fields = new List<FieldDef>();
         int ci = 0;
@@ -249,21 +283,29 @@ public partial class MainWindow : Window
         foreach (var m in CpuStatusRegister.Fields)
         {
             string val = FormatViewField(_statusRegister, m);
-            fields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], val, m.BitOrder));
+            fields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
         }
 
         var bytes = BitConverter.GetBytes((ushort)_statusRegister);
 
-        _activeCpuField = null;
+        _activeCpuField = highlightField;
         PopulateFieldSummary(CpuFieldSummaryPanel, fields, nameof(_activeCpuField));
         PopulateHexDisplay(CpuHexBytesPanel, bytes, bytes.Length, fields, nameof(_activeCpuField));
         PopulateBinaryDisplay(CpuBinaryBitsPanel, bytes, bytes.Length, fields, nameof(_activeCpuField));
+
+        if (highlightField != null)
+        {
+            Panel[] panels = [CpuFieldSummaryPanel, CpuHexBytesPanel, CpuBinaryBitsPanel];
+            foreach (var p in panels)
+                ApplyHighlighting(p, highlightField);
+        }
     }
 
     // ?? Shared Three-Panel Display ?????????????????????????????
 
-    private sealed record FieldDef(string Name, int StartBit, int EndBit, Color Color, string Value, BitOrder BitOrder = BitOrder.BitZeroIsLsb);
+    private sealed record FieldDef(string Name, int StartBit, int EndBit, Color Color, string Value, BitOrder BitOrder = BitOrder.BitZeroIsLsb, string? Description = null);
     private sealed record FieldTag(string Name, string Group, Color Color);
+    private sealed record HexByteTag(string PrimaryName, string Group, Color PrimaryColor, List<(string Name, Color Color)> OverlappingFields);
 
     private static Color Rgb(byte r, byte g, byte b) => Color.FromRgb(r, g, b);
 
@@ -300,7 +342,8 @@ public partial class MainWindow : Window
                 Background = bg, BorderBrush = brush, BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(4), Padding = new Thickness(8, 4, 8, 4),
                 Margin = new Thickness(0, 0, 6, 6), Child = stack,
-                Tag = new FieldTag(f.Name, group, f.Color), Cursor = Cursors.Hand
+                Tag = new FieldTag(f.Name, group, f.Color), Cursor = Cursors.Hand,
+                ToolTip = f.Description
             };
             border.MouseLeftButtonDown += OnFieldClicked;
             panel.Children.Add(border);
@@ -313,17 +356,33 @@ public partial class MainWindow : Window
         for (int i = 0; i < count; i++)
         {
             int bitStart = i * 8;
-            var field = fields.Find(f => f.StartBit <= bitStart && f.EndBit >= bitStart);
-            var color = field?.Color ?? Colors.Gray;
+            int bitEnd = bitStart + 7;
+
+            // Find ALL fields that overlap this byte
+            var overlapping = new List<(string Name, Color Color)>();
+            string? tooltip = null;
+            foreach (var f in fields)
+            {
+                if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+                {
+                    overlapping.Add((f.Name, f.Color));
+                    if (f.Description != null)
+                        tooltip = tooltip == null ? $"{f.Name}: {f.Description}" : $"{tooltip}\n{f.Name}: {f.Description}";
+                }
+            }
+
+            var primaryColor = overlapping.Count > 0 ? overlapping[0].Color : Colors.Gray;
+            var primaryName = overlapping.Count > 0 ? overlapping[0].Name : null;
 
             var tb = new TextBlock
             {
                 Text = $"{bytes[i]:X2} ", FontFamily = new FontFamily("Consolas"), FontSize = 14,
-                Foreground = new SolidColorBrush(color),
-                Tag = field != null ? new FieldTag(field.Name, group, field.Color) : null,
-                Cursor = Cursors.Hand
+                Foreground = new SolidColorBrush(primaryColor),
+                Tag = primaryName != null ? new HexByteTag(primaryName, group, primaryColor, overlapping) : null,
+                Cursor = Cursors.Hand,
+                ToolTip = tooltip
             };
-            tb.MouseLeftButtonDown += OnFieldClicked;
+            tb.MouseLeftButtonDown += OnHexByteClicked;
             panel.Children.Add(tb);
         }
     }
@@ -372,7 +431,8 @@ public partial class MainWindow : Window
             {
                 Background = new SolidColorBrush(bg), CornerRadius = new CornerRadius(3),
                 Padding = new Thickness(6, 2, 6, 2), Margin = new Thickness(0, 0, 4, 4),
-                Child = stack, Tag = new FieldTag(f.Name, group, f.Color), Cursor = Cursors.Hand
+                Child = stack, Tag = new FieldTag(f.Name, group, f.Color), Cursor = Cursors.Hand,
+                ToolTip = f.Description
             };
             border.MouseLeftButtonDown += OnFieldClicked;
             panel.Children.Add(border);
@@ -384,26 +444,73 @@ public partial class MainWindow : Window
         if (sender is not FrameworkElement { Tag: FieldTag tag })
             return;
 
-        ref string? active = ref _activePacketField;
-        Panel[] panels;
-        if (tag.Group == nameof(_activePeField))
+        ToggleActiveField(tag.Group, tag.Name);
+    }
+
+    private void OnHexByteClicked(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TextBlock { Tag: HexByteTag tag })
+            return;
+
+        // If one of the overlapping fields is already active, cycle to the next one;
+        // otherwise activate the primary field.
+        ref string? active = ref ResolveActiveRef(tag.Group, out _);
+        string? currentActive = active;
+        string? nextField = null;
+        if (currentActive != null)
         {
-            active = ref _activePeField;
-            panels = [PeFieldSummaryPanel, PeHexBytesPanel, PeBinaryBitsPanel];
-        }
-        else if (tag.Group == nameof(_activeCpuField))
-        {
-            active = ref _activeCpuField;
-            panels = [CpuFieldSummaryPanel, CpuHexBytesPanel, CpuBinaryBitsPanel];
+            // Find the current active in the overlapping list, then pick the next
+            for (int i = 0; i < tag.OverlappingFields.Count; i++)
+            {
+                if (tag.OverlappingFields[i].Name == currentActive)
+                {
+                    int next = i + 1;
+                    if (next < tag.OverlappingFields.Count)
+                        nextField = tag.OverlappingFields[next].Name;
+                    // else nextField stays null => deselect
+                    break;
+                }
+            }
+
+            // If the active field isn't in this byte's overlap list, just pick the primary
+            if (nextField == null && !tag.OverlappingFields.Exists(o => o.Name == currentActive))
+                nextField = tag.PrimaryName;
         }
         else
         {
-            panels = [FieldSummaryPanel, HexBytesPanel, BinaryBitsPanel];
+            nextField = tag.PrimaryName;
         }
 
-        active = active == tag.Name ? null : tag.Name;
+        ToggleActiveField(tag.Group, nextField, forceValue: true);
+    }
+
+    private void ToggleActiveField(string group, string? fieldName, bool forceValue = false)
+    {
+        ref string? active = ref ResolveActiveRef(group, out var panels);
+
+        if (forceValue)
+            active = fieldName;
+        else
+            active = active == fieldName ? null : fieldName;
+
         foreach (var p in panels)
             ApplyHighlighting(p, active);
+    }
+
+    private ref string? ResolveActiveRef(string group, out Panel[] panels)
+    {
+        if (group == nameof(_activePeField))
+        {
+            panels = [PeFieldSummaryPanel, PeHexBytesPanel, PeBinaryBitsPanel];
+            return ref _activePeField;
+        }
+        if (group == nameof(_activeCpuField))
+        {
+            panels = [CpuFieldSummaryPanel, CpuHexBytesPanel, CpuBinaryBitsPanel];
+            return ref _activeCpuField;
+        }
+        panels = [FieldSummaryPanel, HexBytesPanel, BinaryBitsPanel];
+        return ref _activePacketField;
     }
 
     private static void ApplyHighlighting(Panel panel, string? activeField)
@@ -411,14 +518,13 @@ public partial class MainWindow : Window
         foreach (UIElement child in panel.Children)
         {
             if (child is not FrameworkElement fe) continue;
-            var tag = fe.Tag as FieldTag;
-            bool isSelected = activeField != null && tag?.Name == activeField;
 
-            if (fe is Border border && tag != null)
+            if (fe is Border border && fe.Tag is FieldTag borderTag)
             {
+                bool isSelected = activeField != null && borderTag.Name == activeField;
                 if (isSelected)
                 {
-                    border.Background = new SolidColorBrush(tag.Color);
+                    border.Background = new SolidColorBrush(borderTag.Color);
                     border.BorderBrush = Brushes.White;
                     border.BorderThickness = new Thickness(2);
                     SetDescendantForeground(border.Child, Colors.Black);
@@ -428,18 +534,29 @@ public partial class MainWindow : Window
                     RestoreFieldColors(border);
                 }
             }
-            else if (fe is TextBlock tb)
+            else if (fe is TextBlock tb && fe.Tag is HexByteTag hexTag)
             {
-                if (isSelected)
+                // Check if the active field overlaps this byte
+                var match = activeField != null
+                    ? hexTag.OverlappingFields.Find(o => o.Name == activeField)
+                    : default;
+
+                if (match.Name != null)
                 {
+                    tb.Foreground = new SolidColorBrush(match.Color);
                     tb.FontWeight = FontWeights.ExtraBold;
                     tb.TextDecorations = TextDecorations.Underline;
                 }
                 else
                 {
+                    tb.Foreground = new SolidColorBrush(hexTag.PrimaryColor);
                     tb.FontWeight = FontWeights.Normal;
                     tb.TextDecorations = null;
                 }
+            }
+            else if (fe is Border binaryBorder && fe.Tag is FieldTag binaryTag)
+            {
+                // handled above
             }
         }
     }

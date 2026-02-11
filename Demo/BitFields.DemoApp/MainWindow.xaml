@@ -7,55 +7,70 @@
     <Grid Margin="12">
         <TabControl Background="{DynamicResource PanelBackground}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
             <TabItem Header="PE Viewer">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16" Orientation="Vertical" TextElement.Foreground="White">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="OpenPeButton" Content="Open PE File" Padding="12,6" Click="OnOpenPeFile" />
-                            <TextBlock x:Name="PeFilePath" VerticalAlignment="Center" Margin="8,0,0,0" />
+                <ScrollViewer x:Name="PeScroller" VerticalScrollBarVisibility="Auto">
+                    <Grid TextElement.Foreground="White" MinHeight="{Binding ViewportHeight, ElementName=PeScroller}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="40" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="OpenPeButton" Content="Open PE File" Padding="12,6" Click="OnOpenPeFile" />
+                                <TextBlock x:Name="PeFilePath" VerticalAlignment="Center" Margin="8,0,0,0" />
+                            </StackPanel>
+
+                            <TextBlock Text="&#x25B8; Fields" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
+                            <WrapPanel x:Name="PeFieldSummaryPanel" />
+
+                            <TextBlock Text="&#x25B8; Header Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                                <WrapPanel x:Name="PeHexBytesPanel" />
+                            </Border>
+
+                            <TextBlock Text="&#x25B8; Header Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                                <WrapPanel x:Name="PeBinaryBitsPanel" />
+                            </Border>
                         </StackPanel>
 
-                        <TextBlock Text="&#x25B8; DOS Header Fields" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
-                        <WrapPanel x:Name="PeFieldSummaryPanel" />
-
-                        <TextBlock Text="&#x25B8; COFF Header Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                        <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
-                            <WrapPanel x:Name="PeHexBytesPanel" />
-                        </Border>
-
-                        <TextBlock Text="&#x25B8; COFF Header Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                        <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
-                            <WrapPanel x:Name="PeBinaryBitsPanel" />
-                        </Border>
-
-                        <TextBlock Text="&#x25B8; Raw Bytes" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
-                        <TextBox x:Name="PeRawBytes" Height="140" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
-                    </StackPanel>
+                        <TextBlock Grid.Row="1" Text="&#x25B8; Raw Bytes" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
+                        <TextBox Grid.Row="2" x:Name="PeRawBytes" Margin="16,0,16,16" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
+                    </Grid>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Network Packet Viewer">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="16" Orientation="Vertical" TextElement.Foreground="White">
-                        <TextBlock Text="Paste IPv4/TCP packet bytes (hex, spaces allowed):" />
-                        <TextBox x:Name="PacketHexInput" Height="80" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" />
-                        <Button Content="Parse Packet" Padding="12,6" Click="OnParsePacket" Margin="0,6,0,0" HorizontalAlignment="Left" />
+                <ScrollViewer x:Name="NetScroller" VerticalScrollBarVisibility="Auto">
+                    <Grid TextElement.Foreground="White" MinHeight="{Binding ViewportHeight, ElementName=NetScroller}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="40" />
+                        </Grid.RowDefinitions>
 
-                        <TextBlock Text="&#x25B8; Fields" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
-                        <WrapPanel x:Name="FieldSummaryPanel" />
+                        <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
+                            <TextBlock Text="Paste IPv4/TCP packet bytes (hex, spaces allowed):" />
+                            <TextBox x:Name="PacketHexInput" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" TextChanged="OnPacketHexInputChanged" />
 
-                        <TextBlock Text="&#x25B8; Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                        <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
-                            <WrapPanel x:Name="HexBytesPanel" />
-                        </Border>
+                            <TextBlock Text="&#x25B8; Fields" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
+                            <WrapPanel x:Name="FieldSummaryPanel" />
 
-                        <TextBlock Text="&#x25B8; Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
-                        <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
-                            <WrapPanel x:Name="BinaryBitsPanel" />
-                        </Border>
+                            <TextBlock Text="&#x25B8; Hex" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                                <WrapPanel x:Name="HexBytesPanel" />
+                            </Border>
 
-                        <TextBlock Text="&#x25B8; HTTP Payload" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
-                        <TextBox x:Name="HttpPayload" Height="120" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
-                    </StackPanel>
+                            <TextBlock Text="&#x25B8; Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <Border Background="#FF0B1220" CornerRadius="4" Padding="10,8">
+                                <WrapPanel x:Name="BinaryBitsPanel" />
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="&#x25B8; HTTP Payload" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
+                        <TextBox Grid.Row="2" x:Name="HttpPayload" Margin="16,0,16,16" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="#FF0B1220" Foreground="White" FontFamily="Consolas" IsReadOnly="True" />
+                    </Grid>
                 </ScrollViewer>
             </TabItem>
 
@@ -63,10 +78,9 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16" Orientation="Vertical" TextElement.Foreground="White">
                         <TextBlock Text="Status Register (16-bit)" FontSize="16" FontWeight="Bold" />
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Raw Hex" VerticalAlignment="Center" />
-                            <TextBox x:Name="CpuRawHex" Width="120" Background="#FF0B1220" Foreground="White" VerticalContentAlignment="Center" FontFamily="Consolas" />
-                            <Button Content="Apply" Padding="10,4" Click="OnApplyCpuRaw" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="Raw Hex" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox x:Name="CpuRawHex" Width="100" Height="28" Background="#FF0B1220" Foreground="White" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontFamily="Consolas" FontSize="14" Padding="4,2" TextChanged="OnCpuRawHexChanged" />
                         </StackPanel>
                         <WrapPanel Margin="0,8,0,0" ItemHeight="30" ItemWidth="140">
                             <WrapPanel.Resources>

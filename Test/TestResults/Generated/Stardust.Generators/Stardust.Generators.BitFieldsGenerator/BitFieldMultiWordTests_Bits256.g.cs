@@ -129,6 +129,15 @@ public partial class BitFieldMultiWordTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Bits256 WithW3(ulong value) { var copy = this; copy.W3 = value; return copy; }
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("W1", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("W2", 128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("W3", 192, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Bits256 operator ~(Bits256 a) => new(~a._w0, ~a._w1, ~a._w2, ~a._w3);

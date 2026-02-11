@@ -91,6 +91,13 @@ public partial class BitFieldMultiWordTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Bits128 WithHigh(ulong value) { var copy = this; copy.High = value; return copy; }
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Low", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("High", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Bits128 operator ~(Bits128 a) => new(~a._w0, ~a._w1);

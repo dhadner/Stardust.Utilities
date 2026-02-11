@@ -91,6 +91,13 @@ public partial class BitFieldMultiWordTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Bits128Zeroed WithLow(uint value) { var copy = this; copy.Low = value; return copy; }
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Low", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Flag", 64, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Bits128Zeroed operator ~(Bits128Zeroed a) => new(~a._w0, ~a._w1);

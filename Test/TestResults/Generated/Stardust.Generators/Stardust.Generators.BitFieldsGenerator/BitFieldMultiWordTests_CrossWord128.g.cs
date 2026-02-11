@@ -110,6 +110,14 @@ public partial class BitFieldMultiWordTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CrossWord128 WithCrossField(byte value) { var copy = this; copy.CrossField = value; return copy; }
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("CrossField", 60, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("HighBit", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CrossWord128 operator ~(CrossWord128 a) => new(~a._w0, ~a._w1);

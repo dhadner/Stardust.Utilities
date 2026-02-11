@@ -110,6 +110,14 @@ public partial class BitFieldSpecializationTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DecimalRegister WithScale(byte value) { var copy = this; copy.Scale = value; return copy; }
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Coefficient", 0, 96, "System.UInt128", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Scale", 112, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+            new("Sign", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb),
+        };
+
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DecimalRegister operator ~(DecimalRegister a) => new(~a._w0, ~a._w1);
