@@ -1088,7 +1088,9 @@ string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `bitsPerRow` | 32 | Number of bits per row. Common values: 8, 16, 32, 64. |
-| `includeDescriptions` | false | Appends a legend with `[Description]` text for each field. |
+| `includeDescriptions` | false | Appends a legend with `Description` text for each field. |
+| `showByteOffset` | true | Shows hex byte offset (e.g., `0x00`) at the left of each content row. |
+| `minCellWidth` | 0 (auto) | Minimum cell width in characters per bit column. When 0, computed automatically. Used internally by `RenderList` for consistent scale. |
 
 ```csharp
 // 8 bits per row for small registers
@@ -1099,7 +1101,32 @@ string diagram = BitFieldDiagram.RenderToString(TcpHeaderView.Fields, bitsPerRow
 
 // Include field descriptions
 string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, includeDescriptions: true);
+
+// Hide byte offsets for compact output
+string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, showByteOffset: false);
 ```
+
+### Multi-Struct Diagrams
+
+`RenderList` and `RenderListToString` render multiple struct sections as a unified diagram with
+consistent cell widths. The widest field name across all sections determines the scale for the
+entire output.
+
+```csharp
+// Render multiple structs together
+var sections = new DiagramSection[]
+{
+    new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
+    new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
+    new("SR", M68020SR.Fields.ToArray()),
+};
+string diagram = BitFieldDiagram.RenderListToString(sections, bitsPerRow: 32);
+
+// Or get individual lines
+List<string> lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 32, includeDescriptions: true);
+```
+
+Use `ComputeMinCellWidth` to pre-compute the shared width if you need it for custom layout logic.
 
 ### Features
 
@@ -1150,12 +1177,11 @@ string diagram = BitFieldDiagram.RenderToString(
 
 ### Demo Application
 
-The demo app (`Demo/BitFields.DemoApp`) includes an RFC Diagram tab with:
+**[Try the interactive web demo](https://dhadner.github.io/Stardust.Utilities/)** -- includes an RFC Diagram tab with struct picker, bits/row selector, description and byte offset toggles, and copy to clipboard.
 
-- Struct picker for all registered `[BitFields]` and `[BitFieldsView]` types
-- Bits/Row selector (8, 16, 32, 64)
-- Show Descriptions toggle
-- Copy to Clipboard button
+The source code includes two demo apps:
+- `Demo/BitFields.DemoWeb` -- Blazor WebAssembly app (runs in any browser, no install)
+- `Demo/BitFields.DemoApp` -- WPF desktop app (Windows)
 
 ---
 

@@ -93,59 +93,40 @@
 
     private void ParsePe()
     {
-        if (_bytes.Length < DosHeaderView.SizeInBytes)
-        {
-            _error = "File too small for a PE header.";
-            return;
-        }
-
-        var dos = new DosHeaderView(_bytes);
-        int peOffset = (int)dos.Lfanew;
-        int coffByteOffset = peOffset + 4;
-
-        if (_bytes.Length < coffByteOffset + CoffHeaderView.SizeInBytes)
-        {
-            _error = "Missing PE header.";
-            return;
-        }
-
-        var signature = BitConverter.ToUInt32(_bytes, peOffset);
-        var coff = new CoffHeaderView(_bytes, coffByteOffset);
-        int optByteOffset = coffByteOffset + CoffHeaderView.SizeInBytes;
-        int optHeaderSize = Math.Min((int)coff.SizeOfOptionalHeader, OptionalHeaderView.SizeInBytes);
-        bool hasOptional = coff.SizeOfOptionalHeader > 0 && _bytes.Length >= optByteOffset + optHeaderSize;
-
-        _displayBytes = hasOptional
-            ? Math.Min(optByteOffset + optHeaderSize, _bytes.Length)
-            : Math.Min(coffByteOffset + CoffHeaderView.SizeInBytes, _bytes.Length);
-
-        int ci = 0;
-
-        foreach (var m in DosHeaderView.Fields)
-            AddField(ref ci, m.Name, m.StartBit, m.EndBit, Palette.FormatField(dos, m), m.BitOrder, m.GetDescription());
-
-        int sigBitBase = peOffset * 8;
-        _fields.Add(new("PE Sig", sigBitBase, sigBitBase + 31, Palette.Get(ci++),
-            signature == PeHeader.Signature ? @"PE\0\0" : $"0x{signature:X8}",
-            BuildBits(sigBitBase, sigBitBase + 31, BitOrder.BitZeroIsLsb),
-            "PE signature magic bytes"));
-
-        int coffBitBase = coffByteOffset * 8;
-        foreach (var m in CoffHeaderView.Fields)
-            AddField(ref ci, m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette.FormatField(coff, m), m.BitOrder, m.GetDescription());
-
-        if (hasOptional)
-        {
-            int optBitBase = optByteOffset * 8;
-            var opt = new OptionalHeaderView(_bytes, optByteOffset);
-            foreach (var m in OptionalHeaderView.Fields)
+        // Parse PE headers using Result pipeline -- demonstrates
+        // Result<T, TError>.Then() chaining for multi-step validation
+        PeParser.Parse(_bytes)
+            .OnSuccess(pe =>
             {
-                int gs = m.StartBit + optBitBase;
-                int ge = m.EndBit + optBitBase;
-                if (ge / 8 < _displayBytes)
-                    AddField(ref ci, m.Name, gs, ge, Palette.FormatField(opt, m), m.BitOrder, m.GetDescription());
-            }
-        }
+                _displayBytes = pe.TotalDisplayBytes;
+                int ci = 0;
+
+                foreach (var m in DosHeaderView.Fields)
+                    AddField(ref ci, m.Name, m.StartBit, m.EndBit, Palette.FormatField(pe.Dos, m), m.BitOrder, m.GetDescription());
+
+                int sigBitBase = pe.PeOffset * 8;
+                _fields.Add(new("PE Sig", sigBitBase, sigBitBase + 31, Palette.Get(ci++),
+                    pe.Signature == PeHeader.Signature ? @"PE\0\0" : $"0x{pe.Signature:X8}",
+                    BuildBits(sigBitBase, sigBitBase + 31, BitOrder.BitZeroIsLsb),
+                    "PE signature magic bytes"));
+
+                int coffBitBase = pe.CoffByteOffset * 8;
+                foreach (var m in CoffHeaderView.Fields)
+                    AddField(ref ci, m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette.FormatField(pe.Coff, m), m.BitOrder, m.GetDescription());
+
+                if (pe.Optional is { } opt)
+                {
+                    int optBitBase = pe.OptByteOffset * 8;
+                    foreach (var m in OptionalHeaderView.Fields)
+                    {
+                        int gs = m.StartBit + optBitBase;
+                        int ge = m.EndBit + optBitBase;
+                        if (ge / 8 < _displayBytes)
+                            AddField(ref ci, m.Name, gs, ge, Palette.FormatField(opt, m), m.BitOrder, m.GetDescription());
+                    }
+                }
+            })
+            .OnFailure(error => _error = error);
     }
 
     private void AddField(ref int ci, string name, int startBit, int endBit, string value, BitOrder order, string? desc)

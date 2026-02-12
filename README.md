@@ -15,6 +15,7 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
 
 [![Stardust Utilities](https://github.com/dhadner/Stardust.Utilities/blob/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
 
+- [Try It Live](#try-it-live)
 - [Installation](#installation)
 - [Features](#features)
   - [BitFields and BitFieldsView](#bitfields-and-bitfieldsview)
@@ -29,6 +30,22 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
 - [Contributing](#contributing)
 - [Security](#security)
 - [License](#license)
+
+---
+
+## Try It Live
+
+**[Launch the Interactive Web Demo](https://dhadner.github.io/Stardust.Utilities/)** -- explore BitFields, PE headers, network packets, CPU registers, and RFC diagrams directly in your browser. No install required.
+
+[Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/releases/download/v0.9.4/DemoWebVideo.mp4)
+
+![PE Header Viewer](Graphics/PEHeaderViewDemo.png)
+
+![Network Packet Viewer](Graphics/NetworkPacketViewDemo.png)
+
+![CPU Register Lab](Graphics/CPURegisterLabDemo.png)
+
+![TCP Header RFC Diagram](Graphics/TCPHeaderDiagram.png)
 
 ---
 
@@ -189,8 +206,8 @@ The `[BitField]` and `[BitFlag]` property attributes are shared by both `[BitFie
 |-----------|------------|-------------|
 | `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Marks a value-type struct; generator creates private `Value` field |
 | `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a record struct as a zero-copy view over `Memory<byte>` |
-| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe` | Single-bit boolean flag (used in both) |
-| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (used in both; width = endBit - startBit + 1) |
+| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe`, optional `Description` | Single-bit boolean flag (used in both) |
+| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe`, optional `Description` | Multi-bit field (used in both; width = endBit - startBit + 1) |
 
 **BitField Examples:**
 - `[BitField(0, 2)]` - 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
@@ -628,9 +645,17 @@ marked.
 // Generate a diagram from any [BitFields] or [BitFieldsView] struct
 string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
 
-// Custom width and descriptions
+// Custom width, descriptions, and byte offset control
 string diagram = BitFieldDiagram.RenderToString(
-    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true);
+    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true, showByteOffset: false);
+
+// Render multiple structs as a unified diagram with consistent scale
+var sections = new DiagramSection[]
+{
+    new("Data Registers", M68020DataRegisters.Fields.ToArray()),
+    new("SR", M68020SR.Fields.ToArray()),
+};
+string multi = BitFieldDiagram.RenderListToString(sections);
 ```
 
 See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
@@ -818,7 +843,7 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-   <PackageReference Include="Stardust.Utilities" Version="0.2.0" />
+   <PackageReference Include="Stardust.Utilities" Version="0.9.4" />
    ```
 2. Clean and rebuild the solution
 3. Restart Visual Studio if needed (sometimes required after first install)
