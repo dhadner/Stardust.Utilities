@@ -37,7 +37,7 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
 
 **[Launch the Interactive Web Demo](https://dhadner.github.io/Stardust.Utilities/)** -- explore BitFields, PE headers, network packets, CPU registers, and RFC diagrams directly in your browser. No install required.
 
-[Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/releases/download/v0.9.4/DemoWebVideo.mp4)
+[Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4)
 
 ![PE Header Viewer](Graphics/PEHeaderViewDemo.png)
 
