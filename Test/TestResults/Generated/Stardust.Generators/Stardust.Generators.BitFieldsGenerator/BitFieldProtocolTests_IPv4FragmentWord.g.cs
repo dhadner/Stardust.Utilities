@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -37,10 +38,10 @@ public partial class BitFieldProtocolTests
             set => Value = (uint)((Value & 0x0000FFFFU) | ((((uint)value) << 16) & 0xFFFF0000U));
         }
 
-        public partial IPv4Flags Flags
+        public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (IPv4Flags)((Value >> 13) & 0x00000007U);
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((Value >> 13) & 0x00000007U);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Value = (uint)((Value & 0xFFFF1FFFU) | ((((uint)value) << 13) & 0x0000E000U));
         }
@@ -62,13 +63,21 @@ public partial class BitFieldProtocolTests
         /// <summary>Returns a IPv4FragmentWord with the mask for the FragmentOffset field (bits 0-12).</summary>
         public static IPv4FragmentWord FragmentOffsetMask => new((uint)0x00001FFFU);
 
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Identification", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Flags", 13, 3, "Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("FragmentOffset", 0, 13, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        };
+
         /// <summary>Returns a new IPv4FragmentWord with the Identification field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((Value & 0x0000FFFFU) | (((uint)value << 16) & 0xFFFF0000U)));
 
         /// <summary>Returns a new IPv4FragmentWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFlags(IPv4Flags value) => new((uint)((Value & 0xFFFF1FFFU) | (((uint)value << 13) & 0x0000E000U)));
+        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags value) => new((uint)((Value & 0xFFFF1FFFU) | (((uint)value << 13) & 0x0000E000U)));
 
         /// <summary>Returns a new IPv4FragmentWord with the FragmentOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

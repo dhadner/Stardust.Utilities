@@ -1,4 +1,5 @@
 using System.Text;
+using System;
 
 namespace Stardust.Generators;
 
@@ -128,7 +129,7 @@ public partial class BitFieldsGenerator
         ulong invertedMask = ~mask;
 
         string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
-        
+
         string maskHex = FormatHex(mask, maskType);
         string invertedMaskHex = FormatHex(invertedMask, maskType);
 

@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -27,10 +28,10 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <summary>Creates a new MainHeader64 with the specified raw bits value.</summary>
     public MainHeader64(ulong value) { Value = value; }
 
-    public partial Header27 Protocol
+    public partial global::Stardust.Utilities.Tests.Header27 Protocol
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Header27)(Value & 0x0000000007FFFFFFUL);
+        get => (global::Stardust.Utilities.Tests.Header27)(Value & 0x0000000007FFFFFFUL);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (ulong)((Value & 0xFFFFFFFFF8000000UL) | (((ulong)value) & 0x0000000007FFFFFFUL));
     }
@@ -60,9 +61,17 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <summary>Returns a MainHeader64 with the mask for the Timestamp field (bits 32-63).</summary>
     public static MainHeader64 TimestampMask => new((ulong)0xFFFFFFFF00000000UL);
 
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Protocol", 0, 27, "Stardust.Utilities.Tests.Header27", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Priority", 27, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+    };
+
     /// <summary>Returns a new MainHeader64 with the Protocol field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithProtocol(Header27 value) => new((ulong)((Value & 0xFFFFFFFFF8000000UL) | (value & 0x0000000007FFFFFFUL)));
+    public MainHeader64 WithProtocol(global::Stardust.Utilities.Tests.Header27 value) => new((ulong)((Value & 0xFFFFFFFFF8000000UL) | (value & 0x0000000007FFFFFFUL)));
 
     /// <summary>Returns a new MainHeader64 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

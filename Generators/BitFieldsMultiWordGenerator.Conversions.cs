@@ -328,9 +328,20 @@ internal static partial class BitFieldsMultiWordGenerator
     {
         string t = info.TypeName;
         int wc = layout.WordCount;
+        bool isBE = info.ByteOrder == ByteOrderValue.BigEndian;
+        string endianLabel = isBE ? "big-endian" : "little-endian";
+        string readU16 = isBE ? "ReadUInt16BigEndian" : "ReadUInt16LittleEndian";
+        string readU32 = isBE ? "ReadUInt32BigEndian" : "ReadUInt32LittleEndian";
+        string readU64 = isBE ? "ReadUInt64BigEndian" : "ReadUInt64LittleEndian";
+        string writeU16 = isBE ? "WriteUInt16BigEndian" : "WriteUInt16LittleEndian";
+        string writeU32 = isBE ? "WriteUInt32BigEndian" : "WriteUInt32LittleEndian";
+        string writeU64 = isBE ? "WriteUInt64BigEndian" : "WriteUInt64LittleEndian";
+
+        // For big-endian, word 0 maps to the LAST bytes in the buffer (most significant word first)
+        // For little-endian, word 0 maps to the FIRST bytes (least significant word first)
 
         // ReadOnlySpan<byte> constructor
-        sb.AppendLine($"{ind}/// <summary>Creates a new {t} from a little-endian byte span.</summary>");
+        sb.AppendLine($"{ind}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
         sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{ind}public {t}(ReadOnlySpan<byte> bytes)");
@@ -349,26 +360,26 @@ internal static partial class BitFieldsMultiWordGenerator
                         sb.AppendLine($"{ind}    _w{i} = bytes[{offset}];");
                         break;
                     case "ushort":
-                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.ReadUInt16LittleEndian(bytes.Slice({offset}));");
+                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU16}(bytes.Slice({offset}));");
                         break;
                     case "uint":
-                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.ReadUInt32LittleEndian(bytes.Slice({offset}));");
+                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU32}(bytes.Slice({offset}));");
                         break;
                     default: // ulong remainder
-                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice({offset}));");
+                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU64}(bytes.Slice({offset}));");
                         break;
                 }
             }
             else
             {
-                sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice({offset}));");
+                sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU64}(bytes.Slice({offset}));");
             }
         }
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
 
         // Static ReadFrom factory
-        sb.AppendLine($"{ind}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a little-endian byte span.</summary>");
+        sb.AppendLine($"{ind}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a {endianLabel} byte span.</summary>");
         sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <returns>The deserialized {t}.</returns>");
         sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -376,7 +387,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine();
 
         // WriteTo
-        sb.AppendLine($"{ind}/// <summary>Writes the value as little-endian bytes into the destination span.</summary>");
+        sb.AppendLine($"{ind}/// <summary>Writes the value as {endianLabel} bytes into the destination span.</summary>");
         sb.AppendLine($"{ind}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{ind}public void WriteTo(Span<byte> destination)");
@@ -394,26 +405,26 @@ internal static partial class BitFieldsMultiWordGenerator
                         sb.AppendLine($"{ind}    destination[{offset}] = _w{i};");
                         break;
                     case "ushort":
-                        sb.AppendLine($"{ind}    BinaryPrimitives.WriteUInt16LittleEndian(destination.Slice({offset}), _w{i});");
+                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU16}(destination.Slice({offset}), _w{i});");
                         break;
                     case "uint":
-                        sb.AppendLine($"{ind}    BinaryPrimitives.WriteUInt32LittleEndian(destination.Slice({offset}), _w{i});");
+                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU32}(destination.Slice({offset}), _w{i});");
                         break;
                     default:
-                        sb.AppendLine($"{ind}    BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice({offset}), _w{i});");
+                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU64}(destination.Slice({offset}), _w{i});");
                         break;
                 }
             }
             else
             {
-                sb.AppendLine($"{ind}    BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice({offset}), _w{i});");
+                sb.AppendLine($"{ind}    BinaryPrimitives.{writeU64}(destination.Slice({offset}), _w{i});");
             }
         }
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
 
         // TryWriteTo
-        sb.AppendLine($"{ind}/// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>");
+        sb.AppendLine($"{ind}/// <summary>Attempts to write the value as {endianLabel} bytes into the destination span.</summary>");
         sb.AppendLine($"{ind}/// <param name=\"destination\">The destination span.</param>");
         sb.AppendLine($"{ind}/// <param name=\"bytesWritten\">The number of bytes written on success.</param>");
         sb.AppendLine($"{ind}/// <returns>true if the destination span was large enough; otherwise, false.</returns>");
@@ -431,7 +442,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine();
 
         // ToByteArray
-        sb.AppendLine($"{ind}/// <summary>Returns the value as a new little-endian byte array.</summary>");
+        sb.AppendLine($"{ind}/// <summary>Returns the value as a new {endianLabel} byte array.</summary>");
         sb.AppendLine($"{ind}/// <returns>A byte array of length <see cref=\"SizeInBytes\"/>.</returns>");
         sb.AppendLine($"{ind}public byte[] ToByteArray()");
         sb.AppendLine($"{ind}{{");

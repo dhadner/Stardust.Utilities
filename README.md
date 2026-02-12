@@ -8,8 +8,8 @@
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A collection of utility types for .NET applications, focused on bit manipulation, error handling, and big-endian data types. Includes a source 
-generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-coded speed for bit access with no boilerplate needed.
+A collection of utility types for .NET applications, focused on bit manipulation, error handling, and endian-aware data types. Includes a source 
+generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFieldsView]` buffer views.  Provides native hand-coded speed for bit access with no boilerplate needed.
 
 ## Table of Contents
 
@@ -17,9 +17,13 @@ generator for zero-heap-allocation `[BitFields]` structs.  Provides native hand-
 
 - [Installation](#installation)
 - [Features](#features)
-  - [BitField](#bitfield)
+  - [BitFields and BitFieldsView](#bitfields-and-bitfieldsview)
+    - [BitFields (Value Types)](#bitfields-value-types)
+    - [BitFieldsView (Zero-Copy Views)](#bitfieldsview-zero-copy-views)
+    - [Choosing Between BitFields and BitFieldsView](#choosing-between-bitfields-and-bitfieldsview)
+    - [RFC Diagram Generator](#rfc-diagram-generator)
   - [Result Types](#result-types)
-  - [Big-Endian Types](#big-endian-types)
+  - [Endian Types](#endian-types)
   - [Extension Methods](#extension-methods)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
@@ -42,19 +46,39 @@ That's it, the source generator is included automatically.
 
 
 
-### BitField
+### BitFields and BitFieldsView
 
-**The easiest way to work with hardware registers and bit-packed data.**
+**The easiest way to work with hardware registers, protocol headers, and bit-packed data.**
 
-The BitField feature automatically creates property implementations for bit fields and flags within a struct. This eliminates boilerplate code and makes working with hardware registers readable and maintainable.
+`[BitFields]` and `[BitFieldsView]` are two complementary source-generated features that share the
+same `[BitField]` and `[BitFlag]` property attributes. Both accept the same property types --
+standard .NET value types, enums, explicit endian types (`UInt32Be`, `UInt16Le`, etc.), and nested
+`[BitFields]` or `[BitFieldsView]` types. Nested types with their own bit order override the
+enclosing struct's defaults for that field. `[BitFieldsView]` additionally supports configurable
+byte order via `ByteOrder`.
 
-See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for comprehensive documentation and examples.
+`[BitFields]` creates a self-contained value-type struct backed by a storage type (e.g., `byte`,
+`uint`, `ulong`). `[BitFieldsView]` creates a zero-copy record struct over an external
+`Memory<byte>` buffer. See [Choosing Between BitFields and BitFieldsView](#choosing-between-bitfields-and-bitfieldsview)
+for guidance on which to use.
 
-#### :white_check_mark: Zero Performance Overhead
+This eliminates boilerplate code and makes working with hardware registers, S/W floating point,
+nested protocol headers, instruction opcodes, file headers, and other bit-packed structures highly
+performant, readable and maintainable.
 
-The source generator emits **inline bit manipulation with compile-time constants** — the exact same code you would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no heap allocations.
+See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for comprehensive
+documentation and examples.
 
-> **TL;DR for Architects:** You can confidently use BitFields in performance-critical code. The JIT compiler completely eliminates property accessor overhead through inlining, resulting in **identical performance to raw bit manipulation**.
+#### BitFields (Value Types)
+
+##### :white_check_mark: Zero Performance Overhead
+
+The source generator emits **inline bit manipulation (shift and mask) with compile-time constants** — the exact same code you 
+would write by hand. There is no abstraction penalty, no runtime reflection, no boxing, and no heap allocations.
+
+> **TL;DR for Architects:** You can confidently use BitFields and BitFieldsView in performance-critical code. The JIT compiler 
+completely eliminates property accessor overhead through inlining, resulting in **identical performance to raw hand-coded C#
+bit manipulation** and comparable performance to optimized C when working with bit-packed data structures and simple accessors.
 
 **Property Accessors vs Raw Bit Manipulation** (500M iterations, .NET 10):
 
@@ -86,7 +110,7 @@ The source generator emits **inline bit manipulation with compile-time constants
 - ✅ **Compile-time constants** — All masks and shifts are computed at compile time
 - ✅ **No heap allocations** — Value types with no boxing
 
-#### Quick Start
+##### Quick Start
 
 ```csharp
 using Stardust.Utilities;
@@ -132,7 +156,7 @@ public partial struct StatusRegister
 }
 ```
 
-#### Usage
+##### Usage
 
 ```csharp
 // Create using constructor or implicit conversion
@@ -156,20 +180,26 @@ byte b = status;               // Converts to byte
 status = 0x42;                 // Converts from byte
 ```
 
-#### Attributes
+##### Attributes
+
+The `[BitField]` and `[BitFlag]` property attributes are shared by both `[BitFields]` and
+`[BitFieldsView]` structs:
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe` | Marks struct; generator creates private `Value` field |
-| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe` | Single-bit boolean flag |
-| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (width = endBit - startBit + 1) |
+| `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Marks a value-type struct; generator creates private `Value` field |
+| `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a record struct as a zero-copy view over `Memory<byte>` |
+| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe` | Single-bit boolean flag (used in both) |
+| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (used in both; width = endBit - startBit + 1) |
 
 **BitField Examples:**
 - `[BitField(0, 2)]` - 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
 - `[BitField(4, 7)]` - 4-bit field at bits 4, 5, 6, 7 (like Rust's `4..=7`)
 - `[BitField(3, 3)]` - 1-bit field at bit 3 only
 
-#### Supported Storage Types
+##### Supported Storage Types
+
+The following storage types are supported for `[BitFields]` value-type structs:
 
 | Storage Type | Size | Notes |
 |--------------|------|-------|
@@ -177,13 +207,30 @@ status = 0x42;                 // Converts from byte
 | `ushort` | 16 bits | Signed alternative: `short` |
 | `uint` | 32 bits | Signed alternative: `int` |
 | `ulong` | 64 bits | Signed alternative: `long` |
+| `UInt128` | 128 bits | Signed alternative: `Int128` |
+| `Half` | 16 bits | IEEE 754 half-precision |
 | `float` | 32 bits | IEEE 754 single-precision |
 | `double` | 64 bits | IEEE 754 double-precision |
 | `decimal` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
-| `UInt128` | 128 bits | Signed alternative: `Int128` |
 | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
 
-#### Signed Property Types (Sign Extension)
+##### Property Types
+
+Both `[BitFields]` and `[BitFieldsView]` properties support multiple property types:
+
+| Property Type | Examples | Notes |
+|---------------|----------|-------|
+| Standard .NET value types | `byte`, `ushort`, `uint`, `ulong`, `bool` | Direct bit manipulation |
+| Signed types | `sbyte`, `short`, `int`, `long` | Automatic sign extension |
+| Enums | `OpMode`, `StatusCode` | Zero-cost enum properties |
+| Endian types | `UInt16Be`, `UInt32Le`, `Int64Be` | Explicit byte ordering per field |
+| Nested `[BitFields]` | `StatusFlags`, `ProtocolHeader` | Composition; reusable sub-structures |
+| Nested `[BitFieldsView]` | `CaptureHeaderView` | Sub-views with independent byte/bit order |
+
+When a property type has its own byte or bit order (endian types or nested structs with explicit
+configuration), it overrides the enclosing struct's defaults for that field.
+
+##### Signed Property Types (Sign Extension)
 
 When a property is declared with a signed type (`sbyte`, `short`, `int`, `long`), the generator automatically sign-extends the field value. This is essential for hardware registers with signed quantities like deltas or offsets:
 
@@ -210,9 +257,11 @@ Console.WriteLine(reg.Speed);   // Output: 5 (unsigned, stays positive)
 
 The sign extension is optimized to a single mask-and-shift operation with zero overhead for unsigned property types.
 
-#### BitFields Composition
+##### Composition and Nesting
 
-BitFields structs can be used as property types within other BitFields structs, enabling reusable sub-structures:
+`[BitFields]` structs, `[BitFieldsView]` record structs, and endian types (`UInt32Be`, `UInt16Le`, etc.)
+can all be used as property types within other `[BitFields]` or `[BitFieldsView]` structs. This enables
+reusable sub-structures, mixed-endian fields, and layered protocol views:
 
 ```csharp
 // Reusable flags structure
@@ -238,7 +287,7 @@ header.Status = new StatusFlags { Ready = true, Priority = 5 };
 bool ready = header.Status.Ready;  // true
 ```
 
-#### Undefined and Reserved Bits
+##### Undefined and Reserved Bits
 
 When a struct doesn't define fields covering all bits of its storage type, those **undefined bits** can be controlled with `UndefinedBitsMustBe`:
 
@@ -276,9 +325,9 @@ public partial struct PacketFlags
 }
 ```
 
-See [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
+See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
 
-#### Nested Structs
+##### Nested Structs
 
 BitFields structs can be nested inside classes or other structs. Containing types must be marked `partial`:
 
@@ -299,7 +348,7 @@ public partial class HardwareController
 }
 ```
 
-#### Generated Operators
+##### Generated Operators
 
 BitFields types are full-featured numeric types with complete operator support:
 
@@ -339,7 +388,7 @@ StatusRegister c = a + (byte)10;
 StatusRegister d = (byte)5 | b;
 ```
 
-#### Parsing Support
+##### Parsing Support
 
 BitFields types implement `IParsable<T>` and `ISpanParsable<T>` with support for multiple formats:
 
@@ -370,7 +419,7 @@ if (StatusRegister.TryParse("0b1010_1010", out var result))
 var parsed = StatusRegister.Parse("42", CultureInfo.InvariantCulture);
 ```
 
-#### Formatting Support
+##### Formatting Support
 
 BitFields types implement `IFormattable` and `ISpanFormattable`:
 
@@ -392,7 +441,7 @@ if (value.TryFormat(buffer, out int written, "X4", null))
 }
 ```
 
-#### Fluent API
+##### Fluent API
 
 Generated `With{PropertyName}` methods enable immutable-style updates:
 
@@ -410,7 +459,7 @@ Console.WriteLine(initial);     // 0x0
 Console.WriteLine(configured);  // 0x6D
 ```
 
-#### Static Bit and Mask Properties
+##### Static Bit and Mask Properties
 
 For each flag and field, static properties provide the corresponding bit patterns:
 
@@ -430,7 +479,7 @@ if ((status & StatusRegister.ReadyBit) != 0)
 var modeOnly = status & StatusRegister.ModeMask;
 ```
 
-#### Interface Implementations
+##### Interface Implementations
 
 Every BitFields type automatically implements:
 
@@ -443,6 +492,148 @@ Every BitFields type automatically implements:
 | `ISpanFormattable` | Allocation-free formatting |
 | `IParsable<T>` | String parsing |
 | `ISpanParsable<T>` | Span-based parsing |
+
+---
+
+#### BitFieldsView (Zero-Copy Views)
+
+**Zero-copy bit field views over byte buffers.**
+
+`[BitFieldsView]` generates a `record struct` that wraps a `Memory<byte>` reference, providing typed
+property accessors that read and write bits directly in the underlying buffer. It uses the same
+`[BitField]` and `[BitFlag]` attributes, the same property types (including endian types and nested
+structs), and supports configurable `ByteOrder` and `BitOrder`. Designed for network protocols,
+file formats, and other large binary data where copying is undesirable.
+
+See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
+comprehensive documentation and examples.
+
+##### Quick Start
+
+```csharp
+using Stardust.Utilities;
+
+// Default: little-endian, LSB-first (same convention as [BitFields])
+[BitFieldsView]
+public partial record struct RegisterView
+{
+    [BitFlag(0)]       public partial bool Active { get; set; }
+    [BitField(8, 15)]  public partial byte Status { get; set; }
+}
+
+// For network protocols: big-endian, MSB-first (RFC convention)
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+public partial record struct IPv6Header
+{
+    [BitField(0, 3)]   public partial byte Version { get; set; }
+    [BitField(4, 11)]  public partial byte TrafficClass { get; set; }
+    [BitField(12, 31)] public partial uint FlowLabel { get; set; }
+}
+
+// Zero-copy: reads/writes directly in the packet buffer
+byte[] packet = ReceiveFromNetwork();
+var header = new IPv6Header(packet);
+byte version = header.Version;   // reads from packet[0]
+```
+
+##### Key Features
+
+- **Zero-copy** -- operates directly on the underlying buffer, no data duplication
+- **Configurable byte order** -- `ByteOrder.LittleEndian` (default) or `ByteOrder.BigEndian` (network)
+- **Configurable bit numbering** -- `BitOrder.BitZeroIsLsb` (default) or `BitOrder.BitZeroIsMsb` (RFC)
+- **Per-field endian override** -- use `UInt32Be`, `UInt16Le`, etc. to override the view's default byte order for individual fields
+- **Nestable** -- `[BitFields]` types work as property types inside `[BitFieldsView]`
+- **Sub-view nesting** -- nest `[BitFieldsView]` types inside each other for layered protocols
+- **Mixed-endian nesting** -- each nested type independently controls its own byte/bit order
+- **Record struct equality** -- two views are equal if they reference the same buffer segment
+- **Same property system** -- uses the same `[BitField]`/`[BitFlag]` attributes and property types as `[BitFields]`
+
+##### Choosing Between BitFields and BitFieldsView
+
+| | `[BitFields]` | `[BitFieldsView]` |
+|---|---|---|
+| Backing | Private fields (value type) | `Memory<byte>` (external buffer) |
+| Copy cost | Copies all data | Copies only the view header (24 bytes) |
+| Max size | ~16 KB | Unlimited |
+| Byte order | Per-field via endian property types | Struct-level `ByteOrder` + per-field override |
+| Bit order | Configurable `BitOrder` | Configurable `BitOrder` (same) |
+| Defaults | LSB-first | Little-endian, LSB-first |
+| Property attributes | `[BitField]`, `[BitFlag]` | `[BitField]`, `[BitFlag]` (same) |
+| Property types | .NET types, enums, endian types, nested structs | .NET types, enums, endian types, nested structs (same) |
+| Operators | Full arithmetic, bitwise, comparison | None (it is a view, not a value) |
+| Conversions | Implicit to/from storage type | Constructor from `byte[]` / `Memory<byte>` |
+| Use case | Registers, opcodes, flags | Network packets, file formats, DMA buffers |
+
+**Use `[BitFields]` when** the data is a small, self-contained value -- hardware registers,
+instruction opcodes, status flags, or anything that fits in a primitive type and benefits from
+operator overloads and implicit conversions.
+
+**Use `[BitFieldsView]` when** the data lives in an external buffer and you want zero-copy
+access -- network packets arriving on a socket, memory-mapped file headers, DMA buffers,
+or any binary data where copying would be wasteful.
+
+##### Mixing BitFields and BitFieldsView
+
+The two features compose naturally. A `[BitFields]` type can be used as a property type inside a
+`[BitFieldsView]`, and nested `[BitFieldsView]` types can each declare their own byte/bit order.
+Endian types like `UInt32Be` and `UInt16Le` can be used as property types in both `[BitFields]` and
+`[BitFieldsView]` structs to override the default byte order for individual fields. This makes it
+straightforward to model real-world binary formats where different layers use different conventions:
+
+```csharp
+// Small reusable flags struct (value type, operator support)
+[BitFields(typeof(byte))]
+public partial struct StatusFlags
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
+    [BitField(4, 7)] public partial byte Priority { get; set; }
+}
+
+// Network capture header (big-endian, MSB-first)
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+public partial record struct CaptureHeaderView
+{
+    [BitField(0, 15)]  public partial ushort Protocol { get; set; }
+    [BitField(16, 47)] public partial uint SequenceNum { get; set; }
+}
+
+// x86 file blob (little-endian), embedding both
+[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+public partial record struct FileBlobView
+{
+    [BitField(0, 7)]     public partial StatusFlags Flags { get; set; }  // BitFields inside
+    [BitField(8, 39)]    public partial uint Timestamp { get; set; }     // LE native
+    [BitField(40, 71)]   public partial UInt32Be SrcIp { get; set; }     // per-field BE override
+    [BitField(72, 119)]  public partial CaptureHeaderView Cap { get; set; } // nested BE sub-view
+}
+```
+
+Use `UInt32Be`, `UInt16Le`, and other endian-aware types to override the byte order for
+individual fields without changing the struct-level default. Each nested `[BitFieldsView]`
+independently controls its own byte order, so a big-endian transport header can wrap a
+little-endian file payload that itself contains big-endian network captures -- all zero-copy
+on the same underlying buffer.
+
+See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
+full documentation on nesting, mixed-endian scenarios, and write-through semantics.
+
+#### RFC Diagram Generator
+
+`BitFieldDiagram` generates RFC 2360-style ASCII bit field diagrams directly from struct metadata.
+Cells auto-size to fit field names, byte offsets label each row, and undefined bits are clearly
+marked.
+
+```csharp
+// Generate a diagram from any [BitFields] or [BitFieldsView] struct
+string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
+
+// Custom width and descriptions
+string diagram = BitFieldDiagram.RenderToString(
+    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true);
+```
+
+See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
 
 ---
 
@@ -526,21 +717,21 @@ return Err("Something went wrong");
 
 ---
 
-### Big-Endian Types
+### Endian Types
 
-**Type-safe network byte order integers with full operator support.**
+**Type-safe endian-aware integers with full operator support.**
 
-Big-endian types store bytes in network order (most significant byte first), essential for network protocols, binary file formats, and hardware emulation. These aren't just byte-swapping utilities—they're complete numeric types with arithmetic, bitwise, and comparison operators.
+Endian types guarantee byte ordering in memory regardless of host platform. Big-endian types store the most significant byte first (network order), little-endian types store the least significant byte first (x86 native order). These are complete numeric types with arithmetic, bitwise, and comparison operators.
 
 See [ENDIAN.md](https://github.com/dhadner/Stardust.Utilities/blob/main/ENDIAN.md) for comprehensive documentation and examples.
 
 #### Available Types
 
-| Type | Size | Native Equivalent |
-|------|------|-------------------|
-| `UInt16Be` / `Int16Be` | 2 bytes | `ushort` / `short` |
-| `UInt32Be` / `Int32Be` | 4 bytes | `uint` / `int` |
-| `UInt64Be` / `Int64Be` | 8 bytes | `ulong` / `long` |
+| Big-Endian | Little-Endian | Size | Native Equivalent |
+|------------|---------------|------|-------------------|
+| `UInt16Be` / `Int16Be` | `UInt16Le` / `Int16Le` | 2 bytes | `ushort` / `short` |
+| `UInt32Be` / `Int32Be` | `UInt32Le` / `Int32Le` | 4 bytes | `uint` / `int` |
+| `UInt64Be` / `Int64Be` | `UInt64Le` / `Int64Le` | 8 bytes | `ulong` / `long` |
 
 #### Quick Example
 

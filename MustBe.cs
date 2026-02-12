@@ -1,7 +1,8 @@
 ﻿namespace Stardust.Utilities;
 
 /// <summary>
-/// Specifies how undefined, reserved, or override bits are handled.
+/// Specifies how undefined, reserved, or override bits are handled for BitField and
+/// BitFlag properties.
 /// </summary>
 public enum MustBe
 {

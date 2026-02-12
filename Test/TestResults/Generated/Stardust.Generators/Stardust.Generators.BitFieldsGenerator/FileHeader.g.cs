@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -35,10 +36,10 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         set => Value = (ulong)((Value & 0xFFFFFFFFFFFF0000UL) | (((ulong)value) & 0x000000000000FFFFUL));
     }
 
-    public partial StatusFlags Flags
+    public partial global::Stardust.Utilities.Tests.StatusFlags Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (StatusFlags)((Value >> 16) & 0x00000000000000FFUL);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)((Value >> 16) & 0x00000000000000FFUL);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (ulong)((Value & 0xFFFFFFFFFF00FFFFUL) | ((((ulong)value) << 16) & 0x0000000000FF0000UL));
     }
@@ -82,13 +83,23 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
     public static FileHeader ReservedMask => new((ulong)0xFFFFFF0000000000UL);
 
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+    };
+
     /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FileHeader WithMagic(ushort value) => new((ulong)((Value & 0xFFFFFFFFFFFF0000UL) | (value & 0x000000000000FFFFUL)));
 
     /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithFlags(StatusFlags value) => new((ulong)((Value & 0xFFFFFFFFFF00FFFFUL) | (((ulong)value << 16) & 0x0000000000FF0000UL)));
+    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & 0xFFFFFFFFFF00FFFFUL) | (((ulong)value << 16) & 0x0000000000FF0000UL)));
 
     /// <summary>Returns a new FileHeader with the VersionMajor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

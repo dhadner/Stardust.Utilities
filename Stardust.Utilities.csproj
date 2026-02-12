@@ -41,10 +41,13 @@
 	<ItemGroup>
 		<Compile Remove="Generators\**" />
 		<Compile Remove="Test\**" />
+		<Compile Remove="Demo\**" />
 		<None Remove="Generators\**" />
 		<None Remove="Test\**" />
+		<None Remove="Demo\**" />
 		<EmbeddedResource Remove="Generators\**" />
 		<EmbeddedResource Remove="Test\**" />
+		<EmbeddedResource Remove="Demo\**" />
 	</ItemGroup>
 
 	<!-- Reference SourceLink -->

@@ -1,0 +1,156 @@
+@page "/packet"
+@using System.Text
+
+<h2 class="page-title">Network Packet Viewer</h2>
+<p class="page-subtitle">Paste IPv4/TCP packet bytes (hex, spaces allowed)</p>
+
+<textarea rows="4" @bind="_hexInput" @bind:event="oninput" @bind:after="ParsePacket" placeholder="45 00 00 3C 1C 46 40 00 ..." />
+
+<div class="section-header">&#x25B8; Fields</div>
+<div class="field-chips">
+    @foreach (var f in _fields)
+    {
+        <div class="field-chip @(f.Name == _activeField ? "active" : "")"
+             style="border-color: @f.Color; background: @Palette.WithAlpha(f.Color, 0.18); color: @f.Color;"
+             title="@f.Description"
+             @onclick="() => ToggleField(f.Name)">
+            <span class="chip-name">@f.Name</span>
+            <span class="chip-value">@f.Value</span>
+        </div>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Hex</div>
+<div class="hex-display">
+    @for (int i = 0; i < _displayBytes; i++)
+    {
+        var idx = i;
+        var info = GetByteInfo(idx);
+        <span class="hex-byte @(info.Name == _activeField ? "active" : "")"
+              style="color: @info.Color;"
+              @onclick="() => ToggleField(info.Name)">@_bytes[idx].ToString("X2") </span>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Binary</div>
+<div class="binary-display">
+    @foreach (var f in _fields)
+    {
+        <div class="binary-segment @(f.Name == _activeField ? "active" : "")"
+             style="background: @Palette.WithAlpha(f.Color, 0.14); color: @f.Color;"
+             @onclick="() => ToggleField(f.Name)">
+            <span class="seg-label">@f.Name</span>
+            <span class="seg-bits">@f.Bits</span>
+        </div>
+    }
+</div>
+
+<div class="section-header">&#x25B8; HTTP Payload</div>
+<div class="diagram-output">@_payload</div>
+
+@code {
+    private record FieldDef(string Name, int StartBit, int EndBit, string Color, string Value, string Bits, string? Description);
+    private record ByteInfo(string? Name, string Color);
+
+    private string _hexInput = "";
+    private byte[] _bytes = [];
+    private int _displayBytes;
+    private List<FieldDef> _fields = [];
+    private string _payload = "";
+    private string? _activeField;
+
+    protected override void OnInitialized()
+    {
+        _hexInput = HexUtils.ToHex(SampleData.SamplePacket);
+        ParsePacket();
+    }
+
+    private void ParsePacket()
+    {
+        _fields.Clear();
+        _payload = "";
+
+        if (!HexUtils.TryParseHex(_hexInput, out _bytes))
+        {
+            _payload = "Invalid hex input.";
+            _displayBytes = 0;
+            return;
+        }
+
+        if (_bytes.Length < IPv4HeaderView.SizeInBytes)
+        {
+            _payload = "Packet too small.";
+            _displayBytes = 0;
+            return;
+        }
+
+        var ip = new IPv4HeaderView(_bytes);
+        int tcpOffset = ip.HeaderLengthBytes;
+
+        if (_bytes.Length < tcpOffset + TcpHeaderView.SizeInBytes)
+        {
+            _payload = "Packet missing TCP header.";
+            _displayBytes = 0;
+            return;
+        }
+
+        var tcp = new TcpHeaderView(_bytes, tcpOffset);
+        int totalHeaderBytes = Math.Min(tcpOffset + tcp.HeaderLengthBytes, _bytes.Length);
+        int tcpBitBase = tcpOffset * 8;
+        _displayBytes = totalHeaderBytes;
+
+        int ci = 0;
+        foreach (var m in IPv4HeaderView.Fields)
+        {
+            string val = Palette.FormatField(ip, m);
+            string bits = BuildBits(m.StartBit, m.EndBit, m.BitOrder);
+            _fields.Add(new(m.Name, m.StartBit, m.EndBit, Palette.Get(ci++), val, bits, m.GetDescription()));
+        }
+
+        foreach (var m in TcpHeaderView.Fields)
+        {
+            string val = Palette.FormatField(tcp, m);
+            string bits = BuildBits(m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, m.BitOrder);
+            _fields.Add(new(m.Name, m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, Palette.Get(ci++), val, bits, m.GetDescription()));
+        }
+
+        int payloadOffset = tcpOffset + tcp.HeaderLengthBytes;
+        _payload = payloadOffset < _bytes.Length
+            ? Encoding.ASCII.GetString(_bytes, payloadOffset, _bytes.Length - payloadOffset)
+            : "No payload.";
+    }
+
+    private string BuildBits(int startBit, int endBit, BitOrder order)
+    {
+        bool isMsb = order == BitOrder.BitZeroIsMsb;
+        int width = endBit - startBit + 1;
+        var sb = new StringBuilder();
+        for (int i = 0; i < width; i++)
+        {
+            int bit = isMsb ? startBit + i : endBit - i;
+            if (bit / 8 >= _bytes.Length) break;
+            int byteIdx = bit / 8;
+            int shift = isMsb ? 7 - (bit % 8) : bit % 8;
+            sb.Append((_bytes[byteIdx] >> shift) & 1);
+            if ((i + 1) % 4 == 0 && i != width - 1) sb.Append(' ');
+        }
+        return sb.ToString();
+    }
+
+    private ByteInfo GetByteInfo(int byteIndex)
+    {
+        int bitStart = byteIndex * 8;
+        int bitEnd = bitStart + 7;
+        foreach (var f in _fields)
+        {
+            if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+                return new(f.Name, f.Color);
+        }
+        return new(null, "#888");
+    }
+
+    private void ToggleField(string? name)
+    {
+        _activeField = _activeField == name ? null : name;
+    }
+}

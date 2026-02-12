@@ -1,0 +1,374 @@
+/* ── Reset & Base ─────────────────────────────────────────── */
+:root {
+    --bg:        #1a1a1a;
+    --bg-card:   #242424;
+    --bg-input:  #2a2a2a;
+    --border:    #3a3a3a;
+    --text:      #e0e0e0;
+    --text-dim:  #888;
+    --accent:    #38bdf8;
+    --accent-dim:#1e6a9a;
+    --mono:      'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg:        #f5f5f5;
+        --bg-card:   #fff;
+        --bg-input:  #fff;
+        --border:    #ccc;
+        --text:      #1a1a1a;
+        --text-dim:  #666;
+    }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.5;
+}
+
+/* ── Loading ─────────────────────────────────────────────── */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.app-header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.app-header h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.app-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.app-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Nav ─────────────────────────────────────────────────── */
+nav.sidebar {
+    width: 220px;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    padding: 12px 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+nav.sidebar a {
+    display: block;
+    padding: 8px 20px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+nav.sidebar a:hover {
+    background: var(--bg-input);
+}
+
+nav.sidebar a.active {
+    border-left-color: var(--accent);
+    background: var(--bg-input);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* ── Page Content ────────────────────────────────────────── */
+main.page-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.page-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.page-subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+/* ── Section Headers ─────────────────────────────────────── */
+.section-header {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 20px 0 8px;
+}
+
+.section-header:first-child {
+    margin-top: 0;
+}
+
+/* ── Cards & Panels ──────────────────────────────────────── */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+/* ── Controls ────────────────────────────────────────────── */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.toolbar label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+select, input[type="text"] {
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+select:focus, input:focus, textarea:focus {
+    outline: 1px solid var(--accent);
+    border-color: var(--accent);
+}
+
+textarea {
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    resize: vertical;
+    width: 100%;
+}
+
+button, .btn {
+    background: var(--accent-dim);
+    color: #fff;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+button:hover, .btn:hover {
+    background: var(--accent);
+}
+
+input[type="checkbox"] {
+    accent-color: var(--accent);
+}
+
+input[type="range"] {
+    accent-color: var(--accent);
+    width: 180px;
+}
+
+/* ── Diagram Output ──────────────────────────────────────── */
+.diagram-output {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    white-space: pre;
+    overflow-x: auto;
+    tab-size: 4;
+}
+
+/* ── Field chips ─────────────────────────────────────────── */
+.field-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.field-chip {
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    user-select: none;
+}
+
+.field-chip:hover {
+    opacity: 0.8;
+}
+
+.field-chip.active {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.field-chip .chip-name {
+    font-weight: 600;
+    font-size: 0.7rem;
+    display: block;
+}
+
+.field-chip .chip-value {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+}
+
+/* ── Hex display ─────────────────────────────────────────── */
+.hex-display, .binary-display {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-bottom: 12px;
+}
+
+.hex-byte {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 1px 3px;
+    border-radius: 2px;
+    transition: background 0.15s;
+}
+
+.hex-byte:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.hex-byte.active {
+    font-weight: 800;
+    text-decoration: underline;
+}
+
+/* ── Binary segments ─────────────────────────────────────── */
+.binary-segment {
+    border-radius: 3px;
+    padding: 3px 8px;
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+}
+
+.binary-segment.active {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.binary-segment .seg-label {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    display: block;
+}
+
+.binary-segment .seg-bits {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+}
+
+/* ── CPU Lab ─────────────────────────────────────────────── */
+.flag-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 8px 0;
+}
+
+.flag-checks label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.mode-slider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+/* ── File input ──────────────────────────────────────────── */
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.file-path {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-family: var(--mono);
+}
+
+/* ── Raw bytes ───────────────────────────────────────────── */
+.raw-bytes {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    max-height: 200px;
+    overflow-y: auto;
+    word-break: break-all;
+    color: var(--text-dim);
+}

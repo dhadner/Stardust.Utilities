@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -108,6 +109,14 @@ public partial class BitFieldMultiWordTests
         /// <summary>Returns a new CrossWord128 with the CrossField field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CrossWord128 WithCrossField(byte value) { var copy = this; copy.CrossField = value; return copy; }
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("CrossField", 60, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("HighBit", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        };
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

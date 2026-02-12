@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -89,6 +90,13 @@ public partial class BitFieldMultiWordTests
         /// <summary>Returns a new Bits72 with the High field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Bits72 WithHigh(byte value) { var copy = this; copy.High = value; return copy; }
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("Low", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 72, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("High", 64, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 72, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        };
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

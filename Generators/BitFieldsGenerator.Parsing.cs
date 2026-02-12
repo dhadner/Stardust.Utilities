@@ -12,10 +12,10 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
-            string fromBits = fp == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string toBits = ToBitsMethod(fp);
+            string fromBits = FromBitsMethod(fp);
 
-            // Implicit float/double conversions
+            // Implicit float/double/Half conversions
             sb.AppendLine($"{indent}/// <summary>Implicit conversion to {fp}.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             sb.AppendLine($"{indent}public static implicit operator {fp}({info.TypeName} value) => {fromBits}(value.Value);");
@@ -75,9 +75,9 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fp = info.FloatingPointType!;
-            string toBits = fp == "float" ? "BitConverter.SingleToUInt32Bits" : "BitConverter.DoubleToUInt64Bits";
+            string toBits = ToBitsMethod(fp);
 
-            // For NativeFloat: parse as float/double, convert to bits
+            // For NativeFloat: parse as Half/float/double, convert to bits
             sb.AppendLine($"{indent}/// <summary>Parses a string into a {t} by parsing a {fp} value.</summary>");
             sb.AppendLine($"{indent}public static {t} Parse(string s, IFormatProvider? provider)");
             sb.AppendLine($"{indent}{{");
@@ -304,7 +304,7 @@ public partial class BitFieldsGenerator
 
         // For NativeFloat, format the floating-point value rather than raw bits
         string fmtExpr = info.Mode == StorageMode.NativeFloat
-            ? $"{(info.FloatingPointType == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble")}(Value)"
+            ? $"{FromBitsMethod(info.FloatingPointType!)}(Value)"
             : "Value";
 
         sb.AppendLine($"{indent}/// <summary>Formats the value using the specified format and format provider.</summary>");
@@ -350,7 +350,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         if (info.Mode == StorageMode.NativeFloat)
         {
-            string fromBits = info.FloatingPointType == "float" ? "BitConverter.UInt32BitsToSingle" : "BitConverter.UInt64BitsToDouble";
+            string fromBits = FromBitsMethod(info.FloatingPointType!);
             sb.AppendLine($"{indent}public int CompareTo({t} other) => {fromBits}(Value).CompareTo({fromBits}(other.Value));");
         }
         else
@@ -375,9 +375,11 @@ public partial class BitFieldsGenerator
         string t = info.TypeName;
         string s = info.StorageType;
         int sizeInBytes = GetStorageTypeBitWidth(s) / 8;
-        string? readMethod = GetBinaryPrimitivesReadMethod(s);
-        string? writeMethod = GetBinaryPrimitivesWriteMethod(s);
+        bool isBE = info.ByteOrder == ByteOrderValue.BigEndian;
+        string? readMethod = GetBinaryPrimitivesReadMethod(s, isBE);
+        string? writeMethod = GetBinaryPrimitivesWriteMethod(s, isBE);
         bool isByte = s == "byte" || s == "sbyte";
+        string endianLabel = isBE ? "big-endian" : "little-endian";
 
         // For NativeFloat types, use the unsigned storage type for binary reads/writes
         string binaryType = s; // The type used with BinaryPrimitives
@@ -385,7 +387,7 @@ public partial class BitFieldsGenerator
             binaryType = info.StorageType; // already uint or ulong
 
         // ReadOnlySpan<byte> constructor
-        sb.AppendLine($"{indent}/// <summary>Creates a new {t} from a little-endian byte span.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{indent}public {t}(ReadOnlySpan<byte> bytes)");
@@ -405,7 +407,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine();
 
         // Static ReadFrom factory
-        sb.AppendLine($"{indent}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a little-endian byte span.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a {endianLabel} byte span.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <returns>The deserialized {t}.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -413,7 +415,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine();
 
         // WriteTo
-        sb.AppendLine($"{indent}/// <summary>Writes the value as little-endian bytes into the destination span.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Writes the value as {endianLabel} bytes into the destination span.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{indent}public void WriteTo(Span<byte> destination)");
@@ -428,7 +430,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine();
 
         // TryWriteTo
-        sb.AppendLine($"{indent}/// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Attempts to write the value as {endianLabel} bytes into the destination span.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"destination\">The destination span.</param>");
         sb.AppendLine($"{indent}/// <param name=\"bytesWritten\">The number of bytes written on success.</param>");
         sb.AppendLine($"{indent}/// <returns>true if the destination span was large enough; otherwise, false.</returns>");
@@ -446,7 +448,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine();
 
         // ToByteArray
-        sb.AppendLine($"{indent}/// <summary>Returns the value as a new little-endian byte array.</summary>");
+        sb.AppendLine($"{indent}/// <summary>Returns the value as a new {endianLabel} byte array.</summary>");
         sb.AppendLine($"{indent}/// <returns>A byte array of length <see cref=\"SizeInBytes\"/>.</returns>");
         sb.AppendLine($"{indent}public byte[] ToByteArray()");
         sb.AppendLine($"{indent}{{");

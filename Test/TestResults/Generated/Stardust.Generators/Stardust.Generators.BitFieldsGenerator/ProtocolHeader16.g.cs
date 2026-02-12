@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -27,10 +28,10 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Creates a new ProtocolHeader16 with the specified raw bits value.</summary>
     public ProtocolHeader16(ushort value) { Value = value; }
 
-    public partial StatusFlags Status
+    public partial global::Stardust.Utilities.Tests.StatusFlags Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (StatusFlags)(Value & 0x00FF);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & 0x00FF);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (ushort)((Value & 0xFF00) | (((ushort)value) & 0x00FF));
     }
@@ -49,9 +50,16 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Returns a ProtocolHeader16 with the mask for the Length field (bits 8-15).</summary>
     public static ProtocolHeader16 LengthMask => new((ushort)0xFF00);
 
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Length", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+    };
+
     /// <summary>Returns a new ProtocolHeader16 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithStatus(StatusFlags value) => new((ushort)((Value & 0xFF00) | (value & 0x00FF)));
+    public ProtocolHeader16 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((ushort)((Value & 0xFF00) | (value & 0x00FF)));
 
     /// <summary>Returns a new ProtocolHeader16 with the Length field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

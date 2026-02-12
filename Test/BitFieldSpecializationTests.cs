@@ -79,6 +79,18 @@ public partial class BitFieldSpecializationTests
         [BitFlag(127)] public partial bool Sign { get; set; }                // sign bit
     }
 
+    /// <summary>
+    /// IEEE 754 half-precision float register (16-bit, stored as ushort).
+    /// Format: 1 sign bit, 5 exponent bits (bias 15), 10 mantissa bits.
+    /// </summary>
+    [BitFields(typeof(Half))]
+    public partial struct HalfRegister
+    {
+        [BitField(0, 9)] public partial ushort Mantissa { get; set; }   // bits 0-9 (10-bit mantissa)
+        [BitField(10, 14)] public partial byte Exponent { get; set; }   // bits 10-14 (5-bit exponent)
+        [BitFlag(15)] public partial bool Sign { get; set; }             // bit 15 (sign bit)
+    }
+
     #endregion
 
     #region NativeFloat: Construction Tests
@@ -1045,6 +1057,253 @@ public partial class BitFieldSpecializationTests
         DecimalRegister reg = 3.14159m;
         var str = reg.ToString("F2", CultureInfo.InvariantCulture);
         str.Should().Be("3.14");
+    }
+
+    #endregion
+
+    #region Half: Construction and Round-Trip Tests
+
+    [Fact]
+    public void HalfRegister_FromHalf_RoundTrips()
+    {
+        HalfRegister reg = (Half)3.14;
+        Half result = reg;
+        result.Should().Be((Half)3.14);
+    }
+
+    [Fact]
+    public void HalfRegister_FromHalf_Zero()
+    {
+        HalfRegister reg = Half.Zero;
+        Half result = reg;
+        result.Should().Be(Half.Zero);
+    }
+
+    [Fact]
+    public void HalfRegister_FromHalf_Negative()
+    {
+        HalfRegister reg = (Half)(-1.5);
+        Half result = reg;
+        result.Should().Be((Half)(-1.5));
+        reg.Sign.Should().BeTrue();
+    }
+
+    [Fact]
+    public void HalfRegister_RawBitsConstructor()
+    {
+        // 1.0 in Half = 0x3C00 (sign=0, exp=15, mantissa=0)
+        var reg = new HalfRegister(0x3C00);
+        Half result = reg;
+        result.Should().Be((Half)1.0);
+    }
+
+    #endregion
+
+    #region Half: IEEE 754 Bit Decomposition
+
+    [Fact]
+    public void HalfRegister_DecomposePositiveOne()
+    {
+        HalfRegister reg = (Half)1.0;
+        reg.Sign.Should().BeFalse("1.0 is positive");
+        reg.Exponent.Should().Be(15, "biased exponent of 1.0 in Half is 15");
+        reg.Mantissa.Should().Be(0, "mantissa of 1.0 is 0 (implied 1.0)");
+    }
+
+    [Fact]
+    public void HalfRegister_DecomposeNegativeTwo()
+    {
+        HalfRegister reg = (Half)(-2.0);
+        reg.Sign.Should().BeTrue("-2.0 is negative");
+        reg.Exponent.Should().Be(16, "biased exponent of 2.0 in Half is 16");
+        reg.Mantissa.Should().Be(0, "mantissa of 2.0 is 0 (implied 1.0)");
+    }
+
+    [Fact]
+    public void HalfRegister_DecomposeOnePointFive()
+    {
+        // 1.5 in Half: sign=0, exponent=15 (bias), mantissa=0x200 (bit 9 set = 0.5)
+        HalfRegister reg = (Half)1.5;
+        reg.Sign.Should().BeFalse();
+        reg.Exponent.Should().Be(15);
+        reg.Mantissa.Should().Be(0x200);
+    }
+
+    #endregion
+
+    #region Half: Set Individual Fields
+
+    [Fact]
+    public void HalfRegister_SetSign()
+    {
+        HalfRegister reg = (Half)1.0;
+        reg.Sign = true;
+        Half result = reg;
+        result.Should().Be((Half)(-1.0));
+    }
+
+    [Fact]
+    public void HalfRegister_SetExponent()
+    {
+        var reg = new HalfRegister((ushort)0); // all zero bits
+        reg.Sign = false;
+        reg.Exponent = 15; // bias for 2^0
+        reg.Mantissa = 0;
+        Half result = reg;
+        result.Should().Be((Half)1.0);
+    }
+
+    #endregion
+
+    #region Half: Arithmetic Operators
+
+    [Fact]
+    public void HalfRegister_Addition()
+    {
+        HalfRegister a = (Half)1.5;
+        HalfRegister b = (Half)2.5;
+        Half result = a + b;
+        result.Should().Be((Half)4.0);
+    }
+
+    [Fact]
+    public void HalfRegister_Subtraction()
+    {
+        HalfRegister a = (Half)5.0;
+        HalfRegister b = (Half)3.0;
+        Half result = a - b;
+        result.Should().Be((Half)2.0);
+    }
+
+    [Fact]
+    public void HalfRegister_Multiplication()
+    {
+        HalfRegister a = (Half)3.0;
+        HalfRegister b = (Half)4.0;
+        Half result = a * b;
+        result.Should().Be((Half)12.0);
+    }
+
+    [Fact]
+    public void HalfRegister_Division()
+    {
+        HalfRegister a = (Half)10.0;
+        HalfRegister b = (Half)4.0;
+        Half result = a / b;
+        result.Should().Be((Half)2.5);
+    }
+
+    [Fact]
+    public void HalfRegister_UnaryNegation()
+    {
+        HalfRegister reg = (Half)3.0;
+        Half result = -reg;
+        result.Should().Be((Half)(-3.0));
+    }
+
+    [Fact]
+    public void HalfRegister_MixedArithmetic_WithHalf()
+    {
+        HalfRegister a = (Half)10.0;
+        Half result = a + (Half)5.0;
+        result.Should().Be((Half)15.0);
+    }
+
+    #endregion
+
+    #region Half: Comparison Operators
+
+    [Fact]
+    public void HalfRegister_LessThan()
+    {
+        HalfRegister a = (Half)1.0;
+        HalfRegister b = (Half)2.0;
+        (a < b).Should().BeTrue();
+        (b < a).Should().BeFalse();
+    }
+
+    [Fact]
+    public void HalfRegister_Equality()
+    {
+        HalfRegister a = (Half)42.0;
+        HalfRegister b = (Half)42.0;
+        (a == b).Should().BeTrue();
+        (a != b).Should().BeFalse();
+    }
+
+    #endregion
+
+    #region Half: Parsing and Formatting
+
+    [Fact]
+    public void HalfRegister_Parse()
+    {
+        var reg = HalfRegister.Parse("3.14", CultureInfo.InvariantCulture);
+        ((Half)reg).Should().Be((Half)3.14);
+    }
+
+    [Fact]
+    public void HalfRegister_TryParse_Valid()
+    {
+        HalfRegister.TryParse("42.5", out var result).Should().BeTrue();
+        ((Half)result).Should().Be((Half)42.5);
+    }
+
+    [Fact]
+    public void HalfRegister_TryParse_Invalid()
+    {
+        HalfRegister.TryParse("not_a_number", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void HalfRegister_TryParse_Null()
+    {
+        HalfRegister.TryParse(null, out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void HalfRegister_ToString_Default()
+    {
+        HalfRegister reg = (Half)3.14;
+        reg.ToString().Should().Be(((Half)3.14).ToString());
+    }
+
+    [Fact]
+    public void HalfRegister_ToString_Format()
+    {
+        HalfRegister reg = (Half)3.14;
+        var str = reg.ToString("F1", CultureInfo.InvariantCulture);
+        str.Should().Be("3.1");
+    }
+
+    #endregion
+
+    #region Half: Struct Size and Fluent API
+
+    [Fact]
+    public void HalfRegister_SizeIs2Bytes()
+    {
+        Unsafe.SizeOf<HalfRegister>().Should().Be(2, "Half storage = ushort = 2 bytes");
+    }
+
+    [Fact]
+    public void HalfRegister_WithSign()
+    {
+        HalfRegister reg = (Half)1.0;
+        var negative = reg.WithSign(true);
+        ((Half)negative).Should().Be((Half)(-1.0));
+        ((Half)reg).Should().Be((Half)1.0, "original should be unchanged");
+    }
+
+    [Fact]
+    public void HalfRegister_FluentBuild_OnePointFive()
+    {
+        // 1.5 = sign:0, exponent:15 (bias), mantissa:0x200
+        var reg = HalfRegister.Zero
+            .WithSign(false)
+            .WithExponent(15)
+            .WithMantissa(0x200);
+        ((Half)reg).Should().Be((Half)1.5);
     }
 
     #endregion

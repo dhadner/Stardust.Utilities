@@ -19,3 +19,11 @@
 # NuGet packages (don't commit built packages)
 /nupkg/
 /.vs
+/Demo/BitFields.DemoApp/.vs/BitFields.DemoApp/copilot-chat/cca6934f/sessions
+/Demo/BitFields.DemoApp/.vs/BitFields.DemoApp/CopilotIndices/18.0.988.22099
+/Demo/BitFields.DemoApp/.vs/BitFields.DemoApp/FileContentIndex
+/Demo/BitFields.DemoApp/.vs
+/Demo/BitFields.DemoApp/bin
+/Demo/BitFields.DemoApp/obj
+/Demo/BitFields.DemoWeb/bin
+/Demo/BitFields.DemoWeb/obj

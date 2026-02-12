@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,6 +13,7 @@ namespace Stardust.Utilities
     /// Stores bytes in network byte order (most significant byte first).
     /// </summary>
     [Serializable]
+    [TypeConverter(typeof(Int64BeTypeConverter))]
     [StructLayout(LayoutKind.Explicit, Size = 8)]
     public struct Int64Be : IComparable, IComparable<Int64Be>, IEquatable<Int64Be>,
                              IFormattable, ISpanFormattable, IParsable<Int64Be>, ISpanParsable<Int64Be>

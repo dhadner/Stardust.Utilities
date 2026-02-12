@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -27,18 +28,18 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     /// <summary>Creates a new ProtocolHeader32 with the specified raw bits value.</summary>
     public ProtocolHeader32(uint value) { Value = value; }
 
-    public partial StatusFlags Status
+    public partial global::Stardust.Utilities.Tests.StatusFlags Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (StatusFlags)(Value & 0x000000FFU);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & 0x000000FFU);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (uint)((Value & 0xFFFFFF00U) | (((uint)value) & 0x000000FFU));
     }
 
-    public partial CommandCode Command
+    public partial global::Stardust.Utilities.Tests.CommandCode Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (CommandCode)((Value >> 8) & 0x0000000FU);
+        get => (global::Stardust.Utilities.Tests.CommandCode)((Value >> 8) & 0x0000000FU);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (uint)((Value & 0xFFFFF0FFU) | ((((uint)value) << 8) & 0x00000F00U));
     }
@@ -71,13 +72,22 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     /// <summary>Returns a ProtocolHeader32 with the mask for the Sequence field (bits 16-31).</summary>
     public static ProtocolHeader32 SequenceMask => new((uint)0xFFFF0000U);
 
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Command", 8, 4, "Stardust.Utilities.Tests.CommandCode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Version", 12, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Sequence", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+    };
+
     /// <summary>Returns a new ProtocolHeader32 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithStatus(StatusFlags value) => new((uint)((Value & 0xFFFFFF00U) | (value & 0x000000FFU)));
+    public ProtocolHeader32 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((uint)((Value & 0xFFFFFF00U) | (value & 0x000000FFU)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithCommand(CommandCode value) => new((uint)((Value & 0xFFFFF0FFU) | (((uint)value << 8) & 0x00000F00U)));
+    public ProtocolHeader32 WithCommand(global::Stardust.Utilities.Tests.CommandCode value) => new((uint)((Value & 0xFFFFF0FFU) | (((uint)value << 8) & 0x00000F00U)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

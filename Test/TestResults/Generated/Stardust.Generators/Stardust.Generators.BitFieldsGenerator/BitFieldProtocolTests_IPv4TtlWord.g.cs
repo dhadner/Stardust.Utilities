@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -61,6 +62,14 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a IPv4TtlWord with the mask for the HeaderChecksum field (bits 0-15).</summary>
         public static IPv4TtlWord HeaderChecksumMask => new((uint)0x0000FFFFU);
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("TTL", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Protocol", 16, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("HeaderChecksum", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        };
 
         /// <summary>Returns a new IPv4TtlWord with the TTL field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

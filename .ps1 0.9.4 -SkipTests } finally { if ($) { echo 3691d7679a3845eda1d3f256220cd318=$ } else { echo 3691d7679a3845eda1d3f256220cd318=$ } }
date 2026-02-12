@@ -1,0 +1,21 @@
+[1mdiff --git a/Demo/BitFields.DemoApp/App.xaml b/Demo/BitFields.DemoApp/App.xaml[m
+[1mindex 439eeac..8c727f2 100644[m
+[1m--- a/Demo/BitFields.DemoApp/App.xaml[m
+[1m+++ b/Demo/BitFields.DemoApp/App.xaml[m
+[36m@@ -1,14 +1,6 @@[m
+ <Application x:Class="BitFields.DemoApp.App"[m
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"[m
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"[m
+[31m-             StartupUri="MainWindow.xaml">[m
+[31m-    <Application.Resources>[m
+[31m-        <LinearGradientBrush x:Key="AppBackground" StartPoint="0,0" EndPoint="1,1">[m
+[31m-            <GradientStop Color="#FF1B2735" Offset="0" />[m
+[31m-            <GradientStop Color="#FF314755" Offset="0.5" />[m
+[31m-            <GradientStop Color="#FF26A0DA" Offset="1" />[m
+[31m-        </LinearGradientBrush>[m
+[31m-        <SolidColorBrush x:Key="PanelBackground" Color="#FF0F172A" />[m
+[31m-        <SolidColorBrush x:Key="AccentBrush" Color="#FF38BDF8" />[m
+[31m-    </Application.Resources>[m
+[32m+[m[32m             StartupUri="MainWindow.xaml"[m
+[32m+[m[32m             ThemeMode="System">[m
+ </Application>[m

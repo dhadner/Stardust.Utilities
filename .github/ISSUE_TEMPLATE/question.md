@@ -28,7 +28,7 @@ Provide context about what you're trying to accomplish:
 
 - [ ] I have read the [README](https://github.com/dhadner/Stardust.Utilities/blob/main/README.md)
 - [ ] I have read the relevant detailed docs:
-  - [ ] [BITFIELD.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELD.md)
+  - [ ] [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md)
   - [ ] [RESULT.md](https://github.com/dhadner/Stardust.Utilities/blob/main/RESULT.md)
   - [ ] [ENDIAN.md](https://github.com/dhadner/Stardust.Utilities/blob/main/ENDIAN.md)
   - [ ] [EXTENSIONS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/EXTENSIONS.md)

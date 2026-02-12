@@ -3,6 +3,30 @@ namespace Stardust.Generators;
 public partial class BitFieldsGenerator
 {
     /// <summary>
+    /// Returns the BitConverter method name that converts a floating-point value to its raw bits.
+    /// E.g., "BitConverter.HalfToUInt16Bits" for Half.
+    /// </summary>
+    private static string ToBitsMethod(string floatingPointType) => floatingPointType switch
+    {
+        "Half" => "BitConverter.HalfToUInt16Bits",
+        "float" => "BitConverter.SingleToUInt32Bits",
+        "double" => "BitConverter.DoubleToUInt64Bits",
+        _ => throw new System.ArgumentException($"Unknown floating-point type: {floatingPointType}")
+    };
+
+    /// <summary>
+    /// Returns the BitConverter method name that converts raw bits to a floating-point value.
+    /// E.g., "BitConverter.UInt16BitsToHalf" for Half.
+    /// </summary>
+    private static string FromBitsMethod(string floatingPointType) => floatingPointType switch
+    {
+        "Half" => "BitConverter.UInt16BitsToHalf",
+        "float" => "BitConverter.UInt32BitsToSingle",
+        "double" => "BitConverter.UInt64BitsToDouble",
+        _ => throw new System.ArgumentException($"Unknown floating-point type: {floatingPointType}")
+    };
+
+    /// <summary>
     /// Formats a value as a hex literal appropriate for the storage type.
     /// For signed types, uses unchecked cast from unsigned to avoid overflow issues.
     /// </summary>
@@ -122,6 +146,66 @@ public partial class BitFieldsGenerator
     }
 
     /// <summary>
+    /// Generates a static <c>Fields</c> property that returns a
+    /// <see cref="System.ReadOnlySpan{T}"/> of <c>BitFieldInfo</c> describing
+    /// every field and flag declared on this struct, using the original user-declared bit positions.
+    /// </summary>
+    private static void GenerateFieldMetadata(System.Text.StringBuilder sb, BitFieldsInfo info, string indent)
+    {
+        string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+            ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
+        string structBitOrder = "BitOrder.BitZeroIsLsb"; // [BitFields] default; MSB conversion happens internally
+
+        sb.AppendLine($"{indent}/// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>");
+        sb.AppendLine($"{indent}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
+        sb.AppendLine($"{indent}{{");
+
+        foreach (var f in info.DeclaredFields)
+        {
+            var qualifiedType = StripGlobalPrefix(f.PropertyType);
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+        }
+
+        foreach (var f in info.DeclaredFlags)
+        {
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+        }
+
+        sb.AppendLine($"{indent}}};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Formats the optional Description and DescriptionResourceType arguments for a BitFieldInfo constructor call.
+    /// Returns an empty string when no description is set, or the trailing named arguments otherwise.
+    /// </summary>
+    private static string FormatDescriptionArgs(string? description, string? descriptionResourceType)
+    {
+        if (description is null)
+            return "";
+
+        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        if (descriptionResourceType is null)
+            return $", \"{escaped}\"";
+
+        var resType = StripGlobalPrefix(descriptionResourceType);
+        return $", \"{escaped}\", typeof({resType})";
+    }
+
+    /// <summary>
+    /// Strips only the <c>global::</c> prefix, preserving the full namespace-qualified type name.
+    /// </summary>
+    private static string StripGlobalPrefix(string qualifiedName)
+    {
+        const string globalPrefix = "global::";
+        return qualifiedName.StartsWith(globalPrefix)
+            ? qualifiedName.Substring(globalPrefix.Length)
+            : qualifiedName;
+    }
+
+    /// <summary>
     /// Gets the Convert.ToXxx method name for a given storage type.
     /// </summary>
     private static string GetConvertMethodName(string storageType)
@@ -144,16 +228,22 @@ public partial class BitFieldsGenerator
     /// Gets the BinaryPrimitives read method name for a given storage type.
     /// Returns null for byte/sbyte since those don't need BinaryPrimitives.
     /// </summary>
-    private static string? GetBinaryPrimitivesReadMethod(string storageType)
+    private static string? GetBinaryPrimitivesReadMethod(string storageType, bool bigEndian = false)
     {
-        return storageType switch
+        return (storageType, bigEndian) switch
         {
-            "short" => "ReadInt16LittleEndian",
-            "ushort" => "ReadUInt16LittleEndian",
-            "int" => "ReadInt32LittleEndian",
-            "uint" => "ReadUInt32LittleEndian",
-            "long" => "ReadInt64LittleEndian",
-            "ulong" => "ReadUInt64LittleEndian",
+            ("short", false)  => "ReadInt16LittleEndian",
+            ("short", true)   => "ReadInt16BigEndian",
+            ("ushort", false) => "ReadUInt16LittleEndian",
+            ("ushort", true)  => "ReadUInt16BigEndian",
+            ("int", false)    => "ReadInt32LittleEndian",
+            ("int", true)     => "ReadInt32BigEndian",
+            ("uint", false)   => "ReadUInt32LittleEndian",
+            ("uint", true)    => "ReadUInt32BigEndian",
+            ("long", false)   => "ReadInt64LittleEndian",
+            ("long", true)    => "ReadInt64BigEndian",
+            ("ulong", false)  => "ReadUInt64LittleEndian",
+            ("ulong", true)   => "ReadUInt64BigEndian",
             _ => null
         };
     }
@@ -162,16 +252,22 @@ public partial class BitFieldsGenerator
     /// Gets the BinaryPrimitives write method name for a given storage type.
     /// Returns null for byte/sbyte since those don't need BinaryPrimitives.
     /// </summary>
-    private static string? GetBinaryPrimitivesWriteMethod(string storageType)
+    private static string? GetBinaryPrimitivesWriteMethod(string storageType, bool bigEndian = false)
     {
-        return storageType switch
+        return (storageType, bigEndian) switch
         {
-            "short" => "WriteInt16LittleEndian",
-            "ushort" => "WriteUInt16LittleEndian",
-            "int" => "WriteInt32LittleEndian",
-            "uint" => "WriteUInt32LittleEndian",
-            "long" => "WriteInt64LittleEndian",
-            "ulong" => "WriteUInt64LittleEndian",
+            ("short", false)  => "WriteInt16LittleEndian",
+            ("short", true)   => "WriteInt16BigEndian",
+            ("ushort", false) => "WriteUInt16LittleEndian",
+            ("ushort", true)  => "WriteUInt16BigEndian",
+            ("int", false)    => "WriteInt32LittleEndian",
+            ("int", true)     => "WriteInt32BigEndian",
+            ("uint", false)   => "WriteUInt32LittleEndian",
+            ("uint", true)    => "WriteUInt32BigEndian",
+            ("long", false)   => "WriteInt64LittleEndian",
+            ("long", true)    => "WriteInt64BigEndian",
+            ("ulong", false)  => "WriteUInt64LittleEndian",
+            ("ulong", true)   => "WriteUInt64BigEndian",
             _ => null
         };
     }

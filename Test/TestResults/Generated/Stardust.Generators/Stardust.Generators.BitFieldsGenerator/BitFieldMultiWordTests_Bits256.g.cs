@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -127,6 +128,15 @@ public partial class BitFieldMultiWordTests
         /// <summary>Returns a new Bits256 with the W3 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Bits256 WithW3(ulong value) { var copy = this; copy.W3 = value; return copy; }
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W1", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W2", 128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W3", 192, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 256, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        };
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

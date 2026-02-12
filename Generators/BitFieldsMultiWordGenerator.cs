@@ -38,6 +38,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine("using System.Runtime.InteropServices;");
         sb.AppendLine("using System.Text.Json;");
         sb.AppendLine("using System.Text.Json.Serialization;");
+        sb.AppendLine("using Stardust.Utilities;");
         sb.AppendLine();
 
         if (!string.IsNullOrEmpty(info.Namespace))
@@ -110,6 +111,8 @@ internal static partial class BitFieldsMultiWordGenerator
         foreach (var field in info.Fields)
             GenerateWithFieldMethod(sb, info, layout, field, mind);
 
+        GenerateMultiWordFieldMetadata(sb, info, mind);
+
         GenerateBitwiseOperators(sb, info, layout, mind);
         GenerateArithmeticOperators(sb, info, layout, mind);
         GenerateShiftOperators(sb, info, layout, mind);
@@ -139,6 +142,50 @@ internal static partial class BitFieldsMultiWordGenerator
     }
 
     private static string Ind(int level) => new string(' ', level * 4);
+
+    /// <summary>
+    /// Generates a static <c>Fields</c> property for multi-word structs,
+    /// reusing the same <c>BitFieldInfo</c> metadata format as single-word and view types.
+    /// </summary>
+    private static void GenerateMultiWordFieldMetadata(StringBuilder sb, BitFieldsInfo info, string ind)
+    {
+        string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+            ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
+        string structBitOrder = "BitOrder.BitZeroIsLsb";
+
+        sb.AppendLine($"{ind}/// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>");
+        sb.AppendLine($"{ind}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
+        sb.AppendLine($"{ind}{{");
+
+        foreach (var f in info.DeclaredFields)
+        {
+            var qualifiedType = f.PropertyType.StartsWith("global::") ? f.PropertyType.Substring("global::".Length) : f.PropertyType;
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, qualifiedType);
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+        }
+
+        foreach (var f in info.DeclaredFlags)
+        {
+            var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, null);
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+        }
+
+        sb.AppendLine($"{ind}}};");
+        sb.AppendLine();
+    }
+
+    private static string FormatDescriptionArgs(string? description, string? descriptionResourceType, string? _)
+    {
+        if (description is null)
+            return "";
+
+        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        if (descriptionResourceType is null)
+            return $", \"{escaped}\"";
+
+        var resType = descriptionResourceType.StartsWith("global::") ? descriptionResourceType.Substring("global::".Length) : descriptionResourceType;
+        return $", \"{escaped}\", typeof({resType})";
+    }
 
     /// <summary>
     /// Describes the hybrid word layout: full ulongs + smallest trailing native type.

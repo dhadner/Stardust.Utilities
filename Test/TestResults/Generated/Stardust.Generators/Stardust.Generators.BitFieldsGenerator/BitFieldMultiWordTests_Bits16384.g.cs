@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -1952,6 +1953,16 @@ public partial class BitFieldMultiWordTests
         /// <summary>Returns a new Bits16384 with the WLast field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Bits16384 WithWLast(ulong value) { var copy = this; copy.WLast = value; return copy; }
+
+        /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+        public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+        {
+            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("WMid", 8128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("WLast", 16320, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("HighBit", 16383, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        };
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

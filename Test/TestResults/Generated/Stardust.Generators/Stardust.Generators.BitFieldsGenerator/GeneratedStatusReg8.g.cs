@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
@@ -27,10 +28,10 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Creates a new GeneratedStatusReg8 with the specified raw bits value.</summary>
     public GeneratedStatusReg8(byte value) { Value = value; }
 
-    public partial OpMode Mode
+    public partial global::Stardust.Utilities.Tests.OpMode Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (OpMode)((Value >> 2) & 0x07);
+        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 2) & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
     }
@@ -82,6 +83,16 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Returns a GeneratedStatusReg8 with the mask for the Priority field (bits 5-6).</summary>
     public static GeneratedStatusReg8 PriorityMask => new((byte)0x60);
 
+    /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Mode", 2, 3, "Stardust.Utilities.Tests.OpMode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+    };
+
     /// <summary>Returns a new GeneratedStatusReg8 with the Ready flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public GeneratedStatusReg8 WithReady(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
@@ -96,7 +107,7 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Mode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithMode(OpMode value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
+    public GeneratedStatusReg8 WithMode(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
