@@ -14,6 +14,7 @@
   <ItemGroup>
     <Compile Include="..\BitFields.DemoApp\Models\NetworkViews.cs"  Link="Models\NetworkViews.cs" />
     <Compile Include="..\BitFields.DemoApp\Models\PeViews.cs"       Link="Models\PeViews.cs" />
+    <Compile Include="..\BitFields.DemoApp\Models\PeParser.cs"      Link="Models\PeParser.cs" />
     <Compile Include="..\BitFields.DemoApp\Models\CpuRegisters.cs"  Link="Models\CpuRegisters.cs" />
     <Compile Include="..\BitFields.DemoApp\Models\M68020Registers.cs" Link="Models\M68020Registers.cs" />
     <Compile Include="..\BitFields.DemoApp\Utilities\HexUtils.cs"   Link="Utilities\HexUtils.cs" />

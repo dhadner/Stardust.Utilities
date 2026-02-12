@@ -1,0 +1,61 @@
+name: Deploy Demo to GitHub Pages
+
+# Only runs manually or on main after v0.9.4+ is published to NuGet.org
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Demo/BitFields.DemoWeb/**'
+      - 'Demo/BitFields.DemoApp/Models/**'
+      - 'Demo/BitFields.DemoApp/Utilities/**'
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    # Set base href for GitHub Pages subdirectory
+    - name: Set base href
+      run: sed -i 's|<base href="/" />|<base href="/Stardust.Utilities/" />|' Demo/BitFields.DemoWeb/wwwroot/index.html
+
+    - name: Publish WASM app
+      run: dotnet publish Demo/BitFields.DemoWeb/BitFields.DemoWeb.csproj -c Release -o output
+
+    # GitHub Pages needs .nojekyll to serve _framework directory
+    - name: Prepare for GitHub Pages
+      run: |
+        touch output/wwwroot/.nojekyll
+        cp output/wwwroot/index.html output/wwwroot/404.html
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: output/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

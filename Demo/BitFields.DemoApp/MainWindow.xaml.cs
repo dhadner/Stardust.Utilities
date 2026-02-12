@@ -77,69 +77,49 @@ public partial class MainWindow : Window
         PeHexBytesPanel.Children.Clear();
         PeBinaryBitsPanel.Children.Clear();
 
-        if (bytes.Length < DosHeaderView.SizeInBytes)
-        {
-            AddInfoCard(PeFieldSummaryPanel, "Error", "File too small", Colors.Red);
-            return;
-        }
+        // Parse PE headers using Result pipeline
+        PeParser.Parse(bytes)
+            .OnSuccess(pe => PopulatePeDisplay(pe))
+            .OnFailure(error => AddInfoCard(PeFieldSummaryPanel, "Error", error, Colors.Red));
+    }
 
-        var dos = new DosHeaderView(bytes);
-        int peOffset = (int)dos.Lfanew;
-        int coffByteOffset = peOffset + 4;
-
-        if (bytes.Length < coffByteOffset + CoffHeaderView.SizeInBytes)
-        {
-            AddInfoCard(PeFieldSummaryPanel, "Error", "Missing PE header", Colors.Red);
-            return;
-        }
-
-        var signature = BitConverter.ToUInt32(bytes, peOffset);
-        var coff = new CoffHeaderView(bytes, coffByteOffset);
-        int optByteOffset = coffByteOffset + CoffHeaderView.SizeInBytes;
-        int optHeaderSize = Math.Min((int)coff.SizeOfOptionalHeader, OptionalHeaderView.SizeInBytes);
-        bool hasOptional = coff.SizeOfOptionalHeader > 0 && bytes.Length >= optByteOffset + optHeaderSize;
-
-        // Determine total display byte count
-        int totalDisplayBytes = hasOptional
-            ? Math.Min(optByteOffset + optHeaderSize, bytes.Length)
-            : Math.Min(coffByteOffset + CoffHeaderView.SizeInBytes, bytes.Length);
-
-        // Build field list with GLOBAL bit positions (byte offset * 8)
+    private void PopulatePeDisplay(PeParseResult pe)
+    {
+        var bytes = pe.Bytes;
         var allFields = new List<FieldDef>();
         int ci = 0;
 
-        // DOS header fields: view starts at byte 0, so bit positions are already global
+        // DOS header fields
         foreach (var m in DosHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(dos, m), m.BitOrder, m.GetDescription()));
+            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(pe.Dos, m), m.BitOrder, m.GetDescription()));
 
-        // PE signature: 4 bytes at peOffset
-        int sigBitBase = peOffset * 8;
+        // PE signature
+        int sigBitBase = pe.PeOffset * 8;
         allFields.Add(new FieldDef("PE Sig", sigBitBase, sigBitBase + 31, Palette[ci++ % Palette.Length],
-            signature == PeHeader.Signature ? "PE\\0\\0" : $"0x{signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
+            pe.Signature == PeHeader.Signature ? "PE\\0\\0" : $"0x{pe.Signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
 
         // COFF header fields
-        int coffBitBase = coffByteOffset * 8;
+        int coffBitBase = pe.CoffByteOffset * 8;
         foreach (var m in CoffHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(coff, m), m.BitOrder, m.GetDescription()));
+            allFields.Add(new FieldDef(m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(pe.Coff, m), m.BitOrder, m.GetDescription()));
 
         // Optional header fields (if present)
-        if (hasOptional)
+        if (pe.Optional is { } opt)
         {
-            int optBitBase = optByteOffset * 8;
-            var opt = new OptionalHeaderView(bytes, optByteOffset);
+            int optBitBase = pe.OptByteOffset * 8;
             foreach (var m in OptionalHeaderView.Fields)
             {
                 int globalStart = m.StartBit + optBitBase;
                 int globalEnd = m.EndBit + optBitBase;
-                if (globalEnd / 8 < totalDisplayBytes)
+                if (globalEnd / 8 < pe.TotalDisplayBytes)
                     allFields.Add(new FieldDef(m.Name, globalStart, globalEnd, Palette[ci++ % Palette.Length], FormatViewField(opt, m), m.BitOrder, m.GetDescription()));
             }
         }
 
         _activePeField = null;
         PopulateFieldSummary(PeFieldSummaryPanel, allFields, nameof(_activePeField));
-        PopulateHexDisplay(PeHexBytesPanel, bytes, totalDisplayBytes, allFields, nameof(_activePeField));
-        PopulateBinaryDisplay(PeBinaryBitsPanel, bytes, totalDisplayBytes, allFields, nameof(_activePeField));
+        PopulateHexDisplay(PeHexBytesPanel, bytes, pe.TotalDisplayBytes, allFields, nameof(_activePeField));
+        PopulateBinaryDisplay(PeBinaryBitsPanel, bytes, pe.TotalDisplayBytes, allFields, nameof(_activePeField));
     }
 
     // ?? Network Packet Viewer ??????????????????????????????????
