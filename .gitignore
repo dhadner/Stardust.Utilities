@@ -4,12 +4,9 @@
 
 *.apikey
 
-/Generators/bin
-/Generators/obj
-/obj
-/bin
-/Test/bin
-/Test/obj
+# Build output
+**/bin/
+**/obj/
 
 # Test results (exclude test run artifacts, but keep generated source files for inspection)
 /Test/TestResults/*.trx
@@ -18,12 +15,7 @@
 
 # NuGet packages (don't commit built packages)
 /nupkg/
-/.vs
-/Demo/BitFields.DemoApp/.vs/BitFields.DemoApp/copilot-chat/cca6934f/sessions
-/Demo/BitFields.DemoApp/.vs/BitFields.DemoApp/CopilotIndices/18.0.988.22099
-/Demo/BitFields.DemoApp/.vs/BitFields.DemoApp/FileContentIndex
-/Demo/BitFields.DemoApp/.vs
-/Demo/BitFields.DemoApp/bin
-/Demo/BitFields.DemoApp/obj
-/Demo/BitFields.DemoWeb/bin
-/Demo/BitFields.DemoWeb/obj
+
+# Visual Studio
+/.vs/
+**/.vs/
