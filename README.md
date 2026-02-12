@@ -11,9 +11,12 @@
 A collection of utility types for .NET applications, focused on bit manipulation, error handling, and endian-aware data types. Includes a source 
 generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFieldsView]` buffer views.  Provides native hand-coded speed for bit access with no boilerplate needed.
 
+NOTE: This is a library of utility types, not a framework or application. It is designed to be used as a building block in your own projects, not run on its own. 
+The included demo app is a showcase of the library's capabilities, not a standalone product.
+
 ## Table of Contents
 
-[![Stardust Utilities](https://github.com/dhadner/Stardust.Utilities/blob/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
+[![Stardust Utilities](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
 
 - [Try It Live](#try-it-live)
 - [Installation](#installation)
@@ -39,13 +42,13 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
 
 [Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4)
 
-![PE Header Viewer](Graphics/PEHeaderViewDemo.png)
+![PE Header Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/PEHeaderViewDemo.png)
 
-![Network Packet Viewer](Graphics/NetworkPacketViewDemo.png)
+![Network Packet Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/NetworkPacketViewDemo.png)
 
-![CPU Register Lab](Graphics/CPURegisterLabDemo.png)
+![CPU Register Lab](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/CPURegisterLabDemo.png)
 
-![TCP Header RFC Diagram](Graphics/TCPHeaderDiagram.png)
+![TCP Header RFC Diagram](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/TCPHeaderDiagram.png)
 
 ---
 
