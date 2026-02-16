@@ -55,7 +55,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.4" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.5" />
 ```
 
 That's it, the source generator is included automatically.

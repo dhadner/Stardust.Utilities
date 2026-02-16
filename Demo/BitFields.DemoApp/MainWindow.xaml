@@ -4,6 +4,46 @@
         Title="Stardust BitFields Playground" Height="820" Width="1200">
     <Grid Margin="12">
         <TabControl>
+            <TabItem Header="RFC Diagram">
+                <ScrollViewer x:Name="RfcScroller" VerticalScrollBarVisibility="Auto">
+                    <Grid MinHeight="{Binding ViewportHeight, ElementName=RfcScroller}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="40" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="RFC-Style Bit Field Diagrams" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
+                                <TextBlock Text="  —  Generated from struct metadata via BitFieldDiagram.Render() and RenderList()" VerticalAlignment="Center" Opacity="0.6" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Open .NET Assembly&#x2026;" Padding="12,4" Click="OnOpenAssemblyForRfc" />
+                                <Button x:Name="RfcResetButton" Content="Reset to Demo Structs" Padding="12,4" Margin="8,0,0,0" Click="OnResetRfcStructs" Visibility="Collapsed" />
+                                <TextBlock x:Name="RfcAssemblyStatus" Margin="12,0,0,0" FontSize="11" Opacity="0.6" VerticalAlignment="Center" Visibility="Collapsed" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock Text="Struct:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <ComboBox x:Name="RfcStructPicker" Width="220" SelectionChanged="OnRfcStructChanged" />
+                                <TextBlock Text="Bits/Row:" VerticalAlignment="Center" Margin="16,0,8,0" />
+                                <ComboBox x:Name="RfcBitsPerRow" Width="70" SelectionChanged="OnRfcStructChanged" />
+                                <Button Content="Copy to Clipboard" Padding="12,4" Margin="16,0,0,0" Click="OnCopyRfcDiagram" />
+                                <TextBlock Text="Comment:" VerticalAlignment="Center" Margin="16,0,8,0" />
+                                <ComboBox x:Name="RfcCommentStyle" Width="120" SelectionChanged="OnRfcStructChanged" />
+                                <CheckBox x:Name="RfcShowDescriptions" Content="Show Descriptions" IsChecked="True" VerticalAlignment="Center" Margin="16,0,0,0" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
+                                <CheckBox x:Name="RfcShowByteOffset" Content="Show Byte Offset" VerticalAlignment="Center" Margin="16,0,0,0" IsChecked="False" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="&#x25B8; Diagram" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
+                        <TextBox Grid.Row="2" x:Name="RfcDiagramOutput" Margin="16,0,16,16" Padding="8,4" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="13" />
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="PE Viewer">
                 <ScrollViewer x:Name="PeScroller" VerticalScrollBarVisibility="Auto">
                     <Grid MinHeight="{Binding ViewportHeight, ElementName=PeScroller}">
@@ -113,35 +153,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="RFC Diagram">
-                <ScrollViewer x:Name="RfcScroller" VerticalScrollBarVisibility="Auto">
-                    <Grid MinHeight="{Binding ViewportHeight, ElementName=RfcScroller}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" MinHeight="40" />
-                        </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
-                            <TextBlock Text="RFC-Style Bit Field Diagrams" FontSize="16" FontWeight="Bold" />
-                            <TextBlock Text="Generated from struct metadata via BitFieldDiagram.Render() and RenderList()" Margin="0,4,0,0" Opacity="0.6" />
-
-                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <TextBlock Text="Struct:" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                <ComboBox x:Name="RfcStructPicker" Width="220" SelectionChanged="OnRfcStructChanged" />
-                                <TextBlock Text="Bits/Row:" VerticalAlignment="Center" Margin="16,0,8,0" />
-                                <ComboBox x:Name="RfcBitsPerRow" Width="70" SelectionChanged="OnRfcStructChanged" />
-                                <CheckBox x:Name="RfcShowDescriptions" Content="Show Descriptions" VerticalAlignment="Center" Margin="16,0,0,0" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
-                                <CheckBox x:Name="RfcShowByteOffset" Content="Show Byte Offset" VerticalAlignment="Center" Margin="16,0,0,0" IsChecked="False" Checked="OnRfcStructChanged" Unchecked="OnRfcStructChanged" />
-                                <Button Content="Copy to Clipboard" Padding="12,4" Margin="16,0,0,0" Click="OnCopyRfcDiagram" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="1" Text="&#x25B8; Diagram" FontWeight="Bold" FontSize="13" Margin="16,16,16,6" Foreground="#FF38BDF8" />
-                        <TextBox Grid.Row="2" x:Name="RfcDiagramOutput" Margin="16,0,16,16" Padding="8,4" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="13" />
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
         </TabControl>
     </Grid>
 </Window>

@@ -49,6 +49,9 @@
 		<EmbeddedResource Remove="Test\**" />
 		<EmbeddedResource Remove="Demo\**" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Include="Demo\BitFields.DemoApp\Utilities\AssemblyStructDiscovery.cs" />
+	</ItemGroup>
 
 	<!-- Reference SourceLink -->
 	<ItemGroup>

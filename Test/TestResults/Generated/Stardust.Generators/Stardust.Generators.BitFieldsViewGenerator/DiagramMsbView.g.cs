@@ -169,9 +169,9 @@ public partial record struct DiagramMsbView
     /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, "IP version", StructTotalBits: 32, FieldMustBe: 0),
-        new("Ihl", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, "Header length", StructTotalBits: 32, FieldMustBe: 0),
-        new("TotalLength", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, "Total length", StructTotalBits: 32, FieldMustBe: 0),
+        new("Version", 0, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, "IP version", StructTotalBits: 32, FieldMustBe: 0, StructDescription: "MSB-first test view"),
+        new("Ihl", 4, 4, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, "Header length", StructTotalBits: 32, FieldMustBe: 0, StructDescription: "MSB-first test view"),
+        new("TotalLength", 16, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, "Total length", StructTotalBits: 32, FieldMustBe: 0, StructDescription: "MSB-first test view"),
     };
 
 }

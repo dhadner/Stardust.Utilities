@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Single source of truth for the package version.
+         Used by demo app PackageReferences and Build-Combined-NuGetPackages.ps1. -->
+    <Version>0.9.5</Version>
+  </PropertyGroup>
+</Project>

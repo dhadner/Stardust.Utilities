@@ -60,6 +60,8 @@ internal sealed class BitFieldsInfo
     public string? NativeWideType { get; }
     /// <summary>The byte order for serialization (ReadFrom/WriteTo). Default is LittleEndian.</summary>
     public ByteOrderValue ByteOrder { get; }
+    /// <summary>Optional struct-level description from the [BitFields] attribute.</summary>
+    public string? Description { get; }
     /// <summary>
     /// Fields with original user-declared bit positions (before any MSB-to-LSB conversion).
     /// Used for metadata generation only.
@@ -71,7 +73,7 @@ internal sealed class BitFieldsInfo
     /// </summary>
     public List<BitFlagInfo> DeclaredFlags { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, MustBeValue undefinedBitsMode = MustBeValue.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrderValue byteOrder = ByteOrderValue.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, MustBeValue undefinedBitsMode = MustBeValue.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrderValue byteOrder = ByteOrderValue.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -91,6 +93,7 @@ internal sealed class BitFieldsInfo
         ByteOrder = byteOrder;
         DeclaredFields = declaredFields ?? fields;
         DeclaredFlags = declaredFlags ?? flags;
+        Description = description;
     }
 }
 

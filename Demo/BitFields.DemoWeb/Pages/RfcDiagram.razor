@@ -1,4 +1,5 @@
-@page "/rfc"
+@page "/"
+@using BitFields.DemoApp
 @inject IJSRuntime JS
 
 <h2 class="page-title">RFC-Style Bit Field Diagrams</h2>
@@ -21,6 +22,13 @@
         <option value="64">64</option>
     </select>
 
+    <label>Comment:</label>
+    <select @bind="_commentStyle" @bind:after="UpdateDiagram">
+        <option value="0">None</option>
+        <option value="1">// (double-slash)</option>
+        <option value="2">/// (triple-slash)</option>
+    </select>
+
     <label><input type="checkbox" @bind="_showDescriptions" @bind:after="UpdateDiagram" /> Descriptions</label>
     <label><input type="checkbox" @bind="_showByteOffset" @bind:after="UpdateDiagram" /> Byte Offset</label>
 
@@ -31,26 +39,44 @@
     }
 </div>
 
+<div class="toolbar" style="margin-top: 4px;">
+    <label>Open .NET Assembly:</label>
+    <InputFile OnChange="OnAssemblySelected" accept=".dll,.exe" />
+    @if (_assemblyStatus != null)
+    {
+        <span style="font-size: 0.8rem; color: var(--muted);">@_assemblyStatus</span>
+    }
+    @if (_hasLoadedAssembly)
+    {
+        <button @onclick="ResetToBuiltIn">Reset to Built-in</button>
+    }
+</div>
+
 <div class="section-header">&#x25B8; Diagram</div>
 <div class="diagram-output">@_diagramText</div>
 
 @code {
+#pragma warning disable CS0618 // DiagramSection: retained until DemoWeb migrates to Type-based API
     private record struct DiagramSource(string Label, DiagramSection[] Sections);
 
     private DiagramSource[] _sources = [];
+    private DiagramSource[] _builtInSources = [];
     private int _selectedIndex;
     private int _bitsPerRow = 32;
+    private int _commentStyle;
     private bool _showDescriptions;
     private bool _showByteOffset;
     private string _diagramText = "";
     private bool _copied;
+    private string? _assemblyStatus;
+    private bool _hasLoadedAssembly;
 
     private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
         new(label, [new("", fields)]);
 
     protected override void OnInitialized()
     {
-        _sources =
+        _builtInSources =
         [
             Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
             Single("TCP Header", TcpHeaderView.Fields.ToArray()),
@@ -75,6 +101,7 @@
                 new("CAAR", M68020CAAR.Fields.ToArray()),
             ]),
         ];
+        _sources = _builtInSources;
         UpdateDiagram();
     }
 
@@ -82,8 +109,79 @@
     {
         if (_selectedIndex < 0 || _selectedIndex >= _sources.Length) return;
         var source = _sources[_selectedIndex];
+        string? commentPrefix = _commentStyle switch
+        {
+            1 => "// ",
+            2 => "/// ",
+            _ => null
+        };
         _diagramText = BitFieldDiagram.RenderListToString(
-            source.Sections, _bitsPerRow, _showDescriptions, _showByteOffset);
+            source.Sections, _bitsPerRow, _showDescriptions, _showByteOffset, commentPrefix);
+    }
+#pragma warning restore CS0618
+
+    private async Task OnAssemblySelected(InputFileChangeEventArgs e)
+    {
+        _assemblyStatus = null;
+
+        try
+        {
+            var file = e.File;
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024).CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            var result = AssemblyStructDiscovery.Discover(bytes, file.Name);
+
+            if (result.Error != null && result.Structs.Count == 0)
+            {
+                _assemblyStatus = $"{result.AssemblyName}: {result.Error}";
+                return;
+            }
+
+            string? previousSelection = _selectedIndex >= 0 && _selectedIndex < _sources.Length
+                ? _sources[_selectedIndex].Label
+                : null;
+
+#pragma warning disable CS0618
+            var sources = new List<DiagramSource>();
+            foreach (var s in result.Structs)
+                sources.Add(Single(s.DisplayName, s.Fields));
+#pragma warning restore CS0618
+
+            _sources = sources.ToArray();
+            _hasLoadedAssembly = true;
+
+            int restoredIndex = -1;
+            if (previousSelection != null)
+            {
+                for (int i = 0; i < _sources.Length; i++)
+                {
+                    if (_sources[i].Label == previousSelection)
+                    {
+                        restoredIndex = i;
+                        break;
+                    }
+                }
+            }
+            _selectedIndex = restoredIndex >= 0 ? restoredIndex : 0;
+
+            _assemblyStatus = $"Loaded {result.Structs.Count} struct(s) from {result.AssemblyName}";
+            UpdateDiagram();
+        }
+        catch (Exception ex)
+        {
+            _assemblyStatus = $"Error: {ex.Message}";
+        }
+    }
+
+    private void ResetToBuiltIn()
+    {
+        _sources = _builtInSources;
+        _selectedIndex = 0;
+        _hasLoadedAssembly = false;
+        _assemblyStatus = null;
+        UpdateDiagram();
     }
 
     private async Task CopyToClipboard()

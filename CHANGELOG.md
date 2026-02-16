@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2026-02-16
+### Added
+- Added `Description` to `[BitFields]` and `[BitFieldsView]` structs, used for diagram section descriptions and demo app tooltips. The 
+purpose of this is to simplify the API and deprecate `DiagramSection` that adds unnecessary complexity to the API. 
+
+### Changed
+- Deprecated `DiagramSection` feature, replaced with the `Description` field for `[BitFields]` and `[BitFieldsView]` structs. Will be removed in a future version.
+
+### Backwards Compatibility
+- All APIs are backwards compatible with 0.9.4. The `Description` parameter on `[BitFields]` and `[BitFieldsView]` is optional 
+and does not affect existing functionality. 
+- The `DiagramSection` type and related `RenderList`/`RenderListToString` methods are still present but marked as deprecated, 
+with no breaking changes.
+
 ## [0.9.4] - 2026-02-09
 ### Added
 - **`BitFieldDiagram` RFC diagram generator** -- generates RFC 2360-style ASCII bit field diagrams from `[BitFields]` and `[BitFieldsView]` struct metadata via `BitFieldDiagram.Render()` and `RenderToString()`. Features auto-sized cells to fit field names, byte offset labels, bit-position headers (tens/ones digits), undefined bit marking (`Undefined` or `U` with legend), configurable bits-per-row (8, 16, 32, 64), optional field description legend, and struct-sized last rows.

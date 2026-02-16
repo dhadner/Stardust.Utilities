@@ -19,6 +19,10 @@ public partial class MainWindow : Window
     private string? _activePeField;
     private string? _activeCpuField;
 
+    private FileSystemWatcher? _rfcAssemblyWatcher;
+    private Timer? _rfcReloadDebounce;
+    private string? _rfcWatchedFilePath;
+
     private static readonly Color[] Palette =
     [
         Rgb(0x61,0xAF,0xEF), Rgb(0xC6,0x78,0xDD), Rgb(0x56,0x9C,0x3B), Rgb(0xC4,0x8A,0x1A),
@@ -285,9 +289,12 @@ public partial class MainWindow : Window
 
     // ── RFC Diagram ──────────────────────────────────────────────
 
+#pragma warning disable CS0618 // DiagramSection: retained until DemoApp migrates to Type-based API
+
     private readonly record struct DiagramSource(string Label, DiagramSection[] Sections);
 
     private DiagramSource[] _diagramSources = [];
+    private DiagramSource[] _builtInDiagramSources = [];
 
     private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
         new(label, [new("", fields)]);
@@ -320,6 +327,8 @@ public partial class MainWindow : Window
             ]),
         ];
 
+        _builtInDiagramSources = _diagramSources;
+
         RfcStructPicker.Items.Clear();
         foreach (var s in _diagramSources)
             RfcStructPicker.Items.Add(s.Label);
@@ -331,6 +340,12 @@ public partial class MainWindow : Window
         RfcBitsPerRow.Items.Add("32");
         RfcBitsPerRow.Items.Add("64");
         RfcBitsPerRow.SelectedIndex = 2; // default 32
+
+        RfcCommentStyle.Items.Clear();
+        RfcCommentStyle.Items.Add("None");
+        RfcCommentStyle.Items.Add("// (double-slash)");
+        RfcCommentStyle.Items.Add("/// (triple-slash)");
+        RfcCommentStyle.SelectedIndex = 0;
     }
 
     private void OnRfcStructChanged(object sender, RoutedEventArgs e) => UpdateRfcDiagram();
@@ -345,10 +360,18 @@ public partial class MainWindow : Window
         int bitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
         bool showDesc = RfcShowDescriptions.IsChecked == true;
         bool showOffset = RfcShowByteOffset.IsChecked == true;
+        string? commentPrefix = RfcCommentStyle.SelectedIndex switch
+        {
+            1 => "// ",
+            2 => "/// ",
+            _ => null
+        };
 
         RfcDiagramOutput.Text = BitFieldDiagram.RenderListToString(
-            source.Sections, bitsPerRow, showDesc, showOffset);
+            source.Sections, bitsPerRow, showDesc, showOffset, commentPrefix);
     }
+
+#pragma warning restore CS0618
 
     private void OnCopyRfcDiagram(object sender, RoutedEventArgs e)
     {
@@ -367,6 +390,133 @@ public partial class MainWindow : Window
                 }
             }
         }
+    }
+
+    private void OnOpenAssemblyForRfc(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Open .NET Assembly",
+            Filter = "Assemblies (*.dll;*.exe)|*.dll;*.exe|All Files (*.*)|*.*"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        LoadAssemblyForRfc(dialog.FileName);
+    }
+
+    private void LoadAssemblyForRfc(string filePath)
+    {
+        var result = AssemblyStructDiscovery.Discover(filePath);
+
+        if (result.Error != null && result.Structs.Count == 0)
+        {
+            RfcAssemblyStatus.Text = $"{result.AssemblyName}: {result.Error}";
+            RfcAssemblyStatus.Visibility = Visibility.Visible;
+            return;
+        }
+
+        // Remember the currently selected struct name so we can restore it after reload
+        string? previousSelection = RfcStructPicker.SelectedItem as string;
+
+        // Replace the dropdown with discovered structs
+        var sources = new List<DiagramSource>();
+        foreach (var s in result.Structs)
+            sources.Add(Single(s.DisplayName, s.Fields));
+
+        _diagramSources = sources.ToArray();
+
+        RfcStructPicker.Items.Clear();
+        foreach (var s in _diagramSources)
+            RfcStructPicker.Items.Add(s.Label);
+
+        // Restore previous selection if the struct still exists, otherwise pick the first
+        int restoredIndex = -1;
+        if (previousSelection != null)
+        {
+            for (int i = 0; i < _diagramSources.Length; i++)
+            {
+                if (_diagramSources[i].Label == previousSelection)
+                {
+                    restoredIndex = i;
+                    break;
+                }
+            }
+        }
+        RfcStructPicker.SelectedIndex = restoredIndex >= 0 ? restoredIndex : 0;
+
+        RfcAssemblyStatus.Text = $"Loaded {result.Structs.Count} struct(s) from {result.AssemblyName} — watching for changes";
+        RfcAssemblyStatus.Visibility = Visibility.Visible;
+        RfcResetButton.Visibility = Visibility.Visible;
+
+        // Start watching the file for rebuild changes
+        WatchAssemblyFile(filePath);
+    }
+
+    private void WatchAssemblyFile(string filePath)
+    {
+        // Clean up any previous watcher
+        StopWatchingAssembly();
+
+        _rfcWatchedFilePath = filePath;
+        string? dir = Path.GetDirectoryName(filePath);
+        string fileName = Path.GetFileName(filePath);
+        if (dir == null) return;
+
+        _rfcAssemblyWatcher = new FileSystemWatcher(dir, fileName)
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
+            EnableRaisingEvents = true
+        };
+
+        _rfcAssemblyWatcher.Changed += OnWatchedAssemblyChanged;
+        _rfcAssemblyWatcher.Created += OnWatchedAssemblyChanged;
+    }
+
+    private void StopWatchingAssembly()
+    {
+        _rfcReloadDebounce?.Dispose();
+        _rfcReloadDebounce = null;
+
+        if (_rfcAssemblyWatcher != null)
+        {
+            _rfcAssemblyWatcher.EnableRaisingEvents = false;
+            _rfcAssemblyWatcher.Dispose();
+            _rfcAssemblyWatcher = null;
+        }
+
+        _rfcWatchedFilePath = null;
+    }
+
+    private void OnWatchedAssemblyChanged(object sender, FileSystemEventArgs e)
+    {
+        // Debounce: builds write the file multiple times in quick succession.
+        // Wait 500ms after the last change before reloading.
+        _rfcReloadDebounce?.Dispose();
+        _rfcReloadDebounce = new Timer(_ =>
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_rfcWatchedFilePath != null && File.Exists(_rfcWatchedFilePath))
+                    LoadAssemblyForRfc(_rfcWatchedFilePath);
+            });
+        }, null, 500, Timeout.Infinite);
+    }
+
+    private void OnResetRfcStructs(object sender, RoutedEventArgs e)
+    {
+        StopWatchingAssembly();
+
+        _diagramSources = _builtInDiagramSources;
+
+        RfcStructPicker.Items.Clear();
+        foreach (var s in _diagramSources)
+            RfcStructPicker.Items.Add(s.Label);
+        RfcStructPicker.SelectedIndex = 0;
+
+        RfcAssemblyStatus.Visibility = Visibility.Collapsed;
+        RfcResetButton.Visibility = Visibility.Collapsed;
     }
 
     // ?? Shared Three-Panel Display ?????????????????????????????

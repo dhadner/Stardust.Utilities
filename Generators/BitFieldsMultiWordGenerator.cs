@@ -179,7 +179,7 @@ internal static partial class BitFieldsMultiWordGenerator
         if (description is null)
             return "";
 
-        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        var escaped = GeneratorUtils.EscapeStringLiteral(description);
         if (descriptionResourceType is null)
             return $", \"{escaped}\"";
 

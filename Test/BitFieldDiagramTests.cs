@@ -8,7 +8,7 @@ namespace Stardust.Utilities.Tests;
 
 // ── Test-only structs for diagram testing ───────────────────
 
-[BitFields(typeof(byte))]
+[BitFields(typeof(byte), Description = "8-bit test status register")]
 public partial struct DiagramTestRegister
 {
     [BitFlag(0, Description = "Ready flag")] public partial bool Ready { get; set; }
@@ -26,7 +26,7 @@ public partial struct DiagramGappyRegister
     [BitField(12, 15, Description = "Version")] public partial byte Version { get; set; }
 }
 
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, Description = "MSB-first test view")]
 public partial record struct DiagramMsbView
 {
     [BitField(0, 3, Description = "IP version")] public partial byte Version { get; set; }
@@ -204,7 +204,9 @@ public class BitFieldDiagramTests
         Assert.True(testWidth >= 2);
     }
 
-    // ── RenderList / RenderListToString ─────────────────────────
+    // ── RenderList / RenderListToString (legacy DiagramSection API) ──
+
+#pragma warning disable CS0618 // Obsolete DiagramSection API -- tests retained for backward compatibility
 
     [Fact]
     public void RenderList_EmptySections_ReturnsNoSectionsMessage()
@@ -282,6 +284,8 @@ public class BitFieldDiagramTests
         Assert.Equal(fromList, fromToString);
     }
 
+#pragma warning restore CS0618
+
     // ── minCellWidth parameter ──────────────────────────────────
 
     [Fact]
@@ -322,5 +326,533 @@ public class BitFieldDiagramTests
         var sep = lines.First(l => l.TrimStart().StartsWith("+"));
         int plusCount = sep.Count(c => c == '+');
         Assert.Equal(bitsPerRow + 1, plusCount);
+    }
+
+    // ── Comment prefix ──────────────────────────────────────────
+
+    [Fact]
+    public void Render_CommentPrefix_DoubleSlash_PrependedToEveryLine()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, commentPrefix: "// ");
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void Render_CommentPrefix_TripleSlash_PrependedToEveryLine()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, commentPrefix: "/// ");
+        Assert.All(lines, line => Assert.StartsWith("/// ", line));
+    }
+
+    [Fact]
+    public void Render_CommentPrefix_Null_NoPrefix()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, commentPrefix: null);
+        // No line should start with "//" -- they start with spaces, digits, or separators
+        Assert.All(lines, line => Assert.False(line.StartsWith("//")));
+    }
+
+    [Fact]
+    public void Render_CommentPrefix_WithDescriptions_AllLinesPrefixed()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+        // Should contain at least one description
+        Assert.Contains(lines, line => line.Contains("Ready flag"));
+    }
+
+    [Fact]
+    public void RenderToString_CommentPrefix_EveryLineHasPrefix()
+    {
+        string diagram = BitFieldDiagram.RenderToString(DiagramTestRegister.Fields, bitsPerRow: 8, commentPrefix: "// ");
+        var lines = diagram.Split(Environment.NewLine);
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+#pragma warning disable CS0618
+    [Fact]
+    public void RenderList_CommentPrefix_AllLinesPrefixed()
+    {
+        var sections = new DiagramSection[]
+        {
+            new("Test Section", DiagramTestRegister.Fields.ToArray()),
+        };
+        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, commentPrefix: "/// ");
+        Assert.All(lines, line => Assert.StartsWith("/// ", line));
+        // Section label should also be prefixed
+        Assert.Contains(lines, line => line.Contains("Test Section"));
+    }
+
+    [Fact]
+    public void RenderListToString_CommentPrefix_EveryLineHasPrefix()
+    {
+        var sections = new DiagramSection[]
+        {
+            new("Section A", DiagramTestRegister.Fields.ToArray()),
+        };
+        string diagram = BitFieldDiagram.RenderListToString(sections, bitsPerRow: 8, commentPrefix: "// ");
+        var lines = diagram.Split(Environment.NewLine);
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void Render_CommentPrefix_EmptyFields_Prefixed()
+    {
+        var lines = BitFieldDiagram.Render(ReadOnlySpan<BitFieldInfo>.Empty, commentPrefix: "// ");
+        Assert.Single(lines);
+        Assert.Equal("// (no fields)", lines[0]);
+    }
+
+    // ── Comment prefix with multi-line descriptions ─────────────
+
+    [Fact]
+    public void Render_CommentPrefix_NewlineInDescription_AllLinesPrefixed()
+    {
+        // DescEscapeRegister has Description = "Line1\nLine2" on the Newline flag
+        var lines = BitFieldDiagram.Render(DescEscapeRegister.Fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void Render_NoPrefix_NewlineInDescription_SplitIntoSeparateEntries()
+    {
+        // Even without a prefix, multi-line descriptions must be separate list entries
+        var lines = BitFieldDiagram.Render(DescEscapeRegister.Fields, bitsPerRow: 8, includeDescriptions: true);
+        // No entry should contain a raw newline character
+        Assert.All(lines, line =>
+        {
+            Assert.DoesNotContain("\n", line);
+            Assert.DoesNotContain("\r", line);
+        });
+    }
+
+    [Fact]
+    public void Render_CommentPrefix_NewlineInDescription_ContentPreserved()
+    {
+        var lines = BitFieldDiagram.Render(DescEscapeRegister.Fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "/// ");
+        // The description "Line1\nLine2" should appear as two separate prefixed lines
+        Assert.Contains(lines, line => line.Contains("Line1"));
+        Assert.Contains(lines, line => line.Contains("Line2"));
+    }
+
+    [Fact]
+    public void RenderToString_CommentPrefix_NewlineInDescription_EveryVisualLineHasPrefix()
+    {
+        string diagram = BitFieldDiagram.RenderToString(DescEscapeRegister.Fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        // Split on the actual line separator used in the output
+        var visualLines = diagram.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        Assert.All(visualLines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void RenderList_CommentPrefix_NewlineInDescription_AllLinesPrefixed()
+    {
+        var sections = new DiagramSection[]
+        {
+            new("Escape Test", DescEscapeRegister.Fields.ToArray()),
+        };
+        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+        // No raw newlines embedded in any entry
+        Assert.All(lines, line => Assert.DoesNotContain("\n", line));
+    }
+#pragma warning restore CS0618
+
+    // ── Type-based Render API ───────────────────────────────────
+
+    [Fact]
+    public void Render_Type_ProducesDiagram()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramTestRegister), bitsPerRow: 8);
+        Assert.True(lines.Count > 0);
+        Assert.Contains(lines, l => l.Contains("Ready"));
+    }
+
+    [Fact]
+    public void RenderToString_Type_ProducesString()
+    {
+        string diagram = BitFieldDiagram.RenderToString(typeof(DiagramTestRegister), bitsPerRow: 8);
+        Assert.Contains("Ready", diagram);
+    }
+
+    [Fact]
+    public void Render_Type_InvalidType_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => BitFieldDiagram.Render(typeof(string)));
+    }
+
+    [Fact]
+    public void Render_Type_StructDescription_ShownAboveDiagram()
+    {
+        // DiagramTestRegister has Description set -- verify it appears as the first line
+        var lines = BitFieldDiagram.Render(typeof(DiagramTestRegister), bitsPerRow: 8, includeDescriptions: true);
+        string desc = DiagramTestRegister.Fields[0].StructDescription!;
+        Assert.Equal(desc, lines[0]);
+    }
+
+    [Fact]
+    public void Render_Type_StructDescription_HiddenWhenDescriptionsOff()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramTestRegister), bitsPerRow: 8, includeDescriptions: false);
+        Assert.DoesNotContain(lines, l => l == "8-bit test status register");
+    }
+
+    [Fact]
+    public void Render_Type_CommentPrefix_AppliedToDescription()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramTestRegister), bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void RenderList_Types_ProducesSectionLabels()
+    {
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8, includeDescriptions: true,
+            bitFieldsTypes: [typeof(DiagramTestRegister), typeof(DescEscapeRegister)]);
+        // Each struct should have a section label
+        string label1 = DiagramTestRegister.Fields[0].StructDescription ?? nameof(DiagramTestRegister);
+        Assert.Contains(lines, l => l.Contains(label1));
+    }
+
+    [Fact]
+    public void RenderList_Types_NoDescription_UsesTypeName()
+    {
+        // DescEscapeRegister has no StructDescription, so the type name should be used as label
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8,
+            bitFieldsTypes: [typeof(DescEscapeRegister)]);
+        Assert.Contains(lines, l => l.Contains("DescEscapeRegister"));
+    }
+
+    [Fact]
+    public void RenderList_Types_WithDescription_TypeNameAlwaysShown()
+    {
+        // Type name is always the section label; StructDescription appears only with includeDescriptions
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8, includeDescriptions: false,
+            bitFieldsTypes: [typeof(DiagramTestRegister)]);
+        Assert.Contains(lines, l => l.Contains("DiagramTestRegister"));
+        Assert.DoesNotContain(lines, l => l.Contains("8-bit test status register"));
+    }
+
+    [Fact]
+    public void RenderList_Types_Empty_ReturnsNoTypesMessage()
+    {
+        var lines = BitFieldDiagram.RenderList(bitFieldsTypes: []);
+        Assert.Single(lines);
+        Assert.Contains("(no types)", lines[0]);
+    }
+
+    [Fact]
+    public void RenderListToString_Types_MatchesJoinedRenderList()
+    {
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8,
+            bitFieldsTypes: [typeof(DiagramTestRegister)]);
+        string fromList = string.Join(Environment.NewLine, lines);
+        string fromToString = BitFieldDiagram.RenderListToString(bitsPerRow: 8,
+            bitFieldsTypes: [typeof(DiagramTestRegister)]);
+        Assert.Equal(fromList, fromToString);
+    }
+
+    [Fact]
+    public void RenderList_Types_CommentPrefix_AllLinesPrefixed()
+    {
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8, commentPrefix: "/// ",
+            bitFieldsTypes: [typeof(DiagramTestRegister), typeof(DescEscapeRegister)]);
+        Assert.All(lines, line => Assert.StartsWith("/// ", line));
+    }
+
+    [Fact]
+    public void GetFields_ValidType_ReturnsFields()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramTestRegister));
+        Assert.True(fields.Length > 0);
+        Assert.Contains(fields, f => f.Name == "Ready");
+    }
+
+    [Fact]
+    public void GetFields_InvalidType_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => BitFieldDiagram.GetFields(typeof(int)));
+    }
+
+    // ── StructDescription metadata generation ───────────────────
+
+    [Fact]
+    public void BitFields_Description_EmittedInFieldsMetadata()
+    {
+        // DiagramTestRegister has Description = "8-bit test status register"
+        Assert.All(DiagramTestRegister.Fields.ToArray(),
+            f => Assert.Equal("8-bit test status register", f.StructDescription));
+    }
+
+    [Fact]
+    public void BitFieldsView_Description_EmittedInFieldsMetadata()
+    {
+        // DiagramMsbView has Description = "MSB-first test view"
+        Assert.All(DiagramMsbView.Fields.ToArray(),
+            f => Assert.Equal("MSB-first test view", f.StructDescription));
+    }
+
+    [Fact]
+    public void BitFields_NoDescription_StructDescriptionIsNull()
+    {
+        // DescEscapeRegister has no Description set
+        Assert.All(DescEscapeRegister.Fields.ToArray(),
+            f => Assert.Null(f.StructDescription));
+    }
+
+    [Fact]
+    public void BitFields_NoDescription_DiagramGappyRegister_IsNull()
+    {
+        Assert.All(DiagramGappyRegister.Fields.ToArray(),
+            f => Assert.Null(f.StructDescription));
+    }
+
+    [Fact]
+    public void BitFieldsView_NoDescription_StructDescriptionIsNull()
+    {
+        // IPv4HeaderView has no Description -- use DiagramWideRegister (no desc)
+        Assert.All(DiagramWideRegister.Fields.ToArray(),
+            f => Assert.Null(f.StructDescription));
+    }
+
+    // ── StructDescription in Render (fields-based API) ──────────
+
+    [Fact]
+    public void Render_Fields_WithStructDescription_ShowsHeaderWhenEnabled()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: true);
+        Assert.Equal("8-bit test status register", lines[0]);
+        // Diagram content follows (separator or bit header)
+        Assert.True(lines.Count > 1);
+    }
+
+    [Fact]
+    public void Render_Fields_WithStructDescription_HiddenWhenDisabled()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: false);
+        Assert.DoesNotContain(lines, l => l == "8-bit test status register");
+    }
+
+    [Fact]
+    public void Render_Fields_NoStructDescription_NoHeaderLine()
+    {
+        var lines = BitFieldDiagram.Render(DescEscapeRegister.Fields, bitsPerRow: 8, includeDescriptions: true);
+        // First line should be diagram content (spaces/digits), not a description
+        Assert.DoesNotContain(lines, l => l == "DescEscapeRegister");
+    }
+
+    [Fact]
+    public void Render_Fields_StructDescription_NotDuplicated()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: true);
+        int count = lines.Count(l => l == "8-bit test status register");
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void Render_Fields_StructDescription_WithCommentPrefix()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        Assert.Equal("// 8-bit test status register", lines[0]);
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void RenderToString_Fields_StructDescription_IncludedInOutput()
+    {
+        string diagram = BitFieldDiagram.RenderToString(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: true);
+        Assert.StartsWith("8-bit test status register", diagram);
+    }
+
+    [Fact]
+    public void Render_BitFieldsView_StructDescription_ShowsHeader()
+    {
+        var lines = BitFieldDiagram.Render(DiagramMsbView.Fields, bitsPerRow: 8, includeDescriptions: true);
+        Assert.Equal("MSB-first test view", lines[0]);
+    }
+
+    // ── StructDescription in RenderList (DiagramSection API) ────
+
+#pragma warning disable CS0618
+    [Fact]
+    public void RenderList_DiagramSection_StructDescription_ShownWhenEnabled()
+    {
+        var sections = new DiagramSection[]
+        {
+            new("", DiagramTestRegister.Fields.ToArray()),
+        };
+        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: true);
+        Assert.Contains(lines, l => l == "8-bit test status register");
+    }
+
+    [Fact]
+    public void RenderList_DiagramSection_StructDescription_HiddenWhenDisabled()
+    {
+        var sections = new DiagramSection[]
+        {
+            new("", DiagramTestRegister.Fields.ToArray()),
+        };
+        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: false);
+        Assert.DoesNotContain(lines, l => l == "8-bit test status register");
+    }
+
+    [Fact]
+    public void RenderList_DiagramSection_SectionLabelAndStructDescription_BothShown()
+    {
+        var sections = new DiagramSection[]
+        {
+            new("Custom Label", DiagramTestRegister.Fields.ToArray()),
+        };
+        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: true);
+        Assert.Contains(lines, l => l == "Custom Label");
+        Assert.Contains(lines, l => l == "8-bit test status register");
+    }
+#pragma warning restore CS0618
+
+    // ── Type-based API: StructDescription behavior ──────────────
+
+    [Fact]
+    public void Render_Type_StructDescription_IsFirstLine()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramTestRegister), bitsPerRow: 8, includeDescriptions: true);
+        Assert.Equal("8-bit test status register", lines[0]);
+    }
+
+    [Fact]
+    public void Render_Type_NoDescription_NoBogusHeader()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramWideRegister), bitsPerRow: 32, includeDescriptions: true);
+        Assert.DoesNotContain(lines, l => l == "DiagramWideRegister");
+    }
+
+    [Fact]
+    public void Render_Type_BitFieldsView_ShowsStructDescription()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramMsbView), bitsPerRow: 8, includeDescriptions: true);
+        Assert.Equal("MSB-first test view", lines[0]);
+    }
+
+    [Fact]
+    public void RenderList_Types_MixedDescriptions_AllHaveLabels()
+    {
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8, includeDescriptions: true,
+            bitFieldsTypes: [typeof(DiagramTestRegister), typeof(DescEscapeRegister)]);
+        Assert.Contains(lines, l => l.Contains("8-bit test status register"));
+        Assert.Contains(lines, l => l.Contains("DescEscapeRegister"));
+    }
+
+    [Fact]
+    public void RenderList_Types_StructDescription_NotDuplicated()
+    {
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8, includeDescriptions: true,
+            bitFieldsTypes: [typeof(DiagramTestRegister)]);
+        int count = lines.Count(l => l.Contains("8-bit test status register"));
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void RenderList_Types_StructDescription_HiddenWhenDisabled()
+    {
+        var lines = BitFieldDiagram.RenderList(bitsPerRow: 8, includeDescriptions: false,
+            bitFieldsTypes: [typeof(DiagramTestRegister)]);
+        Assert.DoesNotContain(lines, l => l.Contains("8-bit test status register"));
+    }
+
+    // ── GetFields returns StructDescription ─────────────────────
+
+    [Fact]
+    public void GetFields_ReturnsStructDescription()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramTestRegister));
+        Assert.All(fields, f => Assert.Equal("8-bit test status register", f.StructDescription));
+    }
+
+    [Fact]
+    public void GetFields_NoDescription_StructDescriptionIsNull()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramWideRegister));
+        Assert.All(fields, f => Assert.Null(f.StructDescription));
+    }
+
+    [Fact]
+    public void GetFields_BitFieldsView_ReturnsStructDescription()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramMsbView));
+        Assert.All(fields, f => Assert.Equal("MSB-first test view", f.StructDescription));
+    }
+
+    // ── StructDescription + commentPrefix interaction ────────────
+
+    [Fact]
+    public void Render_Fields_StructDescription_CommentPrefix_WithDescriptionsOn()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "/// ");
+        Assert.Equal("/// 8-bit test status register", lines[0]);
+        Assert.All(lines, line => Assert.StartsWith("/// ", line));
+    }
+
+    [Fact]
+    public void Render_Fields_StructDescription_CommentPrefix_WithDescriptionsOff()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, includeDescriptions: false, commentPrefix: "// ");
+        Assert.DoesNotContain(lines, l => l.Contains("8-bit test status register"));
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void Render_Fields_MultilineStructDescription_EachLineGetCommentPrefix()
+    {
+        var fields = new[]
+        {
+            new BitFieldInfo("TestBit", 0, 1, "bool", true,
+                StructTotalBits: 8,
+                StructDescription: "Line one\nLine two\nLine three"),
+        };
+        var lines = BitFieldDiagram.Render(fields, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
+        Assert.Equal("// Line one", lines[0]);
+        Assert.Equal("// Line two", lines[1]);
+        Assert.Equal("// Line three", lines[2]);
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+    }
+
+    [Fact]
+    public void Render_Fields_MultilineStructDescription_NoPrefix_SplitIntoSeparateEntries()
+    {
+        var fields = new[]
+        {
+            new BitFieldInfo("TestBit", 0, 1, "bool", true,
+                StructTotalBits: 8,
+                StructDescription: "First\nSecond"),
+        };
+        var lines = BitFieldDiagram.Render(fields, bitsPerRow: 8, includeDescriptions: true);
+        Assert.Equal("First", lines[0]);
+        Assert.Equal("Second", lines[1]);
+    }
+
+    // ── GetFields returns all expected field info ───────────────
+
+    [Fact]
+    public void GetFields_ReturnsCorrectFieldCount()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramTestRegister));
+        // 3 flags + 2 fields = 5
+        Assert.Equal(5, fields.Length);
+    }
+
+    [Fact]
+    public void GetFields_ReturnsFieldDescriptions()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramTestRegister));
+        var ready = fields.First(f => f.Name == "Ready");
+        Assert.Equal("Ready flag", ready.GetDescription());
+    }
+
+    [Fact]
+    public void GetFields_BitFieldsView_ReturnsCorrectFields()
+    {
+        var fields = BitFieldDiagram.GetFields(typeof(DiagramMsbView));
+        Assert.Contains(fields, f => f.Name == "Version");
+        Assert.Contains(fields, f => f.Name == "Ihl");
+        Assert.Contains(fields, f => f.Name == "TotalLength");
     }
 }

@@ -155,6 +155,9 @@ public partial class BitFieldsGenerator
         string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
             ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
         string structBitOrder = "BitOrder.BitZeroIsLsb"; // [BitFields] default; MSB conversion happens internally
+        string structDescArg = info.Description != null
+            ? $", StructDescription: \"{GeneratorUtils.EscapeStringLiteral(info.Description)}\""
+            : "";
 
         sb.AppendLine($"{indent}/// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>");
         sb.AppendLine($"{indent}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
@@ -164,13 +167,13 @@ public partial class BitFieldsGenerator
         {
             var qualifiedType = StripGlobalPrefix(f.PropertyType);
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}{structDescArg}),");
         }
 
         foreach (var f in info.DeclaredFlags)
         {
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}{structDescArg}),");
         }
 
         sb.AppendLine($"{indent}}};");
@@ -186,7 +189,7 @@ public partial class BitFieldsGenerator
         if (description is null)
             return "";
 
-        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        var escaped = GeneratorUtils.EscapeStringLiteral(description);
         if (descriptionResourceType is null)
             return $", \"{escaped}\"";
 
