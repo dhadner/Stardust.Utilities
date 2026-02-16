@@ -25,8 +25,9 @@
     <label>Comment:</label>
     <select @bind="_commentStyle" @bind:after="UpdateDiagram">
         <option value="0">None</option>
-        <option value="1">// (double-slash)</option>
-        <option value="2">/// (triple-slash)</option>
+        <option value="1">* (asterisk)</option>
+        <option value="2">// (double-slash)</option>
+        <option value="3">/// (triple-slash)</option>
     </select>
 
     <label><input type="checkbox" @bind="_showDescriptions" @bind:after="UpdateDiagram" /> Descriptions</label>
@@ -48,6 +49,7 @@
     }
     @if (_hasLoadedAssembly)
     {
+        <button @onclick="RefreshFile">Refresh</button>
         <button @onclick="ResetToBuiltIn">Reset to Built-in</button>
     }
 </div>
@@ -56,7 +58,7 @@
 <div class="diagram-output">@_diagramText</div>
 
 @code {
-#pragma warning disable CS0618 // DiagramSection: retained until DemoWeb migrates to Type-based API
+    #pragma warning disable CS0618 // DiagramSection: retained until DemoWeb migrates to Type-based API
     private record struct DiagramSource(string Label, DiagramSection[] Sections);
 
     private DiagramSource[] _sources = [];
@@ -70,6 +72,7 @@
     private bool _copied;
     private string? _assemblyStatus;
     private bool _hasLoadedAssembly;
+    private IBrowserFile? _assemblyFile;
 
     private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
         new(label, [new("", fields)]);
@@ -100,7 +103,7 @@
                 new("CACR", M68020CACR.Fields.ToArray()),
                 new("CAAR", M68020CAAR.Fields.ToArray()),
             ]),
-        ];
+    ];
         _sources = _builtInSources;
         UpdateDiagram();
     }
@@ -111,8 +114,9 @@
         var source = _sources[_selectedIndex];
         string? commentPrefix = _commentStyle switch
         {
-            1 => "// ",
-            2 => "/// ",
+            1 => "* ",
+            2 => "// ",
+            3 => "/// ",
             _ => null
         };
         _diagramText = BitFieldDiagram.RenderListToString(
@@ -126,7 +130,26 @@
 
         try
         {
-            var file = e.File;
+            if ((await LoadAssembly(e.File)).IsFailure)
+            {
+                return;
+            }
+            UpdateDiagram();
+        }
+        catch (Exception ex)
+        {
+            _assemblyStatus = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task<Result<string>> LoadAssembly(IBrowserFile file)
+    {
+        _assemblyStatus = null;
+        try
+        {
+            _hasLoadedAssembly = false;
+            _assemblyFile = null;
+
             using var ms = new MemoryStream();
             await file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024).CopyToAsync(ms);
             var bytes = ms.ToArray();
@@ -136,7 +159,7 @@
             if (result.Error != null && result.Structs.Count == 0)
             {
                 _assemblyStatus = $"{result.AssemblyName}: {result.Error}";
-                return;
+                return Result<string>.Err(_assemblyStatus);
             }
 
             string? previousSelection = _selectedIndex >= 0 && _selectedIndex < _sources.Length
@@ -150,6 +173,7 @@
 #pragma warning restore CS0618
 
             _sources = sources.ToArray();
+            _assemblyFile = file;
             _hasLoadedAssembly = true;
 
             int restoredIndex = -1;
@@ -167,11 +191,21 @@
             _selectedIndex = restoredIndex >= 0 ? restoredIndex : 0;
 
             _assemblyStatus = $"Loaded {result.Structs.Count} struct(s) from {result.AssemblyName}";
-            UpdateDiagram();
+            return Result<string>.Ok();
         }
         catch (Exception ex)
         {
-            _assemblyStatus = $"Error: {ex.Message}";
+            _assemblyStatus = $"Error: {ex.Message}";   
+            return Result<string>.Err(_assemblyStatus);
+        }
+    }
+
+    private async Task RefreshFile()
+    {
+        if (_hasLoadedAssembly && _assemblyFile != null)
+        {
+            await LoadAssembly(_assemblyFile);
+            UpdateDiagram();
         }
     }
 

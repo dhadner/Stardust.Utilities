@@ -343,6 +343,7 @@ public partial class MainWindow : Window
 
         RfcCommentStyle.Items.Clear();
         RfcCommentStyle.Items.Add("None");
+        RfcCommentStyle.Items.Add("* (asterisk)");
         RfcCommentStyle.Items.Add("// (double-slash)");
         RfcCommentStyle.Items.Add("/// (triple-slash)");
         RfcCommentStyle.SelectedIndex = 0;
@@ -362,8 +363,9 @@ public partial class MainWindow : Window
         bool showOffset = RfcShowByteOffset.IsChecked == true;
         string? commentPrefix = RfcCommentStyle.SelectedIndex switch
         {
-            1 => "// ",
-            2 => "/// ",
+            1 => "* ",
+            2 => "// ",
+            3 => "/// ",
             _ => null
         };
 

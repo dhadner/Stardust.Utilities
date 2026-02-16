@@ -331,6 +331,13 @@ public class BitFieldDiagramTests
     // ── Comment prefix ──────────────────────────────────────────
 
     [Fact]
+    public void Render_CommentPrefix_Asterisk_PrependedToEveryLine()
+    {
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, commentPrefix: "* ");
+        Assert.All(lines, line => Assert.StartsWith("* ", line));
+    }
+
+    [Fact]
     public void Render_CommentPrefix_DoubleSlash_PrependedToEveryLine()
     {
         var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8, commentPrefix: "// ");
