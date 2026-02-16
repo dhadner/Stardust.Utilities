@@ -245,6 +245,14 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             byteOrder = (ByteOrderValue)byteOrderValue;
         }
 
+        // Read optional struct-level Description from named argument
+        string? structDescription = null;
+        foreach (var named in bitFieldsAttr.NamedArguments)
+        {
+            if (named.Key == "Description" && named.Value.Value is string sd)
+                structDescription = sd;
+        }
+
         // Determine storage mode, word count, and total bits
         StorageMode mode;
         int wordCount;
@@ -313,7 +321,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             nativeWideType,
             byteOrder,
             declaredFields,
-            declaredFlags);
+            declaredFlags,
+            structDescription);
     }
 
     /// <summary>

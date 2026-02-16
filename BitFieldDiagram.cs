@@ -34,6 +34,7 @@ namespace Stardust.Utilities;
 /// </summary>
 /// <param name="Label">Section heading displayed above the diagram (empty string for no heading).</param>
 /// <param name="Fields">The field metadata array (from the generated <c>Fields</c> property).</param>
+[Obsolete("Use the Type-based RenderList/RenderListToString overloads instead. Set Description on [BitFields]/[BitFieldsView] attributes to provide section labels.")]
 public readonly record struct DiagramSection(string Label, BitFieldInfo[] Fields);
 
 public static class BitFieldDiagram
@@ -50,11 +51,12 @@ public static class BitFieldDiagram
     /// <param name="showByteOffset">When true, shows hex byte offset (e.g., 0x00) at the left of each content row.</param>
     /// <param name="minCellWidth">Minimum cell width (characters per bit column). When 0, computed automatically.
     /// Used internally by <see cref="RenderList"/> to enforce consistent scale across sections.</param>
+    /// <param name="commentPrefix">When non-null, prepended to every output line (e.g., <c>"// "</c> or <c>"/// "</c>).</param>
     /// <returns>A list of strings, one per output line.</returns>
-    public static List<string> Render(ReadOnlySpan<BitFieldInfo> fields, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, int minCellWidth = 0)
+    public static List<string> Render(ReadOnlySpan<BitFieldInfo> fields, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, int minCellWidth = 0, string? commentPrefix = null)
     {
         if (fields.Length == 0)
-            return ["(no fields)"];
+            return [FormatLine("(no fields)", commentPrefix)];
 
         if (bitsPerRow < 1) bitsPerRow = 32;
 
@@ -116,6 +118,16 @@ public static class BitFieldDiagram
         }
 
         var lines = new List<string>();
+
+        // Emit struct-level description as a header when descriptions are enabled.
+        // Split on embedded newlines so every visual line is a separate entry
+        // (required for comment-prefix to be applied to each line).
+        if (includeDescriptions && fields.Length > 0 && fields[0].StructDescription is { } structDesc)
+        {
+            foreach (var descLine in structDesc.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None))
+                lines.Add(descLine);
+        }
+
         int gutterWidth = showByteOffset ? 7 : 0;
         string gutterBlank = new string(' ', gutterWidth);
         int lineWidth = 1 + bitsPerRow * cellWidth;
@@ -255,7 +267,11 @@ public static class BitFieldDiagram
                             (null, not null) => mustBe,
                             _ => ""
                         };
-                        lines.Add($"  {f.Name}: {text}");
+                        // Split on embedded newlines so each display line is a separate entry
+                        string[] descLines = text.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+                        lines.Add($"  {f.Name}: {descLines[0]}");
+                        for (int d = 1; d < descLines.Length; d++)
+                            lines.Add($"    {descLines[d]}");
                     }
                 }
             }
@@ -274,15 +290,21 @@ public static class BitFieldDiagram
 
         }
 
+        if (commentPrefix != null)
+        {
+            for (int i = 0; i < lines.Count; i++)
+                lines[i] = FormatLine(lines[i], commentPrefix);
+        }
+
         return lines;
     }
 
     /// <summary>
     /// Renders the diagram as a single string with newlines.
     /// </summary>
-    public static string RenderToString(ReadOnlySpan<BitFieldInfo> fields, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, int minCellWidth = 0)
+    public static string RenderToString(ReadOnlySpan<BitFieldInfo> fields, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, int minCellWidth = 0, string? commentPrefix = null)
     {
-        var lines = Render(fields, bitsPerRow, includeDescriptions, showByteOffset, minCellWidth);
+        var lines = Render(fields, bitsPerRow, includeDescriptions, showByteOffset, minCellWidth, commentPrefix);
         return string.Join(Environment.NewLine, lines);
     }
 
@@ -344,6 +366,81 @@ public static class BitFieldDiagram
     }
 
     /// <summary>
+    /// Renders an RFC-style ASCII bit field diagram for the specified <c>[BitFields]</c> or <c>[BitFieldsView]</c> type.
+    /// The type must have a static <c>Fields</c> property returning <c>ReadOnlySpan&lt;BitFieldInfo&gt;</c>.
+    /// </summary>
+    /// <param name="bitFieldsType">The struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+    /// <param name="bitsPerRow">Number of bits per diagram row.</param>
+    /// <param name="includeDescriptions">When true, appends a legend with field descriptions below the diagram.</param>
+    /// <param name="showByteOffset">When true, shows hex byte offset at the left of each content row.</param>
+    /// <param name="commentPrefix">When non-null, prepended to every output line.</param>
+    /// <returns>A list of strings, one per output line.</returns>
+    public static List<string> Render(Type bitFieldsType, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
+    {
+        var fields = GetFields(bitFieldsType);
+        return Render(fields, bitsPerRow, includeDescriptions, showByteOffset, 0, commentPrefix);
+    }
+
+    /// <summary>
+    /// Renders the diagram for the specified type as a single string with newlines.
+    /// </summary>
+    public static string RenderToString(Type bitFieldsType, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
+    {
+        var lines = Render(bitFieldsType, bitsPerRow, includeDescriptions, showByteOffset, commentPrefix);
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>
+    /// Renders multiple <c>[BitFields]</c> or <c>[BitFieldsView]</c> types as a unified diagram
+    /// with consistent cell widths. Each type's <c>StructDescription</c> (or simple type name when
+    /// no description is set) is shown as a section heading.
+    /// </summary>
+    /// <param name="bitsPerRow">Number of bits per diagram row.</param>
+    /// <param name="includeDescriptions">When true, appends field description legends.</param>
+    /// <param name="showByteOffset">When true, shows hex byte offsets at the left.</param>
+    /// <param name="commentPrefix">When non-null, prepended to every output line.</param>
+    /// <param name="bitFieldsTypes">The struct types to render.</param>
+    /// <returns>A list of strings, one per output line.</returns>
+    public static List<string> RenderList(int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null, params Type[] bitFieldsTypes)
+    {
+        if (bitFieldsTypes.Length == 0) return [FormatLine("(no types)", commentPrefix)];
+        if (bitsPerRow < 1) bitsPerRow = 32;
+
+        var allFields = new BitFieldInfo[bitFieldsTypes.Length][];
+        int sharedCellWidth = 2;
+        for (int i = 0; i < bitFieldsTypes.Length; i++)
+        {
+            allFields[i] = GetFields(bitFieldsTypes[i]);
+            int w = ComputeMinCellWidth(allFields[i], bitsPerRow);
+            sharedCellWidth = Math.Max(sharedCellWidth, w);
+        }
+
+        var lines = new List<string>();
+        for (int i = 0; i < allFields.Length; i++)
+        {
+            var fields = allFields[i];
+
+            if (lines.Count > 0) lines.Add(FormatLine("", commentPrefix));
+
+            // Always emit a section label so multi-struct output has visual separation.
+            // Use the type name; Render will emit StructDescription below when descriptions are on.
+            lines.Add(FormatLine(bitFieldsTypes[i].Name, commentPrefix));
+
+            lines.AddRange(Render(fields, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix));
+        }
+        return lines;
+    }
+
+    /// <summary>
+    /// Renders multiple types as a single string with consistent cell widths.
+    /// </summary>
+    public static string RenderListToString(int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null, params Type[] bitFieldsTypes)
+    {
+        var lines = RenderList(bitsPerRow, includeDescriptions, showByteOffset, commentPrefix, bitFieldsTypes);
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>
     /// Renders multiple struct sections as a unified diagram list with consistent cell widths.
     /// The widest field name across all sections determines the scale for the entire output.
     /// </summary>
@@ -351,10 +448,12 @@ public static class BitFieldDiagram
     /// <param name="bitsPerRow">Number of bits per diagram row.</param>
     /// <param name="includeDescriptions">When true, appends field description legends.</param>
     /// <param name="showByteOffset">When true, shows hex byte offsets at the left.</param>
+    /// <param name="commentPrefix">When non-null, prepended to every output line (e.g., <c>"// "</c> or <c>"/// "</c>).</param>
     /// <returns>A list of strings, one per output line.</returns>
-    public static List<string> RenderList(ReadOnlySpan<DiagramSection> sections, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true)
+    [Obsolete("Use RenderList(bitsPerRow, includeDescriptions, showByteOffset, commentPrefix, params Type[]) instead. Set Description on [BitFields]/[BitFieldsView] attributes to provide section labels.")]
+    public static List<string> RenderList(ReadOnlySpan<DiagramSection> sections, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
     {
-        if (sections.Length == 0) return ["(no sections)"];
+        if (sections.Length == 0) return [FormatLine("(no sections)", commentPrefix)];
         if (bitsPerRow < 1) bitsPerRow = 32;
 
         // Compute shared cell width across all sections
@@ -370,10 +469,10 @@ public static class BitFieldDiagram
         {
             if (section.Label.Length > 0)
             {
-                if (lines.Count > 0) lines.Add("");
-                lines.Add(section.Label);
+                if (lines.Count > 0) lines.Add(FormatLine("", commentPrefix));
+                lines.Add(FormatLine(section.Label, commentPrefix));
             }
-            lines.AddRange(Render(section.Fields, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth));
+            lines.AddRange(Render(section.Fields, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix));
         }
         return lines;
     }
@@ -381,10 +480,65 @@ public static class BitFieldDiagram
     /// <summary>
     /// Renders multiple struct sections as a single string with consistent cell widths.
     /// </summary>
-    public static string RenderListToString(ReadOnlySpan<DiagramSection> sections, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true)
+    [Obsolete("Use RenderListToString(bitsPerRow, includeDescriptions, showByteOffset, commentPrefix, params Type[]) instead.")]
+    public static string RenderListToString(ReadOnlySpan<DiagramSection> sections, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
     {
-        var lines = RenderList(sections, bitsPerRow, includeDescriptions, showByteOffset);
+        var lines = RenderList(sections, bitsPerRow, includeDescriptions, showByteOffset, commentPrefix);
         return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>
+    /// Retrieves the <c>Fields</c> metadata from a <c>[BitFields]</c> or <c>[BitFieldsView]</c> type via reflection.
+    /// </summary>
+    /// <param name="bitFieldsType">A struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+    /// <returns>The field metadata array.</returns>
+    /// <exception cref="ArgumentException">The type does not have a static <c>Fields</c> property.</exception>
+    public static BitFieldInfo[] GetFields(Type bitFieldsType)
+    {
+        var prop = bitFieldsType.GetProperty("Fields",
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+        if (prop == null)
+            throw new ArgumentException(
+                $"Type '{bitFieldsType.Name}' does not have a static 'Fields' property. " +
+                $"Ensure it is decorated with [BitFields] or [BitFieldsView].",
+                nameof(bitFieldsType));
+
+        // The generated property returns ReadOnlySpan<BitFieldInfo> backed by an array literal.
+        // ReadOnlySpan cannot be obtained via PropertyInfo.GetValue (reflection limitation).
+        // Instead, invoke the getter via a typed delegate.
+        var getter = prop.GetGetMethod();
+        if (getter == null)
+            throw new ArgumentException(
+                $"The 'Fields' property on '{bitFieldsType.Name}' has no getter.",
+                nameof(bitFieldsType));
+
+        // Create a delegate matching the signature: static ReadOnlySpan<BitFieldInfo> get_Fields()
+        var delegateType = typeof(SpanGetter<>).MakeGenericType(typeof(BitFieldInfo));
+        var del = Delegate.CreateDelegate(delegateType, getter, throwOnBindFailure: false);
+        if (del != null)
+        {
+            // Call via helper that can handle the span return
+            var span = ((SpanGetter<BitFieldInfo>)del)();
+            return span.ToArray();
+        }
+
+        // Fallback: try direct GetValue for non-span return types
+        var value = prop.GetValue(null);
+        if (value is BitFieldInfo[] array)
+            return array;
+
+        throw new ArgumentException(
+            $"The 'Fields' property on '{bitFieldsType.Name}' could not be read. " +
+            $"Ensure the type was generated by the BitFields source generator.",
+            nameof(bitFieldsType));
+    }
+
+    private delegate ReadOnlySpan<T> SpanGetter<T>();
+
+    private static string FormatLine(string line, string? prefix)
+    {
+        return prefix != null ? prefix + line : line;
     }
 
     private static string BuildSeparator(int bitsPerRow, int cellWidth)

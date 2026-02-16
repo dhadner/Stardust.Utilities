@@ -82,6 +82,9 @@ internal sealed class BitFieldsViewInfo
     /// </summary>
     public int MinBytes { get; }
 
+    /// <summary>Optional struct-level description from the [BitFieldsView] attribute.</summary>
+    public string? Description { get; }
+
     public BitFieldsViewInfo(
         string typeName,
         string? ns,
@@ -92,7 +95,8 @@ internal sealed class BitFieldsViewInfo
         List<BitFlagInfo> flags,
         List<SubViewInfo> subViews,
         List<(string Kind, string Name, string Accessibility)> containingTypes,
-        int minBytes)
+        int minBytes,
+        string? description = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -104,5 +108,6 @@ internal sealed class BitFieldsViewInfo
         SubViews = subViews;
         ContainingTypes = containingTypes;
         MinBytes = minBytes;
+        Description = description;
     }
 }

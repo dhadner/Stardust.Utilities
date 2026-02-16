@@ -52,7 +52,7 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.4" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.5" />
 ```
 
 That's it, the source generator is included automatically.

@@ -81,6 +81,12 @@ public sealed class BitFieldsAttribute : Attribute
     public BitOrder BitOrder { get; }
 
     /// <summary>
+    /// An optional description of the struct, used as a section label in
+    /// <see cref="BitFieldDiagram"/> multi-struct diagrams.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
     /// Creates a BitFields attribute with the specified storage type.
     /// </summary>
     /// <param name="storageType">The storage type (byte, ushort, uint, ulong, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).</param>

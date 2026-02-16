@@ -13,228 +13,212 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(DiagramTestRegisterJsonConverter))]
-public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTestRegister>, IEquatable<DiagramTestRegister>,
-                             IFormattable, ISpanFormattable, IParsable<DiagramTestRegister>, ISpanParsable<DiagramTestRegister>
+[JsonConverter(typeof(DescUnicodeRegisterJsonConverter))]
+public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicodeRegister>, IEquatable<DescUnicodeRegister>,
+                             IFormattable, ISpanFormattable, IParsable<DescUnicodeRegister>, ISpanParsable<DescUnicodeRegister>
 {
-    private byte Value;
+    private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SizeInBytes = 2;
 
-    /// <summary>Returns a DiagramTestRegister with all bits set to zero.</summary>
-    public static DiagramTestRegister Zero => default;
+    /// <summary>Returns a DescUnicodeRegister with all bits set to zero.</summary>
+    public static DescUnicodeRegister Zero => default;
 
-    /// <summary>Creates a new DiagramTestRegister with the specified raw bits value.</summary>
-    public DiagramTestRegister(byte value) { Value = value; }
+    /// <summary>Creates a new DescUnicodeRegister with the specified raw bits value.</summary>
+    public DescUnicodeRegister(ushort value) { Value = value; }
 
-    public partial byte Mode
+    public partial byte Japanese
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x07);
+        get => (byte)((Value >> 2) & 0x003F);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
+        set => Value = (ushort)((Value & 0xFF03) | ((((ushort)value) << 2) & 0x00FC));
     }
 
-    public partial byte Priority
+    public partial byte Accented
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 5) & 0x03);
+        get => (byte)((Value >> 8) & 0x00FF);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x9F) | ((((byte)value) << 5) & 0x60));
+        set => Value = (ushort)((Value & 0x00FF) | ((((ushort)value) << 8) & 0xFF00));
     }
 
-    public partial bool Ready
+    public partial bool Check
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (Value & 0x0001) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => Value = value ? (ushort)(Value | 0x0001) : (ushort)(Value & 0xFFFE);
     }
 
-    public partial bool Error
+    public partial bool Rocket
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x02) != 0;
+        get => (Value & 0x0002) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+        set => Value = value ? (ushort)(Value | 0x0002) : (ushort)(Value & 0xFFFD);
     }
 
-    public partial bool Busy
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x80) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F);
-    }
+    /// <summary>Returns a DescUnicodeRegister with only the Check bit set.</summary>
+    public static DescUnicodeRegister CheckBit => new((ushort)0x0001);
 
-    /// <summary>Returns a DiagramTestRegister with only the Ready bit set.</summary>
-    public static DiagramTestRegister ReadyBit => new((byte)0x01);
+    /// <summary>Returns a DescUnicodeRegister with only the Rocket bit set.</summary>
+    public static DescUnicodeRegister RocketBit => new((ushort)0x0002);
 
-    /// <summary>Returns a DiagramTestRegister with only the Error bit set.</summary>
-    public static DiagramTestRegister ErrorBit => new((byte)0x02);
+    /// <summary>Returns a DescUnicodeRegister with the mask for the Japanese field (bits 2-7).</summary>
+    public static DescUnicodeRegister JapaneseMask => new((ushort)0x00FC);
 
-    /// <summary>Returns a DiagramTestRegister with only the Busy bit set.</summary>
-    public static DiagramTestRegister BusyBit => new((byte)0x80);
-
-    /// <summary>Returns a DiagramTestRegister with the mask for the Mode field (bits 2-4).</summary>
-    public static DiagramTestRegister ModeMask => new((byte)0x1C);
-
-    /// <summary>Returns a DiagramTestRegister with the mask for the Priority field (bits 5-6).</summary>
-    public static DiagramTestRegister PriorityMask => new((byte)0x60);
+    /// <summary>Returns a DescUnicodeRegister with the mask for the Accented field (bits 8-15).</summary>
+    public static DescUnicodeRegister AccentedMask => new((ushort)0xFF00);
 
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Mode", 2, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Operating mode", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Ready flag", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Error flag", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
+        new("Japanese", 2, 6, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "日本語テスト", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Accented", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Ünïcödé àccénts", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Check", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Flag ✓ enabled", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Rocket", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Emoji 🚀 launch", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
     };
 
-    /// <summary>Returns a new DiagramTestRegister with the Ready flag set to the specified value.</summary>
+    /// <summary>Returns a new DescUnicodeRegister with the Check flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramTestRegister WithReady(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public DescUnicodeRegister WithCheck(bool value) => new(value ? (ushort)(Value | 0x0001) : (ushort)(Value & 0xFFFE));
 
-    /// <summary>Returns a new DiagramTestRegister with the Error flag set to the specified value.</summary>
+    /// <summary>Returns a new DescUnicodeRegister with the Rocket flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramTestRegister WithError(bool value) => new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+    public DescUnicodeRegister WithRocket(bool value) => new(value ? (ushort)(Value | 0x0002) : (ushort)(Value & 0xFFFD));
 
-    /// <summary>Returns a new DiagramTestRegister with the Busy flag set to the specified value.</summary>
+    /// <summary>Returns a new DescUnicodeRegister with the Japanese field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramTestRegister WithBusy(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
+    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((Value & 0xFF03) | (((ushort)value << 2) & 0x00FC)));
 
-    /// <summary>Returns a new DiagramTestRegister with the Mode field set to the specified value.</summary>
+    /// <summary>Returns a new DescUnicodeRegister with the Accented field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramTestRegister WithMode(byte value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
-
-    /// <summary>Returns a new DiagramTestRegister with the Priority field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramTestRegister WithPriority(byte value) => new((byte)((Value & 0x9F) | (((byte)value << 5) & 0x60)));
+    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((Value & 0x00FF) | (((ushort)value << 8) & 0xFF00)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator ~(DiagramTestRegister a) => new((byte)~a.Value);
+    public static DescUnicodeRegister operator ~(DescUnicodeRegister a) => new((ushort)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator |(DiagramTestRegister a, DiagramTestRegister b) => new((byte)(a.Value | b.Value));
+    public static DescUnicodeRegister operator |(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator &(DiagramTestRegister a, DiagramTestRegister b) => new((byte)(a.Value & b.Value));
+    public static DescUnicodeRegister operator &(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator ^(DiagramTestRegister a, DiagramTestRegister b) => new((byte)(a.Value ^ b.Value));
+    public static DescUnicodeRegister operator ^(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value ^ b.Value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator +(DiagramTestRegister a) => a;
+    public static DescUnicodeRegister operator +(DescUnicodeRegister a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator -(DiagramTestRegister a) => new(unchecked((byte)(0 - a.Value)));
+    public static DescUnicodeRegister operator -(DescUnicodeRegister a) => new(unchecked((ushort)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator +(DiagramTestRegister a, DiagramTestRegister b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static DescUnicodeRegister operator +(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator +(DiagramTestRegister a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static DescUnicodeRegister operator +(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator +(byte a, DiagramTestRegister b) => new(unchecked((byte)(a + b.Value)));
+    public static DescUnicodeRegister operator +(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator -(DiagramTestRegister a, DiagramTestRegister b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static DescUnicodeRegister operator -(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator -(DiagramTestRegister a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static DescUnicodeRegister operator -(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator -(byte a, DiagramTestRegister b) => new(unchecked((byte)(a - b.Value)));
+    public static DescUnicodeRegister operator -(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator *(DiagramTestRegister a, DiagramTestRegister b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static DescUnicodeRegister operator *(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator *(DiagramTestRegister a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static DescUnicodeRegister operator *(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator *(byte a, DiagramTestRegister b) => new(unchecked((byte)(a * b.Value)));
+    public static DescUnicodeRegister operator *(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator /(DiagramTestRegister a, DiagramTestRegister b) => new((byte)(a.Value / b.Value));
+    public static DescUnicodeRegister operator /(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator /(DiagramTestRegister a, byte b) => new((byte)(a.Value / b));
+    public static DescUnicodeRegister operator /(DescUnicodeRegister a, ushort b) => new((ushort)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator /(byte a, DiagramTestRegister b) => new((byte)(a / b.Value));
+    public static DescUnicodeRegister operator /(ushort a, DescUnicodeRegister b) => new((ushort)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator %(DiagramTestRegister a, DiagramTestRegister b) => new((byte)(a.Value % b.Value));
+    public static DescUnicodeRegister operator %(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator %(DiagramTestRegister a, byte b) => new((byte)(a.Value % b));
+    public static DescUnicodeRegister operator %(DescUnicodeRegister a, ushort b) => new((ushort)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister operator %(byte a, DiagramTestRegister b) => new((byte)(a % b.Value));
+    public static DescUnicodeRegister operator %(ushort a, DescUnicodeRegister b) => new((ushort)(a % b.Value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(DiagramTestRegister a, int b) => a.Value << b;
+    public static int operator <<(DescUnicodeRegister a, int b) => a.Value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(DiagramTestRegister a, int b) => a.Value >> b;
+    public static int operator >>(DescUnicodeRegister a, int b) => a.Value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(DiagramTestRegister a, int b) => a.Value >>> b;
+    public static int operator >>>(DescUnicodeRegister a, int b) => a.Value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(DiagramTestRegister a, DiagramTestRegister b) => a.Value < b.Value;
+    public static bool operator <(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(DiagramTestRegister a, DiagramTestRegister b) => a.Value > b.Value;
+    public static bool operator >(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(DiagramTestRegister a, DiagramTestRegister b) => a.Value <= b.Value;
+    public static bool operator <=(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(DiagramTestRegister a, DiagramTestRegister b) => a.Value >= b.Value;
+    public static bool operator >=(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DiagramTestRegister a, DiagramTestRegister b) => a.Value == b.Value;
+    public static bool operator ==(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(DiagramTestRegister a, DiagramTestRegister b) => a.Value != b.Value;
+    public static bool operator !=(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is DiagramTestRegister other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is DescUnicodeRegister other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -243,30 +227,30 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(DiagramTestRegister value) => value.Value;
+    public static implicit operator ushort(DescUnicodeRegister value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator DiagramTestRegister(byte value) => new(value);
+    public static implicit operator DescUnicodeRegister(ushort value) => new(value);
 
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator DiagramTestRegister(int value) => new(unchecked((byte)value));
+    public static implicit operator DescUnicodeRegister(int value) => new(unchecked((ushort)value));
 
-    /// <summary>Creates a new DiagramTestRegister from a little-endian byte span.</summary>
+    /// <summary>Creates a new DescUnicodeRegister from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public DiagramTestRegister(ReadOnlySpan<byte> bytes)
+    public DescUnicodeRegister(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = bytes[0];
+        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
     }
 
-    /// <summary>Creates a new DiagramTestRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new DescUnicodeRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
-    /// <returns>The deserialized DiagramTestRegister.</returns>
+    /// <returns>The deserialized DescUnicodeRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static DescUnicodeRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
@@ -275,7 +259,7 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     {
         if (destination.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -319,13 +303,13 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
         return sb.ToString();
     }
 
-    private static byte ParseBinary(ReadOnlySpan<char> s)
+    private static ushort ParseBinary(ReadOnlySpan<char> s)
     {
         var clean = RemoveUnderscores(s);
-        return Convert.ToByte(clean, 2);
+        return Convert.ToUInt16(clean, 2);
     }
 
-    private static bool TryParseBinary(ReadOnlySpan<char> s, out byte result)
+    private static bool TryParseBinary(ReadOnlySpan<char> s, out ushort result)
     {
         try
         {
@@ -339,28 +323,28 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
         }
     }
 
-    /// <summary>Parses a string into a DiagramTestRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a DescUnicodeRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed DiagramTestRegister value.</returns>
+    /// <returns>The parsed DescUnicodeRegister value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static DiagramTestRegister Parse(string s, IFormatProvider? provider)
+    public static DescUnicodeRegister Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
         if (IsBinaryPrefix(span))
             return new(ParseBinary(span.Slice(2)));
         if (IsHexPrefix(span))
-            return new(byte.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(byte.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
+            return new(ushort.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(ushort.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a DiagramTestRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a DescUnicodeRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out DiagramTestRegister result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out DescUnicodeRegister result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -376,7 +360,7 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
         }
         if (IsHexPrefix(span))
         {
-            if (byte.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (ushort.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -384,7 +368,7 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
             result = default;
             return false;
         }
-        if (byte.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
+        if (ushort.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -393,25 +377,25 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
         return false;
     }
 
-    /// <summary>Parses a span of characters into a DiagramTestRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a DescUnicodeRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed DiagramTestRegister value.</returns>
-    public static DiagramTestRegister Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed DescUnicodeRegister value.</returns>
+    public static DescUnicodeRegister Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
         if (IsHexPrefix(s))
-            return new(byte.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(byte.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
+            return new(ushort.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(ushort.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a DiagramTestRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a DescUnicodeRegister. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out DiagramTestRegister result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out DescUnicodeRegister result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -425,7 +409,7 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
         }
         if (IsHexPrefix(s))
         {
-            if (byte.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (ushort.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -433,7 +417,7 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
             result = default;
             return false;
         }
-        if (byte.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
+        if (ushort.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -442,18 +426,18 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
         return false;
     }
 
-    /// <summary>Parses a string into a DiagramTestRegister using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a DescUnicodeRegister using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed DiagramTestRegister value.</returns>
+    /// <returns>The parsed DescUnicodeRegister value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramTestRegister Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static DescUnicodeRegister Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a DiagramTestRegister using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a DescUnicodeRegister using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out DiagramTestRegister result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out DescUnicodeRegister result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -473,38 +457,38 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a DiagramTestRegister.</exception>
+    /// <exception cref="ArgumentException">obj is not a DescUnicodeRegister.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is DiagramTestRegister other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type DiagramTestRegister", nameof(obj));
+        if (obj is DescUnicodeRegister other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type DescUnicodeRegister", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another DiagramTestRegister and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A DiagramTestRegister to compare.</param>
+    /// <summary>Compares this instance to another DescUnicodeRegister and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A DescUnicodeRegister to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(DiagramTestRegister other) => Value.CompareTo(other.Value);
+    public int CompareTo(DescUnicodeRegister other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another DiagramTestRegister.</summary>
-    /// <param name="other">A DiagramTestRegister to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another DescUnicodeRegister.</summary>
+    /// <param name="other">A DescUnicodeRegister to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(DiagramTestRegister other) => Value == other.Value;
+    public bool Equals(DescUnicodeRegister other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes DiagramTestRegister as a string.</summary>
-    private sealed class DiagramTestRegisterJsonConverter : JsonConverter<DiagramTestRegister>
+    /// <summary>JSON converter that serializes DescUnicodeRegister as a string.</summary>
+    private sealed class DescUnicodeRegisterJsonConverter : JsonConverter<DescUnicodeRegister>
     {
-        /// <summary>Reads a DiagramTestRegister from a JSON string.</summary>
-        public override DiagramTestRegister Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a DescUnicodeRegister from a JSON string.</summary>
+        public override DescUnicodeRegister Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : DiagramTestRegister.Parse(s);
+            return s is null ? default : DescUnicodeRegister.Parse(s);
         }
 
-        /// <summary>Writes a DiagramTestRegister to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, DiagramTestRegister value, JsonSerializerOptions options)
+        /// <summary>Writes a DescUnicodeRegister to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, DescUnicodeRegister value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

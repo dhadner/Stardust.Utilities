@@ -33,6 +33,10 @@ namespace Stardust.Utilities;
 /// <param name="StructUndefinedMustBe">
 /// Struct-level UndefinedBitsMustBe mode: 0 = any, 1 = zeroes, 2 = ones.
 /// </param>
+/// <param name="StructDescription">
+/// An optional description of the containing struct, from the <c>[BitFields]</c> or <c>[BitFieldsView]</c>
+/// attribute's <c>Description</c> property. Used as a section label in multi-struct diagram rendering.
+/// </param>
 public sealed record BitFieldInfo(
     string Name,
     int StartBit,
@@ -45,7 +49,8 @@ public sealed record BitFieldInfo(
     Type? DescriptionResourceType = null,
     int StructTotalBits = 0,
     int FieldMustBe = 0,
-    int StructUndefinedMustBe = 0)
+    int StructUndefinedMustBe = 0,
+    string? StructDescription = null)
 {
     /// <summary>The ending bit position (inclusive, 0-based, as declared by the user).</summary>
     public int EndBit => StartBit + BitLength - 1;

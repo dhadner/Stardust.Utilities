@@ -58,6 +58,12 @@ public sealed class BitFieldsViewAttribute : Attribute
     public BitOrder BitOrder { get; }
 
     /// <summary>
+    /// An optional description of the struct, used as a section label in
+    /// <see cref="BitFieldDiagram"/> multi-struct diagrams.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
     /// Creates a BitFieldsView attribute with the specified byte order and bit order.
     /// </summary>
     /// <param name="byteOrder">Byte order for multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
