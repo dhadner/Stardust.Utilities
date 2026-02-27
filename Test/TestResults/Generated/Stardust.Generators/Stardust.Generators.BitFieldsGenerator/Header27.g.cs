@@ -61,12 +61,16 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <summary>Returns a Header27 with the mask for the Sequence field (bits 19-26).</summary>
     public static Header27 SequenceMask => new((uint)0x07F80000U);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("SubHeader", 0, 9, "Stardust.Utilities.Tests.SubHeader9", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 1),
-        new("PayloadSize", 9, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 1),
-        new("Sequence", 19, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 1),
+        new("SubHeader", 0, 9, "Stardust.Utilities.Tests.SubHeader9", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
+        new("PayloadSize", 9, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
+        new("Sequence", 19, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
     };
 
     /// <summary>Returns a new Header27 with the SubHeader field set to the specified value.</summary>

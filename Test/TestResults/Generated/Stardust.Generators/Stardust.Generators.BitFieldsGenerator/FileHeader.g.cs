@@ -83,14 +83,18 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
     public static FileHeader ReservedMask => new((ulong)0xFFFFFF0000000000UL);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>

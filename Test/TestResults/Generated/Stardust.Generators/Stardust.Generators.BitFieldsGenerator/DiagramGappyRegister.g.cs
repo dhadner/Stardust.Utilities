@@ -50,11 +50,15 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     /// <summary>Returns a DiagramGappyRegister with the mask for the Version field (bits 12-15).</summary>
     public static DiagramGappyRegister VersionMask => new((ushort)0xF000);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("TypeCode", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Type code", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 1),
-        new("Version", 12, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Version", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 1),
+        new("TypeCode", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Type code", StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
+        new("Version", 12, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Version", StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
     };
 
     /// <summary>Returns a new DiagramGappyRegister with the TypeCode field set to the specified value.</summary>

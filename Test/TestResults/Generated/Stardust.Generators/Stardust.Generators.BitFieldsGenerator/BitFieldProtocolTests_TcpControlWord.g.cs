@@ -74,13 +74,17 @@ public partial class BitFieldProtocolTests
         /// <summary>Returns a TcpControlWord with the mask for the WindowSize field (bits 0-15).</summary>
         public static TcpControlWord WindowSizeMask => new((uint)0x0000FFFFU);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("DataOffset", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Reserved", 25, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Flags", 16, 9, "Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("WindowSize", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("DataOffset", 28, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Reserved", 25, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Flags", 16, 9, "Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("WindowSize", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new TcpControlWord with the DataOffset field set to the specified value.</summary>

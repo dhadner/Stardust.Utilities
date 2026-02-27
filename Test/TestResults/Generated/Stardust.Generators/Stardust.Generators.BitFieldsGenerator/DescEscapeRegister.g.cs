@@ -116,17 +116,21 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <summary>Returns a DescEscapeRegister with the mask for the AllAtOnce field (bits 7-7).</summary>
     public static DescEscapeRegister AllAtOnceMask => new((byte)0x80);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("AllAtOnce", 7, 1, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Mixed: \"\\\n\t\r\0", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Newline", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Line1\nLine2", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Tab", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Col1\tCol2", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Quotes", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Say \"hello\"", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Backslash", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "C:\\Users\\test", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("CarriageReturn", 4, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "CR\rhere", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("NullChar", 5, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Null\0char", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("ControlChars", 6, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Alert\abell\bback\fform\vvert", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("AllAtOnce", 7, 1, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Mixed: \"\\\n\t\r\0", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Newline", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Line1\nLine2", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Tab", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Col1\tCol2", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Quotes", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Say \"hello\"", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Backslash", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "C:\\Users\\test", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("CarriageReturn", 4, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "CR\rhere", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("NullChar", 5, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Null\0char", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("ControlChars", 6, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Alert\abell\bback\fform\vvert", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new DescEscapeRegister with the Newline flag set to the specified value.</summary>

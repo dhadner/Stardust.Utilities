@@ -1957,11 +1957,11 @@ public partial class BitFieldMultiWordTests
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("WMid", 8128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("WLast", 16320, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("HighBit", 16383, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("W0", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("WMid", 8128, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("WLast", 16320, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("LowBit", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("HighBit", 16383, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16384, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Bitwise complement operator.</summary>

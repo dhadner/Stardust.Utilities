@@ -50,11 +50,15 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
     /// <summary>Returns a SubHeader9Ones with the mask for the Flags field (bits 4-8).</summary>
     public static SubHeader9Ones FlagsMask => new((ushort)0x01F0);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("TypeCode", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 2),
-        new("Flags", 4, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 2),
+        new("TypeCode", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
+        new("Flags", 4, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
     };
 
     /// <summary>Returns a new SubHeader9Ones with the TypeCode field set to the specified value.</summary>

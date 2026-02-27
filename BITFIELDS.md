@@ -796,7 +796,7 @@ public partial struct IPv4Flags
 {
     [BitFlag(0)] public partial bool MoreFragments { get; set; }
     [BitFlag(1)] public partial bool DontFragment { get; set; }
-    [BitFlag(2)] public partial bool Reserved { get; set; }
+    [BitFlag(2, MustBe.Zero)] public partial bool Reserved { get; set; } // Must be 0 even though defined
 }
 
 // 9-bit TCP control flags

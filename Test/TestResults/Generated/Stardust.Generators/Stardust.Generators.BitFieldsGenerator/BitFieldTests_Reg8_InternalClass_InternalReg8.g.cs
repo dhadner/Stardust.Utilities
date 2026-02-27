@@ -65,12 +65,16 @@ public partial class BitFieldTests
             /// <summary>Returns a InternalReg8 with the mask for the FieldC field (bits 3-4).</summary>
             public static InternalReg8 FieldCMask => new((byte)0x18);
 
+            /// <summary>Optional description (title) for this struct.</summary>
+            public static string? StructDescription => null;
+            /// <summary>Optional resource type for the struct description.</summary>
+            public static Type? StructDescriptionResourceType => null;
             /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
             public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
             {
-                new("FieldC", 3, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-                new("FlagA", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-                new("FlagB", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+                new("FieldC", 3, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+                new("FlagA", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+                new("FlagB", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
             };
 
             /// <summary>Returns a new InternalReg8 with the FlagA flag set to the specified value.</summary>

@@ -328,7 +328,7 @@ internal static partial class BitFieldsMultiWordGenerator
     {
         string t = info.TypeName;
         int wc = layout.WordCount;
-        bool isBE = info.ByteOrder == ByteOrderValue.BigEndian;
+        bool isBE = info.ByteOrder == ByteOrder.BigEndian;
         string endianLabel = isBE ? "big-endian" : "little-endian";
         string readU16 = isBE ? "ReadUInt16BigEndian" : "ReadUInt16LittleEndian";
         string readU32 = isBE ? "ReadUInt32BigEndian" : "ReadUInt32LittleEndian";

@@ -72,13 +72,17 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     /// <summary>Returns a GeneratedControlReg32 with the mask for the Command field (bits 24-27).</summary>
     public static GeneratedControlReg32 CommandMask => new((uint)0x0F000000U);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Address", 0, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Command", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Enable", 28, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Interrupt", 29, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Address", 0, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Command", 24, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Enable", 28, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Interrupt", 29, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new GeneratedControlReg32 with the Enable flag set to the specified value.</summary>

@@ -50,11 +50,15 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     /// <summary>Returns a SignedPropertyRegSigned16 with the mask for the SignedNibble field (bits 9-12).</summary>
     public static SignedPropertyRegSigned16 SignedNibbleMask => new(unchecked((short)0x1E00));
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("SignedNibble", 9, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("SignedNibble", 9, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedPropertyRegSigned16 with the Delta field set to the specified value.</summary>

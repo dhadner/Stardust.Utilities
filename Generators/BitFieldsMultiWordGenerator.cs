@@ -149,7 +149,7 @@ internal static partial class BitFieldsMultiWordGenerator
     /// </summary>
     private static void GenerateMultiWordFieldMetadata(StringBuilder sb, BitFieldsInfo info, string ind)
     {
-        string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+        string structByteOrder = info.ByteOrder == ByteOrder.BigEndian
             ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
         string structBitOrder = "BitOrder.BitZeroIsLsb";
 
@@ -161,13 +161,13 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             var qualifiedType = f.PropertyType.StartsWith("global::") ? f.PropertyType.Substring("global::".Length) : f.PropertyType;
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, qualifiedType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}),");
         }
 
         foreach (var f in info.DeclaredFlags)
         {
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, null);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}),");
         }
 
         sb.AppendLine($"{ind}}};");
@@ -345,9 +345,9 @@ internal static partial class BitFieldsMultiWordGenerator
             {
                 string pn = WordParamName(i, wc);
                 bool isLast = i == wc - 1;
-                if (isLast && mustMaskLast && info.UndefinedBitsMode == MustBeValue.Zero)
+                if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
                     sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} & LastWordMask")};");
-                else if (isLast && mustMaskLast && info.UndefinedBitsMode == MustBeValue.One)
+                else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
                     sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} | ~LastWordMask")};");
                 else
                     sb.AppendLine($"{ind}    _w{i} = {pn};");
@@ -385,9 +385,9 @@ internal static partial class BitFieldsMultiWordGenerator
         for (int i = 1; i < wc; i++)
         {
             bool isLast = i == wc - 1;
-            if (isLast && mustMaskLast && info.UndefinedBitsMode == MustBeValue.Zero)
+            if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
                 sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill & LastWordMask")};");
-            else if (isLast && mustMaskLast && info.UndefinedBitsMode == MustBeValue.One)
+            else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
                 sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill | ~LastWordMask")};");
             else
                 sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill")};");

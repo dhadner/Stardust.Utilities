@@ -83,14 +83,18 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Returns a GeneratedStatusReg8 with the mask for the Priority field (bits 5-6).</summary>
     public static GeneratedStatusReg8 PriorityMask => new((byte)0x60);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Mode", 2, 3, "Stardust.Utilities.Tests.OpMode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Mode", 2, 3, "Stardust.Utilities.Tests.OpMode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Ready flag set to the specified value.</summary>

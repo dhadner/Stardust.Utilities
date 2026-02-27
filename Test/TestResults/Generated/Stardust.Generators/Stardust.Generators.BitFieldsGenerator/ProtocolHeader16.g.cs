@@ -50,11 +50,15 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Returns a ProtocolHeader16 with the mask for the Length field (bits 8-15).</summary>
     public static ProtocolHeader16 LengthMask => new((ushort)0xFF00);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Length", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Length", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new ProtocolHeader16 with the Status field set to the specified value.</summary>

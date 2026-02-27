@@ -67,12 +67,16 @@ public partial class BitFieldSpecializationTests
         /// <summary>Returns a DoubleRegister with the mask for the Exponent field (bits 52-62).</summary>
         public static DoubleRegister ExponentMask => new((ulong)0x7FF0000000000000UL);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Mantissa", 0, 52, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Exponent", 52, 11, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Sign", 63, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Mantissa", 0, 52, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Exponent", 52, 11, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Sign", 63, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new DoubleRegister with the Sign flag set to the specified value.</summary>

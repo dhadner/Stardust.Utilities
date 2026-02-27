@@ -87,6 +87,11 @@ public sealed class BitFieldsAttribute : Attribute
     public string? Description { get; set; }
 
     /// <summary>
+    /// An optional resource type for the Description property, allowing localization of struct descriptions in BitFieldDiagram.
+    /// </summary>
+    public Type? DescriptionResourceType { get; set; }
+
+    /// <summary>
     /// Creates a BitFields attribute with the specified storage type.
     /// </summary>
     /// <param name="storageType">The storage type (byte, ushort, uint, ulong, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).</param>

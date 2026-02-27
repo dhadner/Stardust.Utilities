@@ -63,12 +63,16 @@ public partial class BitFieldProtocolTests
         /// <summary>Returns a IPv4FragmentWord with the mask for the FragmentOffset field (bits 0-12).</summary>
         public static IPv4FragmentWord FragmentOffsetMask => new((uint)0x00001FFFU);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Identification", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Flags", 13, 3, "Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("FragmentOffset", 0, 13, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Identification", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Flags", 13, 3, "Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("FragmentOffset", 0, 13, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new IPv4FragmentWord with the Identification field set to the specified value.</summary>

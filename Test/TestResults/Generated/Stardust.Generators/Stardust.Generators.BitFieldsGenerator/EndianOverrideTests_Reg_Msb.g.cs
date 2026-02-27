@@ -63,12 +63,16 @@ public partial class EndianOverrideTests
         /// <summary>Returns a Reg_Msb with the mask for the BeU32 field (bits 0-31).</summary>
         public static Reg_Msb BeU32Mask => new((ulong)0x00000000FFFFFFFFUL);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("BeU16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("LeU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("BeU32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("BeU16", 0, 16, "Stardust.Utilities.UInt16Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("LeU16", 16, 16, "Stardust.Utilities.UInt16Le", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("BeU32", 32, 32, "Stardust.Utilities.UInt32Be", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new Reg_Msb with the BeU16 field set to the specified value.</summary>

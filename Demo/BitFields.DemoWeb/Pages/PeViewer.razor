@@ -106,7 +106,7 @@
 
                 int sigBitBase = pe.PeOffset * 8;
                 _fields.Add(new("PE Sig", sigBitBase, sigBitBase + 31, Palette.Get(ci++),
-                    pe.Signature == PeHeader.Signature ? @"PE\0\0" : $"0x{pe.Signature:X8}",
+                    pe.Signature == PeHeader.SIGNATURE ? @"PE\0\0" : $"0x{pe.Signature:X8}",
                     BuildBits(sigBitBase, sigBitBase + 31, BitOrder.BitZeroIsLsb),
                     "PE signature magic bytes"));
 

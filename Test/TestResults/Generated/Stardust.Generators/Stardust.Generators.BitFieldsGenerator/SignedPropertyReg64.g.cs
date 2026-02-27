@@ -50,11 +50,15 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     /// <summary>Returns a SignedPropertyReg64 with the mask for the LowUInt field (bits 0-31).</summary>
     public static SignedPropertyReg64 LowUIntMask => new((ulong)0x00000000FFFFFFFFUL);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("HighInt", 32, 32, "int", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("LowUInt", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("HighInt", 32, 32, "int", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("LowUInt", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedPropertyReg64 with the HighInt field set to the specified value.</summary>

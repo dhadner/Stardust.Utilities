@@ -39,10 +39,14 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     /// <summary>Returns a CommandCode with the mask for the Code field (bits 0-3).</summary>
     public static CommandCode CodeMask => new((byte)0x0F);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Code", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Code", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new CommandCode with the Code field set to the specified value.</summary>

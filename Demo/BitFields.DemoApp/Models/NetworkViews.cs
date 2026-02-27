@@ -2,7 +2,7 @@ using Stardust.Utilities;
 
 namespace BitFields.DemoApp;
 
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, Description = "IPv4 Header")]
 public partial record struct IPv4HeaderView
 {
     [BitField(0, 3, Description = "IP protocol version (always 4 for IPv4)")]
@@ -26,7 +26,7 @@ public partial record struct IPv4HeaderView
     public int HeaderLengthBytes => Ihl * 4;
 }
 
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, Description = "TCP Header")]
 public partial record struct TcpHeaderView
 {
     [BitField(0, 15, Description = "Source port number identifying the sending application")]

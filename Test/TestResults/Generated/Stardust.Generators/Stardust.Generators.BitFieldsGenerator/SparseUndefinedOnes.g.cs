@@ -50,11 +50,15 @@ public partial struct SparseUndefinedOnes : IComparable, IComparable<SparseUndef
     /// <summary>Returns a SparseUndefinedOnes with the mask for the HighField field (bits 4-6).</summary>
     public static SparseUndefinedOnes HighFieldMask => new(unchecked((sbyte)0x70));
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("LowField", 1, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 2),
-        new("HighField", 4, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 2),
+        new("LowField", 1, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
+        new("HighField", 4, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
     };
 
     /// <summary>Returns a new SparseUndefinedOnes with the LowField field set to the specified value.</summary>

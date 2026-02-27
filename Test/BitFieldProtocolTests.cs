@@ -18,9 +18,9 @@ public partial class BitFieldProtocolTests
     [BitFields(typeof(byte), UndefinedBitsMustBe.Zeroes)]
     public partial struct IPv4Flags
     {
-        [BitFlag(0)] public partial bool MoreFragments { get; set; } // MF
-        [BitFlag(1)] public partial bool DontFragment { get; set; }  // DF
-        [BitFlag(2)] public partial bool Reserved { get; set; }      // must be 0
+        [BitFlag(0)] public partial bool MoreFragments { get; set; }         // MF
+        [BitFlag(1)] public partial bool DontFragment { get; set; }          // DF
+        [BitFlag(2, MustBe.Zero)] public partial bool Reserved { get; set; } // must be 0 even though defined
     }
 
     /// <summary>TCP control flags (9 bits): FIN, SYN, RST, PSH, ACK, URG, ECE, CWR, NS.</summary>

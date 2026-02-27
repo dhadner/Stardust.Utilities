@@ -62,9 +62,9 @@ public static class PeParser
                 $"Invalid PE offset (0x{peOffset:X}) -- points beyond end of file.");
 
         uint sig = BitConverter.ToUInt32(bytes, peOffset);
-        if (sig != PeHeader.Signature)
+        if (sig != PeHeader.SIGNATURE)
             return Result<(DosHeaderView, int, uint), string>.Err(
-                $"Bad PE signature: expected 0x{PeHeader.Signature:X8}, got 0x{sig:X8}.");
+                $"Bad PE signature: expected 0x{PeHeader.SIGNATURE:X8}, got 0x{sig:X8}.");
 
         return Result<(DosHeaderView, int, uint), string>.Ok((dos, peOffset, sig));
     }

@@ -83,14 +83,18 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     /// <summary>Returns a DiagramTestRegister with the mask for the Priority field (bits 5-6).</summary>
     public static DiagramTestRegister PriorityMask => new((byte)0x60);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => "8-bit test status register";
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Mode", 2, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Operating mode", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Ready flag", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Error flag", StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
-        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0, StructDescription: "8-bit test status register"),
+        new("Mode", 2, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Operating mode", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "8-bit test status register"),
+        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "8-bit test status register"),
+        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Ready flag", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "8-bit test status register"),
+        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Error flag", StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "8-bit test status register"),
+        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "8-bit test status register"),
     };
 
     /// <summary>Returns a new DiagramTestRegister with the Ready flag set to the specified value.</summary>

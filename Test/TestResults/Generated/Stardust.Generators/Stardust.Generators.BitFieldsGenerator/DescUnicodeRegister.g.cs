@@ -72,13 +72,17 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <summary>Returns a DescUnicodeRegister with the mask for the Accented field (bits 8-15).</summary>
     public static DescUnicodeRegister AccentedMask => new((ushort)0xFF00);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Japanese", 2, 6, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "日本語テスト", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Accented", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Ünïcödé àccénts", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Check", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Flag ✓ enabled", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Rocket", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Emoji 🚀 launch", StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Japanese", 2, 6, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "日本語テスト", StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Accented", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Ünïcödé àccénts", StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Check", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Flag ✓ enabled", StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Rocket", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Emoji 🚀 launch", StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new DescUnicodeRegister with the Check flag set to the specified value.</summary>

@@ -16,6 +16,7 @@ public partial record struct TcpHeaderView
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SizeInBytes = 20;
+    public const int BitWidth = 160;
 
     /// <summary>Creates a view over the specified memory buffer.</summary>
     /// <param name="data">The buffer to view. Must contain at least <see cref="SizeInBytes"/> bytes.</param>

@@ -100,30 +100,6 @@ public partial class BitFieldsGenerator
     }
 
     /// <summary>
-    /// Calculates the maximum bit index that is defined by any field or flag.
-    /// Returns -1 if no fields or flags are defined.
-    /// </summary>
-    private static int CalculateMaxDefinedBit(BitFieldsInfo info)
-    {
-        int maxBit = -1;
-
-        foreach (var field in info.Fields)
-        {
-            int fieldMaxBit = field.Shift + field.Width - 1;
-            if (fieldMaxBit > maxBit)
-                maxBit = fieldMaxBit;
-        }
-
-        foreach (var flag in info.Flags)
-        {
-            if (flag.Bit > maxBit)
-                maxBit = flag.Bit;
-        }
-
-        return maxBit;
-    }
-
-    /// <summary>
     /// Calculates a bitmask of ALL defined bits (union of all field and flag bit positions).
     /// This handles sparse undefined bits (e.g., bits 0, 3, 7 undefined with gaps).
     /// </summary>
@@ -152,13 +128,17 @@ public partial class BitFieldsGenerator
     /// </summary>
     private static void GenerateFieldMetadata(System.Text.StringBuilder sb, BitFieldsInfo info, string indent)
     {
-        string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+        string structByteOrder = info.ByteOrder == ByteOrder.BigEndian
             ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
         string structBitOrder = "BitOrder.BitZeroIsLsb"; // [BitFields] default; MSB conversion happens internally
         string structDescArg = info.Description != null
             ? $", StructDescription: \"{GeneratorUtils.EscapeStringLiteral(info.Description)}\""
             : "";
 
+        sb.AppendLine($"{indent}/// <summary>Optional description (title) for this struct.</summary>");
+        sb.AppendLine($"{indent}public static string? StructDescription => {(info.Description != null ? $"\"{GeneratorUtils.EscapeStringLiteral(info.Description)}\"" : "null")};");
+        sb.AppendLine($"{indent}/// <summary>Optional resource type for the struct description.</summary>");
+        sb.AppendLine($"{indent}public static Type? StructDescriptionResourceType => {(info.DescriptionResourceType != null ? $"typeof({StripGlobalPrefix(info.DescriptionResourceType.FullName)})" : "null")};");
         sb.AppendLine($"{indent}/// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>");
         sb.AppendLine($"{indent}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
         sb.AppendLine($"{indent}{{");
@@ -167,13 +147,13 @@ public partial class BitFieldsGenerator
         {
             var qualifiedType = StripGlobalPrefix(f.PropertyType);
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}{structDescArg}),");
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}{structDescArg}),");
         }
 
         foreach (var f in info.DeclaredFlags)
         {
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: {(int)f.ValueOverride}, StructUndefinedMustBe: {(int)info.UndefinedBitsMode}{structDescArg}),");
+            sb.AppendLine($"{indent}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}{structDescArg}),");
         }
 
         sb.AppendLine($"{indent}}};");

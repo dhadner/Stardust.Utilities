@@ -61,12 +61,16 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <summary>Returns a MainHeader64 with the mask for the Timestamp field (bits 32-63).</summary>
     public static MainHeader64 TimestampMask => new((ulong)0xFFFFFFFF00000000UL);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Protocol", 0, 27, "Stardust.Utilities.Tests.Header27", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Priority", 27, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Protocol", 0, 27, "Stardust.Utilities.Tests.Header27", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Priority", 27, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Timestamp", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new MainHeader64 with the Protocol field set to the specified value.</summary>

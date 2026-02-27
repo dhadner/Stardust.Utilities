@@ -10,7 +10,7 @@
     <select @bind="_selectedIndex" @bind:after="UpdateDiagram">
         @for (int i = 0; i < _sources.Length; i++)
         {
-            <option value="@i">@_sources[i].Label</option>
+            <option value="@i">@_sources[i].Description</option>
         }
     </select>
 
@@ -49,7 +49,6 @@
     }
     @if (_hasLoadedAssembly)
     {
-        <button @onclick="RefreshFile">Refresh</button>
         <button @onclick="ResetToBuiltIn">Reset to Built-in</button>
     }
 </div>
@@ -58,11 +57,8 @@
 <div class="diagram-output">@_diagramText</div>
 
 @code {
-    #pragma warning disable CS0618 // DiagramSection: retained until DemoWeb migrates to Type-based API
-    private record struct DiagramSource(string Label, DiagramSection[] Sections);
-
-    private DiagramSource[] _sources = [];
-    private DiagramSource[] _builtInSources = [];
+    private BitFieldDiagram[] _sources = [];
+    private BitFieldDiagram[] _builtInSources = [];
     private int _selectedIndex;
     private int _bitsPerRow = 32;
     private int _commentStyle;
@@ -72,37 +68,37 @@
     private bool _copied;
     private string? _assemblyStatus;
     private bool _hasLoadedAssembly;
-    private IBrowserFile? _assemblyFile;
 
-    private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
-        new(label, [new("", fields)]);
+    private static BitFieldDiagram Single(string label, Type bitType) =>
+        new(bitType, label);
 
     protected override void OnInitialized()
     {
         _builtInSources =
         [
-            Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
-            Single("TCP Header", TcpHeaderView.Fields.ToArray()),
-            Single("DOS Header", DosHeaderView.Fields.ToArray()),
-            Single("COFF Header", CoffHeaderView.Fields.ToArray()),
-            Single("Optional Header", OptionalHeaderView.Fields.ToArray()),
-            Single("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
-            new("68020 Register Set",
+            Single("IPv4 Header", typeof(IPv4HeaderView)),
+            Single("TCP Header", typeof(TcpHeaderView)),
+            Single("DOS Header", typeof(DosHeaderView)),
+            Single("COFF Header", typeof(CoffHeaderView)),
+            Single("Optional Header", typeof(OptionalHeaderView)),
+            Single("CPU Status Register", typeof(CpuStatusRegister)),
+            new(
             [
-                new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
-                new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
-                new("PC", M68020PC.Fields.ToArray()),
-                new("SR", M68020SR.Fields.ToArray()),
-                new("CCR", M68020CCR.Fields.ToArray()),
-                new("USP", M68020USP.Fields.ToArray()),
-                new("ISP", M68020ISP.Fields.ToArray()),
-                new("MSP", M68020MSP.Fields.ToArray()),
-                new("VBR", M68020VBR.Fields.ToArray()),
-                new("SFC", M68020SFC.Fields.ToArray()),
-                new("DFC", M68020DFC.Fields.ToArray()),
-                new("CACR", M68020CACR.Fields.ToArray()),
-                new("CAAR", M68020CAAR.Fields.ToArray()),
-            ]),
+                typeof(M68020DataRegisters),
+                typeof(M68020AddressRegisters),
+                typeof(M68020PC),
+                typeof(M68020SR),
+                typeof(M68020CCR),
+                typeof(M68020USP),
+                typeof(M68020ISP),
+                typeof(M68020MSP),
+                typeof(M68020VBR),
+                typeof(M68020SFC),
+                typeof(M68020DFC),
+                typeof(M68020CACR),
+                typeof(M68020CAAR),
+            ],
+            "68020 Register Set")
     ];
         _sources = _builtInSources;
         UpdateDiagram();
@@ -112,15 +108,18 @@
     {
         if (_selectedIndex < 0 || _selectedIndex >= _sources.Length) return;
         var source = _sources[_selectedIndex];
-        string? commentPrefix = _commentStyle switch
+        source.CommentPrefix = _commentStyle switch
         {
             1 => "* ",
             2 => "// ",
             3 => "/// ",
             _ => null
         };
-        _diagramText = BitFieldDiagram.RenderListToString(
-            source.Sections, _bitsPerRow, _showDescriptions, _showByteOffset, commentPrefix);
+        source.BitsPerRow = _bitsPerRow;
+        source.IncludeDescriptions = _showDescriptions;
+        source.ShowByteOffset = _showByteOffset;
+        
+        _diagramText = source.RenderToString().Value;
     }
 #pragma warning restore CS0618
 
@@ -148,7 +147,6 @@
         try
         {
             _hasLoadedAssembly = false;
-            _assemblyFile = null;
 
             using var ms = new MemoryStream();
             await file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024).CopyToAsync(ms);
@@ -163,17 +161,16 @@
             }
 
             string? previousSelection = _selectedIndex >= 0 && _selectedIndex < _sources.Length
-                ? _sources[_selectedIndex].Label
+                ? _sources[_selectedIndex].Description
                 : null;
 
 #pragma warning disable CS0618
-            var sources = new List<DiagramSource>();
+            var sources = new List<BitFieldDiagram>();
             foreach (var s in result.Structs)
-                sources.Add(Single(s.DisplayName, s.Fields));
+                sources.Add(Single(s.DisplayName, s.BitType));
 #pragma warning restore CS0618
 
             _sources = sources.ToArray();
-            _assemblyFile = file;
             _hasLoadedAssembly = true;
 
             int restoredIndex = -1;
@@ -181,7 +178,7 @@
             {
                 for (int i = 0; i < _sources.Length; i++)
                 {
-                    if (_sources[i].Label == previousSelection)
+                    if (_sources[i].Description == previousSelection)
                     {
                         restoredIndex = i;
                         break;
@@ -197,15 +194,6 @@
         {
             _assemblyStatus = $"Error: {ex.Message}";   
             return Result<string>.Err(_assemblyStatus);
-        }
-    }
-
-    private async Task RefreshFile()
-    {
-        if (_hasLoadedAssembly && _assemblyFile != null)
-        {
-            await LoadAssembly(_assemblyFile);
-            UpdateDiagram();
         }
     }
 

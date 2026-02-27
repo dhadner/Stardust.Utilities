@@ -100,7 +100,7 @@ public partial class MainWindow : Window
         // PE signature
         int sigBitBase = pe.PeOffset * 8;
         allFields.Add(new FieldDef("PE Sig", sigBitBase, sigBitBase + 31, Palette[ci++ % Palette.Length],
-            pe.Signature == PeHeader.Signature ? "PE\\0\\0" : $"0x{pe.Signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
+            pe.Signature == PeHeader.SIGNATURE ? "PE\\0\\0" : $"0x{pe.Signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
 
         // COFF header fields
         int coffBitBase = pe.CoffByteOffset * 8;
@@ -293,45 +293,46 @@ public partial class MainWindow : Window
 
     private readonly record struct DiagramSource(string Label, DiagramSection[] Sections);
 
-    private DiagramSource[] _diagramSources = [];
-    private DiagramSource[] _builtInDiagramSources = [];
+    private BitFieldDiagram[] _diagramSources = [];
+    private BitFieldDiagram[] _builtInDiagramSources = [];
 
-    private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
-        new(label, [new("", fields)]);
+    private static BitFieldDiagram Single(string label, Type bitType) =>
+        new(bitType, label);
 
     private void InitRfcTab()
     {
         _diagramSources =
         [
-            Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
-            Single("TCP Header", TcpHeaderView.Fields.ToArray()),
-            Single("DOS Header", DosHeaderView.Fields.ToArray()),
-            Single("COFF Header", CoffHeaderView.Fields.ToArray()),
-            Single("Optional Header", OptionalHeaderView.Fields.ToArray()),
-            Single("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
-            new("68020 Register Set",
+            Single("IPv4 Header", typeof(IPv4HeaderView)),
+            Single("TCP Header", typeof(TcpHeaderView)),
+            Single("DOS Header", typeof(DosHeaderView)),
+            Single("COFF Header", typeof(CoffHeaderView)),
+            Single("Optional Header", typeof(OptionalHeaderView)),
+            Single("CPU Status Register", typeof(CpuStatusRegister)),
+            new(
             [
-                new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
-                new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
-                new("PC", M68020PC.Fields.ToArray()),
-                new("SR", M68020SR.Fields.ToArray()),
-                new("CCR", M68020CCR.Fields.ToArray()),
-                new("USP", M68020USP.Fields.ToArray()),
-                new("ISP", M68020ISP.Fields.ToArray()),
-                new("MSP", M68020MSP.Fields.ToArray()),
-                new("VBR", M68020VBR.Fields.ToArray()),
-                new("SFC", M68020SFC.Fields.ToArray()),
-                new("DFC", M68020DFC.Fields.ToArray()),
-                new("CACR", M68020CACR.Fields.ToArray()),
-                new("CAAR", M68020CAAR.Fields.ToArray()),
-            ]),
+                typeof(M68020DataRegisters),
+                typeof(M68020AddressRegisters),
+                typeof(M68020PC),
+                typeof(M68020SR),
+                typeof(M68020CCR),
+                typeof(M68020USP),
+                typeof(M68020ISP),
+                typeof(M68020MSP),
+                typeof(M68020VBR),
+                typeof(M68020SFC),
+                typeof(M68020DFC),
+                typeof(M68020CACR),
+                typeof(M68020CAAR),
+            ],
+            "68020 Register Set")
         ];
 
         _builtInDiagramSources = _diagramSources;
 
         RfcStructPicker.Items.Clear();
         foreach (var s in _diagramSources)
-            RfcStructPicker.Items.Add(s.Label);
+            RfcStructPicker.Items.Add(s.Description);
         RfcStructPicker.SelectedIndex = 0;
 
         RfcBitsPerRow.Items.Clear();
@@ -358,10 +359,10 @@ public partial class MainWindow : Window
             return;
 
         var source = _diagramSources[RfcStructPicker.SelectedIndex];
-        int bitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
-        bool showDesc = RfcShowDescriptions.IsChecked == true;
-        bool showOffset = RfcShowByteOffset.IsChecked == true;
-        string? commentPrefix = RfcCommentStyle.SelectedIndex switch
+        source.BitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
+        source.IncludeDescriptions = RfcShowDescriptions.IsChecked == true;
+        source.ShowByteOffset = RfcShowByteOffset.IsChecked == true;
+        source.CommentPrefix = RfcCommentStyle.SelectedIndex switch
         {
             1 => "* ",
             2 => "// ",
@@ -369,8 +370,7 @@ public partial class MainWindow : Window
             _ => null
         };
 
-        RfcDiagramOutput.Text = BitFieldDiagram.RenderListToString(
-            source.Sections, bitsPerRow, showDesc, showOffset, commentPrefix);
+        RfcDiagramOutput.Text = source.RenderToString().Value;
     }
 
 #pragma warning restore CS0618
@@ -423,15 +423,15 @@ public partial class MainWindow : Window
         string? previousSelection = RfcStructPicker.SelectedItem as string;
 
         // Replace the dropdown with discovered structs
-        var sources = new List<DiagramSource>();
+        var sources = new List<BitFieldDiagram>();
         foreach (var s in result.Structs)
-            sources.Add(Single(s.DisplayName, s.Fields));
+            sources.Add(Single(s.DisplayName, s.BitType));
 
         _diagramSources = sources.ToArray();
 
         RfcStructPicker.Items.Clear();
         foreach (var s in _diagramSources)
-            RfcStructPicker.Items.Add(s.Label);
+            RfcStructPicker.Items.Add(s.Description);
 
         // Restore previous selection if the struct still exists, otherwise pick the first
         int restoredIndex = -1;
@@ -439,7 +439,7 @@ public partial class MainWindow : Window
         {
             for (int i = 0; i < _diagramSources.Length; i++)
             {
-                if (_diagramSources[i].Label == previousSelection)
+                if (_diagramSources[i].Description == previousSelection)
                 {
                     restoredIndex = i;
                     break;
@@ -514,7 +514,7 @@ public partial class MainWindow : Window
 
         RfcStructPicker.Items.Clear();
         foreach (var s in _diagramSources)
-            RfcStructPicker.Items.Add(s.Label);
+            RfcStructPicker.Items.Add(s.Description);
         RfcStructPicker.SelectedIndex = 0;
 
         RfcAssemblyStatus.Visibility = Visibility.Collapsed;

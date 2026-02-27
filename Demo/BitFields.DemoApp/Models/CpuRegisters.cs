@@ -2,7 +2,7 @@ using Stardust.Utilities;
 
 namespace BitFields.DemoApp;
 
-[BitFields(typeof(ushort))]
+[BitFields(typeof(ushort), Description = "CPU Status Register")]
 public partial struct CpuStatusRegister
 {
     [BitFlag(0, Description = "Set when an arithmetic operation produces a carry or borrow out of the MSB")]

@@ -50,11 +50,15 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     /// <summary>Returns a DiagramWideRegister with the mask for the HighHalf field (bits 16-31).</summary>
     public static DiagramWideRegister HighHalfMask => new((uint)0xFFFF0000U);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("LowHalf", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Low half", StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("HighHalf", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "High half", StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("LowHalf", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Low half", StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("HighHalf", 16, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "High half", StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new DiagramWideRegister with the LowHalf field set to the specified value.</summary>

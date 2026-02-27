@@ -64,6 +64,11 @@ public sealed class BitFieldsViewAttribute : Attribute
     public string? Description { get; set; }
 
     /// <summary>
+    /// An optional resource type for the Description property, allowing localization of struct descriptions in BitFieldDiagram.
+    /// </summary>
+    public Type? DescriptionResourceType { get; set; }
+
+    /// <summary>
     /// Creates a BitFieldsView attribute with the specified byte order and bit order.
     /// </summary>
     /// <param name="byteOrder">Byte order for multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>

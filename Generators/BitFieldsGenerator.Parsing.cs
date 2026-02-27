@@ -375,7 +375,7 @@ public partial class BitFieldsGenerator
         string t = info.TypeName;
         string s = info.StorageType;
         int sizeInBytes = GetStorageTypeBitWidth(s) / 8;
-        bool isBE = info.ByteOrder == ByteOrderValue.BigEndian;
+        bool isBE = info.ByteOrder == ByteOrder.BigEndian;
         string? readMethod = GetBinaryPrimitivesReadMethod(s, isBE);
         string? writeMethod = GetBinaryPrimitivesWriteMethod(s, isBE);
         bool isByte = s == "byte" || s == "sbyte";

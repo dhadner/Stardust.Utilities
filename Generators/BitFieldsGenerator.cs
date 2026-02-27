@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -171,10 +172,10 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     var propType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
                     // Read optional MustBe parameter (3rd constructor arg)
-                    var valueOverride = MustBeValue.Any;
+                    var valueOverride = MustBe.Any;
                     if (attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int fieldMustBe)
                     {
-                        valueOverride = (MustBeValue)fieldMustBe;
+                        valueOverride = (MustBe)fieldMustBe;
                     }
 
                     // Read optional Description / DescriptionResourceType named arguments
@@ -187,10 +188,10 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     var bit = (int)(attr.ConstructorArguments[0].Value ?? 0);
 
                     // Read optional MustBe parameter (2nd constructor arg)
-                    var valueOverride = MustBeValue.Any;
+                    var valueOverride = MustBe.Any;
                     if (attr.ConstructorArguments.Length >= 2 && attr.ConstructorArguments[1].Value is int flagMustBe)
                     {
-                        valueOverride = (MustBeValue)flagMustBe;
+                        valueOverride = (MustBe)flagMustBe;
                     }
 
                     // Read optional Description / DescriptionResourceType named arguments
@@ -225,32 +226,35 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
 
         // Read UndefinedBitsMustBe from 2nd constructor argument (default is Any = 0)
-        var undefinedBitsMode = MustBeValue.Any;
+        var undefinedBitsMode = UndefinedBitsMustBe.Any;
         if (bitFieldsAttr.ConstructorArguments.Length >= 2 && bitFieldsAttr.ConstructorArguments[1].Value is int modeValue)
         {
-            undefinedBitsMode = (MustBeValue)modeValue;
+            undefinedBitsMode = (UndefinedBitsMustBe)modeValue;
         }
 
         // Read BitOrder from 3rd constructor argument (default is BitZeroIsLsb = 1)
-        var bitOrder = BitOrderValue.BitZeroIsLsb;
+        var bitOrder = BitOrder.BitZeroIsLsb;
         if (bitFieldsAttr.ConstructorArguments.Length >= 3 && bitFieldsAttr.ConstructorArguments[2].Value is int bitOrderValue)
         {
-            bitOrder = (BitOrderValue)bitOrderValue;
+            bitOrder = (BitOrder)bitOrderValue;
         }
 
         // Read ByteOrder from 4th constructor argument (default is LittleEndian = 1)
-        var byteOrder = ByteOrderValue.LittleEndian;
+        var byteOrder = ByteOrder.LittleEndian;
         if (bitFieldsAttr.ConstructorArguments.Length >= 4 && bitFieldsAttr.ConstructorArguments[3].Value is int byteOrderValue)
         {
-            byteOrder = (ByteOrderValue)byteOrderValue;
+            byteOrder = (ByteOrder)byteOrderValue;
         }
 
         // Read optional struct-level Description from named argument
         string? structDescription = null;
+        Type? structDescriptionResourceType = null;
         foreach (var named in bitFieldsAttr.NamedArguments)
         {
             if (named.Key == "Description" && named.Value.Value is string sd)
                 structDescription = sd;
+            if (named.Key == "DescriptionResourceType" && named.Value.Value is Type sdResType)
+                structDescriptionResourceType = sdResType;
         }
 
         // Determine storage mode, word count, and total bits
@@ -284,7 +288,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         var declaredFields = fields.ToList();
         var declaredFlags = flags.ToList();
 
-        if (bitOrder == BitOrderValue.BitZeroIsMsb)
+        if (bitOrder == BitOrder.BitZeroIsMsb)
         {
             for (int i = 0; i < fields.Count; i++)
             {
@@ -322,7 +326,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             byteOrder,
             declaredFields,
             declaredFlags,
-            structDescription);
+            structDescription,
+            structDescriptionResourceType);
     }
 
     /// <summary>
@@ -431,11 +436,11 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw bits value.</summary>");
         
         // Constructor applies undefined bits handling based on mode
-        if (!hasUndefinedBits || info.UndefinedBitsMode == MustBeValue.Any)
+        if (!hasUndefinedBits || info.UndefinedBitsMode == UndefinedBitsMustBe.Any)
         {
             sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
         }
-        else if (info.UndefinedBitsMode == MustBeValue.Zero)
+        else if (info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
         {
             if (info.StorageTypeIsSigned)
             {
