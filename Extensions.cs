@@ -155,28 +155,28 @@ namespace Stardust.Utilities
             if (fieldName != null)
             {
                 return type.GetStartAndEndBits(fieldName, inherit).Match(
-                    onSuccess: bits => Ok(bits.endBit - bits.startBit + 1),
-                    onFailure: err => Err(err)
+                    onSuccess: bits => Result<int, string>.Ok(bits.endBit - bits.startBit + 1),
+                    onFailure: err => Result<int, string>.Err(err)
                 );
             }
             // Bits based on size of struct
             if (!type.IsBitsType(inherit))
             {
-                return Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<int, string>.Err("Type is not a BitFields struct or BitFieldsView struct");
             }
             var structTotalBitsRes = type.GetBitTypeAttribute(inherit: inherit).Match(
                 onSuccess: attr =>
                 {
                     if (attr is BitFieldsAttribute fieldsAttr)
                     {
-                        return Ok(fieldsAttr.BitCount);
+                        return Result<int, string>.Ok(fieldsAttr.BitCount);
                     }
                     else
                     {
-                        return Err("Type does not have BitFields attribute");
+                        return Result<int, string>.Err("Type does not have BitFields attribute");
                     }
                 },
-                onFailure: err => Err(err)
+                onFailure: err => Result<int, string>.Err(err)
             );
             return structTotalBitsRes;
         }
@@ -190,8 +190,8 @@ namespace Stardust.Utilities
         public static Result<int,string> GetStartBit(this Type type, string fieldName, bool inherit = true)
         {
             return type.GetStartAndEndBits(fieldName, inherit).Match(
-                onSuccess: bits => Ok(bits.startBit),
-                onFailure: err => Err(err)
+                onSuccess: bits => Result<int, string>.Ok(bits.startBit),
+                onFailure: err => Result<int, string>.Err(err)
             );
         }
 
@@ -204,8 +204,8 @@ namespace Stardust.Utilities
         public static Result<int,string> GetEndBit(this Type type, string fieldName, bool inherit = true)
         {
             return type.GetStartAndEndBits(fieldName, inherit).Match(
-                onSuccess: bits => Ok(bits.endBit),
-                onFailure: err => Err(err)
+                onSuccess: bits => Result<int, string>.Ok(bits.endBit),
+                onFailure: err => Result<int, string>.Err(err)
             );
         }
 
@@ -219,20 +219,20 @@ namespace Stardust.Utilities
         {
             if (type == null)
             {
-                return Err("'type' is null");
+                return Result<(int startBit, int endBit), string>.Err("'type' is null");
             }               
             if (!type.IsBitsType())
             {
-                return Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<(int startBit, int endBit), string>.Err("Type is not a BitFields struct or BitFieldsView struct");
             }
             if (string.IsNullOrEmpty(fieldName))
             {
-                return Err("No field name");
+                return Result<(int startBit, int endBit), string>.Err("No field name");
             }
             var field = type.GetProperty(fieldName);
             if (field == null)
             {
-                return Err("Field not found");
+                return Result<(int startBit, int endBit), string>.Err("Field not found");
             }
             BitFieldAttribute? fieldAttr = type.GetAttribute<BitFieldAttribute>(fieldName, inherit);
             if (fieldAttr != null)
@@ -245,7 +245,7 @@ namespace Stardust.Utilities
                 return Ok((flagAttr.Bit, flagAttr.Bit));
             }
 
-            return Err("Field is not a BitField or a BitFlag");
+            return Result<(int startBit, int endBit), string>.Err("Field is not a BitField or a BitFlag");
         }
 
         /// <summary>
@@ -261,11 +261,11 @@ namespace Stardust.Utilities
         {
             if (type == null)
             {
-                return Err("'type' cannot be null");
+                return Result<MustBe, string>.Err("'type' cannot be null");
             }
             if (string.IsNullOrEmpty(fieldName))
             {
-                return Err("'fieldName' must not be empty");
+                return Result<MustBe, string>.Err("'fieldName' must not be empty");
             }
             var fieldAttr = type.GetAttribute<BitFieldAttribute>(inherit);
             if (fieldAttr != null)
@@ -279,7 +279,7 @@ namespace Stardust.Utilities
                 var mustBe = flagAttr.ValueOverride;
                 return Ok(mustBe);
             }
-            return Err("Field does not have BitField or BitFlag attribute");
+            return Result<MustBe, string>.Err("Field does not have BitField or BitFlag attribute");
         }
 
         /// <summary>
@@ -292,11 +292,11 @@ namespace Stardust.Utilities
         {
             if (type == null)
             {
-                return Err("type is null");
+                return Result<UndefinedBitsMustBe, string>.Err("type is null");
             }
             if (!type.IsBitFieldsType() && !type.IsBitFieldsViewType())
             {
-                return Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<UndefinedBitsMustBe, string>.Err("Type is not a BitFields struct or BitFieldsView struct");
             }
             var fieldsAttr = type.GetAttribute<BitFieldsAttribute>(inherit);
             if (fieldsAttr != null)
@@ -305,7 +305,7 @@ namespace Stardust.Utilities
             }
             else
             {
-                return Err("Type does not have BitFields attribute");
+                return Result<UndefinedBitsMustBe, string>.Err("Type does not have BitFields attribute");
             }
         }
         /// <summary>
@@ -317,7 +317,7 @@ namespace Stardust.Utilities
         {
             if (type == null)
             {
-                return Err("type is null");
+                return Result<(ByteOrder byteOrder, BitOrder bitOrder), string>.Err("type is null");
             }
             var fieldsAttr = type.GetAttribute<BitFieldsAttribute>(inherit);
             if (fieldsAttr != null)
@@ -331,7 +331,7 @@ namespace Stardust.Utilities
             }
             else
             {
-                return Err("Type does not have BitFields or BitFieldsView attribute");
+                return Result<(ByteOrder byteOrder, BitOrder bitOrder), string>.Err("Type does not have BitFields or BitFieldsView attribute");
             }
         }
 
@@ -347,13 +347,13 @@ namespace Stardust.Utilities
         {
             if (type == null)
             {
-                return Err("type is null");
+                return Result<(string? description, Type? descriptionResourceType), string>.Err("type is null");
             }
 
             var fieldInfo = field != null ? type.GetProperty(field) : null;
             if (fieldInfo == null && field != null)
             {
-                return Err("Invalid field name");
+                return Result<(string? description, Type? descriptionResourceType), string>.Err("Invalid field name");
             }
             // Return description of the struct if no field, otherwise return the description of the field.
             if (fieldInfo == null)
@@ -369,7 +369,7 @@ namespace Stardust.Utilities
                 {
                     return Ok((fldsViewAttr.Description, fldsViewAttr.DescriptionResourceType));
                 }
-                return Err("Type does not have BitFields or BitFieldsView attribute");
+                return Result<(string? description, Type? descriptionResourceType), string>.Err("Type does not have BitFields or BitFieldsView attribute");
             }
             // We have a field, so get the description of the field.
             var fldAttr = type.GetAttribute<BitFieldAttribute>(field!, inherit);
@@ -382,19 +382,19 @@ namespace Stardust.Utilities
             {
                 return Ok((flagAttr.Description, flagAttr.DescriptionResourceType));
             }
-            return Err($"Field {type.FullName}.{field} does not have a BitField or BitFlag attribute");
+            return Result<(string? description, Type? descriptionResourceType), string>.Err($"Field {type.FullName}.{field} does not have a BitField or BitFlag attribute");
         }
 
         public static Result<Attribute,string> GetBitTypeAttribute(this Type type, string? field = null, bool inherit = true)
         {
             if (type == null)
             {
-                return Err("type is null");
+                return Result<Attribute, string>.Err("type is null");
             }
             var fieldInfo = field != null ? type.GetProperty(field) : null;
             if (fieldInfo == null && field != null)
             {
-                return Err("Invalid field name");
+                return Result<Attribute, string>.Err("Invalid field name");
             }
             Attribute? attribute;
             if (fieldInfo == null)
@@ -406,14 +406,14 @@ namespace Stardust.Utilities
                 {
                     return Ok(attribute);
                 }
-                return Err($"Type {type.FullName} does not have a BitFields or BitFieldsView attribute");
+                return Result<Attribute, string>.Err($"Type {type.FullName} does not have a BitFields or BitFieldsView attribute");
             }
 
             // We have a field, so get the attribute of the field.
             attribute = type.GetAttribute<BitFieldAttribute>(field!, inherit);
             attribute ??= type.GetAttribute<BitFlagAttribute>(field!, inherit);
 
-            return attribute != null ? Ok(attribute) : Err($"Field {type.FullName}.{field} does not have a BitField or BitFlag attribute");
+            return attribute != null ? Ok(attribute) : Result<Attribute, string>.Err($"Field {type.FullName}.{field} does not have a BitField or BitFlag attribute");
         }
 
         // ── Attribute-metadata discovery ────────────────────────────────
@@ -459,7 +459,7 @@ namespace Stardust.Utilities
         public static Result<BitFieldInfo[], string> GetFieldInfo(this Type type)
         {
             if (type == null)
-                return Err("'type' is null");
+                return Result<BitFieldInfo[], string>.Err("'type' is null");
 
             var prop = type.GetProperty("Fields", BindingFlags.Public | BindingFlags.Static);
             if (prop != null)
@@ -494,7 +494,7 @@ namespace Stardust.Utilities
             if (fromAttrs.Length > 0)
                 return Ok(fromAttrs);
 
-            return Err(
+            return Result<BitFieldInfo[], string>.Err(
                 $"Type '{type.Name}' does not expose readable bit-field metadata. " +
                 $"Ensure it is decorated with [BitFields] or [BitFieldsView].");
         }

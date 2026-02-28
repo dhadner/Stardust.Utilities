@@ -71,32 +71,27 @@ public sealed record BitFieldInfo(
 
         if (type == null)
         {
-            return Err("Type cannot be null.");
+            return Result<BitFieldInfo, string>.Err("Type cannot be null.");
         }
 
         if (!type.IsBitsType())
         {
-            return Err($"Type '{type.FullName}' is not a valid bitfield struct type.");
+            return Result<BitFieldInfo, string>.Err($"Type '{type.FullName}' is not a valid bitfield struct type.");
         }
         var fieldInfo = field == null ? null : type.GetProperty(field);
         if (field != null && fieldInfo == null)
         {
-            return Err($"Field '{field}' not found in type '{type.FullName}'.");
+            return Result<BitFieldInfo, string>.Err($"Field '{field}' not found in type '{type.FullName}'.");
         }
 
         // At this point, we have a valid type and (if specified) a valid field.
         // We can proceed to extract all the relevant information.
 
         // Description is the same for either struct or field
-        var descRes = type.GetBitsDescription(field, inherit).Match(
-            onSuccess: desc => {
-                description = desc.description;
-                descriptionResourceType = desc.descriptionResourceType;
-                return Ok(desc);
-            },
-            onFailure: error => Err(error)
-        );
-        if (descRes.IsFailure) return Err(descRes.Error);
+        var descRes = type.GetBitsDescription(field, inherit);
+        if (descRes.IsFailure) return Result<BitFieldInfo, string>.Err(descRes.Error);
+        description = descRes.Value.description;
+        descriptionResourceType = descRes.Value.descriptionResourceType;
         if (field == null)
         {
             // For struct-level description, also set structDescription for convenience
@@ -105,14 +100,9 @@ public sealed record BitFieldInfo(
         else
         {
             // For field-level description, get struct-level description separately for convenience
-            var fldDescRes = type.GetBitsDescription(null, inherit).Match(
-                onSuccess: desc => {
-                    structDescription = desc.description;
-                    return Ok(desc);
-                },
-                onFailure: error => Err(error)
-            );
-            if (fldDescRes.IsFailure) return Err(fldDescRes.Error);
+            var fldDescRes = type.GetBitsDescription(null, inherit);
+            if (fldDescRes.IsFailure) return Result<BitFieldInfo, string>.Err(fldDescRes.Error);
+            structDescription = fldDescRes.Value.description;
         }
         var byteOrderRes = type.GetBitAndByteOrder(inherit);
 
@@ -122,13 +112,13 @@ public sealed record BitFieldInfo(
             onFailure: _ => structUndefinedMustBe = UndefinedBitsMustBe.Any
         );
         var bitLengthRes = type.GetBitLength(field, inherit);
-        if (bitLengthRes.IsFailure) return Err(bitLengthRes.Error);
+        if (bitLengthRes.IsFailure) return Result<BitFieldInfo, string>.Err(bitLengthRes.Error);
         bitLength = bitLengthRes.Value;
 
         if (field != null)
         {
             var structTotalBitsRes = type.GetBitLength(null, inherit);
-            if (structTotalBitsRes.IsFailure) return Err(structTotalBitsRes.Error);
+            if (structTotalBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(structTotalBitsRes.Error);
             structTotalBits = structTotalBitsRes.Value;
         }
         else
@@ -142,7 +132,7 @@ public sealed record BitFieldInfo(
             propertyType = fieldInfo!.PropertyType.FullName ?? fieldInfo.PropertyType.Name;
 
             var seBitsRes = type.GetStartAndEndBits(field, inherit);
-            if (seBitsRes.IsFailure) return Err(seBitsRes.Error);
+            if (seBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(seBitsRes.Error);
 
             startBit = seBitsRes.Value.startBit;
             bitLength = seBitsRes.Value.endBit - startBit + 1;
@@ -161,7 +151,7 @@ public sealed record BitFieldInfo(
                 }
                 else
                 {
-                    return Err($"Field '{field}' in type '{type.FullName}' is missing both [BitField] and [BitFlag] attributes.");
+                    return Result<BitFieldInfo, string>.Err($"Field '{field}' in type '{type.FullName}' is missing both [BitField] and [BitFlag] attributes.");
                 }
             }
             structDescription = description;

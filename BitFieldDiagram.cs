@@ -178,14 +178,14 @@ public class BitFieldDiagram
     public virtual Result<string, string> RenderToString()
     {
         var result = Render();
-        if (result.IsFailure) return Err(result.Error);
+        if (result.IsFailure) return Result<string, string>.Err(result.Error);
 
         return Ok(string.Join(Environment.NewLine, result.Value));
     }
 
     public virtual Result<List<string>,string> Render()
     {
-        if (Structs.Count == 0) return Err(FormatLine("(no bitStruct)", CommentPrefix));
+        if (Structs.Count == 0) return Result<List<string>, string>.Err(FormatLine("(no bitStruct)", CommentPrefix));
 
         // Render all added structs as a unified diagram
         var lines = RenderList([.. Structs], Description, BitsPerRow, IncludeDescriptions, ShowByteOffset, CommentPrefix);
