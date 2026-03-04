@@ -38,17 +38,17 @@ This guide explains how to modify the source generators and update consuming pro
 
 ## Quick Reference: Build Workflow
 
-**To build a new version (e.g., 0.9.0):**
+**To build a new version (e.g., 0.9.6):**
 
 ```powershell
 # Navigate to the Stardust.Utilities directory
 cd Stardust.Utilities
 
 # Build both NuGet packages (automatically publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.0
+.\Build-Combined-NuGetPackages.ps1 0.9.6
 
 # Or skip tests for faster iteration during development
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
 ```
 
 **What happens automatically:**
@@ -89,17 +89,26 @@ Stardust.Utilities/
 ├── Generators/
 │   ├── Stardust.Generators.csproj       # Source generator project
 │   ├── BitFieldsGenerator.cs            # [BitFields] generator
-│   └── BitFieldsViewGenerator.cs         # [BitFieldsView] generator
+│   ├── BitFieldsViewGenerator.cs        # [BitFieldsView] generator
+│   └── *.cs                             # Additional generator source files
 ├── Test/
 │   └── Stardust.Utilities.Tests.csproj
+│   └── *.cs                             # Test cases and supporting source files
 ├── build/
 │   ├── Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
 │   └── Stardust.Utilities.targets       # Auto-excludes generated files from compilation
 ├── nupkg/                               # Local NuGet packages output
+├── *.cs                                 # Stardust.Utilities source files
 ├── Build-Generator-NuGetPackage.ps1     # Builds generator package (for local development)
 ├── Build-Combined-NuGetPackages.ps1     # Builds the distributable package
+├── CODE_OF_CONDUCT.md                   # Code of conduct
+├── CONTRIBUTING.md                      # Contribution guidelines
+├── DEVELOPER.md                         # This file
+├── ENDIAN.md                            # Endianness documentation (Int32Be, UInt16Be, etc.)
+├── EXTENSIONS.md                        # Detailed documentation on the Extensions class methods
 ├── README.md                            # User documentation
-└── DEVELOPER.md                         # This file
+├── RESULT.md                            # Result documentation -- used extensively throughout Stardust.Utilities
+└── SECURITY.md                          # Security documentation and how to report vulnerabilities
 ```
 
 ## Submodule Workflow
@@ -212,21 +221,21 @@ git pull origin main
 # Show help
 .\Build-Combined-NuGetPackages.ps1 -Help
 
-# Build version 0.9.0 (runs tests, publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.0
+# Build version 0.9.6 (runs tests, publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.6
 
 # Skip tests for faster iteration
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
 
 # Use Debug configuration
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -Configuration Debug
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -Configuration Debug
 ```
 
 **Parameters:**
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `<version>` | Yes | Version number (e.g., `0.9.0`, `1.0.0-beta1`) |
+| `<version>` | Yes | Version number (e.g., `0.9.6`, `1.0.0-beta1`) |
 | `-SkipTests` | No | Skip running unit tests |
 | `-Configuration` | No | `Debug` or `Release` (default: Release) |
 | `-Help` | No | Show help message |
@@ -257,7 +266,7 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 ```powershell
 # Specify a version
-.\Build-Generator-NuGetPackage.ps1 -Version "0.9.0"
+.\Build-Generator-NuGetPackage.ps1 -Version "0.9.6"
 ```
 
 ### Package Reference Scenarios
@@ -274,11 +283,18 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 **Step 1:** Edit the generator in `Generators/BitFieldsGenerator.cs`.
 
+> **Enum casting rule:** When generating code that applies bitwise operators (`&`, `|`, `^`)
+> to a `value` parameter whose type comes from `field.PropertyType`, always cast `value` to
+> the storage type first (e.g., `({info.StorageType})value`). C# does not allow `enum & int`
+> directly. The setter and shift != 0 paths already follow this pattern; the shift == 0 path
+> in `GenerateWithBitFieldMethod` was fixed in v0.9.5 to match. See the test
+> `GeneratedBitFields_WithEnumAtBitZero` for the regression test.
+
 **Step 2:** Rebuild the package:
 
 ```powershell
 # Rebuild both packages (recommended)
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
 ```
 
 **Step 3:** Test locally with a consuming project:

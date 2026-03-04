@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.5] - 2026-02-16
+## [0.9.5] - 2026-03-04
 ### Added
 - Added `Description` to `[BitFields]` and `[BitFieldsView]` structs, used for diagram section descriptions and demo app tooltips. The 
 purpose of this is to simplify the API and deprecate `DiagramSection` that adds unnecessary complexity to the API. 
+
+### Fixed
+- Fixed compile error in generated `With{Name}` methods when the property type is a byte-backed enum and the field starts at bit 0 (shift == 0). The generated code now casts the value to the storage type before applying the mask, matching the pattern already used by the setter and the shift != 0 branch.
 
 ### Changed
 - Deprecated `DiagramSection` feature, replaced with the `Description` field for `[BitFields]` and `[BitFieldsView]` structs. Will be removed in a future version.

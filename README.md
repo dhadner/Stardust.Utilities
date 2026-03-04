@@ -846,8 +846,8 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-   <PackageReference Include="Stardust.Utilities" Version="0.9.4" />
-   ```
+    <PackageReference Include="Stardust.Utilities" Version="0.9.5" />
+    ```
 2. Clean and rebuild the solution
 3. Restart Visual Studio if needed (sometimes required after first install)
 

@@ -255,6 +255,26 @@ reg.Mode = OpMode.Run;
 OpMode mode = reg.Mode;  // OpMode.Run
 ```
 
+Enum fields work at any bit position, including bit 0, and support fluent `With` methods:
+
+```csharp
+[BitFields(typeof(byte))]
+public partial struct CommandReg
+{
+    [BitField(0, 2)] public partial OpMode Command { get; set; }  // enum at bit 0
+    [BitField(3, 5)] public partial OpMode Status { get; set; }   // enum at bit 3
+    [BitField(6, 7)] public partial byte Flags { get; set; }
+}
+
+var reg = CommandReg.Zero
+    .WithCommand(OpMode.Run)
+    .WithStatus(OpMode.Sleep)
+    .WithFlags(3);
+
+reg.Command;  // OpMode.Run
+reg.Status;   // OpMode.Sleep
+```
+
 ## Operators
 
 `[BitFields]` types are full-featured numeric types:
