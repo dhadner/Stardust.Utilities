@@ -85,7 +85,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new FloatRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithMantissa(uint value) => new((uint)((Value & 0xFF800000U) | (value & 0x007FFFFFU)));
+        public FloatRegister WithMantissa(uint value) => new((uint)((Value & 0xFF800000U) | ((uint)value & 0x007FFFFFU)));
 
         /// <summary>Returns a new FloatRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

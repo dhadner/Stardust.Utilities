@@ -101,7 +101,7 @@ public partial class ExtensionsTests
 
         /// <summary>Returns a new TcpControlWord with the WindowSize field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithWindowSize(ushort value) => new((uint)((Value & 0xFFFF0000U) | (value & 0x0000FFFFU)));
+        public TcpControlWord WithWindowSize(ushort value) => new((uint)((Value & 0xFFFF0000U) | ((uint)value & 0x0000FFFFU)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

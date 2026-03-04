@@ -51,7 +51,7 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
 
     /// <summary>Returns a new CommandCode with the Code field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CommandCode WithCode(byte value) => new((byte)((Value & 0xF0) | (value & 0x0F)));
+    public CommandCode WithCode(byte value) => new((byte)((Value & 0xF0) | ((byte)value & 0x0F)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

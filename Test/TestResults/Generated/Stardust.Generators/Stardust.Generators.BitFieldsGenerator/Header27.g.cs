@@ -75,7 +75,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     /// <summary>Returns a new Header27 with the SubHeader field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((Value & 0xFFFFFE00U) | (value & 0x000001FFU)));
+    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((Value & 0xFFFFFE00U) | ((uint)value & 0x000001FFU)));
 
     /// <summary>Returns a new Header27 with the PayloadSize field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

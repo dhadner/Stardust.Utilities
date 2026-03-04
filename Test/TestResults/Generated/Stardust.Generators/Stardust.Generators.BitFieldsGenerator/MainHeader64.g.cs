@@ -75,7 +75,7 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
 
     /// <summary>Returns a new MainHeader64 with the Protocol field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithProtocol(global::Stardust.Utilities.Tests.Header27 value) => new((ulong)((Value & 0xFFFFFFFFF8000000UL) | (value & 0x0000000007FFFFFFUL)));
+    public MainHeader64 WithProtocol(global::Stardust.Utilities.Tests.Header27 value) => new((ulong)((Value & 0xFFFFFFFFF8000000UL) | ((ulong)value & 0x0000000007FFFFFFUL)));
 
     /// <summary>Returns a new MainHeader64 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

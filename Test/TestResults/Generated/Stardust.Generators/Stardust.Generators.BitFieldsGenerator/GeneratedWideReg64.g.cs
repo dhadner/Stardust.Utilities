@@ -107,7 +107,7 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
 
     /// <summary>Returns a new GeneratedWideReg64 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithStatus(byte value) => new((ulong)((Value & 0xFFFFFFFFFFFFFF00UL) | (value & 0x00000000000000FFUL)));
+    public GeneratedWideReg64 WithStatus(byte value) => new((ulong)((Value & 0xFFFFFFFFFFFFFF00UL) | ((ulong)value & 0x00000000000000FFUL)));
 
     /// <summary>Returns a new GeneratedWideReg64 with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

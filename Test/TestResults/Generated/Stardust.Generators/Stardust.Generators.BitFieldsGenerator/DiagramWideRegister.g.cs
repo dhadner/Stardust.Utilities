@@ -63,7 +63,7 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
 
     /// <summary>Returns a new DiagramWideRegister with the LowHalf field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramWideRegister WithLowHalf(ushort value) => new((uint)((Value & 0xFFFF0000U) | (value & 0x0000FFFFU)));
+    public DiagramWideRegister WithLowHalf(ushort value) => new((uint)((Value & 0xFFFF0000U) | ((uint)value & 0x0000FFFFU)));
 
     /// <summary>Returns a new DiagramWideRegister with the HighHalf field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

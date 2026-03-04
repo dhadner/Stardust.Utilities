@@ -99,7 +99,7 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithMagic(ushort value) => new((ulong)((Value & 0xFFFFFFFFFFFF0000UL) | (value & 0x000000000000FFFFUL)));
+    public FileHeader WithMagic(ushort value) => new((ulong)((Value & 0xFFFFFFFFFFFF0000UL) | ((ulong)value & 0x000000000000FFFFUL)));
 
     /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

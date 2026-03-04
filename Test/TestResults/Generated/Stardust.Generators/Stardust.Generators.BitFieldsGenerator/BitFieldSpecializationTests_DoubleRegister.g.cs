@@ -85,7 +85,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new DoubleRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithMantissa(ulong value) => new((ulong)((Value & 0xFFF0000000000000UL) | (value & 0x000FFFFFFFFFFFFFUL)));
+        public DoubleRegister WithMantissa(ulong value) => new((ulong)((Value & 0xFFF0000000000000UL) | ((ulong)value & 0x000FFFFFFFFFFFFFUL)));
 
         /// <summary>Returns a new DoubleRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

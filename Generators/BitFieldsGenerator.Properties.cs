@@ -254,7 +254,7 @@ public partial class BitFieldsGenerator
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (value & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (({info.StorageType})value & {shiftedMaskHex})));");
             }
             else
             {

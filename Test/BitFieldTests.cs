@@ -867,6 +867,39 @@ public partial class BitFieldTests
     }
 
     /// <summary>
+    /// Tests that With methods work for enum property types at bit 0 (shift == 0).
+    /// Regression: the generator must cast the value to the storage type before
+    /// masking, otherwise the generated code produces a compile error for enums.
+    /// </summary>
+    [Fact]
+    public void GeneratedBitFields_WithEnumAtBitZero()
+    {
+        EnumAtBitZeroReg reg = 0;
+
+        // With on the shift-0 enum field
+        var r1 = reg.WithCommand(OpMode.Mode5);
+        r1.Command.Should().Be(OpMode.Mode5);
+        ((byte)r1).Should().Be(0x05);
+
+        // With on the shifted enum field (shift 3) -- should also work
+        var r2 = reg.WithStatus(OpMode.Mode3);
+        r2.Status.Should().Be(OpMode.Mode3);
+        ((byte)r2).Should().Be(0x18); // 3 << 3 = 0x18
+
+        // Both together via chaining
+        var r3 = reg.WithCommand(OpMode.Mode7).WithStatus(OpMode.Mode2).WithFlags(3);
+        r3.Command.Should().Be(OpMode.Mode7);
+        r3.Status.Should().Be(OpMode.Mode2);
+        r3.Flags.Should().Be(3);
+        // 7 | (2 << 3) | (3 << 6) = 0x07 | 0x10 | 0xC0 = 0xD7
+        ((byte)r3).Should().Be(0xD7);
+
+        // Setter round-trip at bit 0
+        reg.Command = OpMode.Mode6;
+        reg.Command.Should().Be(OpMode.Mode6);
+    }
+
+    /// <summary>
     /// Tests using With{Name} methods with properties (the main use case).
     /// </summary>
     [Fact]
@@ -1099,6 +1132,19 @@ public partial struct GeneratedStatusReg8
     [BitFlag(7)] public partial bool Busy { get; set; }
     [BitField(2, 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
     [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
+}
+
+/// <summary>
+/// 8-bit register with an enum field starting at bit 0 (shift == 0).
+/// Regression test: the generated With method must cast the enum value to the
+/// storage type before applying the mask, otherwise C# rejects enum &amp; int.
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct EnumAtBitZeroReg
+{
+    [BitField(0, 2)] public partial OpMode Command { get; set; }   // bits 0..=2 (3 bits, shift 0)
+    [BitField(3, 5)] public partial OpMode Status { get; set; }    // bits 3..=5 (3 bits, shift 3)
+    [BitField(6, 7)] public partial byte Flags { get; set; }       // bits 6..=7 (2 bits)
 }
 
 /// <summary>

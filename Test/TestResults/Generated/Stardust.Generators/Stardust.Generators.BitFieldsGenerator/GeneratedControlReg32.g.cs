@@ -95,7 +95,7 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
 
     /// <summary>Returns a new GeneratedControlReg32 with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithAddress(uint value) => new((uint)((Value & 0xFF000000U) | (value & 0x00FFFFFFU)));
+    public GeneratedControlReg32 WithAddress(uint value) => new((uint)((Value & 0xFF000000U) | ((uint)value & 0x00FFFFFFU)));
 
     /// <summary>Returns a new GeneratedControlReg32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

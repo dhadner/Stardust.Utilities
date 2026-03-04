@@ -83,7 +83,7 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg32 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((Value & 0xFFFFFF00U) | (value & 0x000000FFU)));
+    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((Value & 0xFFFFFF00U) | ((uint)value & 0x000000FFU)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

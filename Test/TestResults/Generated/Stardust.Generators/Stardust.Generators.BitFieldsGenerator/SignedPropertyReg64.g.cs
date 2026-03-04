@@ -67,7 +67,7 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg64 with the LowUInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg64 WithLowUInt(uint value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | (value & 0x00000000FFFFFFFFUL)));
+    public SignedPropertyReg64 WithLowUInt(uint value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | ((ulong)value & 0x00000000FFFFFFFFUL)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

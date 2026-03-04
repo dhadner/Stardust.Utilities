@@ -13,42 +13,53 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(SubHeader9OnesJsonConverter))]
-public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>, IEquatable<SubHeader9Ones>,
-                             IFormattable, ISpanFormattable, IParsable<SubHeader9Ones>, ISpanParsable<SubHeader9Ones>
+[JsonConverter(typeof(EnumAtBitZeroRegJsonConverter))]
+public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroReg>, IEquatable<EnumAtBitZeroReg>,
+                             IFormattable, ISpanFormattable, IParsable<EnumAtBitZeroReg>, ISpanParsable<EnumAtBitZeroReg>
 {
-    private ushort Value;
+    private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SizeInBytes = 1;
 
-    /// <summary>Returns a SubHeader9Ones with all bits set to zero.</summary>
-    public static SubHeader9Ones Zero => default;
+    /// <summary>Returns a EnumAtBitZeroReg with all bits set to zero.</summary>
+    public static EnumAtBitZeroReg Zero => default;
 
-    /// <summary>Creates a new SubHeader9Ones with the specified raw bits value.</summary>
-    public SubHeader9Ones(ushort value) { Value = (ushort)(value | 0xFE00); }
+    /// <summary>Creates a new EnumAtBitZeroReg with the specified raw bits value.</summary>
+    public EnumAtBitZeroReg(byte value) { Value = value; }
 
-    public partial byte TypeCode
+    public partial global::Stardust.Utilities.Tests.OpMode Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x000F);
+        get => (global::Stardust.Utilities.Tests.OpMode)(Value & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFFF0) | (((ushort)value) & 0x000F));
+        set => Value = (byte)((Value & 0xF8) | (((byte)value) & 0x07));
+    }
+
+    public partial global::Stardust.Utilities.Tests.OpMode Status
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 3) & 0x07);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Value = (byte)((Value & 0xC7) | ((((byte)value) << 3) & 0x38));
     }
 
     public partial byte Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & 0x001F);
+        get => (byte)((Value >> 6) & 0x03);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFE0F) | ((((ushort)value) << 4) & 0x01F0));
+        set => Value = (byte)((Value & 0x3F) | ((((byte)value) << 6) & 0xC0));
     }
 
-    /// <summary>Returns a SubHeader9Ones with the mask for the TypeCode field (bits 0-3).</summary>
-    public static SubHeader9Ones TypeCodeMask => new((ushort)0x000F);
+    /// <summary>Returns a EnumAtBitZeroReg with the mask for the Command field (bits 0-2).</summary>
+    public static EnumAtBitZeroReg CommandMask => new((byte)0x07);
 
-    /// <summary>Returns a SubHeader9Ones with the mask for the Flags field (bits 4-8).</summary>
-    public static SubHeader9Ones FlagsMask => new((ushort)0x01F0);
+    /// <summary>Returns a EnumAtBitZeroReg with the mask for the Status field (bits 3-5).</summary>
+    public static EnumAtBitZeroReg StatusMask => new((byte)0x38);
+
+    /// <summary>Returns a EnumAtBitZeroReg with the mask for the Flags field (bits 6-7).</summary>
+    public static EnumAtBitZeroReg FlagsMask => new((byte)0xC0);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -57,140 +68,145 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("TypeCode", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
-        new("Flags", 4, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
+        new("Command", 0, 3, "Stardust.Utilities.Tests.OpMode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Status", 3, 3, "Stardust.Utilities.Tests.OpMode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Flags", 6, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
-    /// <summary>Returns a new SubHeader9Ones with the TypeCode field set to the specified value.</summary>
+    /// <summary>Returns a new EnumAtBitZeroReg with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SubHeader9Ones WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | ((ushort)value & 0x000F)));
+    public EnumAtBitZeroReg WithCommand(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & 0xF8) | ((byte)value & 0x07)));
 
-    /// <summary>Returns a new SubHeader9Ones with the Flags field set to the specified value.</summary>
+    /// <summary>Returns a new EnumAtBitZeroReg with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SubHeader9Ones WithFlags(byte value) => new((ushort)((Value & 0xFE0F) | (((ushort)value << 4) & 0x01F0)));
+    public EnumAtBitZeroReg WithStatus(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & 0xC7) | (((byte)value << 3) & 0x38)));
+
+    /// <summary>Returns a new EnumAtBitZeroReg with the Flags field set to the specified value.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public EnumAtBitZeroReg WithFlags(byte value) => new((byte)((Value & 0x3F) | (((byte)value << 6) & 0xC0)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator ~(SubHeader9Ones a) => new((ushort)~a.Value);
+    public static EnumAtBitZeroReg operator ~(EnumAtBitZeroReg a) => new((byte)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator |(SubHeader9Ones a, SubHeader9Ones b) => new((ushort)(a.Value | b.Value));
+    public static EnumAtBitZeroReg operator |(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new((byte)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator &(SubHeader9Ones a, SubHeader9Ones b) => new((ushort)(a.Value & b.Value));
+    public static EnumAtBitZeroReg operator &(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new((byte)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator ^(SubHeader9Ones a, SubHeader9Ones b) => new((ushort)(a.Value ^ b.Value));
+    public static EnumAtBitZeroReg operator ^(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new((byte)(a.Value ^ b.Value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator +(SubHeader9Ones a) => a;
+    public static EnumAtBitZeroReg operator +(EnumAtBitZeroReg a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator -(SubHeader9Ones a) => new(unchecked((ushort)(0 - a.Value)));
+    public static EnumAtBitZeroReg operator -(EnumAtBitZeroReg a) => new(unchecked((byte)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator +(SubHeader9Ones a, SubHeader9Ones b) => new(unchecked((ushort)(a.Value + b.Value)));
+    public static EnumAtBitZeroReg operator +(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new(unchecked((byte)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator +(SubHeader9Ones a, ushort b) => new(unchecked((ushort)(a.Value + b)));
+    public static EnumAtBitZeroReg operator +(EnumAtBitZeroReg a, byte b) => new(unchecked((byte)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator +(ushort a, SubHeader9Ones b) => new(unchecked((ushort)(a + b.Value)));
+    public static EnumAtBitZeroReg operator +(byte a, EnumAtBitZeroReg b) => new(unchecked((byte)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator -(SubHeader9Ones a, SubHeader9Ones b) => new(unchecked((ushort)(a.Value - b.Value)));
+    public static EnumAtBitZeroReg operator -(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new(unchecked((byte)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator -(SubHeader9Ones a, ushort b) => new(unchecked((ushort)(a.Value - b)));
+    public static EnumAtBitZeroReg operator -(EnumAtBitZeroReg a, byte b) => new(unchecked((byte)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator -(ushort a, SubHeader9Ones b) => new(unchecked((ushort)(a - b.Value)));
+    public static EnumAtBitZeroReg operator -(byte a, EnumAtBitZeroReg b) => new(unchecked((byte)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator *(SubHeader9Ones a, SubHeader9Ones b) => new(unchecked((ushort)(a.Value * b.Value)));
+    public static EnumAtBitZeroReg operator *(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new(unchecked((byte)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator *(SubHeader9Ones a, ushort b) => new(unchecked((ushort)(a.Value * b)));
+    public static EnumAtBitZeroReg operator *(EnumAtBitZeroReg a, byte b) => new(unchecked((byte)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator *(ushort a, SubHeader9Ones b) => new(unchecked((ushort)(a * b.Value)));
+    public static EnumAtBitZeroReg operator *(byte a, EnumAtBitZeroReg b) => new(unchecked((byte)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator /(SubHeader9Ones a, SubHeader9Ones b) => new((ushort)(a.Value / b.Value));
+    public static EnumAtBitZeroReg operator /(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new((byte)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator /(SubHeader9Ones a, ushort b) => new((ushort)(a.Value / b));
+    public static EnumAtBitZeroReg operator /(EnumAtBitZeroReg a, byte b) => new((byte)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator /(ushort a, SubHeader9Ones b) => new((ushort)(a / b.Value));
+    public static EnumAtBitZeroReg operator /(byte a, EnumAtBitZeroReg b) => new((byte)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator %(SubHeader9Ones a, SubHeader9Ones b) => new((ushort)(a.Value % b.Value));
+    public static EnumAtBitZeroReg operator %(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => new((byte)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator %(SubHeader9Ones a, ushort b) => new((ushort)(a.Value % b));
+    public static EnumAtBitZeroReg operator %(EnumAtBitZeroReg a, byte b) => new((byte)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones operator %(ushort a, SubHeader9Ones b) => new((ushort)(a % b.Value));
+    public static EnumAtBitZeroReg operator %(byte a, EnumAtBitZeroReg b) => new((byte)(a % b.Value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SubHeader9Ones a, int b) => a.Value << b;
+    public static int operator <<(EnumAtBitZeroReg a, int b) => a.Value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SubHeader9Ones a, int b) => a.Value >> b;
+    public static int operator >>(EnumAtBitZeroReg a, int b) => a.Value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SubHeader9Ones a, int b) => a.Value >>> b;
+    public static int operator >>>(EnumAtBitZeroReg a, int b) => a.Value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SubHeader9Ones a, SubHeader9Ones b) => a.Value < b.Value;
+    public static bool operator <(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SubHeader9Ones a, SubHeader9Ones b) => a.Value > b.Value;
+    public static bool operator >(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SubHeader9Ones a, SubHeader9Ones b) => a.Value <= b.Value;
+    public static bool operator <=(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SubHeader9Ones a, SubHeader9Ones b) => a.Value >= b.Value;
+    public static bool operator >=(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SubHeader9Ones a, SubHeader9Ones b) => a.Value == b.Value;
+    public static bool operator ==(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SubHeader9Ones a, SubHeader9Ones b) => a.Value != b.Value;
+    public static bool operator !=(EnumAtBitZeroReg a, EnumAtBitZeroReg b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SubHeader9Ones other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is EnumAtBitZeroReg other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -199,30 +215,30 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(SubHeader9Ones value) => value.Value;
+    public static implicit operator byte(EnumAtBitZeroReg value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator SubHeader9Ones(ushort value) => new(value);
+    public static implicit operator EnumAtBitZeroReg(byte value) => new(value);
 
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator SubHeader9Ones(int value) => new(unchecked((ushort)value));
+    public static implicit operator EnumAtBitZeroReg(int value) => new(unchecked((byte)value));
 
-    /// <summary>Creates a new SubHeader9Ones from a little-endian byte span.</summary>
+    /// <summary>Creates a new EnumAtBitZeroReg from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public SubHeader9Ones(ReadOnlySpan<byte> bytes)
+    public EnumAtBitZeroReg(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+        Value = bytes[0];
     }
 
-    /// <summary>Creates a new SubHeader9Ones by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new EnumAtBitZeroReg by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
-    /// <returns>The deserialized SubHeader9Ones.</returns>
+    /// <returns>The deserialized EnumAtBitZeroReg.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static EnumAtBitZeroReg ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
@@ -231,7 +247,7 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
     {
         if (destination.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+        destination[0] = unchecked((byte)Value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -275,13 +291,13 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
         return sb.ToString();
     }
 
-    private static ushort ParseBinary(ReadOnlySpan<char> s)
+    private static byte ParseBinary(ReadOnlySpan<char> s)
     {
         var clean = RemoveUnderscores(s);
-        return Convert.ToUInt16(clean, 2);
+        return Convert.ToByte(clean, 2);
     }
 
-    private static bool TryParseBinary(ReadOnlySpan<char> s, out ushort result)
+    private static bool TryParseBinary(ReadOnlySpan<char> s, out byte result)
     {
         try
         {
@@ -295,28 +311,28 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
         }
     }
 
-    /// <summary>Parses a string into a SubHeader9Ones. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a EnumAtBitZeroReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed SubHeader9Ones value.</returns>
+    /// <returns>The parsed EnumAtBitZeroReg value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static SubHeader9Ones Parse(string s, IFormatProvider? provider)
+    public static EnumAtBitZeroReg Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
         if (IsBinaryPrefix(span))
             return new(ParseBinary(span.Slice(2)));
         if (IsHexPrefix(span))
-            return new(ushort.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(ushort.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
+            return new(byte.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(byte.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a SubHeader9Ones. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a EnumAtBitZeroReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out SubHeader9Ones result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out EnumAtBitZeroReg result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -332,7 +348,7 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
         }
         if (IsHexPrefix(span))
         {
-            if (ushort.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (byte.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -340,7 +356,7 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
             result = default;
             return false;
         }
-        if (ushort.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
+        if (byte.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -349,25 +365,25 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
         return false;
     }
 
-    /// <summary>Parses a span of characters into a SubHeader9Ones. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a EnumAtBitZeroReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed SubHeader9Ones value.</returns>
-    public static SubHeader9Ones Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed EnumAtBitZeroReg value.</returns>
+    public static EnumAtBitZeroReg Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
         if (IsHexPrefix(s))
-            return new(ushort.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(ushort.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
+            return new(byte.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(byte.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a SubHeader9Ones. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a EnumAtBitZeroReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SubHeader9Ones result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out EnumAtBitZeroReg result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -381,7 +397,7 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
         }
         if (IsHexPrefix(s))
         {
-            if (ushort.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (byte.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -389,7 +405,7 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
             result = default;
             return false;
         }
-        if (ushort.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
+        if (byte.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -398,18 +414,18 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
         return false;
     }
 
-    /// <summary>Parses a string into a SubHeader9Ones using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a EnumAtBitZeroReg using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed SubHeader9Ones value.</returns>
+    /// <returns>The parsed EnumAtBitZeroReg value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SubHeader9Ones Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static EnumAtBitZeroReg Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a SubHeader9Ones using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a EnumAtBitZeroReg using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out SubHeader9Ones result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out EnumAtBitZeroReg result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -429,38 +445,38 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a SubHeader9Ones.</exception>
+    /// <exception cref="ArgumentException">obj is not a EnumAtBitZeroReg.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is SubHeader9Ones other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type SubHeader9Ones", nameof(obj));
+        if (obj is EnumAtBitZeroReg other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type EnumAtBitZeroReg", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another SubHeader9Ones and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A SubHeader9Ones to compare.</param>
+    /// <summary>Compares this instance to another EnumAtBitZeroReg and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A EnumAtBitZeroReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SubHeader9Ones other) => Value.CompareTo(other.Value);
+    public int CompareTo(EnumAtBitZeroReg other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another SubHeader9Ones.</summary>
-    /// <param name="other">A SubHeader9Ones to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another EnumAtBitZeroReg.</summary>
+    /// <param name="other">A EnumAtBitZeroReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SubHeader9Ones other) => Value == other.Value;
+    public bool Equals(EnumAtBitZeroReg other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes SubHeader9Ones as a string.</summary>
-    private sealed class SubHeader9OnesJsonConverter : JsonConverter<SubHeader9Ones>
+    /// <summary>JSON converter that serializes EnumAtBitZeroReg as a string.</summary>
+    private sealed class EnumAtBitZeroRegJsonConverter : JsonConverter<EnumAtBitZeroReg>
     {
-        /// <summary>Reads a SubHeader9Ones from a JSON string.</summary>
-        public override SubHeader9Ones Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a EnumAtBitZeroReg from a JSON string.</summary>
+        public override EnumAtBitZeroReg Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : SubHeader9Ones.Parse(s);
+            return s is null ? default : EnumAtBitZeroReg.Parse(s);
         }
 
-        /// <summary>Writes a SubHeader9Ones to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, SubHeader9Ones value, JsonSerializerOptions options)
+        /// <summary>Writes a EnumAtBitZeroReg to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, EnumAtBitZeroReg value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

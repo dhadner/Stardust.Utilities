@@ -85,7 +85,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new HalfRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithMantissa(ushort value) => new((ushort)((Value & 0xFC00) | (value & 0x03FF)));
+        public HalfRegister WithMantissa(ushort value) => new((ushort)((Value & 0xFC00) | ((ushort)value & 0x03FF)));
 
         /// <summary>Returns a new HalfRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

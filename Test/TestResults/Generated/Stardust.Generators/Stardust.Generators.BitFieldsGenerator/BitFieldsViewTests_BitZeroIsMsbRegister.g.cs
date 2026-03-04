@@ -101,7 +101,7 @@ public partial class BitFieldsViewTests
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the LowNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithLowNibble(byte value) => new((byte)((Value & 0xF0) | (value & 0x0F)));
+        public BitZeroIsMsbRegister WithLowNibble(byte value) => new((byte)((Value & 0xF0) | ((byte)value & 0x0F)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

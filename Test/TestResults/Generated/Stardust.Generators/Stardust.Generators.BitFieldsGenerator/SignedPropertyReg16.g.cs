@@ -99,7 +99,7 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg16 with the Offset field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((Value & 0xFFC0) | (value & 0x003F)));
+    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((Value & 0xFFC0) | ((ushort)value & 0x003F)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

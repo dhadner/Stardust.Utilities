@@ -63,7 +63,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
 
     /// <summary>Returns a new ProtocolHeader16 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((ushort)((Value & 0xFF00) | (value & 0x00FF)));
+    public ProtocolHeader16 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((ushort)((Value & 0xFF00) | ((ushort)value & 0x00FF)));
 
     /// <summary>Returns a new ProtocolHeader16 with the Length field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

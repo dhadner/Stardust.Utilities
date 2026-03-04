@@ -63,7 +63,7 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     /// <summary>Returns a new DiagramGappyRegister with the TypeCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramGappyRegister WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | (value & 0x000F)));
+    public DiagramGappyRegister WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | ((ushort)value & 0x000F)));
 
     /// <summary>Returns a new DiagramGappyRegister with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

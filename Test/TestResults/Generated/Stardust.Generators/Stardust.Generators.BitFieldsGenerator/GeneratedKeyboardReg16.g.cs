@@ -95,7 +95,7 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the SecondKeyCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedKeyboardReg16 WithSecondKeyCode(byte value) => new((ushort)((Value & 0xFF80) | (value & 0x007F)));
+    public GeneratedKeyboardReg16 WithSecondKeyCode(byte value) => new((ushort)((Value & 0xFF80) | ((ushort)value & 0x007F)));
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the FirstKeyCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

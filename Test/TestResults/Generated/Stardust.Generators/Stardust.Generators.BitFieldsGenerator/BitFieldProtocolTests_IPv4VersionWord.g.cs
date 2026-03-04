@@ -117,7 +117,7 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new IPv4VersionWord with the TotalLength field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithTotalLength(ushort value) => new((uint)((Value & 0xFFFF0000U) | (value & 0x0000FFFFU)));
+        public IPv4VersionWord WithTotalLength(ushort value) => new((uint)((Value & 0xFFFF0000U) | ((uint)value & 0x0000FFFFU)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

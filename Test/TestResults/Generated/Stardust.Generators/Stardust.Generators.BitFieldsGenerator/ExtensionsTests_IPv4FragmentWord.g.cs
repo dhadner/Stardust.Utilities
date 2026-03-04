@@ -85,7 +85,7 @@ public partial class ExtensionsTests
 
         /// <summary>Returns a new IPv4FragmentWord with the FragmentOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFragmentOffset(ushort value) => new((uint)((Value & 0xFFFFE000U) | (value & 0x00001FFFU)));
+        public IPv4FragmentWord WithFragmentOffset(ushort value) => new((uint)((Value & 0xFFFFE000U) | ((uint)value & 0x00001FFFU)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

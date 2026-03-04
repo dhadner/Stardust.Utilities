@@ -77,7 +77,7 @@ public partial class EndianOverrideTests
 
         /// <summary>Returns a new Reg_Lsb with the BeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Lsb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & 0xFFFFFFFFFFFF0000UL) | (value & 0x000000000000FFFFUL)));
+        public Reg_Lsb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & 0xFFFFFFFFFFFF0000UL) | ((ulong)value & 0x000000000000FFFFUL)));
 
         /// <summary>Returns a new Reg_Lsb with the LeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

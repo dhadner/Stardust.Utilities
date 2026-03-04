@@ -63,7 +63,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
 
     /// <summary>Returns a new SubHeader9 with the TypeCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SubHeader9 WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | (value & 0x000F)));
+    public SubHeader9 WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | ((ushort)value & 0x000F)));
 
     /// <summary>Returns a new SubHeader9 with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

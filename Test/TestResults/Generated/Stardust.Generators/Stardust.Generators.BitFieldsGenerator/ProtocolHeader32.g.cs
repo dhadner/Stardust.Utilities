@@ -87,7 +87,7 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
 
     /// <summary>Returns a new ProtocolHeader32 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((uint)((Value & 0xFFFFFF00U) | (value & 0x000000FFU)));
+    public ProtocolHeader32 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((uint)((Value & 0xFFFFFF00U) | ((uint)value & 0x000000FFU)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -85,7 +85,7 @@ public partial class EndianOverrideTests
 
         /// <summary>Returns a new Reg_Msb with the BeU32 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithBeU32(global::Stardust.Utilities.UInt32Be value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | (value & 0x00000000FFFFFFFFUL)));
+        public Reg_Msb WithBeU32(global::Stardust.Utilities.UInt32Be value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | ((ulong)value & 0x00000000FFFFFFFFUL)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
