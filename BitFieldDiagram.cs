@@ -213,6 +213,10 @@ public class BitFieldDiagram
     /// <param name="commentPrefix">When non-null, prepended to every output line (e.g., <c>"// "</c> or <c>"/// "</c>).</param>
     /// <returns>A list of strings, one per output line.</returns>
     public static List<string> Render(ReadOnlySpan<BitFieldInfo> fields, string? description = null, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, int minCellWidth = 0, string? commentPrefix = null)
+        => RenderCore(fields, description, bitsPerRow, includeDescriptions, showByteOffset, minCellWidth, commentPrefix, emitStructDescription: true);
+
+    /// <summary>Core rendering logic with control over StructDescription emission.</summary>
+    private static List<string> RenderCore(ReadOnlySpan<BitFieldInfo> fields, string? description, int bitsPerRow, bool includeDescriptions, bool showByteOffset, int minCellWidth, string? commentPrefix, bool emitStructDescription)
     {
         if (fields.Length == 0)
         {
@@ -233,48 +237,47 @@ public class BitFieldDiagram
             maxBit = Math.Max(maxBit, fields[0].StructTotalBits - 1);
         int totalRows = (maxBit / bitsPerRow) + 1;
 
-        // Build a cell map: for each bit position, store the field (or null for gaps)
-        var cellMap = new BitFieldInfo?[maxBit + 1];
-        foreach (var f in fields)
-        {
-            for (int b = f.StartBit; b <= f.EndBit; b++)
-            {
-                if (b < cellMap.Length) cellMap[b] = f;
-            }
-        }
+        // Build layered cell maps: layer 0 holds non-overlapping fields (first-writer-wins),
+        // subsequent layers hold fields displaced by overlaps.
+        var layers = BuildLayers(fields, maxBit + 1);
+        var cellMap = layers[0];
 
-        // Pre-scan all spans to compute minimum cell width that fits every named field label.
-        // Undefined gaps use "U" if they don't fit, so they don't drive the width.
+        // Pre-scan all spans across all layers to compute minimum cell width
+        // that fits every named field label at its actual (per-layer) span width.
         int cellWidth = Math.Max(2, minCellWidth);
         bool hasUndefined = false;
-        for (int row = 0; row < totalRows; row++)
+        for (int li = 0; li < layers.Count; li++)
         {
-            int rowStart = row * bitsPerRow;
-            int col = 0;
-            while (col < bitsPerRow)
+            var layerMap = layers[li];
+            for (int row = 0; row < totalRows; row++)
             {
-                int bp = rowStart + col;
-                if (bp > maxBit) break;
-                var field = cellMap[bp];
-                int spanStart = col;
+                int rowStart = row * bitsPerRow;
+                int col = 0;
                 while (col < bitsPerRow)
                 {
-                    int bp2 = rowStart + col;
-                    if (bp2 > maxBit) break;
-                    if (cellMap[bp2] != field) break;
-                    if (field != null && bp2 > field.EndBit) break;
-                    col++;
-                }
-                int spanBits = col - spanStart;
-                if (field != null)
-                {
-                    // Need: spanBits * cellWidth - 1 >= name.Length
-                    int needed = (field.Name.Length + spanBits) / spanBits;
-                    cellWidth = Math.Max(cellWidth, needed);
-                }
-                else
-                {
-                    hasUndefined = true;
+                    int bp = rowStart + col;
+                    if (bp > maxBit) break;
+                    var field = layerMap[bp];
+                    int spanStart = col;
+                    while (col < bitsPerRow)
+                    {
+                        int bp2 = rowStart + col;
+                        if (bp2 > maxBit) break;
+                        if (layerMap[bp2] != field) break;
+                        if (field != null && bp2 > field.EndBit) break;
+                        col++;
+                    }
+                    int spanBits = col - spanStart;
+                    if (field != null)
+                    {
+                        // Need: spanBits * cellWidth - 1 >= name.Length
+                        int needed = (field.Name.Length + spanBits) / spanBits;
+                        cellWidth = Math.Max(cellWidth, needed);
+                    }
+                    else if (li == 0)
+                    {
+                        hasUndefined = true;
+                    }
                 }
             }
         }
@@ -287,10 +290,11 @@ public class BitFieldDiagram
             lines.Add(FormatLine(description, commentPrefix));
         }
 
-        // Emit struct-level description as a header when descriptions are enabled.
+        // Emit struct-level description as a header when descriptions are enabled
+        // and the caller hasn't already handled section labeling (emitStructDescription).
         // Split on embedded newlines so every visual line is a separate entry
         // (required for comment-prefix to be applied to each line).
-        if (includeDescriptions && fields.Length > 0 && fields[0].StructDescription is { } structDesc)
+        if (emitStructDescription && includeDescriptions && fields.Length > 0 && fields[0].StructDescription is { } structDesc)
         {
             foreach (var descLine in structDesc.Split(["\r\n", "\n", "\r"], StringSplitOptions.None))
                 lines.Add(descLine);
@@ -347,7 +351,10 @@ public class BitFieldDiagram
                             tensChars[center] = (char)('0' + (bitNum / 10));
                     }
                 }
-                lines.Add(new string(tensChars).TrimEnd());
+                // Only show the tens-digit line when at least one bit number >= 10
+                int maxBitNum = reversed ? (rowCols - 1) : rowCols - 1;
+                if (maxBitNum >= 10)
+                    lines.Add(new string(tensChars).TrimEnd());
                 lines.Add(new string(onesChars).TrimEnd());
 
                 // Top separator for new section
@@ -399,6 +406,66 @@ public class BitFieldDiagram
                 contentLine.Append('|');
             }
             lines.Add(contentLine.ToString());
+
+            // Overlay layers (for overlapping fields shown as stacked alternate rows)
+            for (int li = 1; li < layers.Count; li++)
+            {
+                var overlayMap = layers[li];
+
+                // Check if this overlay layer has any content in this row
+                bool hasOverlayContent = false;
+                for (int b = rowStartBit; b <= rowEndBit; b++)
+                {
+                    if (b < overlayMap.Length && overlayMap[b] != null)
+                    {
+                        hasOverlayContent = true;
+                        break;
+                    }
+                }
+                if (!hasOverlayContent) continue;
+
+                // Hybrid separator: dashed where overlay has content, solid elsewhere
+                lines.Add(gutterBlank + BuildHybridSeparator(rowCols, cellWidth, overlayMap, rowStartBit, reversed, maxBit));
+
+                // Overlay content row
+                var overlayLine = new StringBuilder(gutterWidth + lineWidth);
+                overlayLine.Append(gutterBlank);
+                overlayLine.Append('|');
+                int oc = 0;
+                while (oc < rowCols)
+                {
+                    int bitPos = reversed
+                        ? rowStartBit + rowCols - 1 - oc
+                        : rowStartBit + oc;
+                    var field = (bitPos <= maxBit && bitPos < overlayMap.Length) ? overlayMap[bitPos] : null;
+                    int spanStart = oc;
+                    while (oc < rowCols)
+                    {
+                        int bp = reversed
+                            ? rowStartBit + rowCols - 1 - oc
+                            : rowStartBit + oc;
+                        var current = (bp <= maxBit && bp < overlayMap.Length) ? overlayMap[bp] : null;
+                        if (current != field) break;
+                        if (field != null && (reversed ? bp < field.StartBit : bp > field.EndBit)) break;
+                        oc++;
+                    }
+                    int spanLen = oc - spanStart;
+                    int spanCharWidth = spanLen * cellWidth - 1;
+
+                    string label = field != null ? field.Name : "";
+                    if (label.Length > spanCharWidth)
+                        label = label[..spanCharWidth];
+
+                    int totalPad = spanCharWidth - label.Length;
+                    int leftPad = totalPad / 2;
+                    int rightPad = totalPad - leftPad;
+                    overlayLine.Append(' ', leftPad);
+                    overlayLine.Append(label);
+                    overlayLine.Append(' ', rightPad);
+                    overlayLine.Append('|');
+                }
+                lines.Add(overlayLine.ToString());
+            }
 
             // Bottom separator
             lines.Add(gutterBlank + BuildSeparator(rowCols, cellWidth));
@@ -494,39 +561,35 @@ public class BitFieldDiagram
             maxBit = Math.Max(maxBit, fields[0].StructTotalBits - 1);
         int totalRows = (maxBit / bitsPerRow) + 1;
 
-        var cellMap = new BitFieldInfo?[maxBit + 1];
-        foreach (var f in fields)
-        {
-            for (int b = f.StartBit; b <= f.EndBit; b++)
-            {
-                if (b < cellMap.Length) cellMap[b] = f;
-            }
-        }
+        var layers = BuildLayers(fields, maxBit + 1);
 
         int cellWidth = 2;
-        for (int row = 0; row < totalRows; row++)
+        foreach (var layerMap in layers)
         {
-            int rowStart = row * bitsPerRow;
-            int col = 0;
-            while (col < bitsPerRow)
+            for (int row = 0; row < totalRows; row++)
             {
-                int bp = rowStart + col;
-                if (bp > maxBit) break;
-                var field = cellMap[bp];
-                int spanStart = col;
+                int rowStart = row * bitsPerRow;
+                int col = 0;
                 while (col < bitsPerRow)
                 {
-                    int bp2 = rowStart + col;
-                    if (bp2 > maxBit) break;
-                    if (cellMap[bp2] != field) break;
-                    if (field != null && bp2 > field.EndBit) break;
-                    col++;
-                }
-                int spanBits = col - spanStart;
-                if (field != null)
-                {
-                    int needed = (field.Name.Length + spanBits) / spanBits;
-                    cellWidth = Math.Max(cellWidth, needed);
+                    int bp = rowStart + col;
+                    if (bp > maxBit) break;
+                    var field = layerMap[bp];
+                    int spanStart = col;
+                    while (col < bitsPerRow)
+                    {
+                        int bp2 = rowStart + col;
+                        if (bp2 > maxBit) break;
+                        if (layerMap[bp2] != field) break;
+                        if (field != null && bp2 > field.EndBit) break;
+                        col++;
+                    }
+                    int spanBits = col - spanStart;
+                    if (field != null)
+                    {
+                        int needed = (field.Name.Length + spanBits) / spanBits;
+                        cellWidth = Math.Max(cellWidth, needed);
+                    }
                 }
             }
         }
@@ -599,13 +662,30 @@ public class BitFieldDiagram
 
             if (lines.Count > 0) lines.Add(FormatLine("", commentPrefix));
 
-            if (description == null && includeDescriptions)
+            if (includeDescriptions)
             {
-                // Emit a section label so multi-struct output has visual separation.
-                // Use the type name; Render will emit StructDescription below when descriptions are on.
-                lines.Add(FormatLine(bitFieldsTypes[i].Name, commentPrefix));
+                string? structDesc = fields.Length > 0 ? fields[0].StructDescription : null;
+
+                if (description == null)
+                {
+                    // No top-level title: emit type name as section heading.
+                    // StructDescription (if any) follows on the next line.
+                    lines.Add(FormatLine(bitFieldsTypes[i].Name, commentPrefix));
+                    if (structDesc != null)
+                    {
+                        foreach (var descLine in structDesc.Split(["\r\n", "\n", "\r"], StringSplitOptions.None))
+                            lines.Add(FormatLine(descLine, commentPrefix));
+                    }
+                }
+                else if (structDesc != null && structDesc != description)
+                {
+                    // Top-level title exists and StructDescription differs: emit as section heading.
+                    foreach (var descLine in structDesc.Split(["\r\n", "\n", "\r"], StringSplitOptions.None))
+                        lines.Add(FormatLine(descLine, commentPrefix));
+                }
+                // else: structDesc matches top-level description or is null → skip to avoid duplication
             }
-            lines.AddRange(Render(fields, null, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix));
+            lines.AddRange(RenderCore(fields, null, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix, emitStructDescription: false));
         }
         return lines;
     }
@@ -717,5 +797,71 @@ public class BitFieldDiagram
             sb.Append('+');
         }
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Builds a separator where bit positions covered by the overlay layer use dashed lines
+    /// (alternating dash-space) and uncovered positions use solid dashes.
+    /// </summary>
+    private static string BuildHybridSeparator(int cols, int cellWidth, BitFieldInfo?[] overlayMap, int rowStartBit, bool reversed, int maxBit)
+    {
+        var sb = new StringBuilder(1 + cols * cellWidth);
+        sb.Append('+');
+        for (int col = 0; col < cols; col++)
+        {
+            int bitPos = reversed
+                ? rowStartBit + cols - 1 - col
+                : rowStartBit + col;
+            bool isDashed = bitPos <= maxBit && bitPos < overlayMap.Length && overlayMap[bitPos] != null;
+            if (isDashed)
+            {
+                for (int c = 0; c < cellWidth - 1; c++)
+                    sb.Append(c % 2 == 0 ? '-' : ' ');
+            }
+            else
+            {
+                sb.Append('-', cellWidth - 1);
+            }
+            sb.Append('+');
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Assigns each field to the lowest available layer where none of its bits are already claimed.
+    /// Layer 0 holds non-overlapping fields (first-writer-wins); displaced fields go to higher layers.
+    /// </summary>
+    private static List<BitFieldInfo?[]> BuildLayers(ReadOnlySpan<BitFieldInfo> fields, int mapSize)
+    {
+        var layers = new List<BitFieldInfo?[]> { new BitFieldInfo?[mapSize] };
+        foreach (var f in fields)
+        {
+            int targetLayer = -1;
+            for (int li = 0; li < layers.Count; li++)
+            {
+                bool canFit = true;
+                for (int b = f.StartBit; b <= f.EndBit && b < mapSize; b++)
+                {
+                    if (layers[li][b] != null)
+                    {
+                        canFit = false;
+                        break;
+                    }
+                }
+                if (canFit)
+                {
+                    targetLayer = li;
+                    break;
+                }
+            }
+            if (targetLayer < 0)
+            {
+                targetLayer = layers.Count;
+                layers.Add(new BitFieldInfo?[mapSize]);
+            }
+            for (int b = f.StartBit; b <= f.EndBit && b < mapSize; b++)
+                layers[targetLayer][b] = f;
+        }
+        return layers;
     }
 }

@@ -18,9 +18,9 @@ namespace Stardust.Utilities.Tests;
 public partial class BitFieldMultiWordTests
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    [JsonConverter(typeof(Bits128JsonConverter))]
-    public partial struct Bits128 : IComparable, IComparable<Bits128>, IEquatable<Bits128>,
-                                 IFormattable, ISpanFormattable, IParsable<Bits128>, ISpanParsable<Bits128>
+    [JsonConverter(typeof(Bits128DescribedJsonConverter))]
+    public partial struct Bits128Described : IComparable, IComparable<Bits128Described>, IEquatable<Bits128Described>,
+                                 IFormattable, ISpanFormattable, IParsable<Bits128Described>, ISpanParsable<Bits128Described>
     {
         private ulong _w0; // bits 0-63
         private ulong _w1; // bits 64-127
@@ -36,24 +36,24 @@ public partial class BitFieldMultiWordTests
 
         private const ulong LastWordMask = 0xFFFFFFFFFFFFFFFFUL;
 
-        /// <summary>Returns a Bits128 with all bits set to zero.</summary>
-        public static Bits128 Zero => default;
+        /// <summary>Returns a Bits128Described with all bits set to zero.</summary>
+        public static Bits128Described Zero => default;
 
-        /// <summary>Creates a new Bits128 from individual word values.</summary>
+        /// <summary>Creates a new Bits128Described from individual word values.</summary>
         /// <param name="lower">Bits 0-63 (least significant).</param>
         /// <param name="upper">Bits 64-127 (most significant).</param>
-        public Bits128(ulong lower, ulong upper)
+        public Bits128Described(ulong lower, ulong upper)
         {
             _w0 = lower;
             _w1 = upper;
         }
 
-        /// <summary>Creates a new Bits128 from a ulong value (zero-extended).</summary>
-        public Bits128(ulong value) : this(value, 0UL) { }
+        /// <summary>Creates a new Bits128Described from a ulong value (zero-extended).</summary>
+        public Bits128Described(ulong value) : this(value, 0UL) { }
 
-        /// <summary>Creates a new Bits128 from an int value. Negative values are sign-extended
+        /// <summary>Creates a new Bits128Described from an int value. Negative values are sign-extended
         /// to all 128 bits (e.g., -1 sets all bits to 1).</summary>
-        public Bits128(int value)
+        public Bits128Described(int value)
         {
             ulong extended = unchecked((ulong)(long)value);
             ulong fill = value < 0 ? ulong.MaxValue : 0UL;
@@ -77,61 +77,61 @@ public partial class BitFieldMultiWordTests
             set => _w1 = (ulong)value;
         }
 
-        /// <summary>Returns a Bits128 with the mask for the Low field (bits 0-63).</summary>
-        public static Bits128 LowMask => new(0xFFFFFFFFFFFFFFFFUL, 0UL);
+        /// <summary>Returns a Bits128Described with the mask for the Low field (bits 0-63).</summary>
+        public static Bits128Described LowMask => new(0xFFFFFFFFFFFFFFFFUL, 0UL);
 
-        /// <summary>Returns a Bits128 with the mask for the High field (bits 64-127).</summary>
-        public static Bits128 HighMask => new(0UL, 0xFFFFFFFFFFFFFFFFUL);
+        /// <summary>Returns a Bits128Described with the mask for the High field (bits 64-127).</summary>
+        public static Bits128Described HighMask => new(0UL, 0xFFFFFFFFFFFFFFFFUL);
 
-        /// <summary>Returns a new Bits128 with the Low field set to the specified value.</summary>
+        /// <summary>Returns a new Bits128Described with the Low field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Bits128 WithLow(ulong value) { var copy = this; copy.Low = value; return copy; }
+        public Bits128Described WithLow(ulong value) { var copy = this; copy.Low = value; return copy; }
 
-        /// <summary>Returns a new Bits128 with the High field set to the specified value.</summary>
+        /// <summary>Returns a new Bits128Described with the High field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Bits128 WithHigh(ulong value) { var copy = this; copy.High = value; return copy; }
+        public Bits128Described WithHigh(ulong value) { var copy = this; copy.High = value; return copy; }
 
         /// <summary>Optional description (title) for this struct.</summary>
-        public static string? StructDescription => null;
+        public static string? StructDescription => "128-bit described register";
         /// <summary>Optional resource type for the struct description.</summary>
         public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Low", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-            new("High", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Low", 0, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Lower half", StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "128-bit described register"),
+            new("High", 64, 64, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, "Upper half", StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any, StructDescription: "128-bit described register"),
         };
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator ~(Bits128 a) => new(~a._w0, ~a._w1);
+        public static Bits128Described operator ~(Bits128Described a) => new(~a._w0, ~a._w1);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator |(Bits128 a, Bits128 b) => new(a._w0 | b._w0, a._w1 | b._w1);
+        public static Bits128Described operator |(Bits128Described a, Bits128Described b) => new(a._w0 | b._w0, a._w1 | b._w1);
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator &(Bits128 a, Bits128 b) => new(a._w0 & b._w0, a._w1 & b._w1);
+        public static Bits128Described operator &(Bits128Described a, Bits128Described b) => new(a._w0 & b._w0, a._w1 & b._w1);
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator ^(Bits128 a, Bits128 b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1);
+        public static Bits128Described operator ^(Bits128Described a, Bits128Described b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1);
 
         /// <summary>Bitwise AND operator with ulong (applied to lowest word).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator &(Bits128 a, ulong b) => new(a._w0 & b, 0UL);
+        public static Bits128Described operator &(Bits128Described a, ulong b) => new(a._w0 & b, 0UL);
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator +(Bits128 a) => a;
+        public static Bits128Described operator +(Bits128Described a) => a;
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator -(Bits128 a) => ~a + new Bits128(1UL);
+        public static Bits128Described operator -(Bits128Described a) => ~a + new Bits128Described(1UL);
 
         /// <summary>Addition operator with carry propagation.</summary>
-        public static Bits128 operator +(Bits128 a, Bits128 b)
+        public static Bits128Described operator +(Bits128Described a, Bits128Described b)
         {
             ulong w0 = a._w0 + b._w0;
             ulong c0 = (w0 < a._w0) ? 1UL : 0UL;
@@ -141,10 +141,10 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Addition operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator +(Bits128 a, ulong b) => a + new Bits128(b);
+        public static Bits128Described operator +(Bits128Described a, ulong b) => a + new Bits128Described(b);
 
         /// <summary>Subtraction operator with borrow propagation.</summary>
-        public static Bits128 operator -(Bits128 a, Bits128 b)
+        public static Bits128Described operator -(Bits128Described a, Bits128Described b)
         {
             ulong w0 = a._w0 - b._w0;
             ulong borrow0 = (a._w0 < b._w0) ? 1UL : 0UL;
@@ -155,37 +155,37 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Subtraction operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator -(Bits128 a, ulong b) => a - new Bits128(b);
+        public static Bits128Described operator -(Bits128Described a, ulong b) => a - new Bits128Described(b);
 
         /// <summary>Multiplication operator (via BigInteger).</summary>
-        public static Bits128 operator *(Bits128 a, Bits128 b) => FromBigInteger(a.ToBigInteger() * b.ToBigInteger());
+        public static Bits128Described operator *(Bits128Described a, Bits128Described b) => FromBigInteger(a.ToBigInteger() * b.ToBigInteger());
 
         /// <summary>Multiplication operator with ulong.</summary>
-        public static Bits128 operator *(Bits128 a, ulong b) => FromBigInteger(a.ToBigInteger() * b);
+        public static Bits128Described operator *(Bits128Described a, ulong b) => FromBigInteger(a.ToBigInteger() * b);
 
         /// <summary>Multiplication operator with ulong.</summary>
-        public static Bits128 operator *(ulong a, Bits128 b) => FromBigInteger(a * b.ToBigInteger());
+        public static Bits128Described operator *(ulong a, Bits128Described b) => FromBigInteger(a * b.ToBigInteger());
 
         /// <summary>Division operator (via BigInteger).</summary>
-        public static Bits128 operator /(Bits128 a, Bits128 b) => FromBigInteger(a.ToBigInteger() / b.ToBigInteger());
+        public static Bits128Described operator /(Bits128Described a, Bits128Described b) => FromBigInteger(a.ToBigInteger() / b.ToBigInteger());
 
         /// <summary>Division operator with ulong.</summary>
-        public static Bits128 operator /(Bits128 a, ulong b) => FromBigInteger(a.ToBigInteger() / b);
+        public static Bits128Described operator /(Bits128Described a, ulong b) => FromBigInteger(a.ToBigInteger() / b);
 
         /// <summary>Modulus operator (via BigInteger).</summary>
-        public static Bits128 operator %(Bits128 a, Bits128 b) => FromBigInteger(a.ToBigInteger() % b.ToBigInteger());
+        public static Bits128Described operator %(Bits128Described a, Bits128Described b) => FromBigInteger(a.ToBigInteger() % b.ToBigInteger());
 
         /// <summary>Modulus operator with ulong.</summary>
-        public static Bits128 operator %(Bits128 a, ulong b) => FromBigInteger(a.ToBigInteger() % b);
+        public static Bits128Described operator %(Bits128Described a, ulong b) => FromBigInteger(a.ToBigInteger() % b);
 
         /// <summary>Left shift operator.</summary>
-        public static Bits128 operator <<(Bits128 a, int amount)
+        public static Bits128Described operator <<(Bits128Described a, int amount)
         {
             if (amount <= 0) return a;
             if (amount >= TotalBits) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
-            var result = default(Bits128);
+            var result = default(Bits128Described);
             for (int dst = WordCount - 1; dst >= 0; dst--)
             {
                 int src = dst - wordShift;
@@ -204,13 +204,13 @@ public partial class BitFieldMultiWordTests
         }
 
         /// <summary>Right shift operator (unsigned).</summary>
-        public static Bits128 operator >>(Bits128 a, int amount)
+        public static Bits128Described operator >>(Bits128Described a, int amount)
         {
             if (amount <= 0) return a;
             if (amount >= TotalBits) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
-            var result = default(Bits128);
+            var result = default(Bits128Described);
             for (int dst = 0; dst < WordCount; dst++)
             {
                 int src = dst + wordShift;
@@ -230,10 +230,10 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 operator >>>(Bits128 a, int amount) => a >> amount;
+        public static Bits128Described operator >>>(Bits128Described a, int amount) => a >> amount;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong GetWord(Bits128 v, int index)
+        private static ulong GetWord(Bits128Described v, int index)
         {
             return index switch
             {
@@ -244,7 +244,7 @@ public partial class BitFieldMultiWordTests
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void SetWord(ref Bits128 v, int index, ulong value)
+        private static void SetWord(ref Bits128Described v, int index, ulong value)
         {
             switch (index)
             {
@@ -254,7 +254,7 @@ public partial class BitFieldMultiWordTests
         }
 
         /// <summary>Less than operator.</summary>
-        public static bool operator <(Bits128 a, Bits128 b)
+        public static bool operator <(Bits128Described a, Bits128Described b)
         {
             if (a._w1 != b._w1) return a._w1 < b._w1;
             if (a._w0 != b._w0) return a._w0 < b._w0;
@@ -263,26 +263,26 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(Bits128 a, Bits128 b) => b < a;
+        public static bool operator >(Bits128Described a, Bits128Described b) => b < a;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(Bits128 a, Bits128 b) => !(b < a);
+        public static bool operator <=(Bits128Described a, Bits128Described b) => !(b < a);
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(Bits128 a, Bits128 b) => !(a < b);
+        public static bool operator >=(Bits128Described a, Bits128Described b) => !(a < b);
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(Bits128 a, Bits128 b) => a._w0 == b._w0 && a._w1 == b._w1;
+        public static bool operator ==(Bits128Described a, Bits128Described b) => a._w0 == b._w0 && a._w1 == b._w1;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(Bits128 a, Bits128 b) => !(a == b);
+        public static bool operator !=(Bits128Described a, Bits128Described b) => !(a == b);
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is Bits128 other && this == other;
+        public override bool Equals(object? obj) => obj is Bits128Described other && this == other;
 
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
@@ -295,19 +295,19 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Implicit conversion from ulong (zero-extended).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Bits128(ulong value) => new(value);
+        public static implicit operator Bits128Described(ulong value) => new(value);
 
         /// <summary>Implicit conversion from int.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Bits128(int value) => new(value);
+        public static implicit operator Bits128Described(int value) => new(value);
 
         /// <summary>Explicit conversion to BigInteger.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator BigInteger(Bits128 value) => value.ToBigInteger();
+        public static explicit operator BigInteger(Bits128Described value) => value.ToBigInteger();
 
         /// <summary>Explicit conversion from BigInteger.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator Bits128(BigInteger value) => FromBigInteger(value);
+        public static explicit operator Bits128Described(BigInteger value) => FromBigInteger(value);
 
         /// <summary>Converts this value to a BigInteger.</summary>
         public BigInteger ToBigInteger()
@@ -317,8 +317,8 @@ public partial class BitFieldMultiWordTests
             return result;
         }
 
-        /// <summary>Creates a Bits128 from a BigInteger (truncated to 128 bits).</summary>
-        public static Bits128 FromBigInteger(BigInteger value)
+        /// <summary>Creates a Bits128Described from a BigInteger (truncated to 128 bits).</summary>
+        public static Bits128Described FromBigInteger(BigInteger value)
         {
             if (value.Sign < 0) value = (BigInteger.One << TotalBits) + value;
             ulong w0 = (ulong)(value & ulong.MaxValue);
@@ -327,10 +327,10 @@ public partial class BitFieldMultiWordTests
             return new(w0, w1);
         }
 
-        /// <summary>Creates a new Bits128 from a little-endian byte span.</summary>
+        /// <summary>Creates a new Bits128Described from a little-endian byte span.</summary>
         /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
-        public Bits128(ReadOnlySpan<byte> bytes)
+        public Bits128Described(ReadOnlySpan<byte> bytes)
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
@@ -338,11 +338,11 @@ public partial class BitFieldMultiWordTests
             _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
         }
 
-        /// <summary>Creates a new Bits128 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+        /// <summary>Creates a new Bits128Described by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
         /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
-        /// <returns>The deserialized Bits128.</returns>
+        /// <returns>The deserialized Bits128Described.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+        public static Bits128Described ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
         /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
@@ -393,8 +393,8 @@ public partial class BitFieldMultiWordTests
             return sb.ToString();
         }
 
-        /// <summary>Parses a string into a Bits128. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
-        public static Bits128 Parse(string s, IFormatProvider? provider)
+        /// <summary>Parses a string into a Bits128Described. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+        public static Bits128Described Parse(string s, IFormatProvider? provider)
         {
             ArgumentNullException.ThrowIfNull(s);
             var span = s.AsSpan();
@@ -410,27 +410,27 @@ public partial class BitFieldMultiWordTests
             return FromBigInteger(BigInteger.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
         }
 
-        /// <summary>Tries to parse a string into a Bits128.</summary>
-        public static bool TryParse(string? s, IFormatProvider? provider, out Bits128 result)
+        /// <summary>Tries to parse a string into a Bits128Described.</summary>
+        public static bool TryParse(string? s, IFormatProvider? provider, out Bits128Described result)
         {
             if (s is null) { result = default; return false; }
             try { result = Parse(s, provider); return true; }
             catch { result = default; return false; }
         }
 
-        /// <summary>Parses a span of characters into a Bits128.</summary>
-        public static Bits128 Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => Parse(s.ToString(), provider);
+        /// <summary>Parses a span of characters into a Bits128Described.</summary>
+        public static Bits128Described Parse(ReadOnlySpan<char> s, IFormatProvider? provider) => Parse(s.ToString(), provider);
 
-        /// <summary>Tries to parse a span of characters into a Bits128.</summary>
-        public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out Bits128 result) => TryParse(s.ToString(), provider, out result);
+        /// <summary>Tries to parse a span of characters into a Bits128Described.</summary>
+        public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out Bits128Described result) => TryParse(s.ToString(), provider, out result);
 
         /// <summary>Parses a string using invariant culture.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Bits128 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+        public static Bits128Described Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
         /// <summary>Tries to parse a string using invariant culture.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryParse(string? s, out Bits128 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+        public static bool TryParse(string? s, out Bits128Described result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
         /// <summary>Formats the value using the specified format and format provider.</summary>
         public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
@@ -453,34 +453,34 @@ public partial class BitFieldMultiWordTests
         public int CompareTo(object? obj)
         {
             if (obj is null) return 1;
-            if (obj is Bits128 other) return CompareTo(other);
-            throw new ArgumentException("Object must be of type Bits128", nameof(obj));
+            if (obj is Bits128Described other) return CompareTo(other);
+            throw new ArgumentException("Object must be of type Bits128Described", nameof(obj));
         }
 
-        /// <summary>Compares this instance to another Bits128.</summary>
-        public int CompareTo(Bits128 other)
+        /// <summary>Compares this instance to another Bits128Described.</summary>
+        public int CompareTo(Bits128Described other)
         {
             if (_w1 != other._w1) return _w1.CompareTo(other._w1);
             if (_w0 != other._w0) return _w0.CompareTo(other._w0);
             return 0;
         }
 
-        /// <summary>Indicates whether this instance is equal to another Bits128.</summary>
+        /// <summary>Indicates whether this instance is equal to another Bits128Described.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(Bits128 other) => this == other;
+        public bool Equals(Bits128Described other) => this == other;
 
-        /// <summary>JSON converter that serializes Bits128 as a hex string.</summary>
-        private sealed class Bits128JsonConverter : JsonConverter<Bits128>
+        /// <summary>JSON converter that serializes Bits128Described as a hex string.</summary>
+        private sealed class Bits128DescribedJsonConverter : JsonConverter<Bits128Described>
         {
-            /// <summary>Reads a Bits128 from a JSON string.</summary>
-            public override Bits128 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            /// <summary>Reads a Bits128Described from a JSON string.</summary>
+            public override Bits128Described Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 var s = reader.GetString();
-                return s is null ? default : Bits128.Parse(s);
+                return s is null ? default : Bits128Described.Parse(s);
             }
 
-            /// <summary>Writes a Bits128 to JSON as a hex string.</summary>
-            public override void Write(Utf8JsonWriter writer, Bits128 value, JsonSerializerOptions options)
+            /// <summary>Writes a Bits128Described to JSON as a hex string.</summary>
+            public override void Write(Utf8JsonWriter writer, Bits128Described value, JsonSerializerOptions options)
             {
                 writer.WriteStringValue(value.ToString());
             }

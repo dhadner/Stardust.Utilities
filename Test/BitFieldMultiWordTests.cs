@@ -113,6 +113,14 @@ public partial class BitFieldMultiWordTests
         [BitFlag(16383)] public partial bool HighBit { get; set; }       // bit 16383
     }
 
+    /// <summary>Multi-word struct with Description for StructDescription metadata tests.</summary>
+    [BitFields(128, Description = "128-bit described register")]
+    public partial struct Bits128Described
+    {
+        [BitField(0, 63, Description = "Lower half")] public partial ulong Low { get; set; }
+        [BitField(64, 127, Description = "Upper half")] public partial ulong High { get; set; }
+    }
+
 
     #endregion
 
@@ -1406,6 +1414,43 @@ public partial class BitFieldMultiWordTests
         Bits16384 a = 100UL;
         var result = a + 200UL;
         result.W0.Should().Be(300);
+    }
+
+    #endregion
+
+    #region StructDescription Metadata
+
+    [Fact]
+    public void MultiWord_StructDescription_EmittedInFieldsMetadata()
+    {
+        Assert.All(Bits128Described.Fields.ToArray(),
+            f => Assert.Equal("128-bit described register", f.StructDescription));
+    }
+
+    [Fact]
+    public void MultiWord_StructDescription_StaticProperty()
+    {
+        Assert.Equal("128-bit described register", Bits128Described.StructDescription);
+    }
+
+    [Fact]
+    public void MultiWord_NoDescription_StructDescriptionIsNull()
+    {
+        Assert.All(Bits128.Fields.ToArray(),
+            f => Assert.Null(f.StructDescription));
+    }
+
+    [Fact]
+    public void MultiWord_NoDescription_StaticPropertyIsNull()
+    {
+        Assert.Null(Bits128.StructDescription);
+    }
+
+    [Fact]
+    public void MultiWord_StructDescription_ShownInDiagram()
+    {
+        var lines = BitFieldDiagram.Render(typeof(Bits128Described), bitsPerRow: 64, includeDescriptions: true);
+        Assert.Equal("128-bit described register", lines[0]);
     }
 
     #endregion

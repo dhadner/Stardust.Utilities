@@ -152,7 +152,14 @@ internal static partial class BitFieldsMultiWordGenerator
         string structByteOrder = info.ByteOrder == ByteOrder.BigEndian
             ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
         string structBitOrder = "BitOrder.BitZeroIsLsb";
+        string structDescArg = info.Description != null
+            ? $", StructDescription: \"{GeneratorUtils.EscapeStringLiteral(info.Description)}\""
+            : "";
 
+        sb.AppendLine($"{ind}/// <summary>Optional description (title) for this struct.</summary>");
+        sb.AppendLine($"{ind}public static string? StructDescription => {(info.Description != null ? $"\"{GeneratorUtils.EscapeStringLiteral(info.Description)}\"" : "null")};");
+        sb.AppendLine($"{ind}/// <summary>Optional resource type for the struct description.</summary>");
+        sb.AppendLine($"{ind}public static Type? StructDescriptionResourceType => {(info.DescriptionResourceType != null ? $"typeof({(info.DescriptionResourceType.FullName.StartsWith("global::") ? info.DescriptionResourceType.FullName.Substring("global::".Length) : info.DescriptionResourceType.FullName)})" : "null")};");
         sb.AppendLine($"{ind}/// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>");
         sb.AppendLine($"{ind}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
         sb.AppendLine($"{ind}{{");
@@ -161,13 +168,13 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             var qualifiedType = f.PropertyType.StartsWith("global::") ? f.PropertyType.Substring("global::".Length) : f.PropertyType;
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, qualifiedType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}{structDescArg}),");
         }
 
         foreach (var f in info.DeclaredFlags)
         {
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType, null);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {info.TotalBits}, FieldMustBe: MustBe.{f.ValueOverride}, StructUndefinedMustBe: UndefinedBitsMustBe.{info.UndefinedBitsMode}{structDescArg}),");
         }
 
         sb.AppendLine($"{ind}}};");

@@ -110,6 +110,10 @@ public partial class BitFieldSpecializationTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DecimalRegister WithScale(byte value) { var copy = this; copy.Scale = value; return copy; }
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {

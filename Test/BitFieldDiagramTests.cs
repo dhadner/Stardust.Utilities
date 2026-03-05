@@ -43,6 +43,31 @@ public partial struct DiagramWideRegister
     [BitField(16, 31, Description = "High half")] public partial ushort HighHalf { get; set; }
 }
 
+/// <summary>
+/// Test struct with overlapping fields modelling ADB-style command register.
+/// Command occupies bits 2-3, Register occupies bits 0-1, and ExtendedCommand
+/// overlaps all four (bits 0-3) as an alternate interpretation when Command == 0.
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct DiagramOverlapRegister
+{
+    [BitField(4, 7, Description = "Device address")] public partial byte Address { get; set; }
+    [BitField(2, 3, Description = "Command code")] public partial byte Command { get; set; }
+    [BitField(0, 1, Description = "Register select")] public partial byte Register { get; set; }
+    [BitField(0, 3, Description = "Extended command (when Command=0)")] public partial byte ExtendedCommand { get; set; }
+}
+
+/// <summary>
+/// Test struct where two fields fully overlap the same bit range.
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct DiagramFullOverlapRegister
+{
+    [BitField(0, 3, Description = "Mode A interpretation")] public partial byte ModeA { get; set; }
+    [BitField(0, 3, Description = "Mode B interpretation")] public partial byte ModeB { get; set; }
+    [BitField(4, 7)] public partial byte Upper { get; set; }
+}
+
 public class BitFieldDiagramTests
 {
     // ── Render basics ───────────────────────────────────────────
@@ -98,6 +123,31 @@ public class BitFieldDiagramTests
         var lines32 = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 32);
         var linesBad = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 0);
         Assert.Equal(lines32.Count, linesBad.Count);
+    }
+
+    [Fact]
+    public void Render_8Bits_OmitsTensDigitLine()
+    {
+        // An 8-bit struct rendered at 8 bits per row has bit numbers 0-7.
+        // The tens-digit header line (all zeroes) should be omitted.
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8);
+        // The first line should be the ones-digit header containing '7' (the highest bit),
+        // not a line with just a lone '0' tens digit.
+        string firstLine = lines[0];
+        Assert.Contains("7", firstLine);
+        Assert.Contains("0", firstLine);
+        // Ensure there is no preceding tens-only line (a line whose only non-space char is '0')
+        Assert.DoesNotContain(lines, l => l.Trim() == "0");
+    }
+
+    [Fact]
+    public void Render_16Bits_IncludesTensDigitLine()
+    {
+        // A 16-bit struct at 16 bits per row has bit numbers 0-15, so tens are needed.
+        var lines = BitFieldDiagram.Render(DiagramGappyRegister.Fields, bitsPerRow: 16);
+        string diagram = string.Join("\n", lines);
+        // The tens-digit line should contain "1" (for bits 10-15)
+        Assert.Contains(lines, l => l.Contains('1') && !l.Contains('+') && !l.Contains('|'));
     }
 
     // ── showByteOffset parameter ────────────────────────────────
@@ -476,7 +526,7 @@ public class BitFieldDiagramTests
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], includeDescriptions: false);
         diagram.Render().Match(
             onSuccess: lines => { 
-                Assert.True(lines.Count == 5);
+                Assert.True(lines.Count == 4);
                 Assert.Contains(lines, l => l.Contains("Ready"));
                 Assert.DoesNotContain(lines, l => l.Contains("Mode: Operating mode"));
                 return Ok(lines);
@@ -992,5 +1042,198 @@ public class BitFieldDiagramTests
             includeDescriptions: true);
         int count = lines.Count(l => l.Contains("List Title"));
         Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void DiagramInstance_DescriptionMatchesStructDescription_NotDuplicated()
+    {
+        // Reproduces the DemoWeb "TCP Header" scenario: BitFieldDiagram.Description
+        // matches the struct's own StructDescription via [BitFieldsView(Description = ...)].
+        var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "8-bit test status register");
+        diagram.Render().Match(
+            onSuccess: lines =>
+            {
+                int count = lines.Count(l => l.Contains("8-bit test status register"));
+                Assert.Equal(1, count);
+                return Ok(lines);
+            },
+            onFailure: err =>
+            {
+                Assert.Fail(err);
+                return Err(err);
+            });
+    }
+
+    [Fact]
+    public void RenderList_DescriptionMatchesStructDescription_NotDuplicated()
+    {
+        var lines = BitFieldDiagram.RenderList(
+            [typeof(DiagramTestRegister)],
+            description: "8-bit test status register",
+            bitsPerRow: 8,
+            includeDescriptions: true);
+        int count = lines.Count(l => l.Contains("8-bit test status register"));
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void RenderList_MultiStruct_TopLevelAndSectionDescriptions_AllPresent()
+    {
+        // Multi-struct: top-level description differs from each struct's StructDescription.
+        // All should appear without duplication.
+        var lines = BitFieldDiagram.RenderList(
+            [typeof(DiagramTestRegister), typeof(DiagramMsbView)],
+            description: "Combined Diagram",
+            bitsPerRow: 8,
+            includeDescriptions: true);
+        string diagram = string.Join("\n", lines);
+        Assert.Contains("Combined Diagram", diagram);
+        Assert.Contains("8-bit test status register", diagram);
+        Assert.Contains("MSB-first test view", diagram);
+        Assert.Equal(1, lines.Count(l => l.Contains("Combined Diagram")));
+        Assert.Equal(1, lines.Count(l => l.Contains("8-bit test status register")));
+        Assert.Equal(1, lines.Count(l => l.Contains("MSB-first test view")));
+    }
+
+    // ── Overlapping fields ──────────────────────────────────────
+
+    [Fact]
+    public void Render_OverlappingFields_AllFieldNamesPresent()
+    {
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8);
+        string diagram = string.Join("\n", lines);
+
+        Assert.Contains("Address", diagram);
+        Assert.Contains("Command", diagram);
+        Assert.Contains("Register", diagram);
+        Assert.Contains("ExtendedCommand", diagram);
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_HasHybridSeparator()
+    {
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8);
+        // The hybrid separator contains dashed segments ("- ") adjacent to solid ones ("--")
+        bool hasHybrid = lines.Exists(l => l.Contains("- +") && l.Contains("--+"));
+        Assert.True(hasHybrid, "Expected a hybrid separator with both dashed and solid segments");
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_OverlayRowPresent()
+    {
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8);
+        // There should be more content rows than a non-overlapping 8-bit struct.
+        // Specifically: 1 primary content row + 1 overlay content row = 2 rows with '|' content
+        int contentRows = lines.Count(l => l.Contains('|') && !l.Contains('+'));
+        Assert.True(contentRows >= 2, $"Expected at least 2 content rows (primary + overlay), got {contentRows}");
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_ExtendedCommandGetsFullWidth()
+    {
+        // ExtendedCommand is 4 bits; it must appear as a single unbroken label
+        // spanning 4 bit columns in the overlay row (not truncated to 2 bits).
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8);
+        string diagram = string.Join("\n", lines);
+
+        // Count how many lines contain ExtendedCommand — should be exactly 1 content line
+        int ecLines = lines.Count(l => l.Contains("ExtendedCommand") && l.Contains('|'));
+        Assert.Equal(1, ecLines);
+
+        // The label should not be truncated (all 15 chars present)
+        Assert.Contains("ExtendedCommand", diagram);
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_Descriptions_AllPresent()
+    {
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8, includeDescriptions: true);
+        string diagram = string.Join("\n", lines);
+
+        Assert.Contains("Device address", diagram);
+        Assert.Contains("Command code", diagram);
+        Assert.Contains("Register select", diagram);
+        Assert.Contains("Extended command (when Command=0)", diagram);
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_SeparatorCountCorrect()
+    {
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8);
+        // For a single row with 1 overlay: top separator + hybrid separator + bottom separator = 3
+        int sepLines = lines.Count(l => l.TrimStart().StartsWith('+'));
+        Assert.Equal(3, sepLines);
+    }
+
+    [Fact]
+    public void Render_FullOverlap_BothFieldsPresent()
+    {
+        var lines = BitFieldDiagram.Render(DiagramFullOverlapRegister.Fields, bitsPerRow: 8);
+        string diagram = string.Join("\n", lines);
+
+        Assert.Contains("ModeA", diagram);
+        Assert.Contains("ModeB", diagram);
+        Assert.Contains("Upper", diagram);
+    }
+
+    [Fact]
+    public void Render_FullOverlap_HasOverlayRow()
+    {
+        var lines = BitFieldDiagram.Render(DiagramFullOverlapRegister.Fields, bitsPerRow: 8);
+        // For a single row with 1 overlay: top separator + hybrid separator + bottom separator = 3
+        int sepLines = lines.Count(l => l.TrimStart().StartsWith('+'));
+        Assert.Equal(3, sepLines);
+    }
+
+    [Fact]
+    public void Render_NoOverlap_UnchangedBehavior()
+    {
+        // Non-overlapping struct should produce no hybrid separators
+        var lines = BitFieldDiagram.Render(DiagramTestRegister.Fields, bitsPerRow: 8);
+        bool hasHybrid = lines.Exists(l => l.Contains("- +") && l.Contains("--+"));
+        Assert.False(hasHybrid, "Non-overlapping struct should not produce hybrid separators");
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_CommentPrefix_Applied()
+    {
+        var lines = BitFieldDiagram.Render(DiagramOverlapRegister.Fields, bitsPerRow: 8, commentPrefix: "// ");
+        Assert.All(lines, line => Assert.StartsWith("// ", line));
+        string diagram = string.Join("\n", lines);
+        Assert.Contains("ExtendedCommand", diagram);
+    }
+
+    [Fact]
+    public void Render_OverlappingFields_Type_AllFieldsPresent()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramOverlapRegister), bitsPerRow: 8);
+        string diagram = string.Join("\n", lines);
+        Assert.Contains("Address", diagram);
+        Assert.Contains("Command", diagram);
+        Assert.Contains("Register", diagram);
+        Assert.Contains("ExtendedCommand", diagram);
+    }
+
+    [Fact]
+    public void ComputeMinCellWidth_OverlappingFields_ConsidersOverlaySpan()
+    {
+        // ExtendedCommand (15 chars) in 4 bits needs cellWidth >= 4.
+        // Register (8 chars) in 2 bits needs cellWidth >= 5.
+        // Without overlay awareness, ExtendedCommand would be truncated to 2 bits
+        // and would need cellWidth >= 8, wasting space.
+        int width = BitFieldDiagram.ComputeMinCellWidth(DiagramOverlapRegister.Fields, bitsPerRow: 8);
+        Assert.True(width >= 5, $"Expected cellWidth >= 5, got {width}");
+    }
+
+    [Fact]
+    public void RenderList_OverlappingFields_ConsistentWidth()
+    {
+        // Overlapping struct combined with non-overlapping should still render correctly
+        var lines = BitFieldDiagram.RenderList(
+            [typeof(DiagramOverlapRegister), typeof(DiagramTestRegister)],
+            bitsPerRow: 8);
+        string diagram = string.Join("\n", lines);
+        Assert.Contains("ExtendedCommand", diagram);
+        Assert.Contains("Ready", diagram);
     }
 }
