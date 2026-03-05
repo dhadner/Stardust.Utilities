@@ -32,6 +32,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [Security](#security)
+- [Privacy](#privacy)
 - [License](#license)
 
 ---
@@ -681,7 +682,7 @@ global using static Stardust.Utilities.Result<int,string>;
 global using static Stardust.Utilities.Result<string>;
 // Add additional global usings as needed for other Result types for clean usage syntax.
 
-// In your source filees
+// In your source files
 // Function that might fail
 Result<int, string> Divide(int a, int b)
 {
@@ -960,4 +961,12 @@ Contributions are welcome! Please read our guidelines before submitting issues o
 To report a security vulnerability, please use GitHub's private vulnerability reporting feature. **Do not report security issues through public GitHub issues.**
 
 See [SECURITY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/SECURITY.md) for details.
+
+---
+
+## Privacy
+
+Stardust.Utilities does not collect, transmit, or store any personal data, telemetry, or usage information.
+
+See [PRIVACY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/PRIVACY.md) for details.
 

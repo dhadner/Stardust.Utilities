@@ -38,6 +38,7 @@ This guide explains how to modify the source generators and update consuming pro
 - [Troubleshooting](#troubleshooting)
 - [Version History](#version-history)
 - [API Simplification Trade Study (v0.3.0)](#api-simplification-trade-study-v030)
+- [Releasing a Version](#releasing-a-version)
 
 ## Quick Reference: Build Workflow
 
@@ -109,6 +110,7 @@ Stardust.Utilities/
 ├── DEVELOPER.md                         # This file
 ├── ENDIAN.md                            # Endianness documentation (Int32Be, UInt16Be, etc.)
 ├── EXTENSIONS.md                        # Detailed documentation on the Extensions class methods
+├── PRIVACY.md                           # Privacy statement (no telemetry, no data collection)
 ├── README.md                            # User documentation
 ├── RESULT.md                            # Result documentation -- used extensively throughout Stardust.Utilities
 └── SECURITY.md                          # Security documentation and how to report vulnerabilities
@@ -255,6 +257,14 @@ git pull origin main
 **Output locations:**
 - `./nupkg/` - Package files
 - `~/.nuget/local-packages/` - Local NuGet feed (packages appear in NuGet Package Manager)
+
+> **Local feed setup for contributors:** The build script copies packages to `~/.nuget/local-packages/`.
+> If this is your first time building, you may need to register the folder as a NuGet source:
+> ```powershell
+> dotnet nuget add source "$env:USERPROFILE\.nuget\local-packages" --name local-packages
+> ```
+> You can verify it was added with `dotnet nuget list source`. The local feed appears in
+> Visual Studio's NuGet Package Manager under **Package source > local-packages**.
 
 #### Build-Generator-NuGetPackage.ps1
 
@@ -829,3 +839,21 @@ v0.3.0 also added support for signed storage types (`sbyte`, `short`, `int`, `lo
 Performance testing showed signed types are approximately 22% slower than unsigned
 equivalents due to the additional casts required to avoid sign extension issues in
 bitwise operations. For most use cases, this overhead is acceptable.
+
+## Releasing a Version
+
+### Release Checklist
+
+1. Update `Version` in `Directory.Build.props` (single source of truth)
+2. Update `CHANGELOG.md` with the new version, date, and changes
+3. Update `PackageReleaseNotes` in `Stardust.Utilities.csproj` with version-specific notes
+4. Verify `README.md` installation snippet references the new version
+5. Build and test: `.\Build-Combined-NuGetPackages.ps1`
+6. Commit all changes and push to `main`
+7. Create a Git tag with the `v` prefix: `git tag v0.9.5 && git push origin v0.9.5`
+8. Publish to NuGet.org using the command shown by the build script
+
+### Tag Naming Convention
+
+All release tags use the `v` prefix (e.g., `v0.9.5`, `v1.0.0`). The initial `0.9.2` tag
+predates this convention. New releases must use the `v` prefix for consistency.

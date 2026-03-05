@@ -12,7 +12,7 @@
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for bit manipulation, error handling, and big-endian data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
 		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>Supports .NET 7, .NET 8, .NET 9, and .NET 10. See README.md and CHANGELOG.md for details.</PackageReleaseNotes>
+		<PackageReleaseNotes>v0.9.5: Added Description parameter to [BitFields]/[BitFieldsView] for diagram descriptions and tooltips. Fixed compile error in generated With{Name} methods for byte-backed enums at bit 0. Deprecated DiagramSection (replaced by Description). See CHANGELOG.md for full details.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
@@ -73,6 +73,7 @@
 		<None Include=".github\PULL_REQUEST_TEMPLATE.md" />
 		<None Include=".github\workflows\ci.yml" />
 		<None Include=".github\workflows\deploy-demo.yml" />
+		<None Include="PRIVACY.md" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
