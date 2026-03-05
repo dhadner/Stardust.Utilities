@@ -1,6 +1,6 @@
 name: Deploy Demo to GitHub Pages
 
-# Only runs manually or on main after v0.9.4+ is published to NuGet.org
+# Runs on push to main when demo files change, or manually via workflow_dispatch.
 on:
   workflow_dispatch:
   push:
@@ -26,10 +26,25 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup .NET 10
+    - name: Setup .NET 7, 8, 9, and 10
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.0.x
+        dotnet-version: |
+          7.0.x
+          8.0.x
+          9.0.x
+          10.0.x
+
+    # The DemoWeb app references Stardust.Utilities via PackageReference using
+    # the version from Directory.Build.props. During development the version
+    # may not yet be published to NuGet.org. Build and pack the library locally
+    # so the publish restore succeeds. The pack needs all four SDKs because the
+    # library multi-targets net7.0, net8.0, net9.0, and net10.0.
+    - name: Pack library locally
+      run: dotnet pack Stardust.Utilities.csproj -c Release -o ./nupkg
+
+    - name: Register local NuGet source
+      run: dotnet nuget add source "${{ github.workspace }}/nupkg" --name local
 
     # Set base href for GitHub Pages subdirectory
     - name: Set base href
