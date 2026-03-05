@@ -38,7 +38,7 @@
         </p>
     </div>
 
-    <!-- Shown on return visit after a previous crash -->
+    <!-- Shown on return visit after two consecutive crashes -->
     <div id="wasm-blocked" style="display:none; max-width:680px; margin:60px auto; padding:32px;
          font-family:'Segoe UI',system-ui,sans-serif; color:#e0e0e0; background:#242424;
          border:1px solid #3a3a3a; border-radius:8px; line-height:1.6;">
@@ -51,8 +51,9 @@
             <p style="margin-top:8px;">Allow WebAssembly for this site:</p>
             <ol style="margin:8px 0 0 20px;">
                 <li>Navigate to <code style="background:#1a1a1a; padding:2px 6px; border-radius:3px;">edge://settings/privacy/security/secureModeSites</code></li>
-                <li>Add this site to the <em>&ldquo;Never use enhanced security for these sites&rdquo;</em> list</li>
-                <li>Come back and click <strong>Try again</strong> below</li>
+                <li>Add <code id="site-url" style="background:#1a1a1a; padding:2px 6px; border-radius:3px;"></code>
+                    to the <em>&ldquo;Never use enhanced security for these sites&rdquo;</em> list</li>
+                <li>Come back and refresh this page (or click <strong>Try again</strong> below)</li>
             </ol>
             <p style="margin-top:8px; font-size:13px;">This only affects Edge with Enhanced
                Security set to <em>Strict</em>. The default <em>Balanced</em> mode is not
@@ -89,17 +90,22 @@
         // No JavaScript probe can detect this ahead of time — the crash is
         // at the renderer level, not catchable by try/catch.
         //
+        // localStorage flag states:
+        //   (absent)   — first visit, never attempted
+        //   'loading'  — one crash so far; retry automatically on next load
+        //                so a normal browser refresh works after fixing settings
+        //   'crashed'  — two consecutive crashes; show the compatibility panel
+        //   'success'  — Blazor booted successfully; auto-load from now on
+        //
         // Strategy:
         //   - Non-Edge browsers: auto-load Blazor (not affected).
         //   - Edge, first visit: show a welcome page with a "Load Demo"
-        //     button so the user is never surprised by a crash. They see
-        //     useful content (video, screenshots) regardless.
-        //   - Edge, previously succeeded: auto-load (localStorage proves
-        //     this Edge instance can run WASM fine — Balanced mode).
-        //   - Edge, previously crashed: show compatibility panel with
-        //     Edge settings fix (primary) and fallback content.
-        //   - Any browser, "Try again" after fixing settings: clears the
-        //     flag and reloads.
+        //     button so the user is never surprised by a crash.
+        //   - Edge, previously succeeded: auto-load (proves Balanced mode).
+        //   - After first crash ('loading'): retry automatically so that a
+        //     normal browser refresh works after the user fixes settings.
+        //   - After second consecutive crash ('crashed'): show compatibility
+        //     panel. "Try again" clears the flag and restarts the cycle.
         (function () {
             var FLAG = 'blazorBoot';
             var state = localStorage.getItem(FLAG);
@@ -109,22 +115,33 @@
                 document.getElementById(id).style.display = 'block';
             }
 
-            function loadBlazor() {
-                localStorage.setItem(FLAG, 'loading');
+            function loadBlazor(flagValue) {
+                localStorage.setItem(FLAG, flagValue);
                 var s = document.createElement('script');
                 s.src = '_framework/blazor.webassembly.js';
                 document.body.appendChild(s);
             }
 
-            // Previous load crashed — show compatibility panel.
-            if (state === 'loading') {
+            // Two consecutive crashes — show compatibility panel.
+            if (state === 'crashed') {
                 showPanel('wasm-blocked');
+                // Fill in the actual site URL so the user knows what to add
+                var el = document.getElementById('site-url');
+                if (el) el.textContent = location.origin;
+                return;
+            }
+
+            // One previous crash — retry automatically. This makes a normal
+            // browser refresh work after the user fixes Edge settings.
+            // If it crashes again, the flag escalates to 'crashed'.
+            if (state === 'loading') {
+                loadBlazor('crashed');
                 return;
             }
 
             // Previous load succeeded — safe to auto-load in any browser.
             if (state === 'success') {
-                loadBlazor();
+                loadBlazor('loading');
                 return;
             }
 
@@ -136,13 +153,13 @@
                 window.attemptLoad = function () {
                     document.getElementById('edge-welcome').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
-                    loadBlazor();
+                    loadBlazor('loading');
                 };
                 return;
             }
 
             // First visit, non-Edge: auto-load.
-            loadBlazor();
+            loadBlazor('loading');
         })();
     </script>
 </body>

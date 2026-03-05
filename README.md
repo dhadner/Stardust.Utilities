@@ -954,8 +954,8 @@ See [LICENSE](https://github.com/dhadner/Stardust.Utilities/blob/main/LICENSE) f
 
 Contributions are welcome! Please read our guidelines before submitting issues or pull requests.
 
-- [Contributing Guidelines](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md)
-- [Code of Conduct](https://github.com/dhadner/Stardust.Utilities/blob/main/CODE_OF_CONDUCT.md)
+- See Contributing guidelines at [CONTRIBUTING.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md)
+- See Code of Conduct guidelines at [CODE_OF_CONDUCT.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CODE_OF_CONDUCT.md)
 
 ---
 
