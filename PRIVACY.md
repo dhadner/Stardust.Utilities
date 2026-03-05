@@ -12,9 +12,9 @@ calls, no phone-home behavior, and no analytics of any kind.
 
 The interactive demo hosted at https://dhadner.github.io/Stardust.Utilities/ runs entirely in your browser 
 using WebAssembly. It does not use cookies, server-side analytics, or local storage for tracking. The demo 
-does use a single `localStorage` flag to detect a prior WebAssembly crash (caused by Edge Enhanced Security 
-Mode) so it can show a helpful error message instead of crashing again. This flag contains no personal data 
-and is not transmitted anywhere. No data leaves your browser. GitHub Pages may collect standard web server 
+does use a single `localStorage` flag (`blazorBoot`) to remember whether a previous WebAssembly load 
+succeeded or crashed (caused by Edge Enhanced Security Mode). This flag contains no personal data and is 
+not transmitted anywhere. No data leaves your browser. GitHub Pages may collect standard web server 
 logs (IP address, user agent) as described in the GitHub Privacy Statement 
 (https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 

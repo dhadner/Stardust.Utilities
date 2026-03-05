@@ -690,18 +690,31 @@ large modules. Even with SIMD and native EH disabled, the 14 MB
 Small WASM modules (under ~1 MB) compile fine, so no JavaScript probe can detect
 the problem ahead of time.
 
-The `index.html` boot script uses a crash-and-recover strategy:
+The `index.html` boot script uses a three-tier strategy to handle this:
 
-1. First visit sets a `localStorage` flag (`blazorBoot = 'loading'`) and loads Blazor.
-2. If Blazor boots successfully, `Program.cs` clears the flag.
-3. If the renderer crashes, the flag persists (localStorage is managed by the
-   browser process, not the renderer). All future visits see an error panel
-   with fix instructions and a "Try again" button.
-4. The user only ever crashes once per device.
+**Non-Edge browsers** (Chrome, Firefox, Safari): auto-load Blazor immediately.
+These browsers are not affected by the JIT-less issue.
 
-The error panel instructs the user to add the site to Edge's exception list at
-`edge://settings/privacy/security/secureModeSites`. Balanced mode (the default)
-is not affected.
+**Edge, first visit**: the script detects Edge via User-Agent (`/Edg\//`) and
+shows a welcome page with a "Load Interactive Demo" button, a video walkthrough
+link, and README screenshots link. This prevents the renderer crash from being
+the first thing a visitor sees. If the user clicks "Load Demo":
+
+- **Balanced mode** (default): Blazor loads successfully. `Program.cs` sets
+  `localStorage('blazorBoot') = 'success'`. All subsequent visits auto-load.
+- **Strict mode**: the renderer crashes with `STATUS_ILLEGAL_INSTRUCTION`.
+  The `localStorage` flag stays at `'loading'` (the browser process manages
+  localStorage, so it survives renderer crashes). The next visit shows a
+  compatibility panel with the Edge settings fix and fallback content links.
+
+**Edge, return visit after crash** (`blazorBoot === 'loading'`): shows the
+compatibility panel immediately (no crash). The primary fix instructs the user
+to add the site to the exception list at
+`edge://settings/privacy/security/secureModeSites`, with video/screenshots as
+a fallback. A "Try again" button clears the flag and reloads.
+
+**Any browser, return visit after success** (`blazorBoot === 'success'`):
+auto-loads Blazor regardless of User-Agent.
 
 **GitHub Pages deployment:**
 

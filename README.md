@@ -861,14 +861,17 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 2. Check that attributes are spelled correctly: `[BitFields]`, `[BitField]`, `[BitFlag]`
 3. Clean and rebuild the solution
 
-### DemoWeb shows "WebAssembly is blocked" in Edge
+### DemoWeb shows a welcome page instead of loading automatically in Edge
 
-Edge's *Enhanced Security Mode* (Strict) disables WebAssembly JIT compilation,
-which crashes the .NET WASM runtime on first load. The app detects this and
-shows a "WebAssembly is blocked" panel on any subsequent visit with fix
-instructions. Add the site URL to the exception list at
-`edge://settings/privacy/security/secureModeSites`, then click **Try again**.
-This does not affect Balanced mode (the default) or other browsers.
+Edge's *Enhanced Security Mode* (Strict) disables WebAssembly for large modules,
+which crashes the .NET WASM runtime. To prevent this crash from being the first
+thing a visitor sees, Edge users are shown a welcome page with a "Load Interactive
+Demo" button on their first visit. Once the demo loads successfully, subsequent
+visits auto-load normally. If the demo cannot load, the welcome page also links to
+a video walkthrough and screenshots. To fix the underlying issue, add the site to
+Edge's exception list at `edge://settings/privacy/security/secureModeSites`. This
+only affects Edge with Enhanced Security set to *Strict*. The default *Balanced*
+mode and all other browsers are not affected.
 
 ### IntelliSense not working for generated members
 
