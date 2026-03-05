@@ -54,6 +54,9 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 
 **Visualization**
 - [RFC Diagram Generator](#rfc-diagram-generator)
+  - [Instance API](#instance-api)
+  - [Static Type-Based API](#static-type-based-api)
+  - [Static Field-Based API](#static-field-based-api)
 - [Demo Application](#demo-application)
 
 **Reference**
@@ -1092,19 +1095,170 @@ where a single struct mixes endianness at the individual field level.
 `[BitFieldsView]` struct. It reads the generated `Fields` metadata property and produces a
 text diagram with bit-position headers, byte offsets, and auto-sized cells.
 
-### Basic Usage
+There are three ways to use it:
+
+| Approach | Best for |
+|----------|----------|
+| **Instance API** (`new BitFieldDiagram(...)`) | Reusable, configurable diagrams -- UI bindings, multi-struct lists, changing options at runtime |
+| **Static type-based API** (`BitFieldDiagram.Render(typeof(...))`) | Quick one-shot rendering from a `Type` |
+| **Static field-based API** (`BitFieldDiagram.Render(fields)`) | Low-level control when you already have `ReadOnlySpan<BitFieldInfo>` |
+
+### Instance API
+
+Create a `BitFieldDiagram` object, configure it, add one or more structs, and render.
+
+**Creating a diagram**
 
 ```csharp
 using Stardust.Utilities;
 
+// Empty diagram -- add structs later
+var diagram = new BitFieldDiagram();
+
+// Single struct
+var diagram = new BitFieldDiagram(typeof(IPv4HeaderView), description: "IPv4 Header");
+
+// Multiple structs in one diagram
+var diagram = new BitFieldDiagram(
+    [typeof(M68020DataRegisters), typeof(M68020SR), typeof(M68020CCR)],
+    description: "68020 Register Set");
+```
+
+**Setting options**
+
+All options are mutable properties, so you can change them at any time before rendering:
+
+```csharp
+var diagram = new BitFieldDiagram(typeof(IPv4HeaderView));
+diagram.BitsPerRow = 16;
+diagram.IncludeDescriptions = true;
+diagram.ShowByteOffset = true;
+diagram.CommentPrefix = "// ";
+diagram.Description = "IPv4 Header";
+```
+
+Options can also be set via constructor parameters:
+
+```csharp
+var diagram = new BitFieldDiagram(
+    typeof(TcpHeaderView),
+    description: "TCP Header",
+    commentPrefix: "/// ",
+    bitsPerRow: 32,
+    includeDescriptions: true,
+    showByteOffset: true);
+```
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `BitsPerRow` | 32 | Number of bits per row. Common values: 8, 16, 32, 64. |
+| `IncludeDescriptions` | true (constructor) | Appends a legend with field descriptions below the diagram. |
+| `ShowByteOffset` | false (constructor) | Shows hex byte offset (e.g., `0x00`) at the left of each content row. |
+| `CommentPrefix` | null | When non-null, prepended to every output line (e.g., `"// "`, `"/// "`). |
+| `Description` | null | Caption shown above the diagram. When `DescriptionResourceType` is set, this is used as a resource key. |
+| `DescriptionResourceType` | null | Optional `Type` with a `ResourceManager` property for localized descriptions. |
+
+**Adding structs**
+
+Use `AddStruct` to add `[BitFields]` or `[BitFieldsView]` types incrementally. It returns a
+`Result<string>` so you can check for errors:
+
+```csharp
+var diagram = new BitFieldDiagram();
+diagram.AddStruct(typeof(IPv4HeaderView));
+diagram.AddStruct(typeof(TcpHeaderView));
+
+// Error handling
+Result<string> result = diagram.AddStruct(typeof(string)); // not a BitFields type
+if (result.IsFailure)
+    Console.WriteLine(result.Error); // "Struct 'String' is not a valid [BitFields] or [BitFieldsView] type."
+```
+
+The `Structs` property exposes the current list of types:
+
+```csharp
+var diagram = new BitFieldDiagram(typeof(IPv4HeaderView));
+Console.WriteLine(diagram.Structs.Count); // 1
+```
+
+**Rendering**
+
+```csharp
+var diagram = new BitFieldDiagram(typeof(IPv4HeaderView), description: "IPv4 Header");
+diagram.BitsPerRow = 32;
+diagram.IncludeDescriptions = true;
+
+// Render as a single string
+Result<string, string> stringResult = diagram.RenderToString();
+if (stringResult.IsSuccess)
+    Console.WriteLine(stringResult.Value);
+
+// Render as a list of lines
+Result<List<string>, string> linesResult = diagram.Render();
+if (linesResult.IsSuccess)
+    foreach (string line in linesResult.Value)
+        Console.WriteLine(line);
+```
+
+Both `Render()` and `RenderToString()` return `Result` types. They return an error when no
+structs have been added.
+
+**Real-world example (Blazor UI)**
+
+The instance API is ideal for UI scenarios where options change at runtime:
+
+```csharp
+// Create reusable diagram objects at initialization
+BitFieldDiagram[] sources =
+[
+    new(typeof(IPv4HeaderView), "IPv4 Header"),
+    new(typeof(TcpHeaderView), "TCP Header"),
+    new([typeof(M68020DataRegisters), typeof(M68020SR), typeof(M68020CCR)],
+        "68020 Register Set"),
+];
+
+// Update options from UI controls and re-render
+var diagram = sources[selectedIndex];
+diagram.BitsPerRow = bitsPerRow;
+diagram.IncludeDescriptions = showDescriptions;
+diagram.ShowByteOffset = showByteOffset;
+diagram.CommentPrefix = commentPrefix;
+string text = diagram.RenderToString().Value;
+```
+
+### Static Type-Based API
+
+For quick one-shot diagrams, pass a `Type` directly to the static methods:
+
+```csharp
+// Render a single type
+List<string> lines = BitFieldDiagram.Render(typeof(IPv4HeaderView), bitsPerRow: 32);
+string diagram = BitFieldDiagram.RenderToString(typeof(IPv4HeaderView), bitsPerRow: 32);
+
+// Render multiple types as a unified diagram with consistent cell widths
+List<string> lines = BitFieldDiagram.RenderList(
+    bitFieldsTypes: [typeof(M68020DataRegisters), typeof(M68020SR)],
+    bitsPerRow: 32,
+    includeDescriptions: true);
+
+string diagram = BitFieldDiagram.RenderListToString(
+    bitFieldsTypes: [typeof(M68020DataRegisters), typeof(M68020SR)],
+    bitsPerRow: 32,
+    includeDescriptions: true);
+```
+
+### Static Field-Based API
+
+When you already have a `ReadOnlySpan<BitFieldInfo>` (from the generated `Fields` property),
+use the field-based overloads for direct control:
+
+```csharp
 // Render as a list of lines
 List<string> lines = BitFieldDiagram.Render(IPv4HeaderView.Fields);
 
-// Render as a single string with newlines
+// Render as a single string
 string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
 ```
-
-### Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -1112,6 +1266,7 @@ string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
 | `includeDescriptions` | false | Appends a legend with `Description` text for each field. |
 | `showByteOffset` | true | Shows hex byte offset (e.g., `0x00`) at the left of each content row. |
 | `minCellWidth` | 0 (auto) | Minimum cell width in characters per bit column. When 0, computed automatically. Used internally by `RenderList` for consistent scale. |
+| `commentPrefix` | null | When non-null, prepended to every output line. |
 
 ```csharp
 // 8 bits per row for small registers
@@ -1125,26 +1280,9 @@ string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, includeDe
 
 // Hide byte offsets for compact output
 string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, showByteOffset: false);
-```
 
-### Multi-Struct Diagrams
-
-`RenderList` and `RenderListToString` render multiple struct sections as a unified diagram with
-consistent cell widths. The widest field name across all sections determines the scale for the
-entire output.
-
-```csharp
-// Render multiple structs together
-var sections = new DiagramSection[]
-{
-    new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
-    new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
-    new("SR", M68020SR.Fields.ToArray()),
-};
-string diagram = BitFieldDiagram.RenderListToString(sections, bitsPerRow: 32);
-
-// Or get individual lines
-List<string> lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 32, includeDescriptions: true);
+// Add a comment prefix for embedding in source code
+string diagram = BitFieldDiagram.RenderToString(StatusRegister.Fields, commentPrefix: "// ");
 ```
 
 Use `ComputeMinCellWidth` to pre-compute the shared width if you need it for custom layout logic.
@@ -1192,8 +1330,8 @@ IPv4 header at 32 bits per row:
 CPU status register with descriptions:
 
 ```csharp
-string diagram = BitFieldDiagram.RenderToString(
-    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true);
+var diagram = new BitFieldDiagram(typeof(StatusRegister), bitsPerRow: 16, includeDescriptions: true);
+string output = diagram.RenderToString().Value;
 ```
 
 ### Demo Application
