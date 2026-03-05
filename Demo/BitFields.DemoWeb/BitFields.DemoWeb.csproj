@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0-*" PrivateAssets="all" />
-    <PackageReference Include="Stardust.Utilities" Version="0.9.5" />
+    <PackageReference Include="Stardust.Utilities" Version="$(Version)" />
   </ItemGroup>
   <!-- Share model and utility files from the WPF demo (source generator runs on them here too) -->
   <ItemGroup>

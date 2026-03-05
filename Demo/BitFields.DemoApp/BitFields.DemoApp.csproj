@@ -13,6 +13,6 @@
     <Content Include="Stardust-Utilities-Icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Stardust.Utilities" Version="0.9.5" />
+    <PackageReference Include="Stardust.Utilities" Version="$(Version)" />
   </ItemGroup>
 </Project>

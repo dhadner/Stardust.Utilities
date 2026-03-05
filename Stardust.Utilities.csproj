@@ -72,6 +72,7 @@
 		<None Include=".github\ISSUE_TEMPLATE\question.md" />
 		<None Include=".github\PULL_REQUEST_TEMPLATE.md" />
 		<None Include=".github\workflows\ci.yml" />
+		<None Include=".github\workflows\dependency-submission.yml" />
 		<None Include=".github\workflows\deploy-demo.yml" />
 		<None Include="PRIVACY.md" />
 		<None Include="README.md" Pack="true" PackagePath="" />

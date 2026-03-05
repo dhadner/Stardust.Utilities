@@ -187,15 +187,13 @@ public class BitFieldDiagram
     {
         if (Structs.Count == 0) return Result<List<string>, string>.Err(FormatLine("(no bitStruct)", CommentPrefix));
 
-        // Render all added structs as a unified diagram
-        var lines = RenderList([.. Structs], Description, BitsPerRow, IncludeDescriptions, ShowByteOffset, CommentPrefix);
+        // Resolve the description (handles resource lookup via DescriptionResourceType)
+        string? resolvedDescription = GetDescription();
 
-        // Prepend description if present
-        string? description = GetDescription();
-        if (description != null)
-        {
-            lines.Insert(0, FormatLine(description, CommentPrefix));
-        }
+        // Render all added structs as a unified diagram.
+        // RenderList emits the description once as a top-level title.
+        var lines = RenderList([.. Structs], resolvedDescription, BitsPerRow, IncludeDescriptions, ShowByteOffset, CommentPrefix);
+
         return Ok(lines);
     }
 
@@ -547,12 +545,11 @@ public class BitFieldDiagram
     /// <returns>A list of strings, one per output line.</returns>
     public static List<string> Render(Type bitFieldsType, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
     {
-        var description = bitFieldsType.GetProperty("StructDescription",
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-
         var fieldsResult = bitFieldsType.GetFieldInfo();
         var fields = fieldsResult.IsSuccess ? fieldsResult.Value : [];
-        return Render(fields, description?.GetValue(null)?.ToString(), bitsPerRow, includeDescriptions, showByteOffset, 0, commentPrefix);
+        // StructDescription is already available in fields[0].StructDescription and
+        // emitted by the fields-based Render when includeDescriptions is true.
+        return Render(fields, null, bitsPerRow, includeDescriptions, showByteOffset, 0, commentPrefix);
     }
 
     /// <summary>
@@ -608,7 +605,7 @@ public class BitFieldDiagram
                 // Use the type name; Render will emit StructDescription below when descriptions are on.
                 lines.Add(FormatLine(bitFieldsTypes[i].Name, commentPrefix));
             }
-            lines.AddRange(Render(fields, description, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix));
+            lines.AddRange(Render(fields, null, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix));
         }
         return lines;
     }

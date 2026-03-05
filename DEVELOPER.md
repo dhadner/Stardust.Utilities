@@ -844,7 +844,8 @@ bitwise operations. For most use cases, this overhead is acceptable.
 
 ### Release Checklist
 
-1. Update `Version` in `Directory.Build.props` (single source of truth)
+1. Update `Version` in `Directory.Build.props` (single source of truth; demo app
+   `PackageReference` versions use `$(Version)` automatically)
 2. Update `CHANGELOG.md` with the new version, date, and changes
 3. Update `PackageReleaseNotes` in `Stardust.Utilities.csproj` with version-specific notes
 4. Verify `README.md` installation snippet references the new version

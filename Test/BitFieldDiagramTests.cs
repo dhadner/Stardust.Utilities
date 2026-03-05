@@ -935,4 +935,62 @@ public class BitFieldDiagramTests
         Assert.Contains(result.Value, f => f.Name == "Ihl");
         Assert.Contains(result.Value, f => f.Name == "TotalLength");
     }
+
+    // ── Description duplication regression tests ────────────────
+
+    [Fact]
+    public void Render_Type_StructDescription_NotDuplicated()
+    {
+        var lines = BitFieldDiagram.Render(typeof(DiagramTestRegister), bitsPerRow: 8, includeDescriptions: true);
+        int count = lines.Count(l => l.Contains("8-bit test status register"));
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void DiagramInstance_WithDescription_NotDuplicated()
+    {
+        var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "Custom Title");
+        diagram.Render().Match(
+            onSuccess: lines =>
+            {
+                int count = lines.Count(l => l.Contains("Custom Title"));
+                Assert.Equal(1, count);
+                return Ok(lines);
+            },
+            onFailure: err =>
+            {
+                Assert.Fail(err);
+                return Err(err);
+            });
+    }
+
+    [Fact]
+    public void DiagramInstance_WithDescription_TitleAndStructDescriptionBothPresent()
+    {
+        var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "Custom Title");
+        diagram.Render().Match(
+            onSuccess: lines =>
+            {
+                Assert.Contains(lines, l => l.Contains("Custom Title"));
+                Assert.Contains(lines, l => l.Contains("8-bit test status register"));
+                return Ok(lines);
+            },
+            onFailure: err =>
+            {
+                Assert.Fail(err);
+                return Err(err);
+            });
+    }
+
+    [Fact]
+    public void RenderList_Types_WithDescription_NotDuplicated()
+    {
+        var lines = BitFieldDiagram.RenderList(
+            [typeof(DiagramTestRegister)],
+            description: "List Title",
+            bitsPerRow: 8,
+            includeDescriptions: true);
+        int count = lines.Count(l => l.Contains("List Title"));
+        Assert.Equal(1, count);
+    }
 }
