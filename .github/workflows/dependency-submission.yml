@@ -41,4 +41,4 @@ jobs:
       run: dotnet nuget add source "${{ github.workspace }}/nupkg" --name local
 
     - name: Submit dependencies
-      uses: advanced-security/component-detection-action@v1
+      uses: dotnet/dependency-submission@v2
