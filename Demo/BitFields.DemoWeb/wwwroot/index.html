@@ -12,6 +12,69 @@
     <div id="app">
         <div class="loading">Loading&hellip;</div>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <div id="wasm-blocked" style="display:none; max-width:640px; margin:60px auto; padding:32px;
+         font-family:'Segoe UI',system-ui,sans-serif; color:#e0e0e0; background:#242424;
+         border:1px solid #3a3a3a; border-radius:8px; line-height:1.6;">
+        <h2 style="margin-bottom:12px;">&#9888;&#65039; This app failed to load</h2>
+        <p>The previous attempt to start this app crashed, most likely because
+           your browser's security settings block WebAssembly compilation.</p>
+        <p style="margin-top:16px;">
+            <button onclick="localStorage.removeItem('blazorBoot');location.reload();"
+                    style="padding:10px 28px; background:#38bdf8; color:#1a1a1a; border:none;
+                           border-radius:4px; cursor:pointer; font-size:15px; font-weight:600;">
+                &#x21bb; Try again
+            </button>
+        </p>
+        <details style="margin-top:20px; color:#aaa;">
+            <summary style="cursor:pointer; color:#e0e0e0;">How to fix this in Microsoft Edge</summary>
+            <p style="margin-top:8px;">Edge's <strong>Enhanced Security Mode</strong> can
+               disable WebAssembly. To allow it for this site:</p>
+            <ol style="margin:8px 0 0 20px;">
+                <li>Navigate to <code style="background:#1a1a1a; padding:2px 6px; border-radius:3px;">edge://settings/privacy/security/secureModeSites</code></li>
+                <li>Add this site to the <em>"Never use enhanced security for these sites"</em> list</li>
+                <li>Come back and click <strong>Try again</strong> above</li>
+            </ol>
+            <p style="margin-top:8px;">Chrome and Firefox are not affected.</p>
+        </details>
+    </div>
+    <script>
+        // Detect Edge Enhanced Security Mode (Strict) using a crash-and-recover
+        // strategy. The .NET WASM runtime (14 MB) crashes V8's JIT-less mode with
+        // STATUS_ILLEGAL_INSTRUCTION — a renderer-level crash that no JavaScript
+        // probe can detect or prevent ahead of time.
+        //
+        // How it works:
+        // 1. First visit: set localStorage flag to 'loading', load Blazor.
+        // 2. If Blazor boots successfully, it clears the flag (normal operation).
+        // 3. If the renderer crashes, the flag persists in localStorage (managed
+        //    by the browser process, survives renderer crashes). ALL future visits
+        //    — new tabs, new sessions, bookmarks — see the error panel immediately.
+        //    The user only ever crashes once per device.
+        // 4. "Try again" button clears the flag so Blazor loads after the user
+        //    fixes their Edge settings.
+        (function () {
+            var FLAG = 'blazorBoot';
+
+            function showBlocked() {
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('wasm-blocked').style.display = 'block';
+            }
+
+            // If the previous load attempt crashed, the flag is still 'loading'.
+            if (localStorage.getItem(FLAG) === 'loading') {
+                showBlocked();
+                return;
+            }
+
+            // Mark that we're about to attempt loading.
+            localStorage.setItem(FLAG, 'loading');
+
+            // Load Blazor. If it boots, Program.cs clears the flag.
+            // If the renderer crashes, the flag stays 'loading' for next reload.
+            var s = document.createElement('script');
+            s.src = '_framework/blazor.webassembly.js';
+            document.body.appendChild(s);
+        })();
+    </script>
 </body>
 </html>

@@ -32,6 +32,9 @@ This guide explains how to modify the source generators and update consuming pro
   - [Nested Struct Support](#nested-struct-support)
   - [Automatic IntelliSense](#automatic-intellisense)
   - [Full Operator Support](#full-operator-support)
+- [Demo Apps](#demo-apps)
+  - [DemoWeb (Blazor WebAssembly)](#demoweb-blazor-webassembly)
+  - [DemoApp (WPF)](#demoapp-wpf)
 - [Troubleshooting](#troubleshooting)
 - [Version History](#version-history)
 - [API Simplification Trade Study (v0.3.0)](#api-simplification-trade-study-v030)
@@ -638,6 +641,68 @@ var parsed = GeneratedStatusReg8.Parse("0xFF");
 
 > **Note:** Unary `-` for unsigned types is an extension (native `uint`/`ulong` don't support it).
 > It produces two's complement negation: `-1` on a `byte` yields `255`.
+
+## Demo Apps
+
+### DemoWeb (Blazor WebAssembly)
+
+The `Demo/BitFields.DemoWeb` project is a Blazor WebAssembly app that showcases
+BitFields, protocol headers, PE viewers, and the RFC diagram generator.
+
+**Build requirements:**
+
+- The `wasm-tools` workload is required because the project customizes the
+  native WASM build. Install it once:
+  ```powershell
+  dotnet workload install wasm-tools
+  ```
+- After installing the workload, **restart Visual Studio** so its build host
+  picks up the new workload.
+
+**WASM compatibility settings (csproj):**
+
+The project disables two WASM features to maximize browser compatibility:
+
+| Property | Default | DemoWeb | Why |
+|----------|---------|---------|-----|
+| `WasmEnableSIMD` | `true` | `false` | V8 JIT-less mode crashes on SIMD instructions |
+| `WasmEnableExceptionHandling` | `true` | `false` | V8 JIT-less mode crashes on native WASM EH |
+
+These settings cause `dotnet.native.wasm` to be relinked without SIMD and with
+JavaScript-based exception handling. The result is a slightly slower but
+universally compatible binary. This is appropriate for a demo app.
+
+**Edge Enhanced Security Mode (Strict):**
+
+Edge's Enhanced Security Mode (Strict) disables WebAssembly JIT compilation for
+large modules. Even with SIMD and native EH disabled, the 14 MB
+`dotnet.native.wasm` crashes the renderer with `STATUS_ILLEGAL_INSTRUCTION`.
+Small WASM modules (under ~1 MB) compile fine, so no JavaScript probe can detect
+the problem ahead of time.
+
+The `index.html` boot script uses a crash-and-recover strategy:
+
+1. First visit sets a `localStorage` flag (`blazorBoot = 'loading'`) and loads Blazor.
+2. If Blazor boots successfully, `Program.cs` clears the flag.
+3. If the renderer crashes, the flag persists (localStorage is managed by the
+   browser process, not the renderer). All future visits see an error panel
+   with fix instructions and a "Try again" button.
+4. The user only ever crashes once per device.
+
+The error panel instructs the user to add the site to Edge's exception list at
+`edge://settings/privacy/security/secureModeSites`. Balanced mode (the default)
+is not affected.
+
+**GitHub Pages deployment:**
+
+The `deploy-demo.yml` workflow installs `wasm-tools` and publishes with the
+same WASM settings as local builds. Both environments produce identical binaries.
+
+### DemoApp (WPF)
+
+The `Demo/BitFields.DemoApp` project is a WPF desktop app (Windows only). It
+shares model and utility files with DemoWeb via `<Compile Include>` links.
+No special build requirements beyond the standard .NET SDK.
 
 ## Troubleshooting
 

@@ -121,7 +121,6 @@
         
         _diagramText = source.RenderToString().Value;
     }
-#pragma warning restore CS0618
 
     private async Task OnAssemblySelected(InputFileChangeEventArgs e)
     {
@@ -164,11 +163,9 @@
                 ? _sources[_selectedIndex].Description
                 : null;
 
-#pragma warning disable CS0618
             var sources = new List<BitFieldDiagram>();
             foreach (var s in result.Structs)
                 sources.Add(Single(s.DisplayName, s.BitType));
-#pragma warning restore CS0618
 
             _sources = sources.ToArray();
             _hasLoadedAssembly = true;

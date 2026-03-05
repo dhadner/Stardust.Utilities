@@ -860,6 +860,15 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 2. Check that attributes are spelled correctly: `[BitFields]`, `[BitField]`, `[BitFlag]`
 3. Clean and rebuild the solution
 
+### DemoWeb shows "WebAssembly is blocked" in Edge
+
+Edge's *Enhanced Security Mode* (Strict) disables WebAssembly JIT compilation,
+which crashes the .NET WASM runtime on first load. The app detects this and
+shows a "WebAssembly is blocked" panel on any subsequent visit with fix
+instructions. Add the site URL to the exception list at
+`edge://settings/privacy/security/secureModeSites`, then click **Try again**.
+This does not affect Balanced mode (the default) or other browsers.
+
 ### IntelliSense not working for generated members
 
 **Problem:** Visual Studio doesn't show IntelliSense for generated properties or methods.

@@ -10,4 +10,5 @@
 - When generator changes are made, rebuild using .\Build-Combined-NuGetPackages.ps1 -SkipTests (version is read from Directory.Build.props automatically).
 - When changing features (adding, modifying, removing), ensure that appropriate test coverage is also updated (added, modified, removed).
 - Features that include user or external input will require fuzz testing to ensure robustness and correct operation.
+- Ensure that the Stardust.Utilities project handles all conceivable issues elegantly; edge cases are not acceptable. The library and its demos must always work as expected to generate trust with users evaluating it.
 - Don't let a human or downstream user find an error that unit testing could have caught.

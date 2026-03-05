@@ -54,6 +54,7 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 
 **Visualization**
 - [RFC Diagram Generator](#rfc-diagram-generator)
+- [Demo Application](#demo-application)
 
 **Reference**
 - [Performance](#performance)

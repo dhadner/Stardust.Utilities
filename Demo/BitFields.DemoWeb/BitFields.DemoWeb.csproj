@@ -5,6 +5,13 @@
     <Nullable>enable</Nullable>
     <RootNamespace>BitFields.DemoWeb</RootNamespace>
     <ApplicationIcon>Stardust-Utilities-Icon.ico</ApplicationIcon>
+    <!-- Disable WASM features that are incompatible with V8 JIT-less mode
+         (Edge Enhanced Security Mode). SIMD and native WASM exception handling
+         use instructions that crash the renderer. The index.html probe detects
+         JIT-less mode via JS timing and shows a friendly error for the remaining
+         case where dotnet.native.wasm is too complex for the JIT-less interpreter. -->
+    <WasmEnableSIMD>false</WasmEnableSIMD>
+    <WasmEnableExceptionHandling>false</WasmEnableExceptionHandling>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-*" />

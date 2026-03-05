@@ -35,6 +35,11 @@ jobs:
     - name: Set base href
       run: sed -i 's|<base href="/" />|<base href="/Stardust.Utilities/" />|' Demo/BitFields.DemoWeb/wwwroot/index.html
 
+    # Disable WASM SIMD so the published app works even when the browser
+    # disables JIT (e.g. Edge Enhanced Security Mode "Strict").
+    - name: Install wasm-tools workload
+      run: dotnet workload install wasm-tools
+
     - name: Publish WASM app
       run: dotnet publish Demo/BitFields.DemoWeb/BitFields.DemoWeb.csproj -c Release -o output
 
