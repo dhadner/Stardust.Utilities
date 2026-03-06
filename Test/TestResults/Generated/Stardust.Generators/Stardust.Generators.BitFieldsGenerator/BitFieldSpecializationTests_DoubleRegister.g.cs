@@ -22,10 +22,22 @@ public partial class BitFieldSpecializationTests
         private ulong Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 8;
+        public const int SIZE_IN_BYTES = 8;
 
         /// <summary>Returns a DoubleRegister with all bits set to zero.</summary>
         public static DoubleRegister Zero => default;
+
+        // --- Bit field mask constants ---
+        // Mantissa: bits [0..51], width 52
+        private const ulong MANTISSA_MASK = 0x000FFFFFFFFFFFFFUL;
+        private const ulong MANTISSA_INVERTED_MASK = 0xFFF0000000000000UL;  // ~MANTISSA_MASK
+        // Exponent: bits [52..62], width 11
+        private const ulong EXPONENT_MASK = 0x00000000000007FFUL;
+        private const ulong EXPONENT_SHIFTED_MASK = 0x7FF0000000000000UL;  // EXPONENT_MASK << 52
+        private const ulong EXPONENT_INVERTED_MASK = 0x800FFFFFFFFFFFFFUL;  // ~EXPONENT_SHIFTED_MASK
+        // Sign: bit 63
+        private const ulong SIGN_MASK = 0x8000000000000000UL;
+        private const ulong SIGN_INVERTED_MASK = 0x7FFFFFFFFFFFFFFFUL;  // ~SIGN_MASK
 
         /// <summary>Creates a new DoubleRegister with the specified raw bits value.</summary>
         public DoubleRegister(ulong value) { Value = value; }
@@ -37,35 +49,35 @@ public partial class BitFieldSpecializationTests
         public partial ulong Mantissa
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ulong)(Value & 0x000FFFFFFFFFFFFFUL);
+            get => (ulong)(Value & MANTISSA_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & 0xFFF0000000000000UL) | (((ulong)value) & 0x000FFFFFFFFFFFFFUL));
+            set => Value = (ulong)((Value & MANTISSA_INVERTED_MASK) | (((ulong)value) & MANTISSA_MASK));
         }
 
         public partial ushort Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> 52) & 0x00000000000007FFUL);
+            get => (ushort)((Value >> 52) & EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & 0x800FFFFFFFFFFFFFUL) | ((((ulong)value) << 52) & 0x7FF0000000000000UL));
+            set => Value = (ulong)((Value & EXPONENT_INVERTED_MASK) | ((((ulong)value) << 52) & EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x8000000000000000UL) != 0;
+            get => (Value & SIGN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ulong)(Value | 0x8000000000000000UL) : (ulong)(Value & 0x7FFFFFFFFFFFFFFFUL);
+            set => Value = value ? (ulong)(Value | SIGN_MASK) : (ulong)(Value & SIGN_INVERTED_MASK);
         }
 
         /// <summary>Returns a DoubleRegister with only the Sign bit set.</summary>
-        public static DoubleRegister SignBit => new((ulong)0x8000000000000000UL);
+        public static DoubleRegister SignBit => new(SIGN_MASK);
 
         /// <summary>Returns a DoubleRegister with the mask for the Mantissa field (bits 0-51).</summary>
-        public static DoubleRegister MantissaMask => new((ulong)0x000FFFFFFFFFFFFFUL);
+        public static DoubleRegister MantissaMask => new(MANTISSA_MASK);
 
         /// <summary>Returns a DoubleRegister with the mask for the Exponent field (bits 52-62).</summary>
-        public static DoubleRegister ExponentMask => new((ulong)0x7FF0000000000000UL);
+        public static DoubleRegister ExponentMask => new(EXPONENT_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -81,15 +93,15 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new DoubleRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithSign(bool value) => new(value ? (ulong)(Value | 0x8000000000000000UL) : (ulong)(Value & 0x7FFFFFFFFFFFFFFFUL));
+        public DoubleRegister WithSign(bool value) => new(value ? (ulong)(Value | SIGN_MASK) : (ulong)(Value & SIGN_INVERTED_MASK));
 
         /// <summary>Returns a new DoubleRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithMantissa(ulong value) => new((ulong)((Value & 0xFFF0000000000000UL) | ((ulong)value & 0x000FFFFFFFFFFFFFUL)));
+        public DoubleRegister WithMantissa(ulong value) => new((ulong)((Value & MANTISSA_INVERTED_MASK) | ((ulong)value & MANTISSA_MASK)));
 
         /// <summary>Returns a new DoubleRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithExponent(ushort value) => new((ulong)((Value & 0x800FFFFFFFFFFFFFUL) | (((ulong)value << 52) & 0x7FF0000000000000UL)));
+        public DoubleRegister WithExponent(ushort value) => new((ulong)((Value & EXPONENT_INVERTED_MASK) | (((ulong)value << 52) & EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -285,28 +297,28 @@ public partial class BitFieldSpecializationTests
         public static explicit operator DoubleRegister(ulong value) => new(value);
 
         /// <summary>Creates a new DoubleRegister from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public DoubleRegister(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new DoubleRegister(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new DoubleRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new DoubleRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized DoubleRegister.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DoubleRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
         }
 
@@ -316,21 +328,21 @@ public partial class BitFieldSpecializationTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

@@ -11,7 +11,7 @@ namespace Stardust.Utilities.Tests;
 ///
 /// Coverage matrix:
 ///
-///   BitFieldsView (4 ByteOrder × BitOrder combos):
+///   BitFieldsView (4 ByteOrder ï¿½ BitOrder combos):
 ///     1. (BE, BitZeroIsMsb) with *Le overrides
 ///     2. (BE, BitZeroIsLsb) with *Le overrides
 ///     3. (LE, BitZeroIsLsb) with *Be overrides
@@ -24,7 +24,7 @@ namespace Stardust.Utilities.Tests;
 public partial class EndianOverrideTests
 {
     // ================================================================
-    // BitFieldsView struct definitions — all four ByteOrder × BitOrder
+    // BitFieldsView struct definitions ï¿½ all four ByteOrder ï¿½ BitOrder
     // combos, each with opposite-endian overrides + same-endian explicit
     // ================================================================
 
@@ -73,7 +73,7 @@ public partial class EndianOverrideTests
     }
 
     // ================================================================
-    // BitFields struct definitions — endian property types in value
+    // BitFields struct definitions ï¿½ endian property types in value
     // type structs (BitZeroIsLsb and BitZeroIsMsb)
     // ================================================================
 
@@ -98,7 +98,7 @@ public partial class EndianOverrideTests
     }
 
     // ================================================================
-    // BitFieldsView Tests — Combo 1: BigEndian / BitZeroIsMsb + *Le
+    // BitFieldsView Tests ï¿½ Combo 1: BigEndian / BitZeroIsMsb + *Le
     // ================================================================
 
     #region Combo 1: BitFieldsView (BE, BitZeroIsMsb) with *Le overrides
@@ -106,7 +106,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Msb_NativeField_WritesBigEndian()
     {
-        var data = new byte[View_BE_Msb.SizeInBytes];
+        var data = new byte[View_BE_Msb.SIZE_IN_BYTES];
         var view = new View_BE_Msb(data);
 
         view.NativeU16 = 0x1234;
@@ -119,7 +119,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Msb_LeU32_OverridesTo_LittleEndian()
     {
-        var data = new byte[View_BE_Msb.SizeInBytes];
+        var data = new byte[View_BE_Msb.SIZE_IN_BYTES];
         var view = new View_BE_Msb(data);
 
         view.LeU32 = new UInt32Le(0xDEADBEEF);
@@ -134,7 +134,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Msb_LeS16_SignedOverride_LittleEndian()
     {
-        var data = new byte[View_BE_Msb.SizeInBytes];
+        var data = new byte[View_BE_Msb.SIZE_IN_BYTES];
         var view = new View_BE_Msb(data);
 
         view.LeS16 = new Int16Le(-2);
@@ -147,7 +147,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Msb_LeU64_OverridesTo_LittleEndian()
     {
-        var data = new byte[View_BE_Msb.SizeInBytes];
+        var data = new byte[View_BE_Msb.SIZE_IN_BYTES];
         var view = new View_BE_Msb(data);
 
         view.LeU64 = new UInt64Le(0x0102030405060708UL);
@@ -166,7 +166,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Msb_RoundTrip()
     {
-        var data = new byte[View_BE_Msb.SizeInBytes];
+        var data = new byte[View_BE_Msb.SIZE_IN_BYTES];
         var view = new View_BE_Msb(data);
 
         view.NativeU16 = 0xCAFE;
@@ -183,7 +183,7 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView Tests — Combo 2: BigEndian / BitZeroIsLsb + *Le
+    // BitFieldsView Tests ï¿½ Combo 2: BigEndian / BitZeroIsLsb + *Le
     // ================================================================
 
     #region Combo 2: BitFieldsView (BE, BitZeroIsLsb) with *Le overrides
@@ -191,7 +191,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Lsb_NativeField_WritesBigEndian()
     {
-        var data = new byte[View_BE_Lsb.SizeInBytes];
+        var data = new byte[View_BE_Lsb.SIZE_IN_BYTES];
         var view = new View_BE_Lsb(data);
 
         view.NativeU16 = 0x1234;
@@ -204,7 +204,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Lsb_LeU32_OverridesTo_LittleEndian()
     {
-        var data = new byte[View_BE_Lsb.SizeInBytes];
+        var data = new byte[View_BE_Lsb.SIZE_IN_BYTES];
         var view = new View_BE_Lsb(data);
 
         view.LeU32 = new UInt32Le(0xDEADBEEF);
@@ -219,7 +219,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Lsb_LeS16_SignedOverride_LittleEndian()
     {
-        var data = new byte[View_BE_Lsb.SizeInBytes];
+        var data = new byte[View_BE_Lsb.SIZE_IN_BYTES];
         var view = new View_BE_Lsb(data);
 
         view.LeS16 = new Int16Le(-2);
@@ -231,7 +231,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Lsb_LeU64_OverridesTo_LittleEndian()
     {
-        var data = new byte[View_BE_Lsb.SizeInBytes];
+        var data = new byte[View_BE_Lsb.SIZE_IN_BYTES];
         var view = new View_BE_Lsb(data);
 
         view.LeU64 = new UInt64Le(0x0102030405060708UL);
@@ -249,7 +249,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Lsb_RoundTrip()
     {
-        var data = new byte[View_BE_Lsb.SizeInBytes];
+        var data = new byte[View_BE_Lsb.SIZE_IN_BYTES];
         var view = new View_BE_Lsb(data);
 
         view.NativeU16 = 0xCAFE;
@@ -266,7 +266,7 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView Tests — Combo 3: LittleEndian / BitZeroIsLsb + *Be
+    // BitFieldsView Tests ï¿½ Combo 3: LittleEndian / BitZeroIsLsb + *Be
     // ================================================================
 
     #region Combo 3: BitFieldsView (LE, BitZeroIsLsb) with *Be overrides
@@ -274,7 +274,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Lsb_NativeField_WritesLittleEndian()
     {
-        var data = new byte[View_LE_Lsb.SizeInBytes];
+        var data = new byte[View_LE_Lsb.SIZE_IN_BYTES];
         var view = new View_LE_Lsb(data);
 
         view.NativeU16 = 0x1234;
@@ -287,7 +287,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Lsb_BeU32_OverridesToBigEndian()
     {
-        var data = new byte[View_LE_Lsb.SizeInBytes];
+        var data = new byte[View_LE_Lsb.SIZE_IN_BYTES];
         var view = new View_LE_Lsb(data);
 
         view.BeU32 = new UInt32Be(0xDEADBEEF);
@@ -302,7 +302,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Lsb_BeS16_SignedOverride_BigEndian()
     {
-        var data = new byte[View_LE_Lsb.SizeInBytes];
+        var data = new byte[View_LE_Lsb.SIZE_IN_BYTES];
         var view = new View_LE_Lsb(data);
 
         view.BeS16 = new Int16Be(-2);
@@ -315,7 +315,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Lsb_BeU64_OverridesToBigEndian()
     {
-        var data = new byte[View_LE_Lsb.SizeInBytes];
+        var data = new byte[View_LE_Lsb.SIZE_IN_BYTES];
         var view = new View_LE_Lsb(data);
 
         view.BeU64 = new UInt64Be(0x0102030405060708UL);
@@ -334,7 +334,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Lsb_RoundTrip()
     {
-        var data = new byte[View_LE_Lsb.SizeInBytes];
+        var data = new byte[View_LE_Lsb.SIZE_IN_BYTES];
         var view = new View_LE_Lsb(data);
 
         view.NativeU16 = 0xCAFE;
@@ -351,7 +351,7 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView Tests — Combo 4: LittleEndian / BitZeroIsMsb + *Be
+    // BitFieldsView Tests ï¿½ Combo 4: LittleEndian / BitZeroIsMsb + *Be
     // ================================================================
 
     #region Combo 4: BitFieldsView (LE, BitZeroIsMsb) with *Be overrides
@@ -359,7 +359,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Msb_NativeField_WritesLittleEndian()
     {
-        var data = new byte[View_LE_Msb.SizeInBytes];
+        var data = new byte[View_LE_Msb.SIZE_IN_BYTES];
         var view = new View_LE_Msb(data);
 
         view.NativeU16 = 0x1234;
@@ -372,7 +372,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Msb_BeU32_OverridesToBigEndian()
     {
-        var data = new byte[View_LE_Msb.SizeInBytes];
+        var data = new byte[View_LE_Msb.SIZE_IN_BYTES];
         var view = new View_LE_Msb(data);
 
         view.BeU32 = new UInt32Be(0xDEADBEEF);
@@ -387,7 +387,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Msb_BeS16_SignedOverride_BigEndian()
     {
-        var data = new byte[View_LE_Msb.SizeInBytes];
+        var data = new byte[View_LE_Msb.SIZE_IN_BYTES];
         var view = new View_LE_Msb(data);
 
         view.BeS16 = new Int16Be(-2);
@@ -399,7 +399,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Msb_BeU64_OverridesToBigEndian()
     {
-        var data = new byte[View_LE_Msb.SizeInBytes];
+        var data = new byte[View_LE_Msb.SIZE_IN_BYTES];
         var view = new View_LE_Msb(data);
 
         view.BeU64 = new UInt64Be(0x0102030405060708UL);
@@ -417,7 +417,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Msb_RoundTrip()
     {
-        var data = new byte[View_LE_Msb.SizeInBytes];
+        var data = new byte[View_LE_Msb.SIZE_IN_BYTES];
         var view = new View_LE_Msb(data);
 
         view.NativeU16 = 0xCAFE;
@@ -445,8 +445,8 @@ public partial class EndianOverrideTests
     {
         // Combo 1 (BE/BitZeroIsMsb) and Combo 2 (BE/BitZeroIsLsb) should produce
         // identical wire bytes for the *Le override fields
-        var data1 = new byte[View_BE_Msb.SizeInBytes];
-        var data2 = new byte[View_BE_Lsb.SizeInBytes];
+        var data1 = new byte[View_BE_Msb.SIZE_IN_BYTES];
+        var data2 = new byte[View_BE_Lsb.SIZE_IN_BYTES];
 
         var v1 = new View_BE_Msb(data1);
         var v2 = new View_BE_Lsb(data2);
@@ -476,8 +476,8 @@ public partial class EndianOverrideTests
     {
         // Combo 3 (LE/BitZeroIsLsb) and Combo 4 (LE/BitZeroIsMsb) should produce
         // identical wire bytes for the *Be override fields
-        var data3 = new byte[View_LE_Lsb.SizeInBytes];
-        var data4 = new byte[View_LE_Msb.SizeInBytes];
+        var data3 = new byte[View_LE_Lsb.SIZE_IN_BYTES];
+        var data4 = new byte[View_LE_Msb.SIZE_IN_BYTES];
 
         var v3 = new View_LE_Lsb(data3);
         var v4 = new View_LE_Msb(data4);
@@ -506,8 +506,8 @@ public partial class EndianOverrideTests
     {
         // A BE override and a LE override of the same value should
         // produce byte-reversed wire format for the override field
-        var beData = new byte[View_LE_Lsb.SizeInBytes];
-        var leData = new byte[View_BE_Msb.SizeInBytes];
+        var beData = new byte[View_LE_Lsb.SIZE_IN_BYTES];
+        var leData = new byte[View_BE_Msb.SIZE_IN_BYTES];
 
         var beView = new View_LE_Lsb(beData);
         var leView = new View_BE_Msb(leData);
@@ -530,7 +530,7 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFields value-type tests — endian property types in [BitFields]
+    // BitFields value-type tests ï¿½ endian property types in [BitFields]
     // ================================================================
 
     #region BitFields (BitZeroIsLsb) with endian property types
@@ -747,7 +747,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void SameEndian_BE_Msb_ExplicitMatchesNative()
     {
-        var data = new byte[SameEndian_BE_Msb.SizeInBytes];
+        var data = new byte[SameEndian_BE_Msb.SIZE_IN_BYTES];
         var view = new SameEndian_BE_Msb(data);
 
         view.NativeU16 = 0xABCD;
@@ -761,7 +761,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void SameEndian_BE_Lsb_ExplicitMatchesNative()
     {
-        var data = new byte[SameEndian_BE_Lsb.SizeInBytes];
+        var data = new byte[SameEndian_BE_Lsb.SIZE_IN_BYTES];
         var view = new SameEndian_BE_Lsb(data);
 
         view.NativeU16 = 0xABCD;
@@ -774,7 +774,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void SameEndian_LE_Lsb_ExplicitMatchesNative()
     {
-        var data = new byte[SameEndian_LE_Lsb.SizeInBytes];
+        var data = new byte[SameEndian_LE_Lsb.SIZE_IN_BYTES];
         var view = new SameEndian_LE_Lsb(data);
 
         view.NativeU16 = 0xABCD;
@@ -787,7 +787,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void SameEndian_LE_Msb_ExplicitMatchesNative()
     {
-        var data = new byte[SameEndian_LE_Msb.SizeInBytes];
+        var data = new byte[SameEndian_LE_Msb.SIZE_IN_BYTES];
         var view = new SameEndian_LE_Msb(data);
 
         view.NativeU16 = 0xABCD;
@@ -809,7 +809,7 @@ public partial class EndianOverrideTests
     public void View_BE_Msb_ParseKnownBytes()
     {
         // Hand-craft bytes: native BE + LE overrides
-        var data = new byte[View_BE_Msb.SizeInBytes];
+        var data = new byte[View_BE_Msb.SIZE_IN_BYTES];
         data[0] = 0xCA; data[1] = 0xFE;                                       // NativeU16 = 0xCAFE (BE)
         data[2] = 0x78; data[3] = 0x56; data[4] = 0x34; data[5] = 0x12;       // LeU32 = 0x12345678 (LE)
         data[6] = 0xFE; data[7] = 0xFF;                                       // LeS16 = -2 (LE)
@@ -828,7 +828,7 @@ public partial class EndianOverrideTests
     public void View_LE_Lsb_ParseKnownBytes()
     {
         // Hand-craft bytes: native LE + BE overrides
-        var data = new byte[View_LE_Lsb.SizeInBytes];
+        var data = new byte[View_LE_Lsb.SIZE_IN_BYTES];
         data[0] = 0xFE; data[1] = 0xCA;                                       // NativeU16 = 0xCAFE (LE)
         data[2] = 0xDE; data[3] = 0xAD; data[4] = 0xBE; data[5] = 0xEF;      // BeU32 = 0xDEADBEEF (BE)
         data[6] = 0xFF; data[7] = 0xFE;                                       // BeS16 = -2 (BE)
@@ -846,7 +846,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_LE_Msb_ParseKnownBytes()
     {
-        var data = new byte[View_LE_Msb.SizeInBytes];
+        var data = new byte[View_LE_Msb.SIZE_IN_BYTES];
         data[0] = 0xFE; data[1] = 0xCA;                                       // NativeU16 = 0xCAFE (LE)
         data[2] = 0xDE; data[3] = 0xAD; data[4] = 0xBE; data[5] = 0xEF;      // BeU32 = 0xDEADBEEF (BE)
         data[6] = 0xFF; data[7] = 0xFE;                                       // BeS16 = -2 (BE)
@@ -864,7 +864,7 @@ public partial class EndianOverrideTests
     [Fact]
     public void View_BE_Lsb_ParseKnownBytes()
     {
-        var data = new byte[View_BE_Lsb.SizeInBytes];
+        var data = new byte[View_BE_Lsb.SIZE_IN_BYTES];
         data[0] = 0xCA; data[1] = 0xFE;                                       // NativeU16 = 0xCAFE (BE)
         data[2] = 0x78; data[3] = 0x56; data[4] = 0x34; data[5] = 0x12;       // LeU32 = 0x12345678 (LE)
         data[6] = 0xFE; data[7] = 0xFF;                                       // LeS16 = -2 (LE)

@@ -20,10 +20,37 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a DescEscapeRegister with all bits set to zero.</summary>
     public static DescEscapeRegister Zero => default;
+
+    // --- Bit field mask constants ---
+    // AllAtOnce: bits [7..7], width 1
+    private const byte ALL_AT_ONCE_MASK = 0x01;
+    private const byte ALL_AT_ONCE_SHIFTED_MASK = 0x80;  // ALL_AT_ONCE_MASK << 7
+    private const byte ALL_AT_ONCE_INVERTED_MASK = 0x7F;  // ~ALL_AT_ONCE_SHIFTED_MASK
+    // Newline: bit 0
+    private const byte NEWLINE_MASK = 0x01;
+    private const byte NEWLINE_INVERTED_MASK = 0xFE;  // ~NEWLINE_MASK
+    // Tab: bit 1
+    private const byte TAB_MASK = 0x02;
+    private const byte TAB_INVERTED_MASK = 0xFD;  // ~TAB_MASK
+    // Quotes: bit 2
+    private const byte QUOTES_MASK = 0x04;
+    private const byte QUOTES_INVERTED_MASK = 0xFB;  // ~QUOTES_MASK
+    // Backslash: bit 3
+    private const byte BACKSLASH_MASK = 0x08;
+    private const byte BACKSLASH_INVERTED_MASK = 0xF7;  // ~BACKSLASH_MASK
+    // CarriageReturn: bit 4
+    private const byte CARRIAGE_RETURN_MASK = 0x10;
+    private const byte CARRIAGE_RETURN_INVERTED_MASK = 0xEF;  // ~CARRIAGE_RETURN_MASK
+    // NullChar: bit 5
+    private const byte NULL_CHAR_MASK = 0x20;
+    private const byte NULL_CHAR_INVERTED_MASK = 0xDF;  // ~NULL_CHAR_MASK
+    // ControlChars: bit 6
+    private const byte CONTROL_CHARS_MASK = 0x40;
+    private const byte CONTROL_CHARS_INVERTED_MASK = 0xBF;  // ~CONTROL_CHARS_MASK
 
     /// <summary>Creates a new DescEscapeRegister with the specified raw bits value.</summary>
     public DescEscapeRegister(byte value) { Value = value; }
@@ -31,90 +58,90 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     public partial byte AllAtOnce
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 7) & 0x01);
+        get => (byte)((Value >> 7) & ALL_AT_ONCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x7F) | ((((byte)value) << 7) & 0x80));
+        set => Value = (byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | ((((byte)value) << 7) & ALL_AT_ONCE_SHIFTED_MASK));
     }
 
     public partial bool Newline
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (Value & NEWLINE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => Value = value ? (byte)(Value | NEWLINE_MASK) : (byte)(Value & NEWLINE_INVERTED_MASK);
     }
 
     public partial bool Tab
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x02) != 0;
+        get => (Value & TAB_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+        set => Value = value ? (byte)(Value | TAB_MASK) : (byte)(Value & TAB_INVERTED_MASK);
     }
 
     public partial bool Quotes
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x04) != 0;
+        get => (Value & QUOTES_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x04) : (byte)(Value & 0xFB);
+        set => Value = value ? (byte)(Value | QUOTES_MASK) : (byte)(Value & QUOTES_INVERTED_MASK);
     }
 
     public partial bool Backslash
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x08) != 0;
+        get => (Value & BACKSLASH_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x08) : (byte)(Value & 0xF7);
+        set => Value = value ? (byte)(Value | BACKSLASH_MASK) : (byte)(Value & BACKSLASH_INVERTED_MASK);
     }
 
     public partial bool CarriageReturn
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x10) != 0;
+        get => (Value & CARRIAGE_RETURN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x10) : (byte)(Value & 0xEF);
+        set => Value = value ? (byte)(Value | CARRIAGE_RETURN_MASK) : (byte)(Value & CARRIAGE_RETURN_INVERTED_MASK);
     }
 
     public partial bool NullChar
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x20) != 0;
+        get => (Value & NULL_CHAR_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x20) : (byte)(Value & 0xDF);
+        set => Value = value ? (byte)(Value | NULL_CHAR_MASK) : (byte)(Value & NULL_CHAR_INVERTED_MASK);
     }
 
     public partial bool ControlChars
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x40) != 0;
+        get => (Value & CONTROL_CHARS_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x40) : (byte)(Value & 0xBF);
+        set => Value = value ? (byte)(Value | CONTROL_CHARS_MASK) : (byte)(Value & CONTROL_CHARS_INVERTED_MASK);
     }
 
     /// <summary>Returns a DescEscapeRegister with only the Newline bit set.</summary>
-    public static DescEscapeRegister NewlineBit => new((byte)0x01);
+    public static DescEscapeRegister NewlineBit => new(NEWLINE_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the Tab bit set.</summary>
-    public static DescEscapeRegister TabBit => new((byte)0x02);
+    public static DescEscapeRegister TabBit => new(TAB_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the Quotes bit set.</summary>
-    public static DescEscapeRegister QuotesBit => new((byte)0x04);
+    public static DescEscapeRegister QuotesBit => new(QUOTES_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the Backslash bit set.</summary>
-    public static DescEscapeRegister BackslashBit => new((byte)0x08);
+    public static DescEscapeRegister BackslashBit => new(BACKSLASH_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the CarriageReturn bit set.</summary>
-    public static DescEscapeRegister CarriageReturnBit => new((byte)0x10);
+    public static DescEscapeRegister CarriageReturnBit => new(CARRIAGE_RETURN_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the NullChar bit set.</summary>
-    public static DescEscapeRegister NullCharBit => new((byte)0x20);
+    public static DescEscapeRegister NullCharBit => new(NULL_CHAR_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the ControlChars bit set.</summary>
-    public static DescEscapeRegister ControlCharsBit => new((byte)0x40);
+    public static DescEscapeRegister ControlCharsBit => new(CONTROL_CHARS_MASK);
 
     /// <summary>Returns a DescEscapeRegister with the mask for the AllAtOnce field (bits 7-7).</summary>
-    public static DescEscapeRegister AllAtOnceMask => new((byte)0x80);
+    public static DescEscapeRegister AllAtOnceMask => new(ALL_AT_ONCE_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -135,35 +162,35 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
 
     /// <summary>Returns a new DescEscapeRegister with the Newline flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithNewline(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public DescEscapeRegister WithNewline(bool value) => new(value ? (byte)(Value | NEWLINE_MASK) : (byte)(Value & NEWLINE_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the Tab flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithTab(bool value) => new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+    public DescEscapeRegister WithTab(bool value) => new(value ? (byte)(Value | TAB_MASK) : (byte)(Value & TAB_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the Quotes flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithQuotes(bool value) => new(value ? (byte)(Value | 0x04) : (byte)(Value & 0xFB));
+    public DescEscapeRegister WithQuotes(bool value) => new(value ? (byte)(Value | QUOTES_MASK) : (byte)(Value & QUOTES_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the Backslash flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithBackslash(bool value) => new(value ? (byte)(Value | 0x08) : (byte)(Value & 0xF7));
+    public DescEscapeRegister WithBackslash(bool value) => new(value ? (byte)(Value | BACKSLASH_MASK) : (byte)(Value & BACKSLASH_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the CarriageReturn flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithCarriageReturn(bool value) => new(value ? (byte)(Value | 0x10) : (byte)(Value & 0xEF));
+    public DescEscapeRegister WithCarriageReturn(bool value) => new(value ? (byte)(Value | CARRIAGE_RETURN_MASK) : (byte)(Value & CARRIAGE_RETURN_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the NullChar flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithNullChar(bool value) => new(value ? (byte)(Value | 0x20) : (byte)(Value & 0xDF));
+    public DescEscapeRegister WithNullChar(bool value) => new(value ? (byte)(Value | NULL_CHAR_MASK) : (byte)(Value & NULL_CHAR_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the ControlChars flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithControlChars(bool value) => new(value ? (byte)(Value | 0x40) : (byte)(Value & 0xBF));
+    public DescEscapeRegister WithControlChars(bool value) => new(value ? (byte)(Value | CONTROL_CHARS_MASK) : (byte)(Value & CONTROL_CHARS_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the AllAtOnce field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithAllAtOnce(byte value) => new((byte)((Value & 0x7F) | (((byte)value << 7) & 0x80)));
+    public DescEscapeRegister WithAllAtOnce(byte value) => new((byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | (((byte)value << 7) & ALL_AT_ONCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -305,28 +332,28 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     public static implicit operator DescEscapeRegister(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new DescEscapeRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public DescEscapeRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new DescEscapeRegister(bytes[0]);
     }
 
-    /// <summary>Creates a new DescEscapeRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new DescEscapeRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized DescEscapeRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DescEscapeRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -336,21 +363,21 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

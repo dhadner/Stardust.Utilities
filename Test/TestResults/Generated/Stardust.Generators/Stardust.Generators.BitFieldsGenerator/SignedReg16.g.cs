@@ -20,10 +20,26 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     private short Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a SignedReg16 with all bits set to zero.</summary>
     public static SignedReg16 Zero => default;
+
+    // --- Bit field mask constants ---
+    // LowByte: bits [1..7], width 7
+    private const ushort LOW_BYTE_MASK = 0x007F;
+    private const ushort LOW_BYTE_SHIFTED_MASK = 0x00FE;  // LOW_BYTE_MASK << 1
+    private const ushort LOW_BYTE_INVERTED_MASK = 0xFF01;  // ~LOW_BYTE_SHIFTED_MASK
+    // HighByte: bits [8..14], width 7
+    private const ushort HIGH_BYTE_MASK = 0x007F;
+    private const ushort HIGH_BYTE_SHIFTED_MASK = 0x7F00;  // HIGH_BYTE_MASK << 8
+    private const ushort HIGH_BYTE_INVERTED_MASK = 0x80FF;  // ~HIGH_BYTE_SHIFTED_MASK
+    // Flag0: bit 0
+    private const ushort FLAG0_MASK = 0x0001;
+    private const ushort FLAG0_INVERTED_MASK = 0xFFFE;  // ~FLAG0_MASK
+    // Sign: bit 15
+    private const ushort SIGN_MASK = 0x8000;
+    private const ushort SIGN_INVERTED_MASK = 0x7FFF;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg16 with the specified raw bits value.</summary>
     public SignedReg16(short value) { Value = value; }
@@ -31,46 +47,46 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     public partial byte LowByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ushort)Value) >> 1) & 0x007F);
+        get => (byte)((((ushort)Value) >> 1) & LOW_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & 0xFF01) | ((((ushort)value) << 1) & 0x00FE));
+        set => Value = (short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << 1) & LOW_BYTE_SHIFTED_MASK));
     }
 
     public partial byte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ushort)Value) >> 8) & 0x007F);
+        get => (byte)((((ushort)Value) >> 8) & HIGH_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & 0x80FF) | ((((ushort)value) << 8) & 0x7F00));
+        set => Value = (short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << 8) & HIGH_BYTE_SHIFTED_MASK));
     }
 
     public partial bool Flag0
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ushort)Value) & 0x0001) != 0;
+        get => (((ushort)Value) & FLAG0_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (short)(((ushort)Value) | 0x0001) : (short)(((ushort)Value) & 0xFFFE);
+        set => Value = value ? (short)(((ushort)Value) | FLAG0_MASK) : (short)(((ushort)Value) & FLAG0_INVERTED_MASK);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ushort)Value) & 0x8000) != 0;
+        get => (((ushort)Value) & SIGN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (short)(((ushort)Value) | 0x8000) : (short)(((ushort)Value) & 0x7FFF);
+        set => Value = value ? (short)(((ushort)Value) | SIGN_MASK) : (short)(((ushort)Value) & SIGN_INVERTED_MASK);
     }
 
     /// <summary>Returns a SignedReg16 with only the Flag0 bit set.</summary>
-    public static SignedReg16 Flag0Bit => new(unchecked((short)0x0001));
+    public static SignedReg16 Flag0Bit => new(unchecked((short)FLAG0_MASK));
 
     /// <summary>Returns a SignedReg16 with only the Sign bit set.</summary>
-    public static SignedReg16 SignBit => new(unchecked((short)0x8000));
+    public static SignedReg16 SignBit => new(unchecked((short)SIGN_MASK));
 
     /// <summary>Returns a SignedReg16 with the mask for the LowByte field (bits 1-7).</summary>
-    public static SignedReg16 LowByteMask => new(unchecked((short)0x00FE));
+    public static SignedReg16 LowByteMask => new(unchecked((short)LOW_BYTE_SHIFTED_MASK));
 
     /// <summary>Returns a SignedReg16 with the mask for the HighByte field (bits 8-14).</summary>
-    public static SignedReg16 HighByteMask => new(unchecked((short)0x7F00));
+    public static SignedReg16 HighByteMask => new(unchecked((short)HIGH_BYTE_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +103,19 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     /// <summary>Returns a new SignedReg16 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithFlag0(bool value) => new(value ? (short)(((ushort)Value) | 0x0001) : (short)(((ushort)Value) & 0xFFFE));
+    public SignedReg16 WithFlag0(bool value) => new(value ? (short)(((ushort)Value) | FLAG0_MASK) : (short)(((ushort)Value) & FLAG0_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg16 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithSign(bool value) => new(value ? (short)(((ushort)Value) | 0x8000) : (short)(((ushort)Value) & 0x7FFF));
+    public SignedReg16 WithSign(bool value) => new(value ? (short)(((ushort)Value) | SIGN_MASK) : (short)(((ushort)Value) & SIGN_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg16 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithLowByte(byte value) => new((short)((((ushort)Value) & 0xFF01) | ((((ushort)value) << 1) & 0x00FE)));
+    public SignedReg16 WithLowByte(byte value) => new((short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << 1) & LOW_BYTE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg16 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithHighByte(byte value) => new((short)((((ushort)Value) & 0x80FF) | ((((ushort)value) << 8) & 0x7F00)));
+    public SignedReg16 WithHighByte(byte value) => new((short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << 8) & HIGH_BYTE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,28 +257,28 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     public static implicit operator SignedReg16(int value) => new(unchecked((short)value));
 
     /// <summary>Creates a new SignedReg16 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedReg16(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new SignedReg16(BinaryPrimitives.ReadInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedReg16 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedReg16 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedReg16.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedReg16 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteInt16LittleEndian(destination, Value);
     }
 
@@ -272,21 +288,21 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

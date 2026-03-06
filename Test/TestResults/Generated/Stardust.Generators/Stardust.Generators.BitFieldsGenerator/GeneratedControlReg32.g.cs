@@ -20,10 +20,25 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     private uint Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a GeneratedControlReg32 with all bits set to zero.</summary>
     public static GeneratedControlReg32 Zero => default;
+
+    // --- Bit field mask constants ---
+    // Address: bits [0..23], width 24
+    private const uint ADDRESS_MASK = 0x00FFFFFFU;
+    private const uint ADDRESS_INVERTED_MASK = 0xFF000000U;  // ~ADDRESS_MASK
+    // Command: bits [24..27], width 4
+    private const uint COMMAND_MASK = 0x0000000FU;
+    private const uint COMMAND_SHIFTED_MASK = 0x0F000000U;  // COMMAND_MASK << 24
+    private const uint COMMAND_INVERTED_MASK = 0xF0FFFFFFU;  // ~COMMAND_SHIFTED_MASK
+    // Enable: bit 28
+    private const uint ENABLE_MASK = 0x10000000U;
+    private const uint ENABLE_INVERTED_MASK = 0xEFFFFFFFU;  // ~ENABLE_MASK
+    // Interrupt: bit 29
+    private const uint INTERRUPT_MASK = 0x20000000U;
+    private const uint INTERRUPT_INVERTED_MASK = 0xDFFFFFFFU;  // ~INTERRUPT_MASK
 
     /// <summary>Creates a new GeneratedControlReg32 with the specified raw bits value.</summary>
     public GeneratedControlReg32(uint value) { Value = value; }
@@ -31,46 +46,46 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     public partial uint Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)(Value & 0x00FFFFFFU);
+        get => (uint)(Value & ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFF000000U) | (((uint)value) & 0x00FFFFFFU));
+        set => Value = (uint)((Value & ADDRESS_INVERTED_MASK) | (((uint)value) & ADDRESS_MASK));
     }
 
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 24) & 0x0000000FU);
+        get => (byte)((Value >> 24) & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xF0FFFFFFU) | ((((uint)value) << 24) & 0x0F000000U));
+        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << 24) & COMMAND_SHIFTED_MASK));
     }
 
     public partial bool Enable
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x10000000U) != 0;
+        get => (Value & ENABLE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (uint)(Value | 0x10000000U) : (uint)(Value & 0xEFFFFFFFU);
+        set => Value = value ? (uint)(Value | ENABLE_MASK) : (uint)(Value & ENABLE_INVERTED_MASK);
     }
 
     public partial bool Interrupt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x20000000U) != 0;
+        get => (Value & INTERRUPT_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (uint)(Value | 0x20000000U) : (uint)(Value & 0xDFFFFFFFU);
+        set => Value = value ? (uint)(Value | INTERRUPT_MASK) : (uint)(Value & INTERRUPT_INVERTED_MASK);
     }
 
     /// <summary>Returns a GeneratedControlReg32 with only the Enable bit set.</summary>
-    public static GeneratedControlReg32 EnableBit => new((uint)0x10000000U);
+    public static GeneratedControlReg32 EnableBit => new(ENABLE_MASK);
 
     /// <summary>Returns a GeneratedControlReg32 with only the Interrupt bit set.</summary>
-    public static GeneratedControlReg32 InterruptBit => new((uint)0x20000000U);
+    public static GeneratedControlReg32 InterruptBit => new(INTERRUPT_MASK);
 
     /// <summary>Returns a GeneratedControlReg32 with the mask for the Address field (bits 0-23).</summary>
-    public static GeneratedControlReg32 AddressMask => new((uint)0x00FFFFFFU);
+    public static GeneratedControlReg32 AddressMask => new(ADDRESS_MASK);
 
     /// <summary>Returns a GeneratedControlReg32 with the mask for the Command field (bits 24-27).</summary>
-    public static GeneratedControlReg32 CommandMask => new((uint)0x0F000000U);
+    public static GeneratedControlReg32 CommandMask => new(COMMAND_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +102,19 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
 
     /// <summary>Returns a new GeneratedControlReg32 with the Enable flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithEnable(bool value) => new(value ? (uint)(Value | 0x10000000U) : (uint)(Value & 0xEFFFFFFFU));
+    public GeneratedControlReg32 WithEnable(bool value) => new(value ? (uint)(Value | ENABLE_MASK) : (uint)(Value & ENABLE_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedControlReg32 with the Interrupt flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithInterrupt(bool value) => new(value ? (uint)(Value | 0x20000000U) : (uint)(Value & 0xDFFFFFFFU));
+    public GeneratedControlReg32 WithInterrupt(bool value) => new(value ? (uint)(Value | INTERRUPT_MASK) : (uint)(Value & INTERRUPT_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedControlReg32 with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithAddress(uint value) => new((uint)((Value & 0xFF000000U) | ((uint)value & 0x00FFFFFFU)));
+    public GeneratedControlReg32 WithAddress(uint value) => new((uint)((Value & ADDRESS_INVERTED_MASK) | ((uint)value & ADDRESS_MASK)));
 
     /// <summary>Returns a new GeneratedControlReg32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithCommand(byte value) => new((uint)((Value & 0xF0FFFFFFU) | (((uint)value << 24) & 0x0F000000U)));
+    public GeneratedControlReg32 WithCommand(byte value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << 24) & COMMAND_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -285,28 +300,28 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     public static implicit operator GeneratedControlReg32(uint value) => new(value);
 
     /// <summary>Creates a new GeneratedControlReg32 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public GeneratedControlReg32(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new GeneratedControlReg32(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new GeneratedControlReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new GeneratedControlReg32 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized GeneratedControlReg32.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static GeneratedControlReg32 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
     }
 
@@ -316,21 +331,21 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

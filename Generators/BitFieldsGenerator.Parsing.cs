@@ -389,12 +389,12 @@ public partial class BitFieldsGenerator
         // ReadOnlySpan<byte> constructor -- delegates to the primary constructor
         // so UndefinedBitsMustBe and per-field MustBe normalization is applied.
         sb.AppendLine($"{indent}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{indent}public {t}(ReadOnlySpan<byte> bytes)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (bytes.Length < SizeInBytes)");
-        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(bytes));");
+        sb.AppendLine($"{indent}    if (bytes.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(bytes));");
         if (isByte)
         {
             if (s == "sbyte")
@@ -408,8 +408,8 @@ public partial class BitFieldsGenerator
         sb.AppendLine();
 
         // Static ReadFrom factory
-        sb.AppendLine($"{indent}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a {endianLabel} byte span.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{indent}/// <summary>Creates a new {t} by reading <see cref=\"SIZE_IN_BYTES\"/> bytes from a {endianLabel} byte span.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <returns>The deserialized {t}.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{indent}public static {t} ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);");
@@ -417,12 +417,12 @@ public partial class BitFieldsGenerator
 
         // WriteTo
         sb.AppendLine($"{indent}/// <summary>Writes the value as {endianLabel} bytes into the destination span.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{indent}public void WriteTo(Span<byte> destination)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (destination.Length < SizeInBytes)");
-        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(destination));");
+        sb.AppendLine($"{indent}    if (destination.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(destination));");
         if (isByte)
             sb.AppendLine($"{indent}    destination[0] = unchecked((byte)Value);");
         else
@@ -437,23 +437,23 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <returns>true if the destination span was large enough; otherwise, false.</returns>");
         sb.AppendLine($"{indent}public bool TryWriteTo(Span<byte> destination, out int bytesWritten)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (destination.Length < SizeInBytes)");
+        sb.AppendLine($"{indent}    if (destination.Length < SIZE_IN_BYTES)");
         sb.AppendLine($"{indent}    {{");
         sb.AppendLine($"{indent}        bytesWritten = 0;");
         sb.AppendLine($"{indent}        return false;");
         sb.AppendLine($"{indent}    }}");
         sb.AppendLine($"{indent}    WriteTo(destination);");
-        sb.AppendLine($"{indent}    bytesWritten = SizeInBytes;");
+        sb.AppendLine($"{indent}    bytesWritten = SIZE_IN_BYTES;");
         sb.AppendLine($"{indent}    return true;");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
         // ToByteArray
         sb.AppendLine($"{indent}/// <summary>Returns the value as a new {endianLabel} byte array.</summary>");
-        sb.AppendLine($"{indent}/// <returns>A byte array of length <see cref=\"SizeInBytes\"/>.</returns>");
+        sb.AppendLine($"{indent}/// <returns>A byte array of length <see cref=\"SIZE_IN_BYTES\"/>.</returns>");
         sb.AppendLine($"{indent}public byte[] ToByteArray()");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    var bytes = new byte[SizeInBytes];");
+        sb.AppendLine($"{indent}    var bytes = new byte[SIZE_IN_BYTES];");
         sb.AppendLine($"{indent}    WriteTo(bytes);");
         sb.AppendLine($"{indent}    return bytes;");
         sb.AppendLine($"{indent}}}");

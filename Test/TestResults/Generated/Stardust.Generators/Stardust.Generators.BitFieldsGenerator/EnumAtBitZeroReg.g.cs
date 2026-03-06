@@ -20,10 +20,23 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a EnumAtBitZeroReg with all bits set to zero.</summary>
     public static EnumAtBitZeroReg Zero => default;
+
+    // --- Bit field mask constants ---
+    // Command: bits [0..2], width 3
+    private const byte COMMAND_MASK = 0x07;
+    private const byte COMMAND_INVERTED_MASK = 0xF8;  // ~COMMAND_MASK
+    // Status: bits [3..5], width 3
+    private const byte STATUS_MASK = 0x07;
+    private const byte STATUS_SHIFTED_MASK = 0x38;  // STATUS_MASK << 3
+    private const byte STATUS_INVERTED_MASK = 0xC7;  // ~STATUS_SHIFTED_MASK
+    // Flags: bits [6..7], width 2
+    private const byte FLAGS_MASK = 0x03;
+    private const byte FLAGS_SHIFTED_MASK = 0xC0;  // FLAGS_MASK << 6
+    private const byte FLAGS_INVERTED_MASK = 0x3F;  // ~FLAGS_SHIFTED_MASK
 
     /// <summary>Creates a new EnumAtBitZeroReg with the specified raw bits value.</summary>
     public EnumAtBitZeroReg(byte value) { Value = value; }
@@ -31,35 +44,35 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     public partial global::Stardust.Utilities.Tests.OpMode Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.OpMode)(Value & 0x07);
+        get => (global::Stardust.Utilities.Tests.OpMode)(Value & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF8) | (((byte)value) & 0x07));
+        set => Value = (byte)((Value & COMMAND_INVERTED_MASK) | (((byte)value) & COMMAND_MASK));
     }
 
     public partial global::Stardust.Utilities.Tests.OpMode Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 3) & 0x07);
+        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 3) & STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xC7) | ((((byte)value) << 3) & 0x38));
+        set => Value = (byte)((Value & STATUS_INVERTED_MASK) | ((((byte)value) << 3) & STATUS_SHIFTED_MASK));
     }
 
     public partial byte Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 6) & 0x03);
+        get => (byte)((Value >> 6) & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x3F) | ((((byte)value) << 6) & 0xC0));
+        set => Value = (byte)((Value & FLAGS_INVERTED_MASK) | ((((byte)value) << 6) & FLAGS_SHIFTED_MASK));
     }
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Command field (bits 0-2).</summary>
-    public static EnumAtBitZeroReg CommandMask => new((byte)0x07);
+    public static EnumAtBitZeroReg CommandMask => new(COMMAND_MASK);
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Status field (bits 3-5).</summary>
-    public static EnumAtBitZeroReg StatusMask => new((byte)0x38);
+    public static EnumAtBitZeroReg StatusMask => new(STATUS_SHIFTED_MASK);
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Flags field (bits 6-7).</summary>
-    public static EnumAtBitZeroReg FlagsMask => new((byte)0xC0);
+    public static EnumAtBitZeroReg FlagsMask => new(FLAGS_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -75,15 +88,15 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
 
     /// <summary>Returns a new EnumAtBitZeroReg with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumAtBitZeroReg WithCommand(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & 0xF8) | ((byte)value & 0x07)));
+    public EnumAtBitZeroReg WithCommand(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & COMMAND_INVERTED_MASK) | ((byte)value & COMMAND_MASK)));
 
     /// <summary>Returns a new EnumAtBitZeroReg with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumAtBitZeroReg WithStatus(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & 0xC7) | (((byte)value << 3) & 0x38)));
+    public EnumAtBitZeroReg WithStatus(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & STATUS_INVERTED_MASK) | (((byte)value << 3) & STATUS_SHIFTED_MASK)));
 
     /// <summary>Returns a new EnumAtBitZeroReg with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumAtBitZeroReg WithFlags(byte value) => new((byte)((Value & 0x3F) | (((byte)value << 6) & 0xC0)));
+    public EnumAtBitZeroReg WithFlags(byte value) => new((byte)((Value & FLAGS_INVERTED_MASK) | (((byte)value << 6) & FLAGS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -225,28 +238,28 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     public static implicit operator EnumAtBitZeroReg(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new EnumAtBitZeroReg from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public EnumAtBitZeroReg(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new EnumAtBitZeroReg(bytes[0]);
     }
 
-    /// <summary>Creates a new EnumAtBitZeroReg by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new EnumAtBitZeroReg by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized EnumAtBitZeroReg.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static EnumAtBitZeroReg ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -256,21 +269,21 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

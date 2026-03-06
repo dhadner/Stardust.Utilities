@@ -429,11 +429,18 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         sb.AppendLine();
         int sizeInBytes = GetStorageTypeBitWidth(info.StorageType) / 8;
         sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes.</summary>");
-        sb.AppendLine($"{memberIndent}public const int SizeInBytes = {sizeInBytes};");
+        sb.AppendLine($"{memberIndent}public const int SIZE_IN_BYTES = {sizeInBytes};");
         sb.AppendLine();
         sb.AppendLine($"{memberIndent}/// <summary>Returns a {info.TypeName} with all bits set to zero.</summary>");
         sb.AppendLine($"{memberIndent}public static {info.TypeName} Zero => default;");
         sb.AppendLine();
+
+        // Generate named mask constants for all fields and flags
+        GenerateFieldConstants(sb, info, memberIndent);
+
+        // Generate normalization constants (if MustBe/UndefinedBitsMustBe constraints exist)
+        GenerateNormalizationConstants(sb, info, mustClearMask, mustSetMask, allBitsMask, memberIndent);
+
         sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw bits value.</summary>");
 
         // Constructor applies combined normalization (UndefinedBitsMustBe + per-field MustBe)
@@ -443,31 +450,27 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
         else if (mustSetMask == 0)
         {
-            // Only clearing needed: Value = value & ~mustClearMask
-            string clearMaskHex = FormatHex(~mustClearMask & allBitsMask, maskType);
+            // Only clearing needed: Value = value & NORMALIZATION_AND_MASK
             if (info.StorageTypeIsSigned)
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) & {clearMaskHex}); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) & NORMALIZATION_AND_MASK); }}");
             else
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value & {clearMaskHex}); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value & NORMALIZATION_AND_MASK); }}");
         }
         else if (mustClearMask == 0)
         {
-            // Only setting needed: Value = value | mustSetMask
-            string setMaskHex = FormatHex(mustSetMask, maskType);
+            // Only setting needed: Value = value | NORMALIZATION_OR_MASK
             if (info.StorageTypeIsSigned)
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) | {setMaskHex}); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) | NORMALIZATION_OR_MASK); }}");
             else
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value | {setMaskHex}); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value | NORMALIZATION_OR_MASK); }}");
         }
         else
         {
-            // Both: Value = (value & ~mustClearMask) | mustSetMask
-            string clearMaskHex = FormatHex(~mustClearMask & allBitsMask, maskType);
-            string setMaskHex = FormatHex(mustSetMask, maskType);
+            // Both: Value = (value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK
             if (info.StorageTypeIsSigned)
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(((({info.UnsignedStorageType})value) & {clearMaskHex}) | {setMaskHex}); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(((({info.UnsignedStorageType})value) & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }}");
             else
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((value & {clearMaskHex}) | {setMaskHex}); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }}");
         }
         sb.AppendLine();
 

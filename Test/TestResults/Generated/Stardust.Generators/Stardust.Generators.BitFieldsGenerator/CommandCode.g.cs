@@ -20,10 +20,15 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a CommandCode with all bits set to zero.</summary>
     public static CommandCode Zero => default;
+
+    // --- Bit field mask constants ---
+    // Code: bits [0..3], width 4
+    private const byte CODE_MASK = 0x0F;
+    private const byte CODE_INVERTED_MASK = 0xF0;  // ~CODE_MASK
 
     /// <summary>Creates a new CommandCode with the specified raw bits value.</summary>
     public CommandCode(byte value) { Value = value; }
@@ -31,13 +36,13 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     public partial byte Code
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x0F);
+        get => (byte)(Value & CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF0) | (((byte)value) & 0x0F));
+        set => Value = (byte)((Value & CODE_INVERTED_MASK) | (((byte)value) & CODE_MASK));
     }
 
     /// <summary>Returns a CommandCode with the mask for the Code field (bits 0-3).</summary>
-    public static CommandCode CodeMask => new((byte)0x0F);
+    public static CommandCode CodeMask => new(CODE_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -51,7 +56,7 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
 
     /// <summary>Returns a new CommandCode with the Code field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CommandCode WithCode(byte value) => new((byte)((Value & 0xF0) | ((byte)value & 0x0F)));
+    public CommandCode WithCode(byte value) => new((byte)((Value & CODE_INVERTED_MASK) | ((byte)value & CODE_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -193,28 +198,28 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     public static implicit operator CommandCode(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new CommandCode from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public CommandCode(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new CommandCode(bytes[0]);
     }
 
-    /// <summary>Creates a new CommandCode by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new CommandCode by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized CommandCode.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CommandCode ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -224,21 +229,21 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

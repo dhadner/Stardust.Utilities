@@ -20,36 +20,56 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a MustBeTestReg with all bits set to zero.</summary>
     public static MustBeTestReg Zero => default;
 
+    // --- Bit field mask constants ---
+    // Reserved: bits [1..2], width 2
+    private const byte RESERVED_MASK = 0x03;
+    private const byte RESERVED_SHIFTED_MASK = 0x06;  // RESERVED_MASK << 1
+    private const byte RESERVED_INVERTED_MASK = 0xF9;  // ~RESERVED_SHIFTED_MASK
+    // Data: bits [3..6], width 4
+    private const byte DATA_MASK = 0x0F;
+    private const byte DATA_SHIFTED_MASK = 0x78;  // DATA_MASK << 3
+    private const byte DATA_INVERTED_MASK = 0x87;  // ~DATA_SHIFTED_MASK
+    // Active: bit 0
+    private const byte ACTIVE_MASK = 0x01;
+    private const byte ACTIVE_INVERTED_MASK = 0xFE;  // ~ACTIVE_MASK
+    // Sync: bit 7
+    private const byte SYNC_MASK = 0x80;
+    private const byte SYNC_INVERTED_MASK = 0x7F;  // ~SYNC_MASK
+
+    // --- Constructor normalization masks ---
+    private const byte NORMALIZATION_AND_MASK = 0xF9;  // Clears: Reserved (MustBe.Zero)
+    private const byte NORMALIZATION_OR_MASK = 0x80;  // Sets: Sync (MustBe.One)
+
     /// <summary>Creates a new MustBeTestReg with the specified raw bits value.</summary>
-    public MustBeTestReg(byte value) { Value = (byte)((value & 0xF9) | 0x80); }
+    public MustBeTestReg(byte value) { Value = (byte)((value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }
 
     public partial byte Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 1) & 0x03);
+        get => (byte)((Value >> 1) & RESERVED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)(Value & 0xF9);
+        set => Value = (byte)(Value & RESERVED_INVERTED_MASK);
     }
 
     public partial byte Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 3) & 0x0F);
+        get => (byte)((Value >> 3) & DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x87) | ((((byte)value) << 3) & 0x78));
+        set => Value = (byte)((Value & DATA_INVERTED_MASK) | ((((byte)value) << 3) & DATA_SHIFTED_MASK));
     }
 
     public partial bool Active
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (Value & ACTIVE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => Value = value ? (byte)(Value | ACTIVE_MASK) : (byte)(Value & ACTIVE_INVERTED_MASK);
     }
 
     public partial bool Sync
@@ -57,20 +77,20 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => true;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)(Value | 0x80);
+        set => Value = (byte)(Value | SYNC_MASK);
     }
 
     /// <summary>Returns a MustBeTestReg with only the Active bit set.</summary>
-    public static MustBeTestReg ActiveBit => new((byte)0x01);
+    public static MustBeTestReg ActiveBit => new(ACTIVE_MASK);
 
     /// <summary>Returns a MustBeTestReg with only the Sync bit set.</summary>
-    public static MustBeTestReg SyncBit => new((byte)0x80);
+    public static MustBeTestReg SyncBit => new(SYNC_MASK);
 
     /// <summary>Returns a MustBeTestReg with the mask for the Reserved field (bits 1-2).</summary>
-    public static MustBeTestReg ReservedMask => new((byte)0x06);
+    public static MustBeTestReg ReservedMask => new(RESERVED_SHIFTED_MASK);
 
     /// <summary>Returns a MustBeTestReg with the mask for the Data field (bits 3-6).</summary>
-    public static MustBeTestReg DataMask => new((byte)0x78);
+    public static MustBeTestReg DataMask => new(DATA_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +107,19 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     /// <summary>Returns a new MustBeTestReg with the Active flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithActive(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public MustBeTestReg WithActive(bool value) => new(value ? (byte)(Value | ACTIVE_MASK) : (byte)(Value & ACTIVE_INVERTED_MASK));
 
     /// <summary>Returns a new MustBeTestReg with the Sync flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithSync(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
+    public MustBeTestReg WithSync(bool value) => new(value ? (byte)(Value | SYNC_MASK) : (byte)(Value & SYNC_INVERTED_MASK));
 
     /// <summary>Returns a new MustBeTestReg with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithReserved(byte value) => new((byte)((Value & 0xF9) | (((byte)value << 1) & 0x06)));
+    public MustBeTestReg WithReserved(byte value) => new((byte)((Value & RESERVED_INVERTED_MASK) | (((byte)value << 1) & RESERVED_SHIFTED_MASK)));
 
     /// <summary>Returns a new MustBeTestReg with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithData(byte value) => new((byte)((Value & 0x87) | (((byte)value << 3) & 0x78)));
+    public MustBeTestReg WithData(byte value) => new((byte)((Value & DATA_INVERTED_MASK) | (((byte)value << 3) & DATA_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,28 +261,28 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     public static implicit operator MustBeTestReg(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new MustBeTestReg from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public MustBeTestReg(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new MustBeTestReg(bytes[0]);
     }
 
-    /// <summary>Creates a new MustBeTestReg by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new MustBeTestReg by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized MustBeTestReg.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MustBeTestReg ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -272,21 +292,21 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

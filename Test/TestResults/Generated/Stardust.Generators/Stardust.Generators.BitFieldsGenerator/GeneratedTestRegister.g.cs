@@ -20,10 +20,29 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a GeneratedTestRegister with all bits set to zero.</summary>
     public static GeneratedTestRegister Zero => default;
+
+    // --- Bit field mask constants ---
+    // Mode: bits [2..4], width 3
+    private const byte MODE_MASK = 0x07;
+    private const byte MODE_SHIFTED_MASK = 0x1C;  // MODE_MASK << 2
+    private const byte MODE_INVERTED_MASK = 0xE3;  // ~MODE_SHIFTED_MASK
+    // Priority: bits [5..6], width 2
+    private const byte PRIORITY_MASK = 0x03;
+    private const byte PRIORITY_SHIFTED_MASK = 0x60;  // PRIORITY_MASK << 5
+    private const byte PRIORITY_INVERTED_MASK = 0x9F;  // ~PRIORITY_SHIFTED_MASK
+    // Ready: bit 0
+    private const byte READY_MASK = 0x01;
+    private const byte READY_INVERTED_MASK = 0xFE;  // ~READY_MASK
+    // Error: bit 1
+    private const byte ERROR_MASK = 0x02;
+    private const byte ERROR_INVERTED_MASK = 0xFD;  // ~ERROR_MASK
+    // Busy: bit 7
+    private const byte BUSY_MASK = 0x80;
+    private const byte BUSY_INVERTED_MASK = 0x7F;  // ~BUSY_MASK
 
     /// <summary>Creates a new GeneratedTestRegister with the specified raw bits value.</summary>
     public GeneratedTestRegister(byte value) { Value = value; }
@@ -31,57 +50,57 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
     public partial byte Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x07);
+        get => (byte)((Value >> 2) & MODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
+        set => Value = (byte)((Value & MODE_INVERTED_MASK) | ((((byte)value) << 2) & MODE_SHIFTED_MASK));
     }
 
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 5) & 0x03);
+        get => (byte)((Value >> 5) & PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x9F) | ((((byte)value) << 5) & 0x60));
+        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << 5) & PRIORITY_SHIFTED_MASK));
     }
 
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (Value & READY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => Value = value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED_MASK);
     }
 
     public partial bool Error
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x02) != 0;
+        get => (Value & ERROR_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+        set => Value = value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED_MASK);
     }
 
     public partial bool Busy
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x80) != 0;
+        get => (Value & BUSY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F);
+        set => Value = value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED_MASK);
     }
 
     /// <summary>Returns a GeneratedTestRegister with only the Ready bit set.</summary>
-    public static GeneratedTestRegister ReadyBit => new((byte)0x01);
+    public static GeneratedTestRegister ReadyBit => new(READY_MASK);
 
     /// <summary>Returns a GeneratedTestRegister with only the Error bit set.</summary>
-    public static GeneratedTestRegister ErrorBit => new((byte)0x02);
+    public static GeneratedTestRegister ErrorBit => new(ERROR_MASK);
 
     /// <summary>Returns a GeneratedTestRegister with only the Busy bit set.</summary>
-    public static GeneratedTestRegister BusyBit => new((byte)0x80);
+    public static GeneratedTestRegister BusyBit => new(BUSY_MASK);
 
     /// <summary>Returns a GeneratedTestRegister with the mask for the Mode field (bits 2-4).</summary>
-    public static GeneratedTestRegister ModeMask => new((byte)0x1C);
+    public static GeneratedTestRegister ModeMask => new(MODE_SHIFTED_MASK);
 
     /// <summary>Returns a GeneratedTestRegister with the mask for the Priority field (bits 5-6).</summary>
-    public static GeneratedTestRegister PriorityMask => new((byte)0x60);
+    public static GeneratedTestRegister PriorityMask => new(PRIORITY_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -99,23 +118,23 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
 
     /// <summary>Returns a new GeneratedTestRegister with the Ready flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedTestRegister WithReady(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public GeneratedTestRegister WithReady(bool value) => new(value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedTestRegister with the Error flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedTestRegister WithError(bool value) => new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+    public GeneratedTestRegister WithError(bool value) => new(value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedTestRegister with the Busy flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedTestRegister WithBusy(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
+    public GeneratedTestRegister WithBusy(bool value) => new(value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedTestRegister with the Mode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedTestRegister WithMode(byte value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
+    public GeneratedTestRegister WithMode(byte value) => new((byte)((Value & MODE_INVERTED_MASK) | (((byte)value << 2) & MODE_SHIFTED_MASK)));
 
     /// <summary>Returns a new GeneratedTestRegister with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedTestRegister WithPriority(byte value) => new((byte)((Value & 0x9F) | (((byte)value << 5) & 0x60)));
+    public GeneratedTestRegister WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << 5) & PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -257,28 +276,28 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
     public static implicit operator GeneratedTestRegister(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new GeneratedTestRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public GeneratedTestRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new GeneratedTestRegister(bytes[0]);
     }
 
-    /// <summary>Creates a new GeneratedTestRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new GeneratedTestRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized GeneratedTestRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static GeneratedTestRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -288,21 +307,21 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

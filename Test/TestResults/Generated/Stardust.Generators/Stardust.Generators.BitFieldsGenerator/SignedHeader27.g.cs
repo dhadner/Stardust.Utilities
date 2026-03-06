@@ -20,46 +20,62 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     private int Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a SignedHeader27 with all bits set to zero.</summary>
     public static SignedHeader27 Zero => default;
 
+    // --- Bit field mask constants ---
+    // SubHeader: bits [0..8], width 9
+    private const uint SUB_HEADER_MASK = 0x000001FFU;
+    private const uint SUB_HEADER_INVERTED_MASK = 0xFFFFFE00U;  // ~SUB_HEADER_MASK
+    // PayloadSize: bits [9..18], width 10
+    private const uint PAYLOAD_SIZE_MASK = 0x000003FFU;
+    private const uint PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // PAYLOAD_SIZE_MASK << 9
+    private const uint PAYLOAD_SIZE_INVERTED_MASK = 0xFFF801FFU;  // ~PAYLOAD_SIZE_SHIFTED_MASK
+    // Sequence: bits [19..26], width 8
+    private const uint SEQUENCE_MASK = 0x000000FFU;
+    private const uint SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // SEQUENCE_MASK << 19
+    private const uint SEQUENCE_INVERTED_MASK = 0xF807FFFFU;  // ~SEQUENCE_SHIFTED_MASK
+
+    // --- Constructor normalization masks ---
+    private const uint NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
     /// <summary>Creates a new SignedHeader27 with the specified raw bits value.</summary>
-    public SignedHeader27(int value) { Value = (int)(((uint)value) & 0x07FFFFFFU); }
+    public SignedHeader27(int value) { Value = (int)(((uint)value) & NORMALIZATION_AND_MASK); }
 
     public partial global::Stardust.Utilities.Tests.SubHeader9 SubHeader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.SubHeader9)(((uint)Value) & 0x000001FFU);
+        get => (global::Stardust.Utilities.Tests.SubHeader9)(((uint)Value) & SUB_HEADER_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & 0xFFFFFE00U) | (((uint)value) & 0x000001FFU));
+        set => Value = (int)((((uint)Value) & SUB_HEADER_INVERTED_MASK) | (((uint)value) & SUB_HEADER_MASK));
     }
 
     public partial ushort PayloadSize
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> 9) & 0x000003FFU);
+        get => (ushort)((((uint)Value) >> 9) & PAYLOAD_SIZE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & 0xFFF801FFU) | ((((uint)value) << 9) & 0x0007FE00U));
+        set => Value = (int)((((uint)Value) & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << 9) & PAYLOAD_SIZE_SHIFTED_MASK));
     }
 
     public partial byte Sequence
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((uint)Value) >> 19) & 0x000000FFU);
+        get => (byte)((((uint)Value) >> 19) & SEQUENCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & 0xF807FFFFU) | ((((uint)value) << 19) & 0x07F80000U));
+        set => Value = (int)((((uint)Value) & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 19) & SEQUENCE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SignedHeader27 with the mask for the SubHeader field (bits 0-8).</summary>
-    public static SignedHeader27 SubHeaderMask => new(unchecked((int)0x000001FFU));
+    public static SignedHeader27 SubHeaderMask => new(unchecked((int)SUB_HEADER_MASK));
 
     /// <summary>Returns a SignedHeader27 with the mask for the PayloadSize field (bits 9-18).</summary>
-    public static SignedHeader27 PayloadSizeMask => new(unchecked((int)0x0007FE00U));
+    public static SignedHeader27 PayloadSizeMask => new(unchecked((int)PAYLOAD_SIZE_SHIFTED_MASK));
 
     /// <summary>Returns a SignedHeader27 with the mask for the Sequence field (bits 19-26).</summary>
-    public static SignedHeader27 SequenceMask => new(unchecked((int)0x07F80000U));
+    public static SignedHeader27 SequenceMask => new(unchecked((int)SEQUENCE_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -75,15 +91,15 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
 
     /// <summary>Returns a new SignedHeader27 with the SubHeader field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedHeader27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((int)((((uint)Value) & 0xFFFFFE00U) | ((uint)value & 0x000001FFU)));
+    public SignedHeader27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((int)((((uint)Value) & SUB_HEADER_INVERTED_MASK) | ((uint)value & SUB_HEADER_MASK)));
 
     /// <summary>Returns a new SignedHeader27 with the PayloadSize field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedHeader27 WithPayloadSize(ushort value) => new((int)((((uint)Value) & 0xFFF801FFU) | ((((uint)value) << 9) & 0x0007FE00U)));
+    public SignedHeader27 WithPayloadSize(ushort value) => new((int)((((uint)Value) & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << 9) & PAYLOAD_SIZE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedHeader27 with the Sequence field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedHeader27 WithSequence(byte value) => new((int)((((uint)Value) & 0xF807FFFFU) | ((((uint)value) << 19) & 0x07F80000U)));
+    public SignedHeader27 WithSequence(byte value) => new((int)((((uint)Value) & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 19) & SEQUENCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -245,28 +261,28 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     public static implicit operator SignedHeader27(int value) => new(value);
 
     /// <summary>Creates a new SignedHeader27 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedHeader27(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new SignedHeader27(BinaryPrimitives.ReadInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedHeader27 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedHeader27 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedHeader27.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedHeader27 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteInt32LittleEndian(destination, Value);
     }
 
@@ -276,21 +292,21 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

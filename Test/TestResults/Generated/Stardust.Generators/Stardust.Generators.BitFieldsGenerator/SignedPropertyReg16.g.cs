@@ -20,10 +20,27 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a SignedPropertyReg16 with all bits set to zero.</summary>
     public static SignedPropertyReg16 Zero => default;
+
+    // --- Bit field mask constants ---
+    // Delta: bits [13..15], width 3
+    private const ushort DELTA_MASK = 0x0007;
+    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << 13
+    private const ushort DELTA_INVERTED_MASK = 0x1FFF;  // ~DELTA_SHIFTED_MASK
+    // UnsignedField: bits [10..12], width 3
+    private const ushort UNSIGNED_FIELD_MASK = 0x0007;
+    private const ushort UNSIGNED_FIELD_SHIFTED_MASK = 0x1C00;  // UNSIGNED_FIELD_MASK << 10
+    private const ushort UNSIGNED_FIELD_INVERTED_MASK = 0xE3FF;  // ~UNSIGNED_FIELD_SHIFTED_MASK
+    // SignedNibble: bits [6..9], width 4
+    private const ushort SIGNED_NIBBLE_MASK = 0x000F;
+    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x03C0;  // SIGNED_NIBBLE_MASK << 6
+    private const ushort SIGNED_NIBBLE_INVERTED_MASK = 0xFC3F;  // ~SIGNED_NIBBLE_SHIFTED_MASK
+    // Offset: bits [0..5], width 6
+    private const ushort OFFSET_MASK = 0x003F;
+    private const ushort OFFSET_INVERTED_MASK = 0xFFC0;  // ~OFFSET_MASK
 
     /// <summary>Creates a new SignedPropertyReg16 with the specified raw bits value.</summary>
     public SignedPropertyReg16(ushort value) { Value = value; }
@@ -31,46 +48,46 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     public partial sbyte Delta
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(Value & 0xE000) << 16) >> 29);
+        get => (sbyte)(((int)(Value & DELTA_SHIFTED_MASK) << 16) >> 29);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0x1FFF) | ((((ushort)value) << 13) & 0xE000));
+        set => Value = (ushort)((Value & DELTA_INVERTED_MASK) | ((((ushort)value) << 13) & DELTA_SHIFTED_MASK));
     }
 
     public partial byte UnsignedField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 10) & 0x0007);
+        get => (byte)((Value >> 10) & UNSIGNED_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xE3FF) | ((((ushort)value) << 10) & 0x1C00));
+        set => Value = (ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | ((((ushort)value) << 10) & UNSIGNED_FIELD_SHIFTED_MASK));
     }
 
     public partial sbyte SignedNibble
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(Value & 0x03C0) << 22) >> 28);
+        get => (sbyte)(((int)(Value & SIGNED_NIBBLE_SHIFTED_MASK) << 22) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFC3F) | ((((ushort)value) << 6) & 0x03C0));
+        set => Value = (ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << 6) & SIGNED_NIBBLE_SHIFTED_MASK));
     }
 
     public partial sbyte Offset
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(Value & 0x003F) << 26) >> 26);
+        get => (sbyte)(((int)(Value & OFFSET_MASK) << 26) >> 26);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFFC0) | (((ushort)value) & 0x003F));
+        set => Value = (ushort)((Value & OFFSET_INVERTED_MASK) | (((ushort)value) & OFFSET_MASK));
     }
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Delta field (bits 13-15).</summary>
-    public static SignedPropertyReg16 DeltaMask => new((ushort)0xE000);
+    public static SignedPropertyReg16 DeltaMask => new(DELTA_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the UnsignedField field (bits 10-12).</summary>
-    public static SignedPropertyReg16 UnsignedFieldMask => new((ushort)0x1C00);
+    public static SignedPropertyReg16 UnsignedFieldMask => new(UNSIGNED_FIELD_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the SignedNibble field (bits 6-9).</summary>
-    public static SignedPropertyReg16 SignedNibbleMask => new((ushort)0x03C0);
+    public static SignedPropertyReg16 SignedNibbleMask => new(SIGNED_NIBBLE_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Offset field (bits 0-5).</summary>
-    public static SignedPropertyReg16 OffsetMask => new((ushort)0x003F);
+    public static SignedPropertyReg16 OffsetMask => new(OFFSET_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +104,19 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((Value & 0x1FFF) | (((ushort)value << 13) & 0xE000)));
+    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((Value & DELTA_INVERTED_MASK) | (((ushort)value << 13) & DELTA_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the UnsignedField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((Value & 0xE3FF) | (((ushort)value << 10) & 0x1C00)));
+    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | (((ushort)value << 10) & UNSIGNED_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the SignedNibble field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((Value & 0xFC3F) | (((ushort)value << 6) & 0x03C0)));
+    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | (((ushort)value << 6) & SIGNED_NIBBLE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the Offset field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((Value & 0xFFC0) | ((ushort)value & 0x003F)));
+    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((Value & OFFSET_INVERTED_MASK) | ((ushort)value & OFFSET_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,28 +258,28 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     public static implicit operator SignedPropertyReg16(int value) => new(unchecked((ushort)value));
 
     /// <summary>Creates a new SignedPropertyReg16 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedPropertyReg16(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new SignedPropertyReg16(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedPropertyReg16 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedPropertyReg16 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedPropertyReg16.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedPropertyReg16 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
@@ -272,21 +289,21 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

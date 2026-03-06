@@ -22,10 +22,23 @@ public partial class BitFieldProtocolTests
         private uint Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 4;
+        public const int SIZE_IN_BYTES = 4;
 
         /// <summary>Returns a IPv4FragmentWord with all bits set to zero.</summary>
         public static IPv4FragmentWord Zero => default;
+
+        // --- Bit field mask constants ---
+        // Identification: bits [16..31], width 16
+        private const uint IDENTIFICATION_MASK = 0x0000FFFFU;
+        private const uint IDENTIFICATION_SHIFTED_MASK = 0xFFFF0000U;  // IDENTIFICATION_MASK << 16
+        private const uint IDENTIFICATION_INVERTED_MASK = 0x0000FFFFU;  // ~IDENTIFICATION_SHIFTED_MASK
+        // Flags: bits [13..15], width 3
+        private const uint FLAGS_MASK = 0x00000007U;
+        private const uint FLAGS_SHIFTED_MASK = 0x0000E000U;  // FLAGS_MASK << 13
+        private const uint FLAGS_INVERTED_MASK = 0xFFFF1FFFU;  // ~FLAGS_SHIFTED_MASK
+        // FragmentOffset: bits [0..12], width 13
+        private const uint FRAGMENT_OFFSET_MASK = 0x00001FFFU;
+        private const uint FRAGMENT_OFFSET_INVERTED_MASK = 0xFFFFE000U;  // ~FRAGMENT_OFFSET_MASK
 
         /// <summary>Creates a new IPv4FragmentWord with the specified raw bits value.</summary>
         public IPv4FragmentWord(uint value) { Value = value; }
@@ -33,35 +46,35 @@ public partial class BitFieldProtocolTests
         public partial ushort Identification
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> 16) & 0x0000FFFFU);
+            get => (ushort)((Value >> 16) & IDENTIFICATION_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0x0000FFFFU) | ((((uint)value) << 16) & 0xFFFF0000U));
+            set => Value = (uint)((Value & IDENTIFICATION_INVERTED_MASK) | ((((uint)value) << 16) & IDENTIFICATION_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((Value >> 13) & 0x00000007U);
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((Value >> 13) & FLAGS_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFFFF1FFFU) | ((((uint)value) << 13) & 0x0000E000U));
+            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << 13) & FLAGS_SHIFTED_MASK));
         }
 
         public partial ushort FragmentOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & 0x00001FFFU);
+            get => (ushort)(Value & FRAGMENT_OFFSET_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFFFFE000U) | (((uint)value) & 0x00001FFFU));
+            set => Value = (uint)((Value & FRAGMENT_OFFSET_INVERTED_MASK) | (((uint)value) & FRAGMENT_OFFSET_MASK));
         }
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the Identification field (bits 16-31).</summary>
-        public static IPv4FragmentWord IdentificationMask => new((uint)0xFFFF0000U);
+        public static IPv4FragmentWord IdentificationMask => new(IDENTIFICATION_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the Flags field (bits 13-15).</summary>
-        public static IPv4FragmentWord FlagsMask => new((uint)0x0000E000U);
+        public static IPv4FragmentWord FlagsMask => new(FLAGS_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the FragmentOffset field (bits 0-12).</summary>
-        public static IPv4FragmentWord FragmentOffsetMask => new((uint)0x00001FFFU);
+        public static IPv4FragmentWord FragmentOffsetMask => new(FRAGMENT_OFFSET_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -77,15 +90,15 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new IPv4FragmentWord with the Identification field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((Value & 0x0000FFFFU) | (((uint)value << 16) & 0xFFFF0000U)));
+        public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((Value & IDENTIFICATION_INVERTED_MASK) | (((uint)value << 16) & IDENTIFICATION_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4FragmentWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags value) => new((uint)((Value & 0xFFFF1FFFU) | (((uint)value << 13) & 0x0000E000U)));
+        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << 13) & FLAGS_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4FragmentWord with the FragmentOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFragmentOffset(ushort value) => new((uint)((Value & 0xFFFFE000U) | ((uint)value & 0x00001FFFU)));
+        public IPv4FragmentWord WithFragmentOffset(ushort value) => new((uint)((Value & FRAGMENT_OFFSET_INVERTED_MASK) | ((uint)value & FRAGMENT_OFFSET_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -271,28 +284,28 @@ public partial class BitFieldProtocolTests
         public static implicit operator IPv4FragmentWord(uint value) => new(value);
 
         /// <summary>Creates a new IPv4FragmentWord from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public IPv4FragmentWord(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new IPv4FragmentWord(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new IPv4FragmentWord by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new IPv4FragmentWord by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized IPv4FragmentWord.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPv4FragmentWord ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
         }
 
@@ -302,21 +315,21 @@ public partial class BitFieldProtocolTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

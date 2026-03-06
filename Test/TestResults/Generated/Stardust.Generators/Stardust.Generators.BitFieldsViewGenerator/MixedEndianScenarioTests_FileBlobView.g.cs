@@ -17,16 +17,16 @@ public partial class MixedEndianScenarioTests
         private readonly byte _bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
-        public const int SizeInBytes = 22;
-        public const int BitWidth = 176;
+        public const int SIZE_IN_BYTES = 22;
+        public const int BIT_WIDTH = 176;
 
         /// <summary>Creates a view over the specified memory buffer.</summary>
-        /// <param name="data">The buffer to view. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="data">The buffer to view. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The buffer is too short.</exception>
         public FileBlobView(Memory<byte> data)
         {
-            if (data.Length < SizeInBytes)
-                throw new ArgumentException($"Buffer must contain at least {SizeInBytes} bytes, but was {data.Length}.", nameof(data));
+            if (data.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
             _data = data;
             _bitOffset = 0;
         }
@@ -214,7 +214,7 @@ public partial class MixedEndianScenarioTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => new global::Stardust.Utilities.Tests.MixedEndianScenarioTests.CaptureHeaderView(_data.Slice(14));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Tests.MixedEndianScenarioTests.CaptureHeaderView.SizeInBytes).CopyTo(_data.Span.Slice(14)); }
+            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Tests.MixedEndianScenarioTests.CaptureHeaderView.SIZE_IN_BYTES).CopyTo(_data.Span.Slice(14)); }
         }
 
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>

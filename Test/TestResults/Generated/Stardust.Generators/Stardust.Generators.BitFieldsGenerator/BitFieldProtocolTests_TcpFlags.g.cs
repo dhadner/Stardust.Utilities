@@ -22,112 +22,144 @@ public partial class BitFieldProtocolTests
         private ushort Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 2;
+        public const int SIZE_IN_BYTES = 2;
 
         /// <summary>Returns a TcpFlags with all bits set to zero.</summary>
         public static TcpFlags Zero => default;
 
+        // --- Bit field mask constants ---
+        // FIN: bit 0
+        private const ushort FIN_MASK = 0x0001;
+        private const ushort FIN_INVERTED_MASK = 0xFFFE;  // ~FIN_MASK
+        // SYN: bit 1
+        private const ushort SYN_MASK = 0x0002;
+        private const ushort SYN_INVERTED_MASK = 0xFFFD;  // ~SYN_MASK
+        // RST: bit 2
+        private const ushort RST_MASK = 0x0004;
+        private const ushort RST_INVERTED_MASK = 0xFFFB;  // ~RST_MASK
+        // PSH: bit 3
+        private const ushort PSH_MASK = 0x0008;
+        private const ushort PSH_INVERTED_MASK = 0xFFF7;  // ~PSH_MASK
+        // ACK: bit 4
+        private const ushort ACK_MASK = 0x0010;
+        private const ushort ACK_INVERTED_MASK = 0xFFEF;  // ~ACK_MASK
+        // URG: bit 5
+        private const ushort URG_MASK = 0x0020;
+        private const ushort URG_INVERTED_MASK = 0xFFDF;  // ~URG_MASK
+        // ECE: bit 6
+        private const ushort ECE_MASK = 0x0040;
+        private const ushort ECE_INVERTED_MASK = 0xFFBF;  // ~ECE_MASK
+        // CWR: bit 7
+        private const ushort CWR_MASK = 0x0080;
+        private const ushort CWR_INVERTED_MASK = 0xFF7F;  // ~CWR_MASK
+        // NS: bit 8
+        private const ushort NS_MASK = 0x0100;
+        private const ushort NS_INVERTED_MASK = 0xFEFF;  // ~NS_MASK
+
+        // --- Constructor normalization masks ---
+        private const ushort NORMALIZATION_AND_MASK = 0x01FF;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
         /// <summary>Creates a new TcpFlags with the specified raw bits value.</summary>
-        public TcpFlags(ushort value) { Value = (ushort)(value & 0x01FF); }
+        public TcpFlags(ushort value) { Value = (ushort)(value & NORMALIZATION_AND_MASK); }
 
         public partial bool FIN
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0001) != 0;
+            get => (Value & FIN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0001) : (ushort)(Value & 0xFFFE);
+            set => Value = value ? (ushort)(Value | FIN_MASK) : (ushort)(Value & FIN_INVERTED_MASK);
         }
 
         public partial bool SYN
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0002) != 0;
+            get => (Value & SYN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0002) : (ushort)(Value & 0xFFFD);
+            set => Value = value ? (ushort)(Value | SYN_MASK) : (ushort)(Value & SYN_INVERTED_MASK);
         }
 
         public partial bool RST
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0004) != 0;
+            get => (Value & RST_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0004) : (ushort)(Value & 0xFFFB);
+            set => Value = value ? (ushort)(Value | RST_MASK) : (ushort)(Value & RST_INVERTED_MASK);
         }
 
         public partial bool PSH
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0008) != 0;
+            get => (Value & PSH_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0008) : (ushort)(Value & 0xFFF7);
+            set => Value = value ? (ushort)(Value | PSH_MASK) : (ushort)(Value & PSH_INVERTED_MASK);
         }
 
         public partial bool ACK
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0010) != 0;
+            get => (Value & ACK_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0010) : (ushort)(Value & 0xFFEF);
+            set => Value = value ? (ushort)(Value | ACK_MASK) : (ushort)(Value & ACK_INVERTED_MASK);
         }
 
         public partial bool URG
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0020) != 0;
+            get => (Value & URG_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0020) : (ushort)(Value & 0xFFDF);
+            set => Value = value ? (ushort)(Value | URG_MASK) : (ushort)(Value & URG_INVERTED_MASK);
         }
 
         public partial bool ECE
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0040) != 0;
+            get => (Value & ECE_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0040) : (ushort)(Value & 0xFFBF);
+            set => Value = value ? (ushort)(Value | ECE_MASK) : (ushort)(Value & ECE_INVERTED_MASK);
         }
 
         public partial bool CWR
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0080) != 0;
+            get => (Value & CWR_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0080) : (ushort)(Value & 0xFF7F);
+            set => Value = value ? (ushort)(Value | CWR_MASK) : (ushort)(Value & CWR_INVERTED_MASK);
         }
 
         public partial bool NS
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x0100) != 0;
+            get => (Value & NS_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x0100) : (ushort)(Value & 0xFEFF);
+            set => Value = value ? (ushort)(Value | NS_MASK) : (ushort)(Value & NS_INVERTED_MASK);
         }
 
         /// <summary>Returns a TcpFlags with only the FIN bit set.</summary>
-        public static TcpFlags FINBit => new((ushort)0x0001);
+        public static TcpFlags FINBit => new(FIN_MASK);
 
         /// <summary>Returns a TcpFlags with only the SYN bit set.</summary>
-        public static TcpFlags SYNBit => new((ushort)0x0002);
+        public static TcpFlags SYNBit => new(SYN_MASK);
 
         /// <summary>Returns a TcpFlags with only the RST bit set.</summary>
-        public static TcpFlags RSTBit => new((ushort)0x0004);
+        public static TcpFlags RSTBit => new(RST_MASK);
 
         /// <summary>Returns a TcpFlags with only the PSH bit set.</summary>
-        public static TcpFlags PSHBit => new((ushort)0x0008);
+        public static TcpFlags PSHBit => new(PSH_MASK);
 
         /// <summary>Returns a TcpFlags with only the ACK bit set.</summary>
-        public static TcpFlags ACKBit => new((ushort)0x0010);
+        public static TcpFlags ACKBit => new(ACK_MASK);
 
         /// <summary>Returns a TcpFlags with only the URG bit set.</summary>
-        public static TcpFlags URGBit => new((ushort)0x0020);
+        public static TcpFlags URGBit => new(URG_MASK);
 
         /// <summary>Returns a TcpFlags with only the ECE bit set.</summary>
-        public static TcpFlags ECEBit => new((ushort)0x0040);
+        public static TcpFlags ECEBit => new(ECE_MASK);
 
         /// <summary>Returns a TcpFlags with only the CWR bit set.</summary>
-        public static TcpFlags CWRBit => new((ushort)0x0080);
+        public static TcpFlags CWRBit => new(CWR_MASK);
 
         /// <summary>Returns a TcpFlags with only the NS bit set.</summary>
-        public static TcpFlags NSBit => new((ushort)0x0100);
+        public static TcpFlags NSBit => new(NS_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -149,39 +181,39 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new TcpFlags with the FIN flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithFIN(bool value) => new(value ? (ushort)(Value | 0x0001) : (ushort)(Value & 0xFFFE));
+        public TcpFlags WithFIN(bool value) => new(value ? (ushort)(Value | FIN_MASK) : (ushort)(Value & FIN_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the SYN flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithSYN(bool value) => new(value ? (ushort)(Value | 0x0002) : (ushort)(Value & 0xFFFD));
+        public TcpFlags WithSYN(bool value) => new(value ? (ushort)(Value | SYN_MASK) : (ushort)(Value & SYN_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the RST flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithRST(bool value) => new(value ? (ushort)(Value | 0x0004) : (ushort)(Value & 0xFFFB));
+        public TcpFlags WithRST(bool value) => new(value ? (ushort)(Value | RST_MASK) : (ushort)(Value & RST_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the PSH flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithPSH(bool value) => new(value ? (ushort)(Value | 0x0008) : (ushort)(Value & 0xFFF7));
+        public TcpFlags WithPSH(bool value) => new(value ? (ushort)(Value | PSH_MASK) : (ushort)(Value & PSH_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the ACK flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithACK(bool value) => new(value ? (ushort)(Value | 0x0010) : (ushort)(Value & 0xFFEF));
+        public TcpFlags WithACK(bool value) => new(value ? (ushort)(Value | ACK_MASK) : (ushort)(Value & ACK_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the URG flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithURG(bool value) => new(value ? (ushort)(Value | 0x0020) : (ushort)(Value & 0xFFDF));
+        public TcpFlags WithURG(bool value) => new(value ? (ushort)(Value | URG_MASK) : (ushort)(Value & URG_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the ECE flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithECE(bool value) => new(value ? (ushort)(Value | 0x0040) : (ushort)(Value & 0xFFBF));
+        public TcpFlags WithECE(bool value) => new(value ? (ushort)(Value | ECE_MASK) : (ushort)(Value & ECE_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the CWR flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithCWR(bool value) => new(value ? (ushort)(Value | 0x0080) : (ushort)(Value & 0xFF7F));
+        public TcpFlags WithCWR(bool value) => new(value ? (ushort)(Value | CWR_MASK) : (ushort)(Value & CWR_INVERTED_MASK));
 
         /// <summary>Returns a new TcpFlags with the NS flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpFlags WithNS(bool value) => new(value ? (ushort)(Value | 0x0100) : (ushort)(Value & 0xFEFF));
+        public TcpFlags WithNS(bool value) => new(value ? (ushort)(Value | NS_MASK) : (ushort)(Value & NS_INVERTED_MASK));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -323,28 +355,28 @@ public partial class BitFieldProtocolTests
         public static implicit operator TcpFlags(int value) => new(unchecked((ushort)value));
 
         /// <summary>Creates a new TcpFlags from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public TcpFlags(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new TcpFlags(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new TcpFlags by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new TcpFlags by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized TcpFlags.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TcpFlags ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
         }
 
@@ -354,21 +386,21 @@ public partial class BitFieldProtocolTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

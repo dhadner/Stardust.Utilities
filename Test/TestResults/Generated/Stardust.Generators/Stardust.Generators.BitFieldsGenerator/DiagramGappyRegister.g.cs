@@ -20,35 +20,47 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a DiagramGappyRegister with all bits set to zero.</summary>
     public static DiagramGappyRegister Zero => default;
 
+    // --- Bit field mask constants ---
+    // TypeCode: bits [0..3], width 4
+    private const ushort TYPE_CODE_MASK = 0x000F;
+    private const ushort TYPE_CODE_INVERTED_MASK = 0xFFF0;  // ~TYPE_CODE_MASK
+    // Version: bits [12..15], width 4
+    private const ushort VERSION_MASK = 0x000F;
+    private const ushort VERSION_SHIFTED_MASK = 0xF000;  // VERSION_MASK << 12
+    private const ushort VERSION_INVERTED_MASK = 0x0FFF;  // ~VERSION_SHIFTED_MASK
+
+    // --- Constructor normalization masks ---
+    private const ushort NORMALIZATION_AND_MASK = 0xF00F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
     /// <summary>Creates a new DiagramGappyRegister with the specified raw bits value.</summary>
-    public DiagramGappyRegister(ushort value) { Value = (ushort)(value & 0xF00F); }
+    public DiagramGappyRegister(ushort value) { Value = (ushort)(value & NORMALIZATION_AND_MASK); }
 
     public partial byte TypeCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x000F);
+        get => (byte)(Value & TYPE_CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFFF0) | (((ushort)value) & 0x000F));
+        set => Value = (ushort)((Value & TYPE_CODE_INVERTED_MASK) | (((ushort)value) & TYPE_CODE_MASK));
     }
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 12) & 0x000F);
+        get => (byte)((Value >> 12) & VERSION_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0x0FFF) | ((((ushort)value) << 12) & 0xF000));
+        set => Value = (ushort)((Value & VERSION_INVERTED_MASK) | ((((ushort)value) << 12) & VERSION_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramGappyRegister with the mask for the TypeCode field (bits 0-3).</summary>
-    public static DiagramGappyRegister TypeCodeMask => new((ushort)0x000F);
+    public static DiagramGappyRegister TypeCodeMask => new(TYPE_CODE_MASK);
 
     /// <summary>Returns a DiagramGappyRegister with the mask for the Version field (bits 12-15).</summary>
-    public static DiagramGappyRegister VersionMask => new((ushort)0xF000);
+    public static DiagramGappyRegister VersionMask => new(VERSION_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -63,11 +75,11 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     /// <summary>Returns a new DiagramGappyRegister with the TypeCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramGappyRegister WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | ((ushort)value & 0x000F)));
+    public DiagramGappyRegister WithTypeCode(byte value) => new((ushort)((Value & TYPE_CODE_INVERTED_MASK) | ((ushort)value & TYPE_CODE_MASK)));
 
     /// <summary>Returns a new DiagramGappyRegister with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramGappyRegister WithVersion(byte value) => new((ushort)((Value & 0x0FFF) | (((ushort)value << 12) & 0xF000)));
+    public DiagramGappyRegister WithVersion(byte value) => new((ushort)((Value & VERSION_INVERTED_MASK) | (((ushort)value << 12) & VERSION_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -209,28 +221,28 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     public static implicit operator DiagramGappyRegister(int value) => new(unchecked((ushort)value));
 
     /// <summary>Creates a new DiagramGappyRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public DiagramGappyRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new DiagramGappyRegister(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new DiagramGappyRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new DiagramGappyRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized DiagramGappyRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DiagramGappyRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
@@ -240,21 +252,21 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

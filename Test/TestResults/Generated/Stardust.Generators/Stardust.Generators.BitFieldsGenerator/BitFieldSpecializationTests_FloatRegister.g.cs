@@ -22,10 +22,22 @@ public partial class BitFieldSpecializationTests
         private uint Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 4;
+        public const int SIZE_IN_BYTES = 4;
 
         /// <summary>Returns a FloatRegister with all bits set to zero.</summary>
         public static FloatRegister Zero => default;
+
+        // --- Bit field mask constants ---
+        // Mantissa: bits [0..22], width 23
+        private const uint MANTISSA_MASK = 0x007FFFFFU;
+        private const uint MANTISSA_INVERTED_MASK = 0xFF800000U;  // ~MANTISSA_MASK
+        // Exponent: bits [23..30], width 8
+        private const uint EXPONENT_MASK = 0x000000FFU;
+        private const uint EXPONENT_SHIFTED_MASK = 0x7F800000U;  // EXPONENT_MASK << 23
+        private const uint EXPONENT_INVERTED_MASK = 0x807FFFFFU;  // ~EXPONENT_SHIFTED_MASK
+        // Sign: bit 31
+        private const uint SIGN_MASK = 0x80000000U;
+        private const uint SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~SIGN_MASK
 
         /// <summary>Creates a new FloatRegister with the specified raw bits value.</summary>
         public FloatRegister(uint value) { Value = value; }
@@ -37,35 +49,35 @@ public partial class BitFieldSpecializationTests
         public partial uint Mantissa
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (uint)(Value & 0x007FFFFFU);
+            get => (uint)(Value & MANTISSA_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFF800000U) | (((uint)value) & 0x007FFFFFU));
+            set => Value = (uint)((Value & MANTISSA_INVERTED_MASK) | (((uint)value) & MANTISSA_MASK));
         }
 
         public partial byte Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 23) & 0x000000FFU);
+            get => (byte)((Value >> 23) & EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0x807FFFFFU) | ((((uint)value) << 23) & 0x7F800000U));
+            set => Value = (uint)((Value & EXPONENT_INVERTED_MASK) | ((((uint)value) << 23) & EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x80000000U) != 0;
+            get => (Value & SIGN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (uint)(Value | 0x80000000U) : (uint)(Value & 0x7FFFFFFFU);
+            set => Value = value ? (uint)(Value | SIGN_MASK) : (uint)(Value & SIGN_INVERTED_MASK);
         }
 
         /// <summary>Returns a FloatRegister with only the Sign bit set.</summary>
-        public static FloatRegister SignBit => new((uint)0x80000000U);
+        public static FloatRegister SignBit => new(SIGN_MASK);
 
         /// <summary>Returns a FloatRegister with the mask for the Mantissa field (bits 0-22).</summary>
-        public static FloatRegister MantissaMask => new((uint)0x007FFFFFU);
+        public static FloatRegister MantissaMask => new(MANTISSA_MASK);
 
         /// <summary>Returns a FloatRegister with the mask for the Exponent field (bits 23-30).</summary>
-        public static FloatRegister ExponentMask => new((uint)0x7F800000U);
+        public static FloatRegister ExponentMask => new(EXPONENT_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -81,15 +93,15 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new FloatRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithSign(bool value) => new(value ? (uint)(Value | 0x80000000U) : (uint)(Value & 0x7FFFFFFFU));
+        public FloatRegister WithSign(bool value) => new(value ? (uint)(Value | SIGN_MASK) : (uint)(Value & SIGN_INVERTED_MASK));
 
         /// <summary>Returns a new FloatRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithMantissa(uint value) => new((uint)((Value & 0xFF800000U) | ((uint)value & 0x007FFFFFU)));
+        public FloatRegister WithMantissa(uint value) => new((uint)((Value & MANTISSA_INVERTED_MASK) | ((uint)value & MANTISSA_MASK)));
 
         /// <summary>Returns a new FloatRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithExponent(byte value) => new((uint)((Value & 0x807FFFFFU) | (((uint)value << 23) & 0x7F800000U)));
+        public FloatRegister WithExponent(byte value) => new((uint)((Value & EXPONENT_INVERTED_MASK) | (((uint)value << 23) & EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -285,28 +297,28 @@ public partial class BitFieldSpecializationTests
         public static explicit operator FloatRegister(uint value) => new(value);
 
         /// <summary>Creates a new FloatRegister from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public FloatRegister(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new FloatRegister(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new FloatRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new FloatRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized FloatRegister.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FloatRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
         }
 
@@ -316,21 +328,21 @@ public partial class BitFieldSpecializationTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

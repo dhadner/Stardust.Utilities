@@ -20,28 +20,44 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     private sbyte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a SignedMustBeReg with all bits set to zero.</summary>
     public static SignedMustBeReg Zero => default;
 
+    // --- Bit field mask constants ---
+    // Data: bits [0..2], width 3
+    private const byte DATA_MASK = 0x07;
+    private const byte DATA_INVERTED_MASK = 0xF8;  // ~DATA_MASK
+    // Rsvd: bits [4..5], width 2
+    private const byte RSVD_MASK = 0x03;
+    private const byte RSVD_SHIFTED_MASK = 0x30;  // RSVD_MASK << 4
+    private const byte RSVD_INVERTED_MASK = 0xCF;  // ~RSVD_SHIFTED_MASK
+    // MustBeSet: bit 3
+    private const byte MUST_BE_SET_MASK = 0x08;
+    private const byte MUST_BE_SET_INVERTED_MASK = 0xF7;  // ~MUST_BE_SET_MASK
+
+    // --- Constructor normalization masks ---
+    private const byte NORMALIZATION_AND_MASK = 0x0F;  // Clears: Rsvd (MustBe.Zero), undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const byte NORMALIZATION_OR_MASK = 0x08;  // Sets: MustBeSet (MustBe.One)
+
     /// <summary>Creates a new SignedMustBeReg with the specified raw bits value.</summary>
-    public SignedMustBeReg(sbyte value) { Value = (sbyte)((((byte)value) & 0x0F) | 0x08); }
+    public SignedMustBeReg(sbyte value) { Value = (sbyte)((((byte)value) & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }
 
     public partial byte Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(((byte)Value) & 0x07);
+        get => (byte)(((byte)Value) & DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & 0xF8) | (((byte)value) & 0x07));
+        set => Value = (sbyte)((((byte)Value) & DATA_INVERTED_MASK) | (((byte)value) & DATA_MASK));
     }
 
     public partial byte Rsvd
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 4) & 0x03);
+        get => (byte)((((byte)Value) >> 4) & RSVD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)(((byte)Value) & 0xCF);
+        set => Value = (sbyte)(((byte)Value) & RSVD_INVERTED_MASK);
     }
 
     public partial bool MustBeSet
@@ -49,17 +65,17 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => true;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)(((byte)Value) | 0x08);
+        set => Value = (sbyte)(((byte)Value) | MUST_BE_SET_MASK);
     }
 
     /// <summary>Returns a SignedMustBeReg with only the MustBeSet bit set.</summary>
-    public static SignedMustBeReg MustBeSetBit => new(unchecked((sbyte)0x08));
+    public static SignedMustBeReg MustBeSetBit => new(unchecked((sbyte)MUST_BE_SET_MASK));
 
     /// <summary>Returns a SignedMustBeReg with the mask for the Data field (bits 0-2).</summary>
-    public static SignedMustBeReg DataMask => new(unchecked((sbyte)0x07));
+    public static SignedMustBeReg DataMask => new(unchecked((sbyte)DATA_MASK));
 
     /// <summary>Returns a SignedMustBeReg with the mask for the Rsvd field (bits 4-5).</summary>
-    public static SignedMustBeReg RsvdMask => new(unchecked((sbyte)0x30));
+    public static SignedMustBeReg RsvdMask => new(unchecked((sbyte)RSVD_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -75,15 +91,15 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
 
     /// <summary>Returns a new SignedMustBeReg with the MustBeSet flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithMustBeSet(bool value) => new(value ? (sbyte)(((byte)Value) | 0x08) : (sbyte)(((byte)Value) & 0xF7));
+    public SignedMustBeReg WithMustBeSet(bool value) => new(value ? (sbyte)(((byte)Value) | MUST_BE_SET_MASK) : (sbyte)(((byte)Value) & MUST_BE_SET_INVERTED_MASK));
 
     /// <summary>Returns a new SignedMustBeReg with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithData(byte value) => new((sbyte)((((byte)Value) & 0xF8) | ((byte)value & 0x07)));
+    public SignedMustBeReg WithData(byte value) => new((sbyte)((((byte)Value) & DATA_INVERTED_MASK) | ((byte)value & DATA_MASK)));
 
     /// <summary>Returns a new SignedMustBeReg with the Rsvd field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithRsvd(byte value) => new((sbyte)((((byte)Value) & 0xCF) | ((((byte)value) << 4) & 0x30)));
+    public SignedMustBeReg WithRsvd(byte value) => new((sbyte)((((byte)Value) & RSVD_INVERTED_MASK) | ((((byte)value) << 4) & RSVD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -225,28 +241,28 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     public static implicit operator SignedMustBeReg(int value) => new(unchecked((sbyte)value));
 
     /// <summary>Creates a new SignedMustBeReg from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedMustBeReg(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new SignedMustBeReg(unchecked((sbyte)bytes[0]));
     }
 
-    /// <summary>Creates a new SignedMustBeReg by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedMustBeReg by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedMustBeReg.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedMustBeReg ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -256,21 +272,21 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

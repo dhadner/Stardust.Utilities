@@ -3,6 +3,32 @@ namespace Stardust.Generators;
 public partial class BitFieldsGenerator
 {
     /// <summary>
+    /// Converts a PascalCase or camelCase identifier to UPPER_SNAKE_CASE.
+    /// Handles acronym runs (e.g., "DSCP" stays "DSCP", "DSCPField" becomes "DSCP_FIELD").
+    /// </summary>
+    private static string ToUpperSnakeCase(string name)
+    {
+        var sb = new System.Text.StringBuilder(name.Length + 4);
+        for (int i = 0; i < name.Length; i++)
+        {
+            char c = name[i];
+            if (i > 0 && char.IsUpper(c))
+            {
+                char prev = name[i - 1];
+                bool prevIsLower = char.IsLower(prev);
+                bool prevIsDigit = char.IsDigit(prev);
+                bool prevIsUpper = char.IsUpper(prev);
+                bool nextIsLower = i + 1 < name.Length && char.IsLower(name[i + 1]);
+
+                if (prevIsLower || prevIsDigit || (prevIsUpper && nextIsLower))
+                    sb.Append('_');
+            }
+            sb.Append(char.ToUpperInvariant(c));
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>
     /// Returns the BitConverter method name that converts a floating-point value to its raw bits.
     /// E.g., "BitConverter.HalfToUInt16Bits" for Half.
     /// </summary>
@@ -224,9 +250,9 @@ public partial class BitFieldsGenerator
     /// </summary>
     private static string StripGlobalPrefix(string qualifiedName)
     {
-        const string globalPrefix = "global::";
-        return qualifiedName.StartsWith(globalPrefix)
-            ? qualifiedName.Substring(globalPrefix.Length)
+        const string GLOBAL_PREFIX = "global::";
+        return qualifiedName.StartsWith(GLOBAL_PREFIX)
+            ? qualifiedName.Substring(GLOBAL_PREFIX.Length)
             : qualifiedName;
     }
 

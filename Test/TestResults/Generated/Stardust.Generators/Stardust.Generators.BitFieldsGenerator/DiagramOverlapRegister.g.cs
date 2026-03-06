@@ -20,10 +20,26 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a DiagramOverlapRegister with all bits set to zero.</summary>
     public static DiagramOverlapRegister Zero => default;
+
+    // --- Bit field mask constants ---
+    // Address: bits [4..7], width 4
+    private const byte ADDRESS_MASK = 0x0F;
+    private const byte ADDRESS_SHIFTED_MASK = 0xF0;  // ADDRESS_MASK << 4
+    private const byte ADDRESS_INVERTED_MASK = 0x0F;  // ~ADDRESS_SHIFTED_MASK
+    // Command: bits [2..3], width 2
+    private const byte COMMAND_MASK = 0x03;
+    private const byte COMMAND_SHIFTED_MASK = 0x0C;  // COMMAND_MASK << 2
+    private const byte COMMAND_INVERTED_MASK = 0xF3;  // ~COMMAND_SHIFTED_MASK
+    // Register: bits [0..1], width 2
+    private const byte REGISTER_MASK = 0x03;
+    private const byte REGISTER_INVERTED_MASK = 0xFC;  // ~REGISTER_MASK
+    // ExtendedCommand: bits [0..3], width 4
+    private const byte EXTENDED_COMMAND_MASK = 0x0F;
+    private const byte EXTENDED_COMMAND_INVERTED_MASK = 0xF0;  // ~EXTENDED_COMMAND_MASK
 
     /// <summary>Creates a new DiagramOverlapRegister with the specified raw bits value.</summary>
     public DiagramOverlapRegister(byte value) { Value = value; }
@@ -31,46 +47,46 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     public partial byte Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & 0x0F);
+        get => (byte)((Value >> 4) & ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x0F) | ((((byte)value) << 4) & 0xF0));
+        set => Value = (byte)((Value & ADDRESS_INVERTED_MASK) | ((((byte)value) << 4) & ADDRESS_SHIFTED_MASK));
     }
 
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x03);
+        get => (byte)((Value >> 2) & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF3) | ((((byte)value) << 2) & 0x0C));
+        set => Value = (byte)((Value & COMMAND_INVERTED_MASK) | ((((byte)value) << 2) & COMMAND_SHIFTED_MASK));
     }
 
     public partial byte Register
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x03);
+        get => (byte)(Value & REGISTER_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xFC) | (((byte)value) & 0x03));
+        set => Value = (byte)((Value & REGISTER_INVERTED_MASK) | (((byte)value) & REGISTER_MASK));
     }
 
     public partial byte ExtendedCommand
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x0F);
+        get => (byte)(Value & EXTENDED_COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF0) | (((byte)value) & 0x0F));
+        set => Value = (byte)((Value & EXTENDED_COMMAND_INVERTED_MASK) | (((byte)value) & EXTENDED_COMMAND_MASK));
     }
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Address field (bits 4-7).</summary>
-    public static DiagramOverlapRegister AddressMask => new((byte)0xF0);
+    public static DiagramOverlapRegister AddressMask => new(ADDRESS_SHIFTED_MASK);
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Command field (bits 2-3).</summary>
-    public static DiagramOverlapRegister CommandMask => new((byte)0x0C);
+    public static DiagramOverlapRegister CommandMask => new(COMMAND_SHIFTED_MASK);
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Register field (bits 0-1).</summary>
-    public static DiagramOverlapRegister RegisterMask => new((byte)0x03);
+    public static DiagramOverlapRegister RegisterMask => new(REGISTER_MASK);
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the ExtendedCommand field (bits 0-3).</summary>
-    public static DiagramOverlapRegister ExtendedCommandMask => new((byte)0x0F);
+    public static DiagramOverlapRegister ExtendedCommandMask => new(EXTENDED_COMMAND_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +103,19 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
 
     /// <summary>Returns a new DiagramOverlapRegister with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithAddress(byte value) => new((byte)((Value & 0x0F) | (((byte)value << 4) & 0xF0)));
+    public DiagramOverlapRegister WithAddress(byte value) => new((byte)((Value & ADDRESS_INVERTED_MASK) | (((byte)value << 4) & ADDRESS_SHIFTED_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithCommand(byte value) => new((byte)((Value & 0xF3) | (((byte)value << 2) & 0x0C)));
+    public DiagramOverlapRegister WithCommand(byte value) => new((byte)((Value & COMMAND_INVERTED_MASK) | (((byte)value << 2) & COMMAND_SHIFTED_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the Register field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithRegister(byte value) => new((byte)((Value & 0xFC) | ((byte)value & 0x03)));
+    public DiagramOverlapRegister WithRegister(byte value) => new((byte)((Value & REGISTER_INVERTED_MASK) | ((byte)value & REGISTER_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the ExtendedCommand field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithExtendedCommand(byte value) => new((byte)((Value & 0xF0) | ((byte)value & 0x0F)));
+    public DiagramOverlapRegister WithExtendedCommand(byte value) => new((byte)((Value & EXTENDED_COMMAND_INVERTED_MASK) | ((byte)value & EXTENDED_COMMAND_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,28 +257,28 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     public static implicit operator DiagramOverlapRegister(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new DiagramOverlapRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public DiagramOverlapRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new DiagramOverlapRegister(bytes[0]);
     }
 
-    /// <summary>Creates a new DiagramOverlapRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new DiagramOverlapRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized DiagramOverlapRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DiagramOverlapRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -272,21 +288,21 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

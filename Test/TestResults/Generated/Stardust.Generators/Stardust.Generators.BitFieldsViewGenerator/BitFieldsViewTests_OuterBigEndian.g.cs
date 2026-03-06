@@ -17,16 +17,16 @@ public partial class BitFieldsViewTests
         private readonly byte _bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
-        public const int SizeInBytes = 3;
-        public const int BitWidth = 24;
+        public const int SIZE_IN_BYTES = 3;
+        public const int BIT_WIDTH = 24;
 
         /// <summary>Creates a view over the specified memory buffer.</summary>
-        /// <param name="data">The buffer to view. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="data">The buffer to view. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The buffer is too short.</exception>
         public OuterBigEndian(Memory<byte> data)
         {
-            if (data.Length < SizeInBytes)
-                throw new ArgumentException($"Buffer must contain at least {SizeInBytes} bytes, but was {data.Length}.", nameof(data));
+            if (data.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
             _data = data;
             _bitOffset = 0;
         }
@@ -93,7 +93,7 @@ public partial class BitFieldsViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => new global::Stardust.Utilities.Tests.BitFieldsViewTests.InnerViewBE(_data.Slice(2));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Tests.BitFieldsViewTests.InnerViewBE.SizeInBytes).CopyTo(_data.Span.Slice(2)); }
+            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Tests.BitFieldsViewTests.InnerViewBE.SIZE_IN_BYTES).CopyTo(_data.Span.Slice(2)); }
         }
 
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>

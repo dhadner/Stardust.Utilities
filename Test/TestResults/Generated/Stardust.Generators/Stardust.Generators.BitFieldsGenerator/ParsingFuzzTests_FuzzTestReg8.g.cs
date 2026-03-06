@@ -22,10 +22,19 @@ public partial class ParsingFuzzTests
         private byte Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 1;
+        public const int SIZE_IN_BYTES = 1;
 
         /// <summary>Returns a FuzzTestReg8 with all bits set to zero.</summary>
         public static FuzzTestReg8 Zero => default;
+
+        // --- Bit field mask constants ---
+        // Field1: bits [1..4], width 4
+        private const byte FIELD1_MASK = 0x0F;
+        private const byte FIELD1_SHIFTED_MASK = 0x1E;  // FIELD1_MASK << 1
+        private const byte FIELD1_INVERTED_MASK = 0xE1;  // ~FIELD1_SHIFTED_MASK
+        // Flag0: bit 0
+        private const byte FLAG0_MASK = 0x01;
+        private const byte FLAG0_INVERTED_MASK = 0xFE;  // ~FLAG0_MASK
 
         /// <summary>Creates a new FuzzTestReg8 with the specified raw bits value.</summary>
         public FuzzTestReg8(byte value) { Value = value; }
@@ -33,24 +42,24 @@ public partial class ParsingFuzzTests
         public partial byte Field1
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 1) & 0x0F);
+            get => (byte)((Value >> 1) & FIELD1_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & 0xE1) | ((((byte)value) << 1) & 0x1E));
+            set => Value = (byte)((Value & FIELD1_INVERTED_MASK) | ((((byte)value) << 1) & FIELD1_SHIFTED_MASK));
         }
 
         public partial bool Flag0
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x01) != 0;
+            get => (Value & FLAG0_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+            set => Value = value ? (byte)(Value | FLAG0_MASK) : (byte)(Value & FLAG0_INVERTED_MASK);
         }
 
         /// <summary>Returns a FuzzTestReg8 with only the Flag0 bit set.</summary>
-        public static FuzzTestReg8 Flag0Bit => new((byte)0x01);
+        public static FuzzTestReg8 Flag0Bit => new(FLAG0_MASK);
 
         /// <summary>Returns a FuzzTestReg8 with the mask for the Field1 field (bits 1-4).</summary>
-        public static FuzzTestReg8 Field1Mask => new((byte)0x1E);
+        public static FuzzTestReg8 Field1Mask => new(FIELD1_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -65,11 +74,11 @@ public partial class ParsingFuzzTests
 
         /// <summary>Returns a new FuzzTestReg8 with the Flag0 flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FuzzTestReg8 WithFlag0(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+        public FuzzTestReg8 WithFlag0(bool value) => new(value ? (byte)(Value | FLAG0_MASK) : (byte)(Value & FLAG0_INVERTED_MASK));
 
         /// <summary>Returns a new FuzzTestReg8 with the Field1 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FuzzTestReg8 WithField1(byte value) => new((byte)((Value & 0xE1) | (((byte)value << 1) & 0x1E)));
+        public FuzzTestReg8 WithField1(byte value) => new((byte)((Value & FIELD1_INVERTED_MASK) | (((byte)value << 1) & FIELD1_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -211,28 +220,28 @@ public partial class ParsingFuzzTests
         public static implicit operator FuzzTestReg8(int value) => new(unchecked((byte)value));
 
         /// <summary>Creates a new FuzzTestReg8 from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public FuzzTestReg8(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new FuzzTestReg8(bytes[0]);
         }
 
-        /// <summary>Creates a new FuzzTestReg8 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new FuzzTestReg8 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized FuzzTestReg8.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FuzzTestReg8 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             destination[0] = unchecked((byte)Value);
         }
 
@@ -242,21 +251,21 @@ public partial class ParsingFuzzTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

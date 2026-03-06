@@ -241,21 +241,21 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{mind}private readonly byte _bitOffset;");
         sb.AppendLine();
 
-        // SizeInBytes constant (accounts for read widths, not just field byte spans)
+        // SIZE_IN_BYTES constant (accounts for read widths, not just field byte spans)
         (int bitWidth, int computedMinBytes) = ComputeMinBytes(info);
         sb.AppendLine($"{mind}/// <summary>Minimum number of bytes required in the backing buffer.</summary>");
-        sb.AppendLine($"{mind}public const int SizeInBytes = {computedMinBytes};");
-        sb.AppendLine($"{mind}public const int BitWidth = {bitWidth};");
+        sb.AppendLine($"{mind}public const int SIZE_IN_BYTES = {computedMinBytes};");
+        sb.AppendLine($"{mind}public const int BIT_WIDTH = {bitWidth};");
         sb.AppendLine();
 
         // Constructors
         sb.AppendLine($"{mind}/// <summary>Creates a view over the specified memory buffer.</summary>");
-        sb.AppendLine($"{mind}/// <param name=\"data\">The buffer to view. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{mind}/// <param name=\"data\">The buffer to view. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{mind}/// <exception cref=\"ArgumentException\">The buffer is too short.</exception>");
         sb.AppendLine($"{mind}public {t}(Memory<byte> data)");
         sb.AppendLine($"{mind}{{");
-        sb.AppendLine($"{mind}    if (data.Length < SizeInBytes)");
-        sb.AppendLine($"{mind}        throw new ArgumentException($\"Buffer must contain at least {{SizeInBytes}} bytes, but was {{data.Length}}.\", nameof(data));");
+        sb.AppendLine($"{mind}    if (data.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{mind}        throw new ArgumentException($\"Buffer must contain at least {{SIZE_IN_BYTES}} bytes, but was {{data.Length}}.\", nameof(data));");
         sb.AppendLine($"{mind}    _data = data;");
         sb.AppendLine($"{mind}    _bitOffset = 0;");
         sb.AppendLine($"{mind}}}");
@@ -658,7 +658,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         if (bitOff == 0)
         {
             // Byte-aligned: straight copy
-            sb.AppendLine($"{ind}    set {{ value.Data.Span.Slice(0, {sv.ViewTypeName}.SizeInBytes).CopyTo(_data.Span.Slice({byteOff})); }}");
+            sb.AppendLine($"{ind}    set {{ value.Data.Span.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(_data.Span.Slice({byteOff})); }}");
         }
         else
         {
@@ -671,7 +671,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             sb.AppendLine($"{ind}        // but for raw byte semantics, copy the source bytes into a temp");
             sb.AppendLine($"{ind}        // buffer, create a view, and read/write through it.");
             sb.AppendLine($"{ind}        // For now, copy the source bytes directly (byte-aligned portion).");
-            sb.AppendLine($"{ind}        src.Slice(0, {sv.ViewTypeName}.SizeInBytes).CopyTo(_data.Span.Slice({byteOff}));");
+            sb.AppendLine($"{ind}        src.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(_data.Span.Slice({byteOff}));");
             sb.AppendLine($"{ind}    }}");
         }
 
@@ -857,9 +857,9 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static string StripGlobalPrefix(string qualifiedName)
     {
-        const string globalPrefix = "global::";
-        return qualifiedName.StartsWith(globalPrefix)
-            ? qualifiedName.Substring(globalPrefix.Length)
+        const string GLOBAL_PREFIX = "global::";
+        return qualifiedName.StartsWith(GLOBAL_PREFIX)
+            ? qualifiedName.Substring(GLOBAL_PREFIX.Length)
             : qualifiedName;
     }
 

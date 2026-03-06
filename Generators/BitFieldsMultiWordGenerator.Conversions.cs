@@ -108,7 +108,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}/// <summary>Creates a {t} from a BigInteger (truncated to {info.TotalBits} bits).</summary>");
         sb.AppendLine($"{ind}public static {t} FromBigInteger(BigInteger value)");
         sb.AppendLine($"{ind}{{");
-        sb.AppendLine($"{ind}    if (value.Sign < 0) value = (BigInteger.One << TotalBits) + value;");
+        sb.AppendLine($"{ind}    if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;");
         for (int i = 0; i < wc; i++)
         {
             if (i == 0)
@@ -342,12 +342,12 @@ internal static partial class BitFieldsMultiWordGenerator
 
         // ReadOnlySpan<byte> constructor -- applies UndefinedBitsMustBe masking on the last word
         sb.AppendLine($"{ind}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
-        sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{ind}public {t}(ReadOnlySpan<byte> bytes)");
         sb.AppendLine($"{ind}{{");
-        sb.AppendLine($"{ind}    if (bytes.Length < SizeInBytes)");
-        sb.AppendLine($"{ind}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(bytes));");
+        sb.AppendLine($"{ind}    if (bytes.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{ind}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(bytes));");
 
         // Calculate whether last word needs masking (same logic as GenerateConstructors)
         int lwBits = layout.RemainderBits > 0 ? layout.RemainderBits : 64;
@@ -378,9 +378,9 @@ internal static partial class BitFieldsMultiWordGenerator
 
             // Apply UndefinedBitsMustBe masking on last word
             if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} & LastWordMask")};");
+                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} & LAST_WORD_MASK")};");
             else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} | ~LastWordMask")};");
+                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} | ~LAST_WORD_MASK")};");
             else
                 sb.AppendLine($"{ind}    _w{i} = {readExpr};");
         }
@@ -388,8 +388,8 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine();
 
         // Static ReadFrom factory
-        sb.AppendLine($"{ind}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a {endianLabel} byte span.</summary>");
-        sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{ind}/// <summary>Creates a new {t} by reading <see cref=\"SIZE_IN_BYTES\"/> bytes from a {endianLabel} byte span.</summary>");
+        sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <returns>The deserialized {t}.</returns>");
         sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{ind}public static {t} ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);");
@@ -397,12 +397,12 @@ internal static partial class BitFieldsMultiWordGenerator
 
         // WriteTo
         sb.AppendLine($"{ind}/// <summary>Writes the value as {endianLabel} bytes into the destination span.</summary>");
-        sb.AppendLine($"{ind}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{ind}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{ind}public void WriteTo(Span<byte> destination)");
         sb.AppendLine($"{ind}{{");
-        sb.AppendLine($"{ind}    if (destination.Length < SizeInBytes)");
-        sb.AppendLine($"{ind}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(destination));");
+        sb.AppendLine($"{ind}    if (destination.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{ind}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(destination));");
         for (int i = 0; i < wc; i++)
         {
             int offset = i * 8;
@@ -439,23 +439,23 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}/// <returns>true if the destination span was large enough; otherwise, false.</returns>");
         sb.AppendLine($"{ind}public bool TryWriteTo(Span<byte> destination, out int bytesWritten)");
         sb.AppendLine($"{ind}{{");
-        sb.AppendLine($"{ind}    if (destination.Length < SizeInBytes)");
+        sb.AppendLine($"{ind}    if (destination.Length < SIZE_IN_BYTES)");
         sb.AppendLine($"{ind}    {{");
         sb.AppendLine($"{ind}        bytesWritten = 0;");
         sb.AppendLine($"{ind}        return false;");
         sb.AppendLine($"{ind}    }}");
         sb.AppendLine($"{ind}    WriteTo(destination);");
-        sb.AppendLine($"{ind}    bytesWritten = SizeInBytes;");
+        sb.AppendLine($"{ind}    bytesWritten = SIZE_IN_BYTES;");
         sb.AppendLine($"{ind}    return true;");
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
 
         // ToByteArray
         sb.AppendLine($"{ind}/// <summary>Returns the value as a new {endianLabel} byte array.</summary>");
-        sb.AppendLine($"{ind}/// <returns>A byte array of length <see cref=\"SizeInBytes\"/>.</returns>");
+        sb.AppendLine($"{ind}/// <returns>A byte array of length <see cref=\"SIZE_IN_BYTES\"/>.</returns>");
         sb.AppendLine($"{ind}public byte[] ToByteArray()");
         sb.AppendLine($"{ind}{{");
-        sb.AppendLine($"{ind}    var bytes = new byte[SizeInBytes];");
+        sb.AppendLine($"{ind}    var bytes = new byte[SIZE_IN_BYTES];");
         sb.AppendLine($"{ind}    WriteTo(bytes);");
         sb.AppendLine($"{ind}    return bytes;");
         sb.AppendLine($"{ind}}}");

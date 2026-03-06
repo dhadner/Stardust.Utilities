@@ -28,15 +28,15 @@ public partial class BitFieldMultiWordTests
         private byte _w3; // bits 192-199
 
         /// <summary>Number of conceptual words in the backing store.</summary>
-        private const int WordCount = 4;
+        private const int WORD_COUNT = 4;
 
         /// <summary>Total number of defined bits.</summary>
-        private const int TotalBits = 200;
+        private const int TOTAL_BITS = 200;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 25;
+        public const int SIZE_IN_BYTES = 25;
 
-        private const ulong LastWordMask = 0x00000000000000FFUL;
+        private const ulong LAST_WORD_MASK = 0x00000000000000FFUL;
 
         /// <summary>Returns a Bits200 with all bits set to zero.</summary>
         public static Bits200 Zero => default;
@@ -248,11 +248,11 @@ public partial class BitFieldMultiWordTests
         public static Bits200 operator <<(Bits200 a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TotalBits) return default;
+            if (amount >= TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(Bits200);
-            for (int dst = WordCount - 1; dst >= 0; dst--)
+            for (int dst = WORD_COUNT - 1; dst >= 0; dst--)
             {
                 int src = dst - wordShift;
                 if (src < 0) continue;
@@ -273,21 +273,21 @@ public partial class BitFieldMultiWordTests
         public static Bits200 operator >>(Bits200 a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TotalBits) return default;
+            if (amount >= TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(Bits200);
-            for (int dst = 0; dst < WordCount; dst++)
+            for (int dst = 0; dst < WORD_COUNT; dst++)
             {
                 int src = dst + wordShift;
-                if (src >= WordCount) break;
+                if (src >= WORD_COUNT) break;
                 ulong val = GetWord(a, src);
                 if (bitShift == 0)
                     SetWord(ref result, dst, val);
                 else
                 {
                     SetWord(ref result, dst, val >> bitShift);
-                    if (src + 1 < WordCount)
+                    if (src + 1 < WORD_COUNT)
                         SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));
                 }
             }
@@ -394,7 +394,7 @@ public partial class BitFieldMultiWordTests
         /// <summary>Creates a Bits200 from a BigInteger (truncated to 200 bits).</summary>
         public static Bits200 FromBigInteger(BigInteger value)
         {
-            if (value.Sign < 0) value = (BigInteger.One << TotalBits) + value;
+            if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
             ulong w0 = (ulong)(value & ulong.MaxValue);
             value >>= 64;
             ulong w1 = (ulong)(value & ulong.MaxValue);
@@ -406,31 +406,31 @@ public partial class BitFieldMultiWordTests
         }
 
         /// <summary>Creates a new Bits200 from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public Bits200(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
             _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
             _w2 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(16));
             _w3 = bytes[24];
         }
 
-        /// <summary>Creates a new Bits200 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new Bits200 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized Bits200.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Bits200 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16), _w2);
@@ -443,21 +443,21 @@ public partial class BitFieldMultiWordTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

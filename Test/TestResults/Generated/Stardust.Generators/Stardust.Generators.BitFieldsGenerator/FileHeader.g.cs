@@ -20,10 +20,31 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     private ulong Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 8;
+    public const int SIZE_IN_BYTES = 8;
 
     /// <summary>Returns a FileHeader with all bits set to zero.</summary>
     public static FileHeader Zero => default;
+
+    // --- Bit field mask constants ---
+    // Magic: bits [0..15], width 16
+    private const ulong MAGIC_MASK = 0x000000000000FFFFUL;
+    private const ulong MAGIC_INVERTED_MASK = 0xFFFFFFFFFFFF0000UL;  // ~MAGIC_MASK
+    // Flags: bits [16..23], width 8
+    private const ulong FLAGS_MASK = 0x00000000000000FFUL;
+    private const ulong FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // FLAGS_MASK << 16
+    private const ulong FLAGS_INVERTED_MASK = 0xFFFFFFFFFF00FFFFUL;  // ~FLAGS_SHIFTED_MASK
+    // VersionMajor: bits [24..31], width 8
+    private const ulong VERSION_MAJOR_MASK = 0x00000000000000FFUL;
+    private const ulong VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // VERSION_MAJOR_MASK << 24
+    private const ulong VERSION_MAJOR_INVERTED_MASK = 0xFFFFFFFF00FFFFFFUL;  // ~VERSION_MAJOR_SHIFTED_MASK
+    // VersionMinor: bits [32..39], width 8
+    private const ulong VERSION_MINOR_MASK = 0x00000000000000FFUL;
+    private const ulong VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // VERSION_MINOR_MASK << 32
+    private const ulong VERSION_MINOR_INVERTED_MASK = 0xFFFFFF00FFFFFFFFUL;  // ~VERSION_MINOR_SHIFTED_MASK
+    // Reserved: bits [40..63], width 24
+    private const ulong RESERVED_MASK = 0x0000000000FFFFFFUL;
+    private const ulong RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // RESERVED_MASK << 40
+    private const ulong RESERVED_INVERTED_MASK = 0x000000FFFFFFFFFFUL;  // ~RESERVED_SHIFTED_MASK
 
     /// <summary>Creates a new FileHeader with the specified raw bits value.</summary>
     public FileHeader(ulong value) { Value = value; }
@@ -31,57 +52,57 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     public partial ushort Magic
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)(Value & 0x000000000000FFFFUL);
+        get => (ushort)(Value & MAGIC_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFFFFFF0000UL) | (((ulong)value) & 0x000000000000FFFFUL));
+        set => Value = (ulong)((Value & MAGIC_INVERTED_MASK) | (((ulong)value) & MAGIC_MASK));
     }
 
     public partial global::Stardust.Utilities.Tests.StatusFlags Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)((Value >> 16) & 0x00000000000000FFUL);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)((Value >> 16) & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFFFF00FFFFUL) | ((((ulong)value) << 16) & 0x0000000000FF0000UL));
+        set => Value = (ulong)((Value & FLAGS_INVERTED_MASK) | ((((ulong)value) << 16) & FLAGS_SHIFTED_MASK));
     }
 
     public partial byte VersionMajor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 24) & 0x00000000000000FFUL);
+        get => (byte)((Value >> 24) & VERSION_MAJOR_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFF00FFFFFFUL) | ((((ulong)value) << 24) & 0x00000000FF000000UL));
+        set => Value = (ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << 24) & VERSION_MAJOR_SHIFTED_MASK));
     }
 
     public partial byte VersionMinor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 32) & 0x00000000000000FFUL);
+        get => (byte)((Value >> 32) & VERSION_MINOR_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFF00FFFFFFFFUL) | ((((ulong)value) << 32) & 0x000000FF00000000UL));
+        set => Value = (ulong)((Value & VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << 32) & VERSION_MINOR_SHIFTED_MASK));
     }
 
     public partial uint Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> 40) & 0x0000000000FFFFFFUL);
+        get => (uint)((Value >> 40) & RESERVED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0x000000FFFFFFFFFFUL) | ((((ulong)value) << 40) & 0xFFFFFF0000000000UL));
+        set => Value = (ulong)((Value & RESERVED_INVERTED_MASK) | ((((ulong)value) << 40) & RESERVED_SHIFTED_MASK));
     }
 
     /// <summary>Returns a FileHeader with the mask for the Magic field (bits 0-15).</summary>
-    public static FileHeader MagicMask => new((ulong)0x000000000000FFFFUL);
+    public static FileHeader MagicMask => new(MAGIC_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the Flags field (bits 16-23).</summary>
-    public static FileHeader FlagsMask => new((ulong)0x0000000000FF0000UL);
+    public static FileHeader FlagsMask => new(FLAGS_SHIFTED_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the VersionMajor field (bits 24-31).</summary>
-    public static FileHeader VersionMajorMask => new((ulong)0x00000000FF000000UL);
+    public static FileHeader VersionMajorMask => new(VERSION_MAJOR_SHIFTED_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the VersionMinor field (bits 32-39).</summary>
-    public static FileHeader VersionMinorMask => new((ulong)0x000000FF00000000UL);
+    public static FileHeader VersionMinorMask => new(VERSION_MINOR_SHIFTED_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
-    public static FileHeader ReservedMask => new((ulong)0xFFFFFF0000000000UL);
+    public static FileHeader ReservedMask => new(RESERVED_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -99,23 +120,23 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithMagic(ushort value) => new((ulong)((Value & 0xFFFFFFFFFFFF0000UL) | ((ulong)value & 0x000000000000FFFFUL)));
+    public FileHeader WithMagic(ushort value) => new((ulong)((Value & MAGIC_INVERTED_MASK) | ((ulong)value & MAGIC_MASK)));
 
     /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & 0xFFFFFFFFFF00FFFFUL) | (((ulong)value << 16) & 0x0000000000FF0000UL)));
+    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & FLAGS_INVERTED_MASK) | (((ulong)value << 16) & FLAGS_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the VersionMajor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & 0xFFFFFFFF00FFFFFFUL) | (((ulong)value << 24) & 0x00000000FF000000UL)));
+    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << 24) & VERSION_MAJOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the VersionMinor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & 0xFFFFFF00FFFFFFFFUL) | (((ulong)value << 32) & 0x000000FF00000000UL)));
+    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & VERSION_MINOR_INVERTED_MASK) | (((ulong)value << 32) & VERSION_MINOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithReserved(uint value) => new((ulong)((Value & 0x000000FFFFFFFFFFUL) | (((ulong)value << 40) & 0xFFFFFF0000000000UL)));
+    public FileHeader WithReserved(uint value) => new((ulong)((Value & RESERVED_INVERTED_MASK) | (((ulong)value << 40) & RESERVED_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -301,28 +322,28 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     public static implicit operator FileHeader(ulong value) => new(value);
 
     /// <summary>Creates a new FileHeader from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public FileHeader(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new FileHeader(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new FileHeader by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new FileHeader by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized FileHeader.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static FileHeader ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
     }
 
@@ -332,21 +353,21 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

@@ -20,35 +20,47 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a SubHeader9 with all bits set to zero.</summary>
     public static SubHeader9 Zero => default;
 
+    // --- Bit field mask constants ---
+    // TypeCode: bits [0..3], width 4
+    private const ushort TYPE_CODE_MASK = 0x000F;
+    private const ushort TYPE_CODE_INVERTED_MASK = 0xFFF0;  // ~TYPE_CODE_MASK
+    // Flags: bits [4..8], width 5
+    private const ushort FLAGS_MASK = 0x001F;
+    private const ushort FLAGS_SHIFTED_MASK = 0x01F0;  // FLAGS_MASK << 4
+    private const ushort FLAGS_INVERTED_MASK = 0xFE0F;  // ~FLAGS_SHIFTED_MASK
+
+    // --- Constructor normalization masks ---
+    private const ushort NORMALIZATION_AND_MASK = 0x01FF;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
     /// <summary>Creates a new SubHeader9 with the specified raw bits value.</summary>
-    public SubHeader9(ushort value) { Value = (ushort)(value & 0x01FF); }
+    public SubHeader9(ushort value) { Value = (ushort)(value & NORMALIZATION_AND_MASK); }
 
     public partial byte TypeCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x000F);
+        get => (byte)(Value & TYPE_CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFFF0) | (((ushort)value) & 0x000F));
+        set => Value = (ushort)((Value & TYPE_CODE_INVERTED_MASK) | (((ushort)value) & TYPE_CODE_MASK));
     }
 
     public partial byte Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & 0x001F);
+        get => (byte)((Value >> 4) & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFE0F) | ((((ushort)value) << 4) & 0x01F0));
+        set => Value = (ushort)((Value & FLAGS_INVERTED_MASK) | ((((ushort)value) << 4) & FLAGS_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SubHeader9 with the mask for the TypeCode field (bits 0-3).</summary>
-    public static SubHeader9 TypeCodeMask => new((ushort)0x000F);
+    public static SubHeader9 TypeCodeMask => new(TYPE_CODE_MASK);
 
     /// <summary>Returns a SubHeader9 with the mask for the Flags field (bits 4-8).</summary>
-    public static SubHeader9 FlagsMask => new((ushort)0x01F0);
+    public static SubHeader9 FlagsMask => new(FLAGS_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -63,11 +75,11 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
 
     /// <summary>Returns a new SubHeader9 with the TypeCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SubHeader9 WithTypeCode(byte value) => new((ushort)((Value & 0xFFF0) | ((ushort)value & 0x000F)));
+    public SubHeader9 WithTypeCode(byte value) => new((ushort)((Value & TYPE_CODE_INVERTED_MASK) | ((ushort)value & TYPE_CODE_MASK)));
 
     /// <summary>Returns a new SubHeader9 with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SubHeader9 WithFlags(byte value) => new((ushort)((Value & 0xFE0F) | (((ushort)value << 4) & 0x01F0)));
+    public SubHeader9 WithFlags(byte value) => new((ushort)((Value & FLAGS_INVERTED_MASK) | (((ushort)value << 4) & FLAGS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -209,28 +221,28 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     public static implicit operator SubHeader9(int value) => new(unchecked((ushort)value));
 
     /// <summary>Creates a new SubHeader9 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SubHeader9(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new SubHeader9(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SubHeader9 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SubHeader9 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SubHeader9.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SubHeader9 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
@@ -240,21 +252,21 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

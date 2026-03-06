@@ -20,10 +20,22 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a DiagramFullOverlapRegister with all bits set to zero.</summary>
     public static DiagramFullOverlapRegister Zero => default;
+
+    // --- Bit field mask constants ---
+    // ModeA: bits [0..3], width 4
+    private const byte MODE_A_MASK = 0x0F;
+    private const byte MODE_A_INVERTED_MASK = 0xF0;  // ~MODE_A_MASK
+    // ModeB: bits [0..3], width 4
+    private const byte MODE_B_MASK = 0x0F;
+    private const byte MODE_B_INVERTED_MASK = 0xF0;  // ~MODE_B_MASK
+    // Upper: bits [4..7], width 4
+    private const byte UPPER_MASK = 0x0F;
+    private const byte UPPER_SHIFTED_MASK = 0xF0;  // UPPER_MASK << 4
+    private const byte UPPER_INVERTED_MASK = 0x0F;  // ~UPPER_SHIFTED_MASK
 
     /// <summary>Creates a new DiagramFullOverlapRegister with the specified raw bits value.</summary>
     public DiagramFullOverlapRegister(byte value) { Value = value; }
@@ -31,35 +43,35 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     public partial byte ModeA
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x0F);
+        get => (byte)(Value & MODE_A_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF0) | (((byte)value) & 0x0F));
+        set => Value = (byte)((Value & MODE_A_INVERTED_MASK) | (((byte)value) & MODE_A_MASK));
     }
 
     public partial byte ModeB
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x0F);
+        get => (byte)(Value & MODE_B_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF0) | (((byte)value) & 0x0F));
+        set => Value = (byte)((Value & MODE_B_INVERTED_MASK) | (((byte)value) & MODE_B_MASK));
     }
 
     public partial byte Upper
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & 0x0F);
+        get => (byte)((Value >> 4) & UPPER_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x0F) | ((((byte)value) << 4) & 0xF0));
+        set => Value = (byte)((Value & UPPER_INVERTED_MASK) | ((((byte)value) << 4) & UPPER_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the ModeA field (bits 0-3).</summary>
-    public static DiagramFullOverlapRegister ModeAMask => new((byte)0x0F);
+    public static DiagramFullOverlapRegister ModeAMask => new(MODE_A_MASK);
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the ModeB field (bits 0-3).</summary>
-    public static DiagramFullOverlapRegister ModeBMask => new((byte)0x0F);
+    public static DiagramFullOverlapRegister ModeBMask => new(MODE_B_MASK);
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the Upper field (bits 4-7).</summary>
-    public static DiagramFullOverlapRegister UpperMask => new((byte)0xF0);
+    public static DiagramFullOverlapRegister UpperMask => new(UPPER_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -75,15 +87,15 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
 
     /// <summary>Returns a new DiagramFullOverlapRegister with the ModeA field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramFullOverlapRegister WithModeA(byte value) => new((byte)((Value & 0xF0) | ((byte)value & 0x0F)));
+    public DiagramFullOverlapRegister WithModeA(byte value) => new((byte)((Value & MODE_A_INVERTED_MASK) | ((byte)value & MODE_A_MASK)));
 
     /// <summary>Returns a new DiagramFullOverlapRegister with the ModeB field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramFullOverlapRegister WithModeB(byte value) => new((byte)((Value & 0xF0) | ((byte)value & 0x0F)));
+    public DiagramFullOverlapRegister WithModeB(byte value) => new((byte)((Value & MODE_B_INVERTED_MASK) | ((byte)value & MODE_B_MASK)));
 
     /// <summary>Returns a new DiagramFullOverlapRegister with the Upper field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramFullOverlapRegister WithUpper(byte value) => new((byte)((Value & 0x0F) | (((byte)value << 4) & 0xF0)));
+    public DiagramFullOverlapRegister WithUpper(byte value) => new((byte)((Value & UPPER_INVERTED_MASK) | (((byte)value << 4) & UPPER_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -225,28 +237,28 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     public static implicit operator DiagramFullOverlapRegister(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new DiagramFullOverlapRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public DiagramFullOverlapRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new DiagramFullOverlapRegister(bytes[0]);
     }
 
-    /// <summary>Creates a new DiagramFullOverlapRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new DiagramFullOverlapRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized DiagramFullOverlapRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DiagramFullOverlapRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -256,21 +268,21 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

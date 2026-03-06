@@ -22,10 +22,23 @@ public partial class EndianOverrideTests
         private ulong Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 8;
+        public const int SIZE_IN_BYTES = 8;
 
         /// <summary>Returns a Reg_Msb with all bits set to zero.</summary>
         public static Reg_Msb Zero => default;
+
+        // --- Bit field mask constants ---
+        // BeU16: bits [48..63], width 16
+        private const ulong BE_U16_MASK = 0x000000000000FFFFUL;
+        private const ulong BE_U16_SHIFTED_MASK = 0xFFFF000000000000UL;  // BE_U16_MASK << 48
+        private const ulong BE_U16_INVERTED_MASK = 0x0000FFFFFFFFFFFFUL;  // ~BE_U16_SHIFTED_MASK
+        // LeU16: bits [32..47], width 16
+        private const ulong LE_U16_MASK = 0x000000000000FFFFUL;
+        private const ulong LE_U16_SHIFTED_MASK = 0x0000FFFF00000000UL;  // LE_U16_MASK << 32
+        private const ulong LE_U16_INVERTED_MASK = 0xFFFF0000FFFFFFFFUL;  // ~LE_U16_SHIFTED_MASK
+        // BeU32: bits [0..31], width 32
+        private const ulong BE_U32_MASK = 0x00000000FFFFFFFFUL;
+        private const ulong BE_U32_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~BE_U32_MASK
 
         /// <summary>Creates a new Reg_Msb with the specified raw bits value.</summary>
         public Reg_Msb(ulong value) { Value = value; }
@@ -33,35 +46,35 @@ public partial class EndianOverrideTests
         public partial global::Stardust.Utilities.UInt16Be BeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.UInt16Be)((Value >> 48) & 0x000000000000FFFFUL);
+            get => (global::Stardust.Utilities.UInt16Be)((Value >> 48) & BE_U16_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & 0x0000FFFFFFFFFFFFUL) | ((((ulong)value) << 48) & 0xFFFF000000000000UL));
+            set => Value = (ulong)((Value & BE_U16_INVERTED_MASK) | ((((ulong)value) << 48) & BE_U16_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.UInt16Le LeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.UInt16Le)((Value >> 32) & 0x000000000000FFFFUL);
+            get => (global::Stardust.Utilities.UInt16Le)((Value >> 32) & LE_U16_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & 0xFFFF0000FFFFFFFFUL) | ((((ulong)value) << 32) & 0x0000FFFF00000000UL));
+            set => Value = (ulong)((Value & LE_U16_INVERTED_MASK) | ((((ulong)value) << 32) & LE_U16_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.UInt32Be BeU32
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.UInt32Be)(Value & 0x00000000FFFFFFFFUL);
+            get => (global::Stardust.Utilities.UInt32Be)(Value & BE_U32_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & 0xFFFFFFFF00000000UL) | (((ulong)value) & 0x00000000FFFFFFFFUL));
+            set => Value = (ulong)((Value & BE_U32_INVERTED_MASK) | (((ulong)value) & BE_U32_MASK));
         }
 
         /// <summary>Returns a Reg_Msb with the mask for the BeU16 field (bits 48-63).</summary>
-        public static Reg_Msb BeU16Mask => new((ulong)0xFFFF000000000000UL);
+        public static Reg_Msb BeU16Mask => new(BE_U16_SHIFTED_MASK);
 
         /// <summary>Returns a Reg_Msb with the mask for the LeU16 field (bits 32-47).</summary>
-        public static Reg_Msb LeU16Mask => new((ulong)0x0000FFFF00000000UL);
+        public static Reg_Msb LeU16Mask => new(LE_U16_SHIFTED_MASK);
 
         /// <summary>Returns a Reg_Msb with the mask for the BeU32 field (bits 0-31).</summary>
-        public static Reg_Msb BeU32Mask => new((ulong)0x00000000FFFFFFFFUL);
+        public static Reg_Msb BeU32Mask => new(BE_U32_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -77,15 +90,15 @@ public partial class EndianOverrideTests
 
         /// <summary>Returns a new Reg_Msb with the BeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & 0x0000FFFFFFFFFFFFUL) | (((ulong)value << 48) & 0xFFFF000000000000UL)));
+        public Reg_Msb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & BE_U16_INVERTED_MASK) | (((ulong)value << 48) & BE_U16_SHIFTED_MASK)));
 
         /// <summary>Returns a new Reg_Msb with the LeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithLeU16(global::Stardust.Utilities.UInt16Le value) => new((ulong)((Value & 0xFFFF0000FFFFFFFFUL) | (((ulong)value << 32) & 0x0000FFFF00000000UL)));
+        public Reg_Msb WithLeU16(global::Stardust.Utilities.UInt16Le value) => new((ulong)((Value & LE_U16_INVERTED_MASK) | (((ulong)value << 32) & LE_U16_SHIFTED_MASK)));
 
         /// <summary>Returns a new Reg_Msb with the BeU32 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithBeU32(global::Stardust.Utilities.UInt32Be value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | ((ulong)value & 0x00000000FFFFFFFFUL)));
+        public Reg_Msb WithBeU32(global::Stardust.Utilities.UInt32Be value) => new((ulong)((Value & BE_U32_INVERTED_MASK) | ((ulong)value & BE_U32_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -271,28 +284,28 @@ public partial class EndianOverrideTests
         public static implicit operator Reg_Msb(ulong value) => new(value);
 
         /// <summary>Creates a new Reg_Msb from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public Reg_Msb(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new Reg_Msb(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new Reg_Msb by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new Reg_Msb by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized Reg_Msb.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Reg_Msb ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
         }
 
@@ -302,21 +315,21 @@ public partial class EndianOverrideTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

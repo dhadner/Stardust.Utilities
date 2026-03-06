@@ -20,10 +20,26 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     private long Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 8;
+    public const int SIZE_IN_BYTES = 8;
 
     /// <summary>Returns a SignedReg64 with all bits set to zero.</summary>
     public static SignedReg64 Zero => default;
+
+    // --- Bit field mask constants ---
+    // LowDword: bits [1..31], width 31
+    private const ulong LOW_DWORD_MASK = 0x000000007FFFFFFFUL;
+    private const ulong LOW_DWORD_SHIFTED_MASK = 0x00000000FFFFFFFEUL;  // LOW_DWORD_MASK << 1
+    private const ulong LOW_DWORD_INVERTED_MASK = 0xFFFFFFFF00000001UL;  // ~LOW_DWORD_SHIFTED_MASK
+    // HighDword: bits [32..62], width 31
+    private const ulong HIGH_DWORD_MASK = 0x000000007FFFFFFFUL;
+    private const ulong HIGH_DWORD_SHIFTED_MASK = 0x7FFFFFFF00000000UL;  // HIGH_DWORD_MASK << 32
+    private const ulong HIGH_DWORD_INVERTED_MASK = 0x80000000FFFFFFFFUL;  // ~HIGH_DWORD_SHIFTED_MASK
+    // Flag0: bit 0
+    private const ulong FLAG0_MASK = 0x0000000000000001UL;
+    private const ulong FLAG0_INVERTED_MASK = 0xFFFFFFFFFFFFFFFEUL;  // ~FLAG0_MASK
+    // Sign: bit 63
+    private const ulong SIGN_MASK = 0x8000000000000000UL;
+    private const ulong SIGN_INVERTED_MASK = 0x7FFFFFFFFFFFFFFFUL;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg64 with the specified raw bits value.</summary>
     public SignedReg64(long value) { Value = value; }
@@ -31,46 +47,46 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     public partial uint LowDword
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((((ulong)Value) >> 1) & 0x000000007FFFFFFFUL);
+        get => (uint)((((ulong)Value) >> 1) & LOW_DWORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (long)((((ulong)Value) & 0xFFFFFFFF00000001UL) | ((((ulong)value) << 1) & 0x00000000FFFFFFFEUL));
+        set => Value = (long)((((ulong)Value) & LOW_DWORD_INVERTED_MASK) | ((((ulong)value) << 1) & LOW_DWORD_SHIFTED_MASK));
     }
 
     public partial uint HighDword
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((((ulong)Value) >> 32) & 0x000000007FFFFFFFUL);
+        get => (uint)((((ulong)Value) >> 32) & HIGH_DWORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (long)((((ulong)Value) & 0x80000000FFFFFFFFUL) | ((((ulong)value) << 32) & 0x7FFFFFFF00000000UL));
+        set => Value = (long)((((ulong)Value) & HIGH_DWORD_INVERTED_MASK) | ((((ulong)value) << 32) & HIGH_DWORD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ulong)Value) & 0x0000000000000001UL) != 0;
+        get => (((ulong)Value) & FLAG0_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (long)(((ulong)Value) | 0x0000000000000001UL) : (long)(((ulong)Value) & 0xFFFFFFFFFFFFFFFEUL);
+        set => Value = value ? (long)(((ulong)Value) | FLAG0_MASK) : (long)(((ulong)Value) & FLAG0_INVERTED_MASK);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ulong)Value) & 0x8000000000000000UL) != 0;
+        get => (((ulong)Value) & SIGN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (long)(((ulong)Value) | 0x8000000000000000UL) : (long)(((ulong)Value) & 0x7FFFFFFFFFFFFFFFUL);
+        set => Value = value ? (long)(((ulong)Value) | SIGN_MASK) : (long)(((ulong)Value) & SIGN_INVERTED_MASK);
     }
 
     /// <summary>Returns a SignedReg64 with only the Flag0 bit set.</summary>
-    public static SignedReg64 Flag0Bit => new(unchecked((long)0x0000000000000001UL));
+    public static SignedReg64 Flag0Bit => new(unchecked((long)FLAG0_MASK));
 
     /// <summary>Returns a SignedReg64 with only the Sign bit set.</summary>
-    public static SignedReg64 SignBit => new(unchecked((long)0x8000000000000000UL));
+    public static SignedReg64 SignBit => new(unchecked((long)SIGN_MASK));
 
     /// <summary>Returns a SignedReg64 with the mask for the LowDword field (bits 1-31).</summary>
-    public static SignedReg64 LowDwordMask => new(unchecked((long)0x00000000FFFFFFFEUL));
+    public static SignedReg64 LowDwordMask => new(unchecked((long)LOW_DWORD_SHIFTED_MASK));
 
     /// <summary>Returns a SignedReg64 with the mask for the HighDword field (bits 32-62).</summary>
-    public static SignedReg64 HighDwordMask => new(unchecked((long)0x7FFFFFFF00000000UL));
+    public static SignedReg64 HighDwordMask => new(unchecked((long)HIGH_DWORD_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +103,19 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
 
     /// <summary>Returns a new SignedReg64 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg64 WithFlag0(bool value) => new(value ? (long)(((ulong)Value) | 0x0000000000000001UL) : (long)(((ulong)Value) & 0xFFFFFFFFFFFFFFFEUL));
+    public SignedReg64 WithFlag0(bool value) => new(value ? (long)(((ulong)Value) | FLAG0_MASK) : (long)(((ulong)Value) & FLAG0_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg64 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg64 WithSign(bool value) => new(value ? (long)(((ulong)Value) | 0x8000000000000000UL) : (long)(((ulong)Value) & 0x7FFFFFFFFFFFFFFFUL));
+    public SignedReg64 WithSign(bool value) => new(value ? (long)(((ulong)Value) | SIGN_MASK) : (long)(((ulong)Value) & SIGN_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg64 with the LowDword field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg64 WithLowDword(uint value) => new((long)((((ulong)Value) & 0xFFFFFFFF00000001UL) | ((((ulong)value) << 1) & 0x00000000FFFFFFFEUL)));
+    public SignedReg64 WithLowDword(uint value) => new((long)((((ulong)Value) & LOW_DWORD_INVERTED_MASK) | ((((ulong)value) << 1) & LOW_DWORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg64 with the HighDword field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg64 WithHighDword(uint value) => new((long)((((ulong)Value) & 0x80000000FFFFFFFFUL) | ((((ulong)value) << 32) & 0x7FFFFFFF00000000UL)));
+    public SignedReg64 WithHighDword(uint value) => new((long)((((ulong)Value) & HIGH_DWORD_INVERTED_MASK) | ((((ulong)value) << 32) & HIGH_DWORD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -285,28 +301,28 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     public static implicit operator SignedReg64(long value) => new(value);
 
     /// <summary>Creates a new SignedReg64 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedReg64(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new SignedReg64(BinaryPrimitives.ReadInt64LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedReg64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedReg64 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedReg64.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedReg64 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteInt64LittleEndian(destination, Value);
     }
 
@@ -316,21 +332,21 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

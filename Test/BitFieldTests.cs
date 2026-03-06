@@ -950,7 +950,7 @@ public partial class BitFieldTests
     [Fact]
     public void Reg8_SizeInBytes_Is1()
     {
-        GeneratedStatusReg8.SizeInBytes.Should().Be(1);
+        GeneratedStatusReg8.SIZE_IN_BYTES.Should().Be(1);
     }
 
     [Fact]
@@ -997,7 +997,7 @@ public partial class BitFieldTests
     public void Reg32_WriteTo_LittleEndian()
     {
         GeneratedControlReg32 value = 0x01020304;
-        Span<byte> buf = stackalloc byte[GeneratedControlReg32.SizeInBytes];
+        Span<byte> buf = stackalloc byte[GeneratedControlReg32.SIZE_IN_BYTES];
         value.WriteTo(buf);
         buf[0].Should().Be(0x04);
         buf[1].Should().Be(0x03);
@@ -1009,16 +1009,16 @@ public partial class BitFieldTests
     public void Reg64_TryWriteTo_SucceedsWithExactSize()
     {
         GeneratedWideReg64 value = 42;
-        Span<byte> buf = stackalloc byte[GeneratedWideReg64.SizeInBytes];
+        Span<byte> buf = stackalloc byte[GeneratedWideReg64.SIZE_IN_BYTES];
         value.TryWriteTo(buf, out int written).Should().BeTrue();
-        written.Should().Be(GeneratedWideReg64.SizeInBytes);
+        written.Should().Be(GeneratedWideReg64.SIZE_IN_BYTES);
     }
 
     [Fact]
     public void Reg64_TryWriteTo_FailsWithTooSmallSpan()
     {
         GeneratedWideReg64 value = 42;
-        Span<byte> buf = stackalloc byte[GeneratedWideReg64.SizeInBytes - 1];
+        Span<byte> buf = stackalloc byte[GeneratedWideReg64.SIZE_IN_BYTES - 1];
         value.TryWriteTo(buf, out int written).Should().BeFalse();
         written.Should().Be(0);
     }

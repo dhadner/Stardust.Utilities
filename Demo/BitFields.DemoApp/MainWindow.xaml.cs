@@ -148,7 +148,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (bytes.Length < IPv4HeaderView.SizeInBytes)
+        if (bytes.Length < IPv4HeaderView.SIZE_IN_BYTES)
         {
             HttpPayload.Text = "Packet too small.";
             return;
@@ -157,7 +157,7 @@ public partial class MainWindow : Window
         var ip = new IPv4HeaderView(bytes);
         int tcpOffset = ip.HeaderLengthBytes;
 
-        if (bytes.Length < tcpOffset + TcpHeaderView.SizeInBytes)
+        if (bytes.Length < tcpOffset + TcpHeaderView.SIZE_IN_BYTES)
         {
             HttpPayload.Text = "Packet missing TCP header.";
             return;

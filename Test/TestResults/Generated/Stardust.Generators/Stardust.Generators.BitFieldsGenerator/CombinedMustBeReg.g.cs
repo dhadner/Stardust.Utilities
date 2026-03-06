@@ -20,20 +20,32 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a CombinedMustBeReg with all bits set to zero.</summary>
     public static CombinedMustBeReg Zero => default;
 
+    // --- Bit field mask constants ---
+    // Flags: bits [0..2], width 3
+    private const byte FLAGS_MASK = 0x07;
+    private const byte FLAGS_INVERTED_MASK = 0xF8;  // ~FLAGS_MASK
+    // AlwaysHigh: bit 3
+    private const byte ALWAYS_HIGH_MASK = 0x08;
+    private const byte ALWAYS_HIGH_INVERTED_MASK = 0xF7;  // ~ALWAYS_HIGH_MASK
+
+    // --- Constructor normalization masks ---
+    private const byte NORMALIZATION_AND_MASK = 0x0F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const byte NORMALIZATION_OR_MASK = 0x08;  // Sets: AlwaysHigh (MustBe.One)
+
     /// <summary>Creates a new CombinedMustBeReg with the specified raw bits value.</summary>
-    public CombinedMustBeReg(byte value) { Value = (byte)((value & 0x0F) | 0x08); }
+    public CombinedMustBeReg(byte value) { Value = (byte)((value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }
 
     public partial byte Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x07);
+        get => (byte)(Value & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xF8) | (((byte)value) & 0x07));
+        set => Value = (byte)((Value & FLAGS_INVERTED_MASK) | (((byte)value) & FLAGS_MASK));
     }
 
     public partial bool AlwaysHigh
@@ -41,14 +53,14 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => true;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)(Value | 0x08);
+        set => Value = (byte)(Value | ALWAYS_HIGH_MASK);
     }
 
     /// <summary>Returns a CombinedMustBeReg with only the AlwaysHigh bit set.</summary>
-    public static CombinedMustBeReg AlwaysHighBit => new((byte)0x08);
+    public static CombinedMustBeReg AlwaysHighBit => new(ALWAYS_HIGH_MASK);
 
     /// <summary>Returns a CombinedMustBeReg with the mask for the Flags field (bits 0-2).</summary>
-    public static CombinedMustBeReg FlagsMask => new((byte)0x07);
+    public static CombinedMustBeReg FlagsMask => new(FLAGS_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -63,11 +75,11 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
 
     /// <summary>Returns a new CombinedMustBeReg with the AlwaysHigh flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CombinedMustBeReg WithAlwaysHigh(bool value) => new(value ? (byte)(Value | 0x08) : (byte)(Value & 0xF7));
+    public CombinedMustBeReg WithAlwaysHigh(bool value) => new(value ? (byte)(Value | ALWAYS_HIGH_MASK) : (byte)(Value & ALWAYS_HIGH_INVERTED_MASK));
 
     /// <summary>Returns a new CombinedMustBeReg with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CombinedMustBeReg WithFlags(byte value) => new((byte)((Value & 0xF8) | ((byte)value & 0x07)));
+    public CombinedMustBeReg WithFlags(byte value) => new((byte)((Value & FLAGS_INVERTED_MASK) | ((byte)value & FLAGS_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -209,28 +221,28 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     public static implicit operator CombinedMustBeReg(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new CombinedMustBeReg from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public CombinedMustBeReg(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new CombinedMustBeReg(bytes[0]);
     }
 
-    /// <summary>Creates a new CombinedMustBeReg by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new CombinedMustBeReg by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized CombinedMustBeReg.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CombinedMustBeReg ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -240,21 +252,21 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

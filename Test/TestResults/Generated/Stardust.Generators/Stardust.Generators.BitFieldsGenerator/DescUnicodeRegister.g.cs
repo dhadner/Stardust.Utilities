@@ -20,10 +20,26 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a DescUnicodeRegister with all bits set to zero.</summary>
     public static DescUnicodeRegister Zero => default;
+
+    // --- Bit field mask constants ---
+    // Japanese: bits [2..7], width 6
+    private const ushort JAPANESE_MASK = 0x003F;
+    private const ushort JAPANESE_SHIFTED_MASK = 0x00FC;  // JAPANESE_MASK << 2
+    private const ushort JAPANESE_INVERTED_MASK = 0xFF03;  // ~JAPANESE_SHIFTED_MASK
+    // Accented: bits [8..15], width 8
+    private const ushort ACCENTED_MASK = 0x00FF;
+    private const ushort ACCENTED_SHIFTED_MASK = 0xFF00;  // ACCENTED_MASK << 8
+    private const ushort ACCENTED_INVERTED_MASK = 0x00FF;  // ~ACCENTED_SHIFTED_MASK
+    // Check: bit 0
+    private const ushort CHECK_MASK = 0x0001;
+    private const ushort CHECK_INVERTED_MASK = 0xFFFE;  // ~CHECK_MASK
+    // Rocket: bit 1
+    private const ushort ROCKET_MASK = 0x0002;
+    private const ushort ROCKET_INVERTED_MASK = 0xFFFD;  // ~ROCKET_MASK
 
     /// <summary>Creates a new DescUnicodeRegister with the specified raw bits value.</summary>
     public DescUnicodeRegister(ushort value) { Value = value; }
@@ -31,46 +47,46 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     public partial byte Japanese
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x003F);
+        get => (byte)((Value >> 2) & JAPANESE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFF03) | ((((ushort)value) << 2) & 0x00FC));
+        set => Value = (ushort)((Value & JAPANESE_INVERTED_MASK) | ((((ushort)value) << 2) & JAPANESE_SHIFTED_MASK));
     }
 
     public partial byte Accented
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 8) & 0x00FF);
+        get => (byte)((Value >> 8) & ACCENTED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0x00FF) | ((((ushort)value) << 8) & 0xFF00));
+        set => Value = (ushort)((Value & ACCENTED_INVERTED_MASK) | ((((ushort)value) << 8) & ACCENTED_SHIFTED_MASK));
     }
 
     public partial bool Check
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0001) != 0;
+        get => (Value & CHECK_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ushort)(Value | 0x0001) : (ushort)(Value & 0xFFFE);
+        set => Value = value ? (ushort)(Value | CHECK_MASK) : (ushort)(Value & CHECK_INVERTED_MASK);
     }
 
     public partial bool Rocket
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0002) != 0;
+        get => (Value & ROCKET_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ushort)(Value | 0x0002) : (ushort)(Value & 0xFFFD);
+        set => Value = value ? (ushort)(Value | ROCKET_MASK) : (ushort)(Value & ROCKET_INVERTED_MASK);
     }
 
     /// <summary>Returns a DescUnicodeRegister with only the Check bit set.</summary>
-    public static DescUnicodeRegister CheckBit => new((ushort)0x0001);
+    public static DescUnicodeRegister CheckBit => new(CHECK_MASK);
 
     /// <summary>Returns a DescUnicodeRegister with only the Rocket bit set.</summary>
-    public static DescUnicodeRegister RocketBit => new((ushort)0x0002);
+    public static DescUnicodeRegister RocketBit => new(ROCKET_MASK);
 
     /// <summary>Returns a DescUnicodeRegister with the mask for the Japanese field (bits 2-7).</summary>
-    public static DescUnicodeRegister JapaneseMask => new((ushort)0x00FC);
+    public static DescUnicodeRegister JapaneseMask => new(JAPANESE_SHIFTED_MASK);
 
     /// <summary>Returns a DescUnicodeRegister with the mask for the Accented field (bits 8-15).</summary>
-    public static DescUnicodeRegister AccentedMask => new((ushort)0xFF00);
+    public static DescUnicodeRegister AccentedMask => new(ACCENTED_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +103,19 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
 
     /// <summary>Returns a new DescUnicodeRegister with the Check flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithCheck(bool value) => new(value ? (ushort)(Value | 0x0001) : (ushort)(Value & 0xFFFE));
+    public DescUnicodeRegister WithCheck(bool value) => new(value ? (ushort)(Value | CHECK_MASK) : (ushort)(Value & CHECK_INVERTED_MASK));
 
     /// <summary>Returns a new DescUnicodeRegister with the Rocket flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithRocket(bool value) => new(value ? (ushort)(Value | 0x0002) : (ushort)(Value & 0xFFFD));
+    public DescUnicodeRegister WithRocket(bool value) => new(value ? (ushort)(Value | ROCKET_MASK) : (ushort)(Value & ROCKET_INVERTED_MASK));
 
     /// <summary>Returns a new DescUnicodeRegister with the Japanese field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((Value & 0xFF03) | (((ushort)value << 2) & 0x00FC)));
+    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((Value & JAPANESE_INVERTED_MASK) | (((ushort)value << 2) & JAPANESE_SHIFTED_MASK)));
 
     /// <summary>Returns a new DescUnicodeRegister with the Accented field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((Value & 0x00FF) | (((ushort)value << 8) & 0xFF00)));
+    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((Value & ACCENTED_INVERTED_MASK) | (((ushort)value << 8) & ACCENTED_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,28 +257,28 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     public static implicit operator DescUnicodeRegister(int value) => new(unchecked((ushort)value));
 
     /// <summary>Creates a new DescUnicodeRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public DescUnicodeRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new DescUnicodeRegister(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new DescUnicodeRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new DescUnicodeRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized DescUnicodeRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DescUnicodeRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
@@ -272,21 +288,21 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

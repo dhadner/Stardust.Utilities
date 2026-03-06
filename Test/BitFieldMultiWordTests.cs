@@ -102,7 +102,7 @@ public partial class BitFieldMultiWordTests
         [BitField(64, 95)] public partial uint High { get; set; }
     }
 
-    /// <summary>16384-bit struct (256 words) — maximum supported size.</summary>
+    /// <summary>16384-bit struct (256 words) ï¿½ maximum supported size.</summary>
     [BitFields(16384)]
     public partial struct Bits16384
     {
@@ -964,10 +964,10 @@ public partial class BitFieldMultiWordTests
     [Fact]
     public void SizeInBytes_Constant_MatchesActualSize()
     {
-        Bits128.SizeInBytes.Should().Be(Unsafe.SizeOf<Bits128>());
-        Bits200.SizeInBytes.Should().Be(Unsafe.SizeOf<Bits200>());
-        Bits256.SizeInBytes.Should().Be(Unsafe.SizeOf<Bits256>());
-        Bits72.SizeInBytes.Should().Be(Unsafe.SizeOf<Bits72>());
+        Bits128.SIZE_IN_BYTES.Should().Be(Unsafe.SizeOf<Bits128>());
+        Bits200.SIZE_IN_BYTES.Should().Be(Unsafe.SizeOf<Bits200>());
+        Bits256.SIZE_IN_BYTES.Should().Be(Unsafe.SizeOf<Bits256>());
+        Bits72.SIZE_IN_BYTES.Should().Be(Unsafe.SizeOf<Bits72>());
     }
 
     #endregion
@@ -1086,7 +1086,7 @@ public partial class BitFieldMultiWordTests
     {
         var original = new Bits128(0xDEADBEEF_CAFEBABE, 0x1234567890ABCDEF);
         var bytes = original.ToByteArray();
-        bytes.Length.Should().Be(Bits128.SizeInBytes);
+        bytes.Length.Should().Be(Bits128.SIZE_IN_BYTES);
         var restored = new Bits128((ReadOnlySpan<byte>)bytes);
         restored.Should().Be(original);
     }
@@ -1104,7 +1104,7 @@ public partial class BitFieldMultiWordTests
     public void Bits128_WriteTo_ProducesCorrectBytes()
     {
         var value = new Bits128(0x0102030405060708, 0x090A0B0C0D0E0F10);
-        Span<byte> buf = stackalloc byte[Bits128.SizeInBytes];
+        Span<byte> buf = stackalloc byte[Bits128.SIZE_IN_BYTES];
         value.WriteTo(buf);
         // Little-endian: low word first
         buf[0].Should().Be(0x08);
@@ -1117,16 +1117,16 @@ public partial class BitFieldMultiWordTests
     public void Bits128_TryWriteTo_SucceedsWithExactSize()
     {
         var value = new Bits128(42);
-        Span<byte> buf = stackalloc byte[Bits128.SizeInBytes];
+        Span<byte> buf = stackalloc byte[Bits128.SIZE_IN_BYTES];
         value.TryWriteTo(buf, out int written).Should().BeTrue();
-        written.Should().Be(Bits128.SizeInBytes);
+        written.Should().Be(Bits128.SIZE_IN_BYTES);
     }
 
     [Fact]
     public void Bits128_TryWriteTo_FailsWithTooSmallSpan()
     {
         var value = new Bits128(42);
-        Span<byte> buf = stackalloc byte[Bits128.SizeInBytes - 1];
+        Span<byte> buf = stackalloc byte[Bits128.SIZE_IN_BYTES - 1];
         value.TryWriteTo(buf, out int written).Should().BeFalse();
         written.Should().Be(0);
     }
@@ -1134,7 +1134,7 @@ public partial class BitFieldMultiWordTests
     [Fact]
     public void Bits128_SpanConstructor_ThrowsOnTooSmall()
     {
-        var bytes = new byte[Bits128.SizeInBytes - 1];
+        var bytes = new byte[Bits128.SIZE_IN_BYTES - 1];
         var act = () => new Bits128((ReadOnlySpan<byte>)bytes);
         act.Should().Throw<ArgumentException>();
     }
@@ -1147,7 +1147,7 @@ public partial class BitFieldMultiWordTests
         original.Low = 0xDEADBEEF_CAFEBABE;
         original.High = 0xAB;
         var bytes = original.ToByteArray();
-        bytes.Length.Should().Be(Bits72.SizeInBytes);
+        bytes.Length.Should().Be(Bits72.SIZE_IN_BYTES);
         bytes.Length.Should().Be(9);
         var restored = new Bits72((ReadOnlySpan<byte>)bytes);
         restored.Low.Should().Be(original.Low);
@@ -1188,7 +1188,7 @@ public partial class BitFieldMultiWordTests
         var original = new Bits256(0x1111111111111111, 0x2222222222222222,
                                     0x3333333333333333, 0x4444444444444444);
         var bytes = original.ToByteArray();
-        bytes.Length.Should().Be(Bits256.SizeInBytes);
+        bytes.Length.Should().Be(Bits256.SIZE_IN_BYTES);
         var restored = new Bits256((ReadOnlySpan<byte>)bytes);
         restored.W0.Should().Be(original.W0);
         restored.W1.Should().Be(original.W1);
@@ -1199,7 +1199,7 @@ public partial class BitFieldMultiWordTests
     [Fact]
     public void Bits128_SizeInBytes_Is16()
     {
-        Bits128.SizeInBytes.Should().Be(16);
+        Bits128.SIZE_IN_BYTES.Should().Be(16);
     }
 
     [Fact]
@@ -1275,7 +1275,7 @@ public partial class BitFieldMultiWordTests
     public void Bits16384_SizeIs2048Bytes()
     {
         // 16384 bits / 8 = 2048 bytes = 256 ulongs
-        Bits16384.SizeInBytes.Should().Be(2048);
+        Bits16384.SIZE_IN_BYTES.Should().Be(2048);
         Unsafe.SizeOf<Bits16384>().Should().Be(2048);
     }
 

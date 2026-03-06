@@ -466,7 +466,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void IPv6HeaderView_SizeInBytes()
     {
-        IPv6HeaderView.SizeInBytes.Should().BeGreaterThanOrEqualTo(4, "fields span bits 0-31, reads may extend further");
+        IPv6HeaderView.SIZE_IN_BYTES.Should().BeGreaterThanOrEqualTo(4, "fields span bits 0-31, reads may extend further");
     }
 
     #endregion
@@ -541,7 +541,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void IPv6_AllFields_RoundTrip()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         var view = new IPv6HeaderView(data);
 
         view.Version = 6;
@@ -560,7 +560,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void View_Writes_To_Original_Buffer()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         var view = new IPv6HeaderView(data);
         view.Version = 6;
 
@@ -571,7 +571,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void View_Reads_From_Original_Buffer()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         data[0] = 0x60; // version = 6
         var view = new IPv6HeaderView(data);
         view.Version.Should().Be(6);
@@ -584,7 +584,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void Two_Views_Same_Buffer_See_Same_Data()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         var view1 = new IPv6HeaderView(data);
         var view2 = new IPv6HeaderView(data);
 
@@ -716,7 +716,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void SameBuffer_Views_Are_Equal()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         var view1 = new IPv6HeaderView(data);
         var view2 = new IPv6HeaderView(data);
         (view1 == view2).Should().BeTrue();
@@ -725,8 +725,8 @@ public partial class BitFieldsViewTests
     [Fact]
     public void DifferentBuffer_Views_Are_NotEqual()
     {
-        var data1 = new byte[IPv6HeaderView.SizeInBytes];
-        var data2 = new byte[IPv6HeaderView.SizeInBytes];
+        var data1 = new byte[IPv6HeaderView.SIZE_IN_BYTES];
+        var data2 = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         var view1 = new IPv6HeaderView(data1);
         var view2 = new IPv6HeaderView(data2);
         (view1 == view2).Should().BeFalse("different backing arrays");
@@ -1322,7 +1322,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void IPv4Header_SizeInBytes()
     {
-        IPv4HeaderView.SizeInBytes.Should().Be(20);
+        IPv4HeaderView.SIZE_IN_BYTES.Should().Be(20);
     }
 
     [Fact]
@@ -1387,7 +1387,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void UdpHeader_SizeInBytes()
     {
-        UdpHeaderView.SizeInBytes.Should().Be(8);
+        UdpHeaderView.SIZE_IN_BYTES.Should().Be(8);
     }
 
     [Fact]
@@ -1418,7 +1418,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void TcpHeader_SizeInBytes()
     {
-        TcpHeaderView.SizeInBytes.Should().Be(20);
+        TcpHeaderView.SIZE_IN_BYTES.Should().Be(20);
     }
 
     [Fact]
@@ -1489,8 +1489,8 @@ public partial class BitFieldsViewTests
     {
         // Build a complete IPv4/UDP packet carrying "Hello, world!"
         byte[] payload = Encoding.ASCII.GetBytes("Hello, world!");
-        int udpLen = UdpHeaderView.SizeInBytes + payload.Length; // 8 + 13 = 21
-        int totalLen = IPv4HeaderView.SizeInBytes + udpLen;       // 20 + 21 = 41
+        int udpLen = UdpHeaderView.SIZE_IN_BYTES + payload.Length; // 8 + 13 = 21
+        int totalLen = IPv4HeaderView.SIZE_IN_BYTES + udpLen;       // 20 + 21 = 41
         var packet = new byte[totalLen];
 
         // --- Build the packet using views ---
@@ -1505,13 +1505,13 @@ public partial class BitFieldsViewTests
         ip.SourceAddress = 0xC0A80164;  // 192.168.1.100
         ip.DestinationAddress = 0x0A000001; // 10.0.0.1
 
-        var udp = new UdpHeaderView(packet, IPv4HeaderView.SizeInBytes);
+        var udp = new UdpHeaderView(packet, IPv4HeaderView.SIZE_IN_BYTES);
         udp.SourcePort = 12345;
         udp.DestinationPort = 53;
         udp.Length = (ushort)udpLen;
 
         // Write the payload after the UDP header
-        int payloadOffset = IPv4HeaderView.SizeInBytes + UdpHeaderView.SizeInBytes;
+        int payloadOffset = IPv4HeaderView.SIZE_IN_BYTES + UdpHeaderView.SIZE_IN_BYTES;
         payload.CopyTo(packet, payloadOffset);
 
         // --- Parse the packet back using offset-based views ---
@@ -1532,8 +1532,8 @@ public partial class BitFieldsViewTests
         udp2.Length.Should().Be(21);
 
         // Extract and verify the payload
-        int payloadStart = ipHeaderLen + UdpHeaderView.SizeInBytes;
-        int payloadLen = udp2.Length - UdpHeaderView.SizeInBytes;
+        int payloadStart = ipHeaderLen + UdpHeaderView.SIZE_IN_BYTES;
+        int payloadLen = udp2.Length - UdpHeaderView.SIZE_IN_BYTES;
         string text = Encoding.ASCII.GetString(packet, payloadStart, payloadLen);
         text.Should().Be("Hello, world!");
     }
@@ -1543,8 +1543,8 @@ public partial class BitFieldsViewTests
     {
         // Same packet, but parsed using nested sub-views
         byte[] payload = Encoding.ASCII.GetBytes("Hello, world!");
-        int udpLen = UdpHeaderView.SizeInBytes + payload.Length;
-        int totalLen = IPv4HeaderView.SizeInBytes + udpLen;
+        int udpLen = UdpHeaderView.SIZE_IN_BYTES + payload.Length;
+        int totalLen = IPv4HeaderView.SIZE_IN_BYTES + udpLen;
         var packet = new byte[totalLen];
 
         // Build using the nested composite view
@@ -1567,7 +1567,7 @@ public partial class BitFieldsViewTests
         udp.Length = (ushort)udpLen;
 
         // Payload after the composite header
-        payload.CopyTo(packet, IPv4HeaderView.SizeInBytes + UdpHeaderView.SizeInBytes);
+        payload.CopyTo(packet, IPv4HeaderView.SIZE_IN_BYTES + UdpHeaderView.SIZE_IN_BYTES);
 
         // Verify the nested sub-views read from the same buffer
         pkt.Ip.Version.Should().Be(4);
@@ -1577,7 +1577,7 @@ public partial class BitFieldsViewTests
         pkt.Udp.DestinationPort.Should().Be(8080);
 
         // Verify payload survives the round-trip
-        int payloadStart = IPv4HeaderView.SizeInBytes + UdpHeaderView.SizeInBytes;
+        int payloadStart = IPv4HeaderView.SIZE_IN_BYTES + UdpHeaderView.SIZE_IN_BYTES;
         string text = Encoding.ASCII.GetString(packet, payloadStart, payload.Length);
         text.Should().Be("Hello, world!");
     }
@@ -1587,8 +1587,8 @@ public partial class BitFieldsViewTests
     {
         // IPv4/TCP packet with "Hello, world!" demonstrating manual offset parsing
         byte[] payload = Encoding.ASCII.GetBytes("Hello, world!");
-        int tcpLen = TcpHeaderView.SizeInBytes + payload.Length; // 20 + 13 = 33
-        int totalLen = IPv4HeaderView.SizeInBytes + tcpLen;       // 20 + 33 = 53
+        int tcpLen = TcpHeaderView.SIZE_IN_BYTES + payload.Length; // 20 + 13 = 33
+        int totalLen = IPv4HeaderView.SIZE_IN_BYTES + tcpLen;       // 20 + 33 = 53
         var packet = new byte[totalLen];
 
         // Build IPv4 header
@@ -1603,7 +1603,7 @@ public partial class BitFieldsViewTests
         ip.DestinationAddress = 0x5DB8D822; // 93.184.216.34 (example.com)
 
         // Build TCP header at offset 20
-        var tcp = new TcpHeaderView(packet, IPv4HeaderView.SizeInBytes);
+        var tcp = new TcpHeaderView(packet, IPv4HeaderView.SIZE_IN_BYTES);
         tcp.SourcePort = 49152;
         tcp.DestinationPort = 80;
         tcp.SequenceNumber = 1000;
@@ -1613,7 +1613,7 @@ public partial class BitFieldsViewTests
         tcp.WindowSize = 65535;
 
         // Write payload after TCP header
-        int payloadOffset = IPv4HeaderView.SizeInBytes + TcpHeaderView.SizeInBytes;
+        int payloadOffset = IPv4HeaderView.SIZE_IN_BYTES + TcpHeaderView.SIZE_IN_BYTES;
         payload.CopyTo(packet, payloadOffset);
 
         // Parse the packet back
@@ -2279,13 +2279,13 @@ public partial class BitFieldsViewTests
     public void DistantField_SizeInBytes_AccountsForFarField()
     {
         // Field at bit 800-815 = bytes 100-101. With 2-byte read width, needs 102 bytes.
-        DistantFieldView.SizeInBytes.Should().BeGreaterThanOrEqualTo(102);
+        DistantFieldView.SIZE_IN_BYTES.Should().BeGreaterThanOrEqualTo(102);
     }
 
     [Fact]
     public void DistantField_RoundTrip()
     {
-        var data = new byte[DistantFieldView.SizeInBytes];
+        var data = new byte[DistantFieldView.SIZE_IN_BYTES];
         var view = new DistantFieldView(data);
 
         view.First = 0x42;
@@ -2303,7 +2303,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void DistantField_DoesNotCorruptIntervening()
     {
-        var data = new byte[DistantFieldView.SizeInBytes];
+        var data = new byte[DistantFieldView.SIZE_IN_BYTES];
         // Fill middle with sentinel
         for (int i = 1; i < 100; i++)
             data[i] = 0xAA;
@@ -2324,7 +2324,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void MinimalBuffer_ExactSizeInBytes_Works()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES];
         var act = () => new IPv6HeaderView(data);
         act.Should().NotThrow("buffer is exactly SizeInBytes");
     }
@@ -2332,7 +2332,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void MinimalBuffer_OneByteTooSmall_Throws()
     {
-        var data = new byte[IPv6HeaderView.SizeInBytes - 1];
+        var data = new byte[IPv6HeaderView.SIZE_IN_BYTES - 1];
         var act = () => new IPv6HeaderView(data);
         act.Should().Throw<ArgumentException>();
     }
@@ -2349,7 +2349,7 @@ public partial class BitFieldsViewTests
     public void OffsetConstructor_JustEnough_Works()
     {
         var data = new byte[100];
-        int offset = 100 - IPv6HeaderView.SizeInBytes;
+        int offset = 100 - IPv6HeaderView.SIZE_IN_BYTES;
         var act = () => new IPv6HeaderView(data, offset);
         act.Should().NotThrow("offset leaves exactly SizeInBytes bytes");
     }
@@ -2361,7 +2361,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void AllOnes_Buffer_ReadsMaxValues()
     {
-        var data = new byte[NibbleView.SizeInBytes];
+        var data = new byte[NibbleView.SIZE_IN_BYTES];
         for (int i = 0; i < data.Length; i++) data[i] = 0xFF;
 
         var view = new NibbleView(data);
@@ -2374,7 +2374,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void AllZeros_Buffer_ReadsZeros()
     {
-        var data = new byte[NibbleView.SizeInBytes];
+        var data = new byte[NibbleView.SIZE_IN_BYTES];
 
         var view = new NibbleView(data);
         view.N0.Should().Be(0);
@@ -2386,7 +2386,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void SetAllToMax_ThenClearOne_PreservesOthers()
     {
-        var data = new byte[NibbleView.SizeInBytes];
+        var data = new byte[NibbleView.SIZE_IN_BYTES];
         var view = new NibbleView(data);
 
         view.N0 = 0x0F;

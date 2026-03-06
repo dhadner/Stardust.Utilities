@@ -20,10 +20,27 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     private uint Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a ProtocolHeader32 with all bits set to zero.</summary>
     public static ProtocolHeader32 Zero => default;
+
+    // --- Bit field mask constants ---
+    // Status: bits [0..7], width 8
+    private const uint STATUS_MASK = 0x000000FFU;
+    private const uint STATUS_INVERTED_MASK = 0xFFFFFF00U;  // ~STATUS_MASK
+    // Command: bits [8..11], width 4
+    private const uint COMMAND_MASK = 0x0000000FU;
+    private const uint COMMAND_SHIFTED_MASK = 0x00000F00U;  // COMMAND_MASK << 8
+    private const uint COMMAND_INVERTED_MASK = 0xFFFFF0FFU;  // ~COMMAND_SHIFTED_MASK
+    // Version: bits [12..15], width 4
+    private const uint VERSION_MASK = 0x0000000FU;
+    private const uint VERSION_SHIFTED_MASK = 0x0000F000U;  // VERSION_MASK << 12
+    private const uint VERSION_INVERTED_MASK = 0xFFFF0FFFU;  // ~VERSION_SHIFTED_MASK
+    // Sequence: bits [16..31], width 16
+    private const uint SEQUENCE_MASK = 0x0000FFFFU;
+    private const uint SEQUENCE_SHIFTED_MASK = 0xFFFF0000U;  // SEQUENCE_MASK << 16
+    private const uint SEQUENCE_INVERTED_MASK = 0x0000FFFFU;  // ~SEQUENCE_SHIFTED_MASK
 
     /// <summary>Creates a new ProtocolHeader32 with the specified raw bits value.</summary>
     public ProtocolHeader32(uint value) { Value = value; }
@@ -31,46 +48,46 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     public partial global::Stardust.Utilities.Tests.StatusFlags Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & 0x000000FFU);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFFFFF00U) | (((uint)value) & 0x000000FFU));
+        set => Value = (uint)((Value & STATUS_INVERTED_MASK) | (((uint)value) & STATUS_MASK));
     }
 
     public partial global::Stardust.Utilities.Tests.CommandCode Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.CommandCode)((Value >> 8) & 0x0000000FU);
+        get => (global::Stardust.Utilities.Tests.CommandCode)((Value >> 8) & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFFFF0FFU) | ((((uint)value) << 8) & 0x00000F00U));
+        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << 8) & COMMAND_SHIFTED_MASK));
     }
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 12) & 0x0000000FU);
+        get => (byte)((Value >> 12) & VERSION_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFFF0FFFU) | ((((uint)value) << 12) & 0x0000F000U));
+        set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << 12) & VERSION_SHIFTED_MASK));
     }
 
     public partial ushort Sequence
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 16) & 0x0000FFFFU);
+        get => (ushort)((Value >> 16) & SEQUENCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0x0000FFFFU) | ((((uint)value) << 16) & 0xFFFF0000U));
+        set => Value = (uint)((Value & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 16) & SEQUENCE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Status field (bits 0-7).</summary>
-    public static ProtocolHeader32 StatusMask => new((uint)0x000000FFU);
+    public static ProtocolHeader32 StatusMask => new(STATUS_MASK);
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Command field (bits 8-11).</summary>
-    public static ProtocolHeader32 CommandMask => new((uint)0x00000F00U);
+    public static ProtocolHeader32 CommandMask => new(COMMAND_SHIFTED_MASK);
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Version field (bits 12-15).</summary>
-    public static ProtocolHeader32 VersionMask => new((uint)0x0000F000U);
+    public static ProtocolHeader32 VersionMask => new(VERSION_SHIFTED_MASK);
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Sequence field (bits 16-31).</summary>
-    public static ProtocolHeader32 SequenceMask => new((uint)0xFFFF0000U);
+    public static ProtocolHeader32 SequenceMask => new(SEQUENCE_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -87,19 +104,19 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
 
     /// <summary>Returns a new ProtocolHeader32 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((uint)((Value & 0xFFFFFF00U) | ((uint)value & 0x000000FFU)));
+    public ProtocolHeader32 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((uint)((Value & STATUS_INVERTED_MASK) | ((uint)value & STATUS_MASK)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithCommand(global::Stardust.Utilities.Tests.CommandCode value) => new((uint)((Value & 0xFFFFF0FFU) | (((uint)value << 8) & 0x00000F00U)));
+    public ProtocolHeader32 WithCommand(global::Stardust.Utilities.Tests.CommandCode value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << 8) & COMMAND_SHIFTED_MASK)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithVersion(byte value) => new((uint)((Value & 0xFFFF0FFFU) | (((uint)value << 12) & 0x0000F000U)));
+    public ProtocolHeader32 WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << 12) & VERSION_SHIFTED_MASK)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Sequence field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithSequence(ushort value) => new((uint)((Value & 0x0000FFFFU) | (((uint)value << 16) & 0xFFFF0000U)));
+    public ProtocolHeader32 WithSequence(ushort value) => new((uint)((Value & SEQUENCE_INVERTED_MASK) | (((uint)value << 16) & SEQUENCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -285,28 +302,28 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     public static implicit operator ProtocolHeader32(uint value) => new(value);
 
     /// <summary>Creates a new ProtocolHeader32 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public ProtocolHeader32(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new ProtocolHeader32(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new ProtocolHeader32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new ProtocolHeader32 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized ProtocolHeader32.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ProtocolHeader32 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
     }
 
@@ -316,21 +333,21 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

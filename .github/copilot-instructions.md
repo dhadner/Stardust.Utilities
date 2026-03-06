@@ -13,3 +13,4 @@
 - Ensure that the Stardust.Utilities project handles all conceivable issues elegantly; edge cases are not acceptable. The library and its demos must always work as expected to generate trust with users evaluating it.
 - Don't let a human or downstream user find an error that unit testing could have caught.
 - Don't run the Performance test category when initially checking for regressions. Only run it when you have a specific reason to check for performance regressions, as it takes a long time to run and times out the terminal.
+- All constants (const fields and const locals) must use SCREAMING_SNAKE_CASE (e.g., SIZE_IN_BYTES, LAST_WORD_MASK, NORMALIZATION_AND_MASK). This applies to both generator source code and the code the generators emit.

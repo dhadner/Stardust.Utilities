@@ -77,20 +77,20 @@ internal static partial class BitFieldsMultiWordGenerator
         }
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Number of conceptual words in the backing store.</summary>");
-        sb.AppendLine($"{mind}private const int WordCount = {wc};");
+        sb.AppendLine($"{mind}private const int WORD_COUNT = {wc};");
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Total number of defined bits.</summary>");
-        sb.AppendLine($"{mind}private const int TotalBits = {info.TotalBits};");
+        sb.AppendLine($"{mind}private const int TOTAL_BITS = {info.TotalBits};");
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Size of this struct in bytes.</summary>");
-        sb.AppendLine($"{mind}public const int SizeInBytes = {layout.StructBytes};");
+        sb.AppendLine($"{mind}public const int SIZE_IN_BYTES = {layout.StructBytes};");
         sb.AppendLine();
 
         // Last-word mask
         int lwBits = info.TotalBits % 64;
         if (lwBits == 0) lwBits = 64;
         ulong lastWordMask = lwBits == 64 ? ulong.MaxValue : (1UL << lwBits) - 1;
-        sb.AppendLine($"{mind}private const ulong LastWordMask = 0x{lastWordMask:X16}UL;");
+        sb.AppendLine($"{mind}private const ulong LAST_WORD_MASK = 0x{lastWordMask:X16}UL;");
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Returns a {t} with all bits set to zero.</summary>");
         sb.AppendLine($"{mind}public static {t} Zero => default;");
@@ -353,9 +353,9 @@ internal static partial class BitFieldsMultiWordGenerator
                 string pn = WordParamName(i, wc);
                 bool isLast = i == wc - 1;
                 if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
-                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} & LastWordMask")};");
+                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} & LAST_WORD_MASK")};");
                 else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
-                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} | ~LastWordMask")};");
+                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} | ~LAST_WORD_MASK")};");
                 else
                     sb.AppendLine($"{ind}    _w{i} = {pn};");
             }
@@ -393,9 +393,9 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             bool isLast = i == wc - 1;
             if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill & LastWordMask")};");
+                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill & LAST_WORD_MASK")};");
             else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill | ~LastWordMask")};");
+                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill | ~LAST_WORD_MASK")};");
             else
                 sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill")};");
         }

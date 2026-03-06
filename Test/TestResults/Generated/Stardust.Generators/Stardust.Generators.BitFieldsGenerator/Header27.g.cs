@@ -20,46 +20,62 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     private uint Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a Header27 with all bits set to zero.</summary>
     public static Header27 Zero => default;
 
+    // --- Bit field mask constants ---
+    // SubHeader: bits [0..8], width 9
+    private const uint SUB_HEADER_MASK = 0x000001FFU;
+    private const uint SUB_HEADER_INVERTED_MASK = 0xFFFFFE00U;  // ~SUB_HEADER_MASK
+    // PayloadSize: bits [9..18], width 10
+    private const uint PAYLOAD_SIZE_MASK = 0x000003FFU;
+    private const uint PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // PAYLOAD_SIZE_MASK << 9
+    private const uint PAYLOAD_SIZE_INVERTED_MASK = 0xFFF801FFU;  // ~PAYLOAD_SIZE_SHIFTED_MASK
+    // Sequence: bits [19..26], width 8
+    private const uint SEQUENCE_MASK = 0x000000FFU;
+    private const uint SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // SEQUENCE_MASK << 19
+    private const uint SEQUENCE_INVERTED_MASK = 0xF807FFFFU;  // ~SEQUENCE_SHIFTED_MASK
+
+    // --- Constructor normalization masks ---
+    private const uint NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
     /// <summary>Creates a new Header27 with the specified raw bits value.</summary>
-    public Header27(uint value) { Value = (uint)(value & 0x07FFFFFFU); }
+    public Header27(uint value) { Value = (uint)(value & NORMALIZATION_AND_MASK); }
 
     public partial global::Stardust.Utilities.Tests.SubHeader9 SubHeader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.SubHeader9)(Value & 0x000001FFU);
+        get => (global::Stardust.Utilities.Tests.SubHeader9)(Value & SUB_HEADER_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFFFFE00U) | (((uint)value) & 0x000001FFU));
+        set => Value = (uint)((Value & SUB_HEADER_INVERTED_MASK) | (((uint)value) & SUB_HEADER_MASK));
     }
 
     public partial ushort PayloadSize
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 9) & 0x000003FFU);
+        get => (ushort)((Value >> 9) & PAYLOAD_SIZE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFF801FFU) | ((((uint)value) << 9) & 0x0007FE00U));
+        set => Value = (uint)((Value & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << 9) & PAYLOAD_SIZE_SHIFTED_MASK));
     }
 
     public partial byte Sequence
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 19) & 0x000000FFU);
+        get => (byte)((Value >> 19) & SEQUENCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xF807FFFFU) | ((((uint)value) << 19) & 0x07F80000U));
+        set => Value = (uint)((Value & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 19) & SEQUENCE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a Header27 with the mask for the SubHeader field (bits 0-8).</summary>
-    public static Header27 SubHeaderMask => new((uint)0x000001FFU);
+    public static Header27 SubHeaderMask => new(SUB_HEADER_MASK);
 
     /// <summary>Returns a Header27 with the mask for the PayloadSize field (bits 9-18).</summary>
-    public static Header27 PayloadSizeMask => new((uint)0x0007FE00U);
+    public static Header27 PayloadSizeMask => new(PAYLOAD_SIZE_SHIFTED_MASK);
 
     /// <summary>Returns a Header27 with the mask for the Sequence field (bits 19-26).</summary>
-    public static Header27 SequenceMask => new((uint)0x07F80000U);
+    public static Header27 SequenceMask => new(SEQUENCE_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -75,15 +91,15 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     /// <summary>Returns a new Header27 with the SubHeader field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((Value & 0xFFFFFE00U) | ((uint)value & 0x000001FFU)));
+    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((Value & SUB_HEADER_INVERTED_MASK) | ((uint)value & SUB_HEADER_MASK)));
 
     /// <summary>Returns a new Header27 with the PayloadSize field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithPayloadSize(ushort value) => new((uint)((Value & 0xFFF801FFU) | (((uint)value << 9) & 0x0007FE00U)));
+    public Header27 WithPayloadSize(ushort value) => new((uint)((Value & PAYLOAD_SIZE_INVERTED_MASK) | (((uint)value << 9) & PAYLOAD_SIZE_SHIFTED_MASK)));
 
     /// <summary>Returns a new Header27 with the Sequence field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSequence(byte value) => new((uint)((Value & 0xF807FFFFU) | (((uint)value << 19) & 0x07F80000U)));
+    public Header27 WithSequence(byte value) => new((uint)((Value & SEQUENCE_INVERTED_MASK) | (((uint)value << 19) & SEQUENCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -269,28 +285,28 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     public static implicit operator Header27(uint value) => new(value);
 
     /// <summary>Creates a new Header27 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public Header27(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new Header27(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new Header27 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new Header27 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized Header27.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Header27 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
     }
 
@@ -300,21 +316,21 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

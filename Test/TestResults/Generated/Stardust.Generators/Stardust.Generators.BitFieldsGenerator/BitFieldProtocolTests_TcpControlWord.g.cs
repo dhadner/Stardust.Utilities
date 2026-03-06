@@ -22,10 +22,27 @@ public partial class BitFieldProtocolTests
         private uint Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 4;
+        public const int SIZE_IN_BYTES = 4;
 
         /// <summary>Returns a TcpControlWord with all bits set to zero.</summary>
         public static TcpControlWord Zero => default;
+
+        // --- Bit field mask constants ---
+        // DataOffset: bits [28..31], width 4
+        private const uint DATA_OFFSET_MASK = 0x0000000FU;
+        private const uint DATA_OFFSET_SHIFTED_MASK = 0xF0000000U;  // DATA_OFFSET_MASK << 28
+        private const uint DATA_OFFSET_INVERTED_MASK = 0x0FFFFFFFU;  // ~DATA_OFFSET_SHIFTED_MASK
+        // Reserved: bits [25..27], width 3
+        private const uint RESERVED_MASK = 0x00000007U;
+        private const uint RESERVED_SHIFTED_MASK = 0x0E000000U;  // RESERVED_MASK << 25
+        private const uint RESERVED_INVERTED_MASK = 0xF1FFFFFFU;  // ~RESERVED_SHIFTED_MASK
+        // Flags: bits [16..24], width 9
+        private const uint FLAGS_MASK = 0x000001FFU;
+        private const uint FLAGS_SHIFTED_MASK = 0x01FF0000U;  // FLAGS_MASK << 16
+        private const uint FLAGS_INVERTED_MASK = 0xFE00FFFFU;  // ~FLAGS_SHIFTED_MASK
+        // WindowSize: bits [0..15], width 16
+        private const uint WINDOW_SIZE_MASK = 0x0000FFFFU;
+        private const uint WINDOW_SIZE_INVERTED_MASK = 0xFFFF0000U;  // ~WINDOW_SIZE_MASK
 
         /// <summary>Creates a new TcpControlWord with the specified raw bits value.</summary>
         public TcpControlWord(uint value) { Value = value; }
@@ -33,46 +50,46 @@ public partial class BitFieldProtocolTests
         public partial byte DataOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 28) & 0x0000000FU);
+            get => (byte)((Value >> 28) & DATA_OFFSET_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0x0FFFFFFFU) | ((((uint)value) << 28) & 0xF0000000U));
+            set => Value = (uint)((Value & DATA_OFFSET_INVERTED_MASK) | ((((uint)value) << 28) & DATA_OFFSET_SHIFTED_MASK));
         }
 
         public partial byte Reserved
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 25) & 0x00000007U);
+            get => (byte)((Value >> 25) & RESERVED_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xF1FFFFFFU) | ((((uint)value) << 25) & 0x0E000000U));
+            set => Value = (uint)((Value & RESERVED_INVERTED_MASK) | ((((uint)value) << 25) & RESERVED_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((Value >> 16) & 0x000001FFU);
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((Value >> 16) & FLAGS_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFE00FFFFU) | ((((uint)value) << 16) & 0x01FF0000U));
+            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << 16) & FLAGS_SHIFTED_MASK));
         }
 
         public partial ushort WindowSize
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & 0x0000FFFFU);
+            get => (ushort)(Value & WINDOW_SIZE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFFFF0000U) | (((uint)value) & 0x0000FFFFU));
+            set => Value = (uint)((Value & WINDOW_SIZE_INVERTED_MASK) | (((uint)value) & WINDOW_SIZE_MASK));
         }
 
         /// <summary>Returns a TcpControlWord with the mask for the DataOffset field (bits 28-31).</summary>
-        public static TcpControlWord DataOffsetMask => new((uint)0xF0000000U);
+        public static TcpControlWord DataOffsetMask => new(DATA_OFFSET_SHIFTED_MASK);
 
         /// <summary>Returns a TcpControlWord with the mask for the Reserved field (bits 25-27).</summary>
-        public static TcpControlWord ReservedMask => new((uint)0x0E000000U);
+        public static TcpControlWord ReservedMask => new(RESERVED_SHIFTED_MASK);
 
         /// <summary>Returns a TcpControlWord with the mask for the Flags field (bits 16-24).</summary>
-        public static TcpControlWord FlagsMask => new((uint)0x01FF0000U);
+        public static TcpControlWord FlagsMask => new(FLAGS_SHIFTED_MASK);
 
         /// <summary>Returns a TcpControlWord with the mask for the WindowSize field (bits 0-15).</summary>
-        public static TcpControlWord WindowSizeMask => new((uint)0x0000FFFFU);
+        public static TcpControlWord WindowSizeMask => new(WINDOW_SIZE_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -89,19 +106,19 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new TcpControlWord with the DataOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithDataOffset(byte value) => new((uint)((Value & 0x0FFFFFFFU) | (((uint)value << 28) & 0xF0000000U)));
+        public TcpControlWord WithDataOffset(byte value) => new((uint)((Value & DATA_OFFSET_INVERTED_MASK) | (((uint)value << 28) & DATA_OFFSET_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the Reserved field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithReserved(byte value) => new((uint)((Value & 0xF1FFFFFFU) | (((uint)value << 25) & 0x0E000000U)));
+        public TcpControlWord WithReserved(byte value) => new((uint)((Value & RESERVED_INVERTED_MASK) | (((uint)value << 25) & RESERVED_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((Value & 0xFE00FFFFU) | (((uint)value << 16) & 0x01FF0000U)));
+        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << 16) & FLAGS_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the WindowSize field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithWindowSize(ushort value) => new((uint)((Value & 0xFFFF0000U) | ((uint)value & 0x0000FFFFU)));
+        public TcpControlWord WithWindowSize(ushort value) => new((uint)((Value & WINDOW_SIZE_INVERTED_MASK) | ((uint)value & WINDOW_SIZE_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -287,28 +304,28 @@ public partial class BitFieldProtocolTests
         public static implicit operator TcpControlWord(uint value) => new(value);
 
         /// <summary>Creates a new TcpControlWord from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public TcpControlWord(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new TcpControlWord(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new TcpControlWord by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new TcpControlWord by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized TcpControlWord.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TcpControlWord ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
         }
 
@@ -318,21 +335,21 @@ public partial class BitFieldProtocolTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

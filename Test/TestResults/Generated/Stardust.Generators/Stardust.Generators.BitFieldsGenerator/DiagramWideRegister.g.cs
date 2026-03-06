@@ -20,10 +20,19 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     private uint Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a DiagramWideRegister with all bits set to zero.</summary>
     public static DiagramWideRegister Zero => default;
+
+    // --- Bit field mask constants ---
+    // LowHalf: bits [0..15], width 16
+    private const uint LOW_HALF_MASK = 0x0000FFFFU;
+    private const uint LOW_HALF_INVERTED_MASK = 0xFFFF0000U;  // ~LOW_HALF_MASK
+    // HighHalf: bits [16..31], width 16
+    private const uint HIGH_HALF_MASK = 0x0000FFFFU;
+    private const uint HIGH_HALF_SHIFTED_MASK = 0xFFFF0000U;  // HIGH_HALF_MASK << 16
+    private const uint HIGH_HALF_INVERTED_MASK = 0x0000FFFFU;  // ~HIGH_HALF_SHIFTED_MASK
 
     /// <summary>Creates a new DiagramWideRegister with the specified raw bits value.</summary>
     public DiagramWideRegister(uint value) { Value = value; }
@@ -31,24 +40,24 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     public partial ushort LowHalf
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)(Value & 0x0000FFFFU);
+        get => (ushort)(Value & LOW_HALF_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFFF0000U) | (((uint)value) & 0x0000FFFFU));
+        set => Value = (uint)((Value & LOW_HALF_INVERTED_MASK) | (((uint)value) & LOW_HALF_MASK));
     }
 
     public partial ushort HighHalf
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 16) & 0x0000FFFFU);
+        get => (ushort)((Value >> 16) & HIGH_HALF_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0x0000FFFFU) | ((((uint)value) << 16) & 0xFFFF0000U));
+        set => Value = (uint)((Value & HIGH_HALF_INVERTED_MASK) | ((((uint)value) << 16) & HIGH_HALF_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramWideRegister with the mask for the LowHalf field (bits 0-15).</summary>
-    public static DiagramWideRegister LowHalfMask => new((uint)0x0000FFFFU);
+    public static DiagramWideRegister LowHalfMask => new(LOW_HALF_MASK);
 
     /// <summary>Returns a DiagramWideRegister with the mask for the HighHalf field (bits 16-31).</summary>
-    public static DiagramWideRegister HighHalfMask => new((uint)0xFFFF0000U);
+    public static DiagramWideRegister HighHalfMask => new(HIGH_HALF_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -63,11 +72,11 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
 
     /// <summary>Returns a new DiagramWideRegister with the LowHalf field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramWideRegister WithLowHalf(ushort value) => new((uint)((Value & 0xFFFF0000U) | ((uint)value & 0x0000FFFFU)));
+    public DiagramWideRegister WithLowHalf(ushort value) => new((uint)((Value & LOW_HALF_INVERTED_MASK) | ((uint)value & LOW_HALF_MASK)));
 
     /// <summary>Returns a new DiagramWideRegister with the HighHalf field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramWideRegister WithHighHalf(ushort value) => new((uint)((Value & 0x0000FFFFU) | (((uint)value << 16) & 0xFFFF0000U)));
+    public DiagramWideRegister WithHighHalf(ushort value) => new((uint)((Value & HIGH_HALF_INVERTED_MASK) | (((uint)value << 16) & HIGH_HALF_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -253,28 +262,28 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     public static implicit operator DiagramWideRegister(uint value) => new(value);
 
     /// <summary>Creates a new DiagramWideRegister from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public DiagramWideRegister(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new DiagramWideRegister(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new DiagramWideRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new DiagramWideRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized DiagramWideRegister.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DiagramWideRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
     }
 
@@ -284,21 +293,21 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

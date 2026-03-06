@@ -22,10 +22,31 @@ public partial class ExtensionsTests
         private uint Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 4;
+        public const int SIZE_IN_BYTES = 4;
 
         /// <summary>Returns a IPv4VersionWord with all bits set to zero.</summary>
         public static IPv4VersionWord Zero => default;
+
+        // --- Bit field mask constants ---
+        // Version: bits [28..31], width 4
+        private const uint VERSION_MASK = 0x0000000FU;
+        private const uint VERSION_SHIFTED_MASK = 0xF0000000U;  // VERSION_MASK << 28
+        private const uint VERSION_INVERTED_MASK = 0x0FFFFFFFU;  // ~VERSION_SHIFTED_MASK
+        // IHL: bits [24..27], width 4
+        private const uint IHL_MASK = 0x0000000FU;
+        private const uint IHL_SHIFTED_MASK = 0x0F000000U;  // IHL_MASK << 24
+        private const uint IHL_INVERTED_MASK = 0xF0FFFFFFU;  // ~IHL_SHIFTED_MASK
+        // DSCP: bits [18..23], width 6
+        private const uint DSCP_MASK = 0x0000003FU;
+        private const uint DSCP_SHIFTED_MASK = 0x00FC0000U;  // DSCP_MASK << 18
+        private const uint DSCP_INVERTED_MASK = 0xFF03FFFFU;  // ~DSCP_SHIFTED_MASK
+        // ECN: bits [16..17], width 2
+        private const uint ECN_MASK = 0x00000003U;
+        private const uint ECN_SHIFTED_MASK = 0x00030000U;  // ECN_MASK << 16
+        private const uint ECN_INVERTED_MASK = 0xFFFCFFFFU;  // ~ECN_SHIFTED_MASK
+        // TotalLength: bits [0..15], width 16
+        private const uint TOTAL_LENGTH_MASK = 0x0000FFFFU;
+        private const uint TOTAL_LENGTH_INVERTED_MASK = 0xFFFF0000U;  // ~TOTAL_LENGTH_MASK
 
         /// <summary>Creates a new IPv4VersionWord with the specified raw bits value.</summary>
         public IPv4VersionWord(uint value) { Value = value; }
@@ -33,57 +54,57 @@ public partial class ExtensionsTests
         public partial byte Version
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 28) & 0x0000000FU);
+            get => (byte)((Value >> 28) & VERSION_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0x0FFFFFFFU) | ((((uint)value) << 28) & 0xF0000000U));
+            set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << 28) & VERSION_SHIFTED_MASK));
         }
 
         public partial byte IHL
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 24) & 0x0000000FU);
+            get => (byte)((Value >> 24) & IHL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xF0FFFFFFU) | ((((uint)value) << 24) & 0x0F000000U));
+            set => Value = (uint)((Value & IHL_INVERTED_MASK) | ((((uint)value) << 24) & IHL_SHIFTED_MASK));
         }
 
         public partial byte DSCP
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 18) & 0x0000003FU);
+            get => (byte)((Value >> 18) & DSCP_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFF03FFFFU) | ((((uint)value) << 18) & 0x00FC0000U));
+            set => Value = (uint)((Value & DSCP_INVERTED_MASK) | ((((uint)value) << 18) & DSCP_SHIFTED_MASK));
         }
 
         public partial byte ECN
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 16) & 0x00000003U);
+            get => (byte)((Value >> 16) & ECN_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFFFCFFFFU) | ((((uint)value) << 16) & 0x00030000U));
+            set => Value = (uint)((Value & ECN_INVERTED_MASK) | ((((uint)value) << 16) & ECN_SHIFTED_MASK));
         }
 
         public partial ushort TotalLength
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & 0x0000FFFFU);
+            get => (ushort)(Value & TOTAL_LENGTH_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFFFF0000U) | (((uint)value) & 0x0000FFFFU));
+            set => Value = (uint)((Value & TOTAL_LENGTH_INVERTED_MASK) | (((uint)value) & TOTAL_LENGTH_MASK));
         }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the Version field (bits 28-31).</summary>
-        public static IPv4VersionWord VersionMask => new((uint)0xF0000000U);
+        public static IPv4VersionWord VersionMask => new(VERSION_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the IHL field (bits 24-27).</summary>
-        public static IPv4VersionWord IHLMask => new((uint)0x0F000000U);
+        public static IPv4VersionWord IHLMask => new(IHL_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the DSCP field (bits 18-23).</summary>
-        public static IPv4VersionWord DSCPMask => new((uint)0x00FC0000U);
+        public static IPv4VersionWord DSCPMask => new(DSCP_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the ECN field (bits 16-17).</summary>
-        public static IPv4VersionWord ECNMask => new((uint)0x00030000U);
+        public static IPv4VersionWord ECNMask => new(ECN_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the TotalLength field (bits 0-15).</summary>
-        public static IPv4VersionWord TotalLengthMask => new((uint)0x0000FFFFU);
+        public static IPv4VersionWord TotalLengthMask => new(TOTAL_LENGTH_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -101,23 +122,23 @@ public partial class ExtensionsTests
 
         /// <summary>Returns a new IPv4VersionWord with the Version field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithVersion(byte value) => new((uint)((Value & 0x0FFFFFFFU) | (((uint)value << 28) & 0xF0000000U)));
+        public IPv4VersionWord WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << 28) & VERSION_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the IHL field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithIHL(byte value) => new((uint)((Value & 0xF0FFFFFFU) | (((uint)value << 24) & 0x0F000000U)));
+        public IPv4VersionWord WithIHL(byte value) => new((uint)((Value & IHL_INVERTED_MASK) | (((uint)value << 24) & IHL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the DSCP field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithDSCP(byte value) => new((uint)((Value & 0xFF03FFFFU) | (((uint)value << 18) & 0x00FC0000U)));
+        public IPv4VersionWord WithDSCP(byte value) => new((uint)((Value & DSCP_INVERTED_MASK) | (((uint)value << 18) & DSCP_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the ECN field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithECN(byte value) => new((uint)((Value & 0xFFFCFFFFU) | (((uint)value << 16) & 0x00030000U)));
+        public IPv4VersionWord WithECN(byte value) => new((uint)((Value & ECN_INVERTED_MASK) | (((uint)value << 16) & ECN_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the TotalLength field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithTotalLength(ushort value) => new((uint)((Value & 0xFFFF0000U) | ((uint)value & 0x0000FFFFU)));
+        public IPv4VersionWord WithTotalLength(ushort value) => new((uint)((Value & TOTAL_LENGTH_INVERTED_MASK) | ((uint)value & TOTAL_LENGTH_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -303,28 +324,28 @@ public partial class ExtensionsTests
         public static implicit operator IPv4VersionWord(uint value) => new(value);
 
         /// <summary>Creates a new IPv4VersionWord from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public IPv4VersionWord(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             this = new IPv4VersionWord(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new IPv4VersionWord by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new IPv4VersionWord by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized IPv4VersionWord.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPv4VersionWord ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
         }
 
@@ -334,21 +355,21 @@ public partial class ExtensionsTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

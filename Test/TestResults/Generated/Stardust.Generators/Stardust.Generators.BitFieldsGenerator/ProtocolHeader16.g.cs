@@ -20,10 +20,19 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a ProtocolHeader16 with all bits set to zero.</summary>
     public static ProtocolHeader16 Zero => default;
+
+    // --- Bit field mask constants ---
+    // Status: bits [0..7], width 8
+    private const ushort STATUS_MASK = 0x00FF;
+    private const ushort STATUS_INVERTED_MASK = 0xFF00;  // ~STATUS_MASK
+    // Length: bits [8..15], width 8
+    private const ushort LENGTH_MASK = 0x00FF;
+    private const ushort LENGTH_SHIFTED_MASK = 0xFF00;  // LENGTH_MASK << 8
+    private const ushort LENGTH_INVERTED_MASK = 0x00FF;  // ~LENGTH_SHIFTED_MASK
 
     /// <summary>Creates a new ProtocolHeader16 with the specified raw bits value.</summary>
     public ProtocolHeader16(ushort value) { Value = value; }
@@ -31,24 +40,24 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     public partial global::Stardust.Utilities.Tests.StatusFlags Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & 0x00FF);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFF00) | (((ushort)value) & 0x00FF));
+        set => Value = (ushort)((Value & STATUS_INVERTED_MASK) | (((ushort)value) & STATUS_MASK));
     }
 
     public partial byte Length
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 8) & 0x00FF);
+        get => (byte)((Value >> 8) & LENGTH_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0x00FF) | ((((ushort)value) << 8) & 0xFF00));
+        set => Value = (ushort)((Value & LENGTH_INVERTED_MASK) | ((((ushort)value) << 8) & LENGTH_SHIFTED_MASK));
     }
 
     /// <summary>Returns a ProtocolHeader16 with the mask for the Status field (bits 0-7).</summary>
-    public static ProtocolHeader16 StatusMask => new((ushort)0x00FF);
+    public static ProtocolHeader16 StatusMask => new(STATUS_MASK);
 
     /// <summary>Returns a ProtocolHeader16 with the mask for the Length field (bits 8-15).</summary>
-    public static ProtocolHeader16 LengthMask => new((ushort)0xFF00);
+    public static ProtocolHeader16 LengthMask => new(LENGTH_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -63,11 +72,11 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
 
     /// <summary>Returns a new ProtocolHeader16 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((ushort)((Value & 0xFF00) | ((ushort)value & 0x00FF)));
+    public ProtocolHeader16 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((ushort)((Value & STATUS_INVERTED_MASK) | ((ushort)value & STATUS_MASK)));
 
     /// <summary>Returns a new ProtocolHeader16 with the Length field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithLength(byte value) => new((ushort)((Value & 0x00FF) | (((ushort)value << 8) & 0xFF00)));
+    public ProtocolHeader16 WithLength(byte value) => new((ushort)((Value & LENGTH_INVERTED_MASK) | (((ushort)value << 8) & LENGTH_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -209,28 +218,28 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     public static implicit operator ProtocolHeader16(int value) => new(unchecked((ushort)value));
 
     /// <summary>Creates a new ProtocolHeader16 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public ProtocolHeader16(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         this = new ProtocolHeader16(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new ProtocolHeader16 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new ProtocolHeader16 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized ProtocolHeader16.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ProtocolHeader16 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
@@ -240,21 +249,21 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

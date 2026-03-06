@@ -46,7 +46,7 @@ public static class PeParser
 
     private static Result<DosHeaderView, string> ValidateDosHeader(byte[] bytes)
     {
-        if (bytes.Length < DosHeaderView.SizeInBytes)
+        if (bytes.Length < DosHeaderView.SIZE_IN_BYTES)
             return Result<DosHeaderView, string>.Err("File too small for a DOS header.");
 
         return Result<DosHeaderView, string>.Ok(new DosHeaderView(bytes));
@@ -74,7 +74,7 @@ public static class PeParser
     {
         int coffByteOffset = ctx.PeOffset + 4;
 
-        if (bytes.Length < coffByteOffset + CoffHeaderView.SizeInBytes)
+        if (bytes.Length < coffByteOffset + CoffHeaderView.SIZE_IN_BYTES)
             return Result<(DosHeaderView, int, uint, CoffHeaderView, int), string>.Err(
                 "File truncated -- COFF header extends beyond end of file.");
 
@@ -87,14 +87,14 @@ public static class PeParser
         byte[] bytes,
         (DosHeaderView Dos, int PeOffset, uint Signature, CoffHeaderView Coff, int CoffByteOffset) ctx)
     {
-        int optByteOffset = ctx.CoffByteOffset + CoffHeaderView.SizeInBytes;
-        int optHeaderSize = Math.Min((int)ctx.Coff.SizeOfOptionalHeader, OptionalHeaderView.SizeInBytes);
+        int optByteOffset = ctx.CoffByteOffset + CoffHeaderView.SIZE_IN_BYTES;
+        int optHeaderSize = Math.Min((int)ctx.Coff.SizeOfOptionalHeader, OptionalHeaderView.SIZE_IN_BYTES);
         bool hasOptional = ctx.Coff.SizeOfOptionalHeader > 0
                            && bytes.Length >= optByteOffset + optHeaderSize;
 
         int totalDisplayBytes = hasOptional
             ? Math.Min(optByteOffset + optHeaderSize, bytes.Length)
-            : Math.Min(ctx.CoffByteOffset + CoffHeaderView.SizeInBytes, bytes.Length);
+            : Math.Min(ctx.CoffByteOffset + CoffHeaderView.SIZE_IN_BYTES, bytes.Length);
 
         var result = new PeParseResult
         {
