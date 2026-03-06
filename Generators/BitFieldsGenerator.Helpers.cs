@@ -122,6 +122,48 @@ public partial class BitFieldsGenerator
     }
 
     /// <summary>
+    /// Calculates combined enforcement masks for the constructor normalizer.
+    /// Combines per-field <see cref="MustBe"/> constraints with the struct-level
+    /// <see cref="UndefinedBitsMustBe"/> mode into two masks:
+    /// <list type="bullet">
+    /// <item><c>mustClearMask</c> – bits that must be forced to 0 (AND with <c>~mask</c>).</item>
+    /// <item><c>mustSetMask</c> – bits that must be forced to 1 (OR with mask).</item>
+    /// </list>
+    /// </summary>
+    private static (ulong mustClearMask, ulong mustSetMask) CalculateNormalizationMasks(BitFieldsInfo info, ulong undefinedBitsMask)
+    {
+        ulong clearMask = 0;
+        ulong setMask = 0;
+
+        // Per-field MustBe constraints
+        foreach (var field in info.Fields)
+        {
+            ulong fieldMask = ((1UL << field.Width) - 1) << field.Shift;
+            if (field.ValueOverride == MustBe.Zero)
+                clearMask |= fieldMask;
+            else if (field.ValueOverride == MustBe.One)
+                setMask |= fieldMask;
+        }
+
+        foreach (var flag in info.Flags)
+        {
+            ulong flagMask = 1UL << flag.Bit;
+            if (flag.ValueOverride == MustBe.Zero)
+                clearMask |= flagMask;
+            else if (flag.ValueOverride == MustBe.One)
+                setMask |= flagMask;
+        }
+
+        // Struct-level UndefinedBitsMustBe
+        if (info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
+            clearMask |= undefinedBitsMask;
+        else if (info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
+            setMask |= undefinedBitsMask;
+
+        return (clearMask, setMask);
+    }
+
+    /// <summary>
     /// Generates a static <c>Fields</c> property that returns a
     /// <see cref="System.ReadOnlySpan{T}"/> of <c>BitFieldInfo</c> describing
     /// every field and flag declared on this struct, using the original user-declared bit positions.

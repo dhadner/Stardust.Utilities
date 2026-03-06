@@ -28,7 +28,7 @@ public partial class ExtensionsTests
         public static IPv4Flags Zero => default;
 
         /// <summary>Creates a new IPv4Flags with the specified raw bits value.</summary>
-        public IPv4Flags(byte value) { Value = (byte)(value & 0x07); }
+        public IPv4Flags(byte value) { Value = (byte)(value & 0x03); }
 
         public partial bool MoreFragments
         {
@@ -49,9 +49,9 @@ public partial class ExtensionsTests
         public partial bool Reserved
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x04) != 0;
+            get => false;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | 0x04) : (byte)(Value & 0xFB);
+            set => Value = (byte)(Value & 0xFB);
         }
 
         /// <summary>Returns a IPv4Flags with only the MoreFragments bit set.</summary>
@@ -233,7 +233,7 @@ public partial class ExtensionsTests
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = bytes[0];
+            this = new IPv4Flags(bytes[0]);
         }
 
         /// <summary>Creates a new IPv4Flags by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

@@ -215,7 +215,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+        this = new ProtocolHeader16(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
     /// <summary>Creates a new ProtocolHeader16 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

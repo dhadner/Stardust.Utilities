@@ -249,7 +249,7 @@ public partial class BitFieldsViewTests
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = bytes[0];
+            this = new BitZeroIsMsbRegister(bytes[0]);
         }
 
         /// <summary>Creates a new BitZeroIsMsbRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

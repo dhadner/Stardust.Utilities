@@ -277,7 +277,7 @@ public partial class EndianOverrideTests
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+            this = new Reg_Msb(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
         }
 
         /// <summary>Creates a new Reg_Msb by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

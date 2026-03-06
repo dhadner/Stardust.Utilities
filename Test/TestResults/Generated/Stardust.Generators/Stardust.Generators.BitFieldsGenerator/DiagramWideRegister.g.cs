@@ -259,7 +259,7 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+        this = new DiagramWideRegister(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
     /// <summary>Creates a new DiagramWideRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

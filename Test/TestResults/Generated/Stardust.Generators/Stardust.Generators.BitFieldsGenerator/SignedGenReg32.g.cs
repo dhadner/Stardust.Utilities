@@ -267,7 +267,7 @@ public partial struct SignedGenReg32 : IComparable, IComparable<SignedGenReg32>,
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadInt32LittleEndian(bytes);
+        this = new SignedGenReg32(BinaryPrimitives.ReadInt32LittleEndian(bytes));
     }
 
     /// <summary>Creates a new SignedGenReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

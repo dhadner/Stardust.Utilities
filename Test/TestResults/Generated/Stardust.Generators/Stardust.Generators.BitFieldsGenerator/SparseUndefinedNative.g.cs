@@ -215,7 +215,7 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = unchecked((sbyte)bytes[0]);
+        this = new SparseUndefinedNative(unchecked((sbyte)bytes[0]));
     }
 
     /// <summary>Creates a new SparseUndefinedNative by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

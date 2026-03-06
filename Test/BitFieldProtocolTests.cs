@@ -106,8 +106,9 @@ public partial class BitFieldProtocolTests
     {
         // IPv4Flags uses byte storage but only defines 3 bits (0-2).
         // UndefinedBitsMustBe.Zeroes ensures bits 3-7 are always zero.
+        // Bit 2 (Reserved) has MustBe.Zero, so it is also cleared.
         var flags = new IPv4Flags(0xFF);
-        ((byte)flags).Should().Be(0x07, "only 3 defined bits should survive");
+        ((byte)flags).Should().Be(0x03, "undefined bits zeroed and MustBe.Zero bit 2 cleared");
     }
 
     [Fact]

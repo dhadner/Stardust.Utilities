@@ -311,7 +311,7 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = bytes[0];
+        this = new DescEscapeRegister(bytes[0]);
     }
 
     /// <summary>Creates a new DescEscapeRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

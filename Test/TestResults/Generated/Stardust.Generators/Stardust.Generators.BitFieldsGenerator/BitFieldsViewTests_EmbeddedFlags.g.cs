@@ -233,7 +233,7 @@ public partial class BitFieldsViewTests
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = bytes[0];
+            this = new EmbeddedFlags(bytes[0]);
         }
 
         /// <summary>Creates a new EmbeddedFlags by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

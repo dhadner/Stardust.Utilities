@@ -247,7 +247,7 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = bytes[0];
+        this = new DiagramOverlapRegister(bytes[0]);
     }
 
     /// <summary>Creates a new DiagramOverlapRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

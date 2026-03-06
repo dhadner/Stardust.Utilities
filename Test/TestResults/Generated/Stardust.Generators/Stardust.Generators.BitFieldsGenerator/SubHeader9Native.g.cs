@@ -215,7 +215,7 @@ public partial struct SubHeader9Native : IComparable, IComparable<SubHeader9Nati
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+        this = new SubHeader9Native(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
     /// <summary>Creates a new SubHeader9Native by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

@@ -275,7 +275,7 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+        this = new MainHeader64(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
     }
 
     /// <summary>Creates a new MainHeader64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

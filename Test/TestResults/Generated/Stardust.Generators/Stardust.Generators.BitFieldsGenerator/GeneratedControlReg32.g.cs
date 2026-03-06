@@ -291,7 +291,7 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+        this = new GeneratedControlReg32(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
     /// <summary>Creates a new GeneratedControlReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

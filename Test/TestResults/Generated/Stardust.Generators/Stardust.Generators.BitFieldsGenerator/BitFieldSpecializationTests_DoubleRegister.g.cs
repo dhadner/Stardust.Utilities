@@ -291,7 +291,7 @@ public partial class BitFieldSpecializationTests
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+            this = new DoubleRegister(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
         }
 
         /// <summary>Creates a new DoubleRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

@@ -402,6 +402,61 @@ Individual fields can also override with `MustBe`:
 [BitField(1, 3, MustBe.Zero)] public partial byte Reserved { get; set; } // always 0
 ```
 
+`MustBe` constraints are enforced at every entry point -- construction, implicit conversion,
+operators, `With` methods, `Parse`, and `ReadFrom`. This guarantee holds regardless of how the
+raw value is produced:
+
+```csharp
+[BitFields(typeof(byte))]
+public partial struct SyncedReg
+{
+    [BitFlag(0)]              public partial bool Active { get; set; }
+    [BitField(1, 2, MustBe.Zero)] public partial byte Reserved { get; set; }
+    [BitField(3, 6)]         public partial byte Data { get; set; }
+    [BitFlag(7, MustBe.One)] public partial bool Sync { get; set; }
+}
+
+SyncedReg reg = 0x00;
+byte raw = reg;           // 0x80 (Sync forced to 1)
+
+reg = 0xFF;
+raw = reg;                // 0xF9 (Reserved bits 1-2 cleared, Sync stays 1)
+
+reg.Reserved = 3;         // setter ignores the value -- bits stay 0
+reg.Sync = false;         // setter ignores the value -- bit stays 1
+
+var r = ~reg;             // complement goes through constructor -- constraints re-applied
+var s = reg | (SyncedReg)0x06;  // OR result normalized -- Reserved stays 0
+
+// Span round-trip also enforces constraints
+byte[] buf = [0xFF];
+var fromSpan = new SyncedReg(new ReadOnlySpan<byte>(buf));
+byte spanRaw = fromSpan;  // 0xF9 (same normalization)
+
+// Parse enforces too
+var parsed = SyncedReg.Parse("0xFF", null);
+byte parsedRaw = parsed;  // 0xF9
+```
+
+For `MustBe.Zero` flags, the getter always returns `false`. For `MustBe.One` flags, it always
+returns `true`. Both can be freely combined with `UndefinedBitsMustBe`:
+
+```csharp
+[BitFields(typeof(byte), UndefinedBitsMustBe.Zeroes)]
+public partial struct ProtocolByte
+{
+    [BitField(0, 2)]          public partial byte Flags { get; set; }     // normal field
+    [BitFlag(3, MustBe.One)]  public partial bool AlwaysHigh { get; set; } // forced to 1
+    // Bits 4-7: undefined, forced to 0 by UndefinedBitsMustBe.Zeroes
+}
+
+ProtocolByte p = 0xFF;
+byte raw = p;             // 0x0F (bits 4-7 zeroed, bit 3 set, Flags preserved)
+
+p = 0x00;
+raw = p;                  // 0x08 (only AlwaysHigh forced on)
+```
+
 Sparse undefined bits (gaps between fields) are handled correctly:
 
 ```csharp
@@ -1375,15 +1430,22 @@ public partial struct StatusRegister
 }
 ```
 
-The generator creates:
+The generator creates (abbreviated -- the full output also includes parsing, formatting,
+`IComparable`, `IEquatable`, span serialization, and a JSON converter):
 
 ```csharp
-public partial struct StatusRegister
+[JsonConverter(typeof(StatusRegisterJsonConverter))]
+public partial struct StatusRegister : IComparable, IComparable<StatusRegister>, IEquatable<StatusRegister>,
+                                      IFormattable, ISpanFormattable, IParsable<StatusRegister>, ISpanParsable<StatusRegister>
 {
     private byte Value;
+
+    public const int SizeInBytes = 1;
+    public static StatusRegister Zero => default;
+
     public StatusRegister(byte value) { Value = value; }
 
-    // BitFlag properties
+    // ── BitFlag properties ──────────────────────────────────────
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1392,49 +1454,186 @@ public partial struct StatusRegister
         set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
     }
 
-    // BitField properties
+    // ── BitField properties ─────────────────────────────────────
+    // Note: value is cast to the storage type before shifting to prevent
+    // widening promotion from corrupting adjacent bits.
     public partial byte Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (byte)((Value >> 2) & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | ((value << 2) & 0x1C));
+        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
     }
 
-    // Static properties
-    public static StatusRegister ReadyBit => new(0x01);
-    public static StatusRegister ModeMask => new(0x1C);
+    // ── Static Bit and Mask properties ──────────────────────────
+    public static StatusRegister ReadyBit => new((byte)0x01);
+    public static StatusRegister ErrorBit => new((byte)0x02);
+    public static StatusRegister ModeMask => new((byte)0x1C);
 
-    // Fluent methods
+    // ── Metadata ────────────────────────────────────────────────
+    public static string? StructDescription => null;
+    public static Type? StructDescriptionResourceType => null;
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
+    {
+        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, ...),
+        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, ...),
+        new("Mode",  2, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, ...),
+    };
+
+    // ── Fluent With methods ─────────────────────────────────────
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StatusRegister WithReady(bool value) =>
         new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StatusRegister WithMode(byte value) =>
-        new((byte)((Value & 0xE3) | ((value << 2) & 0x1C)));
+        new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
 
-    // Operators (arithmetic, bitwise, shift, comparison, equality)
-    public static StatusRegister operator |(StatusRegister a, StatusRegister b) =>
-        new((byte)(a.Value | b.Value));
+    // ── Operators (all AggressiveInlining) ──────────────────────
+    public static StatusRegister operator ~(StatusRegister a) => new((byte)~a.Value);
+    public static StatusRegister operator |(StatusRegister a, StatusRegister b) => new((byte)(a.Value | b.Value));
+    public static StatusRegister operator &(StatusRegister a, StatusRegister b) => new((byte)(a.Value & b.Value));
+    public static StatusRegister operator ^(StatusRegister a, StatusRegister b) => new((byte)(a.Value ^ b.Value));
+    public static StatusRegister operator +(StatusRegister a, StatusRegister b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static StatusRegister operator -(StatusRegister a, StatusRegister b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static StatusRegister operator -(StatusRegister a) => new(unchecked((byte)(0 - a.Value)));
+    // ... plus +, -, *, /, % with storage-type operand on either side
+
+    // Small types return int so (bits >> n) & 1 works without casting
     public static int operator <<(StatusRegister a, int b) => a.Value << b;
-    // ... plus +, -, *, /, %, &, ^, ~, >>, >>>, <, >, <=, >=, ==, !=
+    public static int operator >>(StatusRegister a, int b) => a.Value >> b;
+    public static int operator >>>(StatusRegister a, int b) => a.Value >>> b;
 
-    // Implicit conversions
+    public static bool operator <(StatusRegister a, StatusRegister b) => a.Value < b.Value;
+    public static bool operator >(StatusRegister a, StatusRegister b) => a.Value > b.Value;
+    public static bool operator <=(StatusRegister a, StatusRegister b) => a.Value <= b.Value;
+    public static bool operator >=(StatusRegister a, StatusRegister b) => a.Value >= b.Value;
+    public static bool operator ==(StatusRegister a, StatusRegister b) => a.Value == b.Value;
+    public static bool operator !=(StatusRegister a, StatusRegister b) => a.Value != b.Value;
+
+    // ── Conversions ─────────────────────────────────────────────
     public static implicit operator byte(StatusRegister value) => value.Value;
     public static implicit operator StatusRegister(byte value) => new(value);
+    public static implicit operator StatusRegister(int value) => new(unchecked((byte)value));
 
-    // Interfaces: IComparable, IComparable<T>, IEquatable<T>,
-    // IFormattable, ISpanFormattable, IParsable<T>, ISpanParsable<T>
+    // ── Span serialization ──────────────────────────────────────
+    public StatusRegister(ReadOnlySpan<byte> bytes) { /* validates length, reads LE */ }
+    public static StatusRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public void WriteTo(Span<byte> destination) { /* validates length, writes LE */ }
+    public bool TryWriteTo(Span<byte> destination, out int bytesWritten) { /* ... */ }
+    public byte[] ToByteArray() { /* ... */ }
+
+    // ── Equality, hashing, formatting ───────────────────────────
+    public override bool Equals(object? obj) => obj is StatusRegister other && Value == other.Value;
+    public override int GetHashCode() => Value.GetHashCode();
+    public override string ToString() => $"0x{Value:X}";
+
+    // ── Interface implementations (IComparable, IEquatable, IParsable, etc.) ──
+    // ── JSON converter (reads/writes as string) ──
 }
 ```
 
 ### BitFieldsView Generated Code
 
-For a `[BitFieldsView]` struct, the generator creates:
+For this view struct:
 
-- Private `Memory<byte>` field
-- Constructors: `Memory<byte>`, `byte[]`, `byte[] + offset`
-- `Data` property exposing the underlying memory
-- `SizeInBytes` constant
-- Property accessors using `BinaryPrimitives` with `AggressiveInlining`
+```csharp
+[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+public partial record struct ByteFlagsView
+{
+    [BitFlag(0)] public partial bool MsbFlag { get; set; }
+    [BitFlag(7)] public partial bool LsbFlag { get; set; }
+    [BitField(1, 4)] public partial byte Middle { get; set; }
+}
+```
+
+The generator creates:
+
+```csharp
+public partial record struct ByteFlagsView
+{
+    private readonly Memory<byte> _data;
+    private readonly byte _bitOffset;
+
+    public const int SizeInBytes = 1;
+    public const int BitWidth = 8;
+
+    // ── Constructors ────────────────────────────────────────────
+    public ByteFlagsView(Memory<byte> data) { /* validates length */ _data = data; _bitOffset = 0; }
+    public ByteFlagsView(byte[] data) : this(data.AsMemory()) { }
+    public ByteFlagsView(byte[] data, int offset) : this(data.AsMemory(offset)) { }
+    internal ByteFlagsView(Memory<byte> data, int bitOffset) { /* for nested views */ }
+
+    public Memory<byte> Data => _data;
+
+    // ── Property accessors (read/write directly to buffer) ──────
+    // Fast path when bitOffset == 0, fallback path for sub-byte nesting.
+    public partial byte Middle
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            var s = _data.Span;
+            if (_bitOffset == 0)
+                return (byte)((s[0] >> 3) & 0x0F);
+            // Fallback: BinaryPrimitives read with bit offset calculation
+            int ep = 1 + _bitOffset;
+            int bi = ep >> 3;
+            int endInWindow = (ep + 3) - bi * 8;
+            int sh = 16 - 1 - endInWindow;
+            return (byte)((BinaryPrimitives.ReadUInt16BigEndian(s.Slice(bi)) >> sh) & 0x000F);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            var s = _data.Span;
+            if (_bitOffset == 0)
+            {
+                s[0] = (byte)((s[0] & 0x87) | (((byte)value << 3) & 0x78));
+            }
+            else
+            {
+                // Fallback: read-modify-write via BinaryPrimitives
+                int ep = 1 + _bitOffset;
+                int bi = ep >> 3;
+                int endInWindow = (ep + 3) - bi * 8;
+                int sh = 16 - 1 - endInWindow;
+                var slice = s.Slice(bi);
+                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
+                ushort m = (ushort)(0x000F << sh);
+                raw = (ushort)((raw & (ushort)~m) | (((ushort)value << sh) & m));
+                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+            }
+        }
+    }
+
+    public partial bool MsbFlag
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            var s = _data.Span;
+            if (_bitOffset == 0) return (s[0] & 0x80) != 0;
+            int ep = 0 + _bitOffset;
+            return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            var s = _data.Span;
+            if (_bitOffset == 0)
+            {
+                s[0] = value ? (byte)(s[0] | 0x80) : (byte)(s[0] & 0x7F);
+                return;
+            }
+            int ep = 0 + _bitOffset;
+            int bi = ep >> 3;
+            int m = 1 << (7 - (ep & 7));
+            s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
+        }
+    }
+
+    // ── Metadata ────────────────────────────────────────────────
+    public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[] { /* ... */ };
+}
+```

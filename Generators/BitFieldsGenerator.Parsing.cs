@@ -386,7 +386,8 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
             binaryType = info.StorageType; // already uint or ulong
 
-        // ReadOnlySpan<byte> constructor
+        // ReadOnlySpan<byte> constructor -- delegates to the primary constructor
+        // so UndefinedBitsMustBe and per-field MustBe normalization is applied.
         sb.AppendLine($"{indent}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
@@ -397,12 +398,12 @@ public partial class BitFieldsGenerator
         if (isByte)
         {
             if (s == "sbyte")
-                sb.AppendLine($"{indent}    Value = unchecked((sbyte)bytes[0]);");
+                sb.AppendLine($"{indent}    this = new {t}(unchecked((sbyte)bytes[0]));");
             else
-                sb.AppendLine($"{indent}    Value = bytes[0];");
+                sb.AppendLine($"{indent}    this = new {t}(bytes[0]);");
         }
         else
-            sb.AppendLine($"{indent}    Value = BinaryPrimitives.{readMethod}(bytes);");
+            sb.AppendLine($"{indent}    this = new {t}(BinaryPrimitives.{readMethod}(bytes));");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 

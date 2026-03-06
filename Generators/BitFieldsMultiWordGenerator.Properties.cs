@@ -33,7 +33,16 @@ internal static partial class BitFieldsMultiWordGenerator
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
 
             ulong shiftedMask = mask << localShift;
-            if (localShift == 0 && width == 64)
+            // Enforce MustBe constraints
+            if (field.ValueOverride == MustBe.Zero)
+            {
+                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL)")};" );
+            }
+            else if (field.ValueOverride == MustBe.One)
+            {
+                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} | 0x{shiftedMask:X16}UL)")};" );
+            }
+            else if (localShift == 0 && width == 64)
                 sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, "(ulong)value")};");
             else if (localShift == 0)
                 sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ((ulong)value & 0x{shiftedMask:X16}UL)")};");
@@ -51,12 +60,32 @@ internal static partial class BitFieldsMultiWordGenerator
             sb.AppendLine($"{ind}    get => ({field.PropertyType})(({rdS} >> {localShift}) | (({rdE} & 0x{maskEnd:X}UL) << {bitsInStart}));");
 
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}    set");
-            sb.AppendLine($"{ind}    {{");
-            ulong maskStart = (1UL << bitsInStart) - 1;
-            sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (((ulong)value & 0x{maskStart:X}UL) << {localShift})")};");
-            sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (((ulong)value >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
-            sb.AppendLine($"{ind}    }}");
+            ulong maskStartShifted = ((1UL << bitsInStart) - 1) << localShift;
+            if (field.ValueOverride == MustBe.Zero)
+            {
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{~maskStartShifted:X16}UL)")};" );
+                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL)")};" );
+                sb.AppendLine($"{ind}    }}");
+            }
+            else if (field.ValueOverride == MustBe.One)
+            {
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{maskStartShifted:X16}UL)")};" );
+                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{maskEnd:X16}UL)")};" );
+                sb.AppendLine($"{ind}    }}");
+            }
+            else
+            {
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                ulong maskStart = (1UL << bitsInStart) - 1;
+                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (((ulong)value & 0x{maskStart:X}UL) << {localShift})")};");
+                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (((ulong)value >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
+                sb.AppendLine($"{ind}    }}");
+            }
         }
 
         sb.AppendLine($"{ind}}}");
@@ -73,9 +102,26 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}public partial bool {flag.Name}");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{ind}    get => ({rd} & 0x{mask:X}UL) != 0;");
-        sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"value ? ({rd} | 0x{mask:X}UL) : ({rd} & 0x{~mask:X16}UL)")};");
+
+        if (flag.ValueOverride == MustBe.Zero)
+        {
+            sb.AppendLine($"{ind}    get => false;");
+            sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"({rd} & 0x{~mask:X16}UL)")};");
+        }
+        else if (flag.ValueOverride == MustBe.One)
+        {
+            sb.AppendLine($"{ind}    get => true;");
+            sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"({rd} | 0x{mask:X}UL)")};");
+        }
+        else
+        {
+            sb.AppendLine($"{ind}    get => ({rd} & 0x{mask:X}UL) != 0;");
+            sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"value ? ({rd} | 0x{mask:X}UL) : ({rd} & 0x{~mask:X16}UL)")};");
+        }
+
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
     }

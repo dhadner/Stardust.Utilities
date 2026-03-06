@@ -13,38 +13,38 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(GeneratedStatusReg8JsonConverter))]
-public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedStatusReg8>, IEquatable<GeneratedStatusReg8>,
-                             IFormattable, ISpanFormattable, IParsable<GeneratedStatusReg8>, ISpanParsable<GeneratedStatusReg8>
+[JsonConverter(typeof(MustBeTestRegJsonConverter))]
+public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, IEquatable<MustBeTestReg>,
+                             IFormattable, ISpanFormattable, IParsable<MustBeTestReg>, ISpanParsable<MustBeTestReg>
 {
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SizeInBytes = 1;
 
-    /// <summary>Returns a GeneratedStatusReg8 with all bits set to zero.</summary>
-    public static GeneratedStatusReg8 Zero => default;
+    /// <summary>Returns a MustBeTestReg with all bits set to zero.</summary>
+    public static MustBeTestReg Zero => default;
 
-    /// <summary>Creates a new GeneratedStatusReg8 with the specified raw bits value.</summary>
-    public GeneratedStatusReg8(byte value) { Value = value; }
+    /// <summary>Creates a new MustBeTestReg with the specified raw bits value.</summary>
+    public MustBeTestReg(byte value) { Value = (byte)((value & 0xF9) | 0x80); }
 
-    public partial global::Stardust.Utilities.Tests.OpMode Mode
+    public partial byte Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 2) & 0x07);
+        get => (byte)((Value >> 1) & 0x03);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
+        set => Value = (byte)(Value & 0xF9);
     }
 
-    public partial byte Priority
+    public partial byte Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 5) & 0x03);
+        get => (byte)((Value >> 3) & 0x0F);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x9F) | ((((byte)value) << 5) & 0x60));
+        set => Value = (byte)((Value & 0x87) | ((((byte)value) << 3) & 0x78));
     }
 
-    public partial bool Ready
+    public partial bool Active
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (Value & 0x01) != 0;
@@ -52,36 +52,25 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
     }
 
-    public partial bool Error
+    public partial bool Sync
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x02) != 0;
+        get => true;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+        set => Value = (byte)(Value | 0x80);
     }
 
-    public partial bool Busy
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x80) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F);
-    }
+    /// <summary>Returns a MustBeTestReg with only the Active bit set.</summary>
+    public static MustBeTestReg ActiveBit => new((byte)0x01);
 
-    /// <summary>Returns a GeneratedStatusReg8 with only the Ready bit set.</summary>
-    public static GeneratedStatusReg8 ReadyBit => new((byte)0x01);
+    /// <summary>Returns a MustBeTestReg with only the Sync bit set.</summary>
+    public static MustBeTestReg SyncBit => new((byte)0x80);
 
-    /// <summary>Returns a GeneratedStatusReg8 with only the Error bit set.</summary>
-    public static GeneratedStatusReg8 ErrorBit => new((byte)0x02);
+    /// <summary>Returns a MustBeTestReg with the mask for the Reserved field (bits 1-2).</summary>
+    public static MustBeTestReg ReservedMask => new((byte)0x06);
 
-    /// <summary>Returns a GeneratedStatusReg8 with only the Busy bit set.</summary>
-    public static GeneratedStatusReg8 BusyBit => new((byte)0x80);
-
-    /// <summary>Returns a GeneratedStatusReg8 with the mask for the Mode field (bits 2-4).</summary>
-    public static GeneratedStatusReg8 ModeMask => new((byte)0x1C);
-
-    /// <summary>Returns a GeneratedStatusReg8 with the mask for the Priority field (bits 5-6).</summary>
-    public static GeneratedStatusReg8 PriorityMask => new((byte)0x60);
+    /// <summary>Returns a MustBeTestReg with the mask for the Data field (bits 3-6).</summary>
+    public static MustBeTestReg DataMask => new((byte)0x78);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -90,155 +79,150 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Mode", 2, 3, "Stardust.Utilities.Tests.OpMode", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Priority", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Busy", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Reserved", 1, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Zero, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Data", 3, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Active", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Sync", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.One, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Ready flag set to the specified value.</summary>
+    /// <summary>Returns a new MustBeTestReg with the Active flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithReady(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public MustBeTestReg WithActive(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Error flag set to the specified value.</summary>
+    /// <summary>Returns a new MustBeTestReg with the Sync flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithError(bool value) => new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+    public MustBeTestReg WithSync(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Busy flag set to the specified value.</summary>
+    /// <summary>Returns a new MustBeTestReg with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithBusy(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
+    public MustBeTestReg WithReserved(byte value) => new((byte)((Value & 0xF9) | (((byte)value << 1) & 0x06)));
 
-    /// <summary>Returns a new GeneratedStatusReg8 with the Mode field set to the specified value.</summary>
+    /// <summary>Returns a new MustBeTestReg with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithMode(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
-
-    /// <summary>Returns a new GeneratedStatusReg8 with the Priority field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithPriority(byte value) => new((byte)((Value & 0x9F) | (((byte)value << 5) & 0x60)));
+    public MustBeTestReg WithData(byte value) => new((byte)((Value & 0x87) | (((byte)value << 3) & 0x78)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator ~(GeneratedStatusReg8 a) => new((byte)~a.Value);
+    public static MustBeTestReg operator ~(MustBeTestReg a) => new((byte)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator |(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value | b.Value));
+    public static MustBeTestReg operator |(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator &(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value & b.Value));
+    public static MustBeTestReg operator &(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator ^(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value ^ b.Value));
+    public static MustBeTestReg operator ^(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value ^ b.Value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(GeneratedStatusReg8 a) => a;
+    public static MustBeTestReg operator +(MustBeTestReg a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(GeneratedStatusReg8 a) => new(unchecked((byte)(0 - a.Value)));
+    public static MustBeTestReg operator -(MustBeTestReg a) => new(unchecked((byte)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static MustBeTestReg operator +(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(GeneratedStatusReg8 a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static MustBeTestReg operator +(MustBeTestReg a, byte b) => new(unchecked((byte)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator +(byte a, GeneratedStatusReg8 b) => new(unchecked((byte)(a + b.Value)));
+    public static MustBeTestReg operator +(byte a, MustBeTestReg b) => new(unchecked((byte)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static MustBeTestReg operator -(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(GeneratedStatusReg8 a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static MustBeTestReg operator -(MustBeTestReg a, byte b) => new(unchecked((byte)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator -(byte a, GeneratedStatusReg8 b) => new(unchecked((byte)(a - b.Value)));
+    public static MustBeTestReg operator -(byte a, MustBeTestReg b) => new(unchecked((byte)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator *(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static MustBeTestReg operator *(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator *(GeneratedStatusReg8 a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static MustBeTestReg operator *(MustBeTestReg a, byte b) => new(unchecked((byte)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator *(byte a, GeneratedStatusReg8 b) => new(unchecked((byte)(a * b.Value)));
+    public static MustBeTestReg operator *(byte a, MustBeTestReg b) => new(unchecked((byte)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator /(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value / b.Value));
+    public static MustBeTestReg operator /(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator /(GeneratedStatusReg8 a, byte b) => new((byte)(a.Value / b));
+    public static MustBeTestReg operator /(MustBeTestReg a, byte b) => new((byte)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator /(byte a, GeneratedStatusReg8 b) => new((byte)(a / b.Value));
+    public static MustBeTestReg operator /(byte a, MustBeTestReg b) => new((byte)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator %(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => new((byte)(a.Value % b.Value));
+    public static MustBeTestReg operator %(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator %(GeneratedStatusReg8 a, byte b) => new((byte)(a.Value % b));
+    public static MustBeTestReg operator %(MustBeTestReg a, byte b) => new((byte)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 operator %(byte a, GeneratedStatusReg8 b) => new((byte)(a % b.Value));
+    public static MustBeTestReg operator %(byte a, MustBeTestReg b) => new((byte)(a % b.Value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(GeneratedStatusReg8 a, int b) => a.Value << b;
+    public static int operator <<(MustBeTestReg a, int b) => a.Value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(GeneratedStatusReg8 a, int b) => a.Value >> b;
+    public static int operator >>(MustBeTestReg a, int b) => a.Value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(GeneratedStatusReg8 a, int b) => a.Value >>> b;
+    public static int operator >>>(MustBeTestReg a, int b) => a.Value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value < b.Value;
+    public static bool operator <(MustBeTestReg a, MustBeTestReg b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value > b.Value;
+    public static bool operator >(MustBeTestReg a, MustBeTestReg b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value <= b.Value;
+    public static bool operator <=(MustBeTestReg a, MustBeTestReg b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value >= b.Value;
+    public static bool operator >=(MustBeTestReg a, MustBeTestReg b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value == b.Value;
+    public static bool operator ==(MustBeTestReg a, MustBeTestReg b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(GeneratedStatusReg8 a, GeneratedStatusReg8 b) => a.Value != b.Value;
+    public static bool operator !=(MustBeTestReg a, MustBeTestReg b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is GeneratedStatusReg8 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is MustBeTestReg other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -247,30 +231,30 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(GeneratedStatusReg8 value) => value.Value;
+    public static implicit operator byte(MustBeTestReg value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator GeneratedStatusReg8(byte value) => new(value);
+    public static implicit operator MustBeTestReg(byte value) => new(value);
 
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator GeneratedStatusReg8(int value) => new(unchecked((byte)value));
+    public static implicit operator MustBeTestReg(int value) => new(unchecked((byte)value));
 
-    /// <summary>Creates a new GeneratedStatusReg8 from a little-endian byte span.</summary>
+    /// <summary>Creates a new MustBeTestReg from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public GeneratedStatusReg8(ReadOnlySpan<byte> bytes)
+    public MustBeTestReg(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        this = new GeneratedStatusReg8(bytes[0]);
+        this = new MustBeTestReg(bytes[0]);
     }
 
-    /// <summary>Creates a new GeneratedStatusReg8 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new MustBeTestReg by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
-    /// <returns>The deserialized GeneratedStatusReg8.</returns>
+    /// <returns>The deserialized MustBeTestReg.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static MustBeTestReg ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
@@ -343,12 +327,12 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         }
     }
 
-    /// <summary>Parses a string into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a MustBeTestReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedStatusReg8 value.</returns>
+    /// <returns>The parsed MustBeTestReg value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static GeneratedStatusReg8 Parse(string s, IFormatProvider? provider)
+    public static MustBeTestReg Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
@@ -359,12 +343,12 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return new(byte.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a MustBeTestReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out GeneratedStatusReg8 result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out MustBeTestReg result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -397,11 +381,11 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return false;
     }
 
-    /// <summary>Parses a span of characters into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a MustBeTestReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed GeneratedStatusReg8 value.</returns>
-    public static GeneratedStatusReg8 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed MustBeTestReg value.</returns>
+    public static MustBeTestReg Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
@@ -410,12 +394,12 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return new(byte.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a GeneratedStatusReg8. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a MustBeTestReg. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out GeneratedStatusReg8 result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out MustBeTestReg result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -446,18 +430,18 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
         return false;
     }
 
-    /// <summary>Parses a string into a GeneratedStatusReg8 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a MustBeTestReg using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed GeneratedStatusReg8 value.</returns>
+    /// <returns>The parsed MustBeTestReg value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedStatusReg8 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static MustBeTestReg Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a GeneratedStatusReg8 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a MustBeTestReg using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out GeneratedStatusReg8 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out MustBeTestReg result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -477,38 +461,38 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a GeneratedStatusReg8.</exception>
+    /// <exception cref="ArgumentException">obj is not a MustBeTestReg.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is GeneratedStatusReg8 other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type GeneratedStatusReg8", nameof(obj));
+        if (obj is MustBeTestReg other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type MustBeTestReg", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another GeneratedStatusReg8 and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A GeneratedStatusReg8 to compare.</param>
+    /// <summary>Compares this instance to another MustBeTestReg and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A MustBeTestReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(GeneratedStatusReg8 other) => Value.CompareTo(other.Value);
+    public int CompareTo(MustBeTestReg other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another GeneratedStatusReg8.</summary>
-    /// <param name="other">A GeneratedStatusReg8 to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another MustBeTestReg.</summary>
+    /// <param name="other">A MustBeTestReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(GeneratedStatusReg8 other) => Value == other.Value;
+    public bool Equals(MustBeTestReg other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes GeneratedStatusReg8 as a string.</summary>
-    private sealed class GeneratedStatusReg8JsonConverter : JsonConverter<GeneratedStatusReg8>
+    /// <summary>JSON converter that serializes MustBeTestReg as a string.</summary>
+    private sealed class MustBeTestRegJsonConverter : JsonConverter<MustBeTestReg>
     {
-        /// <summary>Reads a GeneratedStatusReg8 from a JSON string.</summary>
-        public override GeneratedStatusReg8 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a MustBeTestReg from a JSON string.</summary>
+        public override MustBeTestReg Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : GeneratedStatusReg8.Parse(s);
+            return s is null ? default : MustBeTestReg.Parse(s);
         }
 
-        /// <summary>Writes a GeneratedStatusReg8 to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, GeneratedStatusReg8 value, JsonSerializerOptions options)
+        /// <summary>Writes a MustBeTestReg to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, MustBeTestReg value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

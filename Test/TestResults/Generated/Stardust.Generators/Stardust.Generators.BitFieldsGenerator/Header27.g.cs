@@ -275,7 +275,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+        this = new Header27(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
     /// <summary>Creates a new Header27 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

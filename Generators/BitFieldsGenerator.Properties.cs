@@ -89,9 +89,25 @@ public partial class BitFieldsGenerator
         }
 
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        
-        // Setter: For signed types, do operations in unsigned space then cast back
-        if (info.StorageTypeIsSigned)
+
+        // Setter: enforce MustBe constraints, or do normal read-modify-write
+        if (field.ValueOverride == MustBe.Zero)
+        {
+            // MustBe.Zero: always clear the field bits regardless of input
+            if (info.StorageTypeIsSigned)
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex});");
+            else
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(Value & {invertedMaskHex});");
+        }
+        else if (field.ValueOverride == MustBe.One)
+        {
+            // MustBe.One: always set the field bits regardless of input
+            if (info.StorageTypeIsSigned)
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((({info.UnsignedStorageType})Value) | {shiftedMaskHex});");
+            else
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(Value | {shiftedMaskHex});");
+        }
+        else if (info.StorageTypeIsSigned)
         {
             if (shift == 0)
             {
@@ -113,7 +129,7 @@ public partial class BitFieldsGenerator
                 sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType})value) << {shift}) & {shiftedMaskHex}));");
             }
         }
-        
+
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
     }
@@ -137,7 +153,27 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         
-        if (info.StorageTypeIsSigned)
+        if (flag.ValueOverride == MustBe.Zero)
+        {
+            // MustBe.Zero: getter always false, setter always clears
+            sb.AppendLine($"{indent}    get => false;");
+            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            if (info.StorageTypeIsSigned)
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((({info.UnsignedStorageType})Value) & {invertedMaskHex});");
+            else
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(Value & {invertedMaskHex});");
+        }
+        else if (flag.ValueOverride == MustBe.One)
+        {
+            // MustBe.One: getter always true, setter always sets
+            sb.AppendLine($"{indent}    get => true;");
+            sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            if (info.StorageTypeIsSigned)
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((({info.UnsignedStorageType})Value) | {maskHex});");
+            else
+                sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(Value | {maskHex});");
+        }
+        else if (info.StorageTypeIsSigned)
         {
             sb.AppendLine($"{indent}    get => ((({info.UnsignedStorageType})Value) & {maskHex}) != 0;");
             sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -149,7 +185,7 @@ public partial class BitFieldsGenerator
             sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             sb.AppendLine($"{indent}    set => Value = value ? ({info.StorageType})(Value | {maskHex}) : ({info.StorageType})(Value & {invertedMaskHex});");
         }
-        
+
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
     }

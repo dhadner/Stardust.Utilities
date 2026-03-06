@@ -263,7 +263,7 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = unchecked((sbyte)bytes[0]);
+        this = new SignedReg8(unchecked((sbyte)bytes[0]));
     }
 
     /// <summary>Creates a new SignedReg8 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

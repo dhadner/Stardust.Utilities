@@ -293,7 +293,7 @@ public partial class BitFieldProtocolTests
         {
             if (bytes.Length < SizeInBytes)
                 throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+            this = new TcpControlWord(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
         }
 
         /// <summary>Creates a new TcpControlWord by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

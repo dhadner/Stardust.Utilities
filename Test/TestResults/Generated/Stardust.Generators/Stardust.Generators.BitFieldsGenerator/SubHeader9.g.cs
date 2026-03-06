@@ -215,7 +215,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+        this = new SubHeader9(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
     /// <summary>Creates a new SubHeader9 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

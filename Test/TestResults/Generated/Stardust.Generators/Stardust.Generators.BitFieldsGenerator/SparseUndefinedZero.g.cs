@@ -215,7 +215,7 @@ public partial struct SparseUndefinedZero : IComparable, IComparable<SparseUndef
     {
         if (bytes.Length < SizeInBytes)
             throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = unchecked((sbyte)bytes[0]);
+        this = new SparseUndefinedZero(unchecked((sbyte)bytes[0]));
     }
 
     /// <summary>Creates a new SparseUndefinedZero by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>

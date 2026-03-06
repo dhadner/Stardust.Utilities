@@ -340,7 +340,7 @@ internal static partial class BitFieldsMultiWordGenerator
         // For big-endian, word 0 maps to the LAST bytes in the buffer (most significant word first)
         // For little-endian, word 0 maps to the FIRST bytes (least significant word first)
 
-        // ReadOnlySpan<byte> constructor
+        // ReadOnlySpan<byte> constructor -- applies UndefinedBitsMustBe masking on the last word
         sb.AppendLine($"{ind}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
         sb.AppendLine($"{ind}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
         sb.AppendLine($"{ind}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
@@ -348,32 +348,41 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    if (bytes.Length < SizeInBytes)");
         sb.AppendLine($"{ind}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(bytes));");
+
+        // Calculate whether last word needs masking (same logic as GenerateConstructors)
+        int lwBits = layout.RemainderBits > 0 ? layout.RemainderBits : 64;
+        bool mustMaskLast = lwBits < (layout.IsRemainder(wc - 1)
+            ? (layout.RemainderType == "byte" ? 8 : layout.RemainderType == "ushort" ? 16 : layout.RemainderType == "uint" ? 32 : 64)
+            : 64);
+
         for (int i = 0; i < wc; i++)
         {
             int offset = i * 8;
+            bool isLast = i == wc - 1;
+            string readExpr;
+
             if (layout.IsRemainder(i))
             {
-                // Read the remainder using the smallest appropriate method
-                switch (layout.RemainderType)
+                readExpr = layout.RemainderType switch
                 {
-                    case "byte":
-                        sb.AppendLine($"{ind}    _w{i} = bytes[{offset}];");
-                        break;
-                    case "ushort":
-                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU16}(bytes.Slice({offset}));");
-                        break;
-                    case "uint":
-                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU32}(bytes.Slice({offset}));");
-                        break;
-                    default: // ulong remainder
-                        sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU64}(bytes.Slice({offset}));");
-                        break;
-                }
+                    "byte" => $"bytes[{offset}]",
+                    "ushort" => $"BinaryPrimitives.{readU16}(bytes.Slice({offset}))",
+                    "uint" => $"BinaryPrimitives.{readU32}(bytes.Slice({offset}))",
+                    _ => $"BinaryPrimitives.{readU64}(bytes.Slice({offset}))"
+                };
             }
             else
             {
-                sb.AppendLine($"{ind}    _w{i} = BinaryPrimitives.{readU64}(bytes.Slice({offset}));");
+                readExpr = $"BinaryPrimitives.{readU64}(bytes.Slice({offset}))";
             }
+
+            // Apply UndefinedBitsMustBe masking on last word
+            if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
+                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} & LastWordMask")};");
+            else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
+                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} | ~LastWordMask")};");
+            else
+                sb.AppendLine($"{ind}    _w{i} = {readExpr};");
         }
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
