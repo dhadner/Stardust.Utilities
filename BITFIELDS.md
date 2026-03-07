@@ -45,10 +45,11 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 - [Sub-View Nesting](#sub-view-nesting)
 - [Mixed-Endian Nesting](#mixed-endian-nesting)
 
+**Pre-Defined Types**
+- [Numeric Decomposition Types](#numeric-decomposition-types)
+
 **Real-World Examples**
 - [Hardware Registers](#hardware-registers)
-- [IEEE 754 Floating-Point Decomposition](#ieee-754-floating-point-decomposition)
-- [.NET Decimal Decomposition](#net-decimal-decomposition)
 - [Network Protocol Headers (RFC)](#network-protocol-headers-rfc)
 - [Parsing a Captured Network Packet](#parsing-a-captured-network-packet)
 - [Mixed-Endian Capture File](#mixed-endian-capture-file)
@@ -69,7 +70,7 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 ## Quick Start -- BitFields (Value Type)
 
 ```csharp
-[BitFields(typeof(ushort))]
+[BitFields(StorageType.UInt16)]  // StorageType enum -- preferred
 public partial struct KeyboardReg
 {
     [BitField(0, 6)]  public partial byte KeyCode { get; set; }   // bits 0..=6 (7 bits)
@@ -81,6 +82,20 @@ public partial struct KeyboardReg
 KeyboardReg reg = 0xFFFF;       // implicit conversion from ushort
 reg.KeyUp = false;
 ushort raw = reg;               // implicit conversion to ushort
+```
+
+The `StorageType` enum is the recommended way to specify the backing type. IntelliSense
+autocomplete shows all supported types as you type, so you discover valid choices instantly
+without consulting documentation. If you choose an unsupported type via the older `typeof(T)`
+form, the error is only discovered after writing the struct body and building, which can mean
+significant rework. The `StorageType` enum moves that validation to the moment you write the
+attribute -- making development faster, less error prone, and reducing late-stage surprises.
+
+The `typeof(T)` form is still fully supported for backward compatibility:
+
+```csharp
+[BitFields(typeof(ushort))]  // typeof(T) -- also valid
+public partial struct KeyboardReg { ... }
 ```
 
 `[BitFields]` generates a value type with inline bit manipulation, full operator support,
@@ -138,7 +153,8 @@ Both `[BitFields]` and `[BitFieldsView]` use the same field attributes:
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Marks a `partial struct` for value-type generation |
+| `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Preferred. Enum provides IntelliSense discovery of all supported types |
+| `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Also supported. Equivalent to the enum form; exists for backward compatibility |
 | `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a `partial record struct` for buffer-view generation |
 | `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (width = endBit - startBit + 1) |
 | `[BitFlag(bit)]` | 0-based bit position, optional `MustBe` | Single-bit boolean flag |
@@ -226,21 +242,27 @@ Console.WriteLine(reg.Speed);   // 5 (unsigned, stays positive)
 
 ## Supported Storage Types
 
-`[BitFields]` supports these storage types:
+`[BitFields]` supports these storage types. The `StorageType` enum is the preferred way to
+specify the backing type because IntelliSense shows all valid choices as you type, preventing
+mistakes before they happen. The `typeof(T)` form is also supported for backward compatibility.
 
-| Storage Type | Size | Notes |
-|--------------|------|-------|
-| `byte` / `sbyte` | 8 bits | |
-| `ushort` / `short` | 16 bits | |
-| `uint` / `int` | 32 bits | |
-| `ulong` / `long` | 64 bits | |
-| `nuint` / `nint` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint--nuint) |
-| `UInt128` / `Int128` | 128 bits | |
-| `Half` | 16 bits | IEEE 754 half-precision |
-| `float` | 32 bits | IEEE 754 single-precision |
-| `double` | 64 bits | IEEE 754 double-precision |
-| `decimal` | 128 bits | .NET decimal |
-| `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
+| `StorageType` Enum | `typeof(T)` | Size | Notes |
+|--------------------|-------------|------|-------|
+| `StorageType.Byte` / `.SByte` | `typeof(byte)` / `typeof(sbyte)` | 8 bits | |
+| `StorageType.UInt16` / `.Int16` | `typeof(ushort)` / `typeof(short)` | 16 bits | |
+| `StorageType.UInt32` / `.Int32` | `typeof(uint)` / `typeof(int)` | 32 bits | |
+| `StorageType.UInt64` / `.Int64` | `typeof(ulong)` / `typeof(long)` | 64 bits | |
+| `StorageType.NUInt` / `.NInt` | `typeof(nuint)` / `typeof(nint)` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint--nuint) |
+| `StorageType.UInt128` / `.Int128` | `typeof(UInt128)` / `typeof(Int128)` | 128 bits | |
+| `StorageType.Half` | `typeof(Half)` | 16 bits | IEEE 754 half-precision |
+| `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
+| `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
+| `StorageType.Decimal` | `typeof(decimal)` | 128 bits | .NET decimal |
+| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
+
+Using `typeof(T)` with a type not in this table (for example, `typeof(Guid)`) produces
+compiler error **SD0003**, which names the unsupported type and lists all valid alternatives.
+The `StorageType` enum avoids this entirely because only valid values appear in IntelliSense.
 
 ## Native Integer Types (nint / nuint)
 
@@ -250,7 +272,7 @@ bit-packed values, and other platform-width-sensitive structures.
 
 ```csharp
 // 32-bit safe: all fields fit within bits 0-31 on any platform
-[BitFields(typeof(nuint))]
+[BitFields(StorageType.NUInt)]
 public partial struct PointerTagReg
 {
     [BitField(0, 7)]  public partial byte Tag { get; set; }       // bits 0..=7
@@ -260,7 +282,7 @@ public partial struct PointerTagReg
 }
 
 // 64-bit only: uses high bits above 31
-[BitFields(typeof(nuint))]
+[BitFields(StorageType.NUInt)]
 public partial struct WideNativeReg
 {
 #pragma warning disable SD0002 // High bits: only valid on 64-bit
@@ -641,7 +663,7 @@ Console.WriteLine(v1 == v3);  // False -- different arrays
 BitFields types can be used as property types within other BitFields, enabling reusable sub-structures:
 
 ```csharp
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
@@ -649,7 +671,7 @@ public partial struct StatusFlags
     [BitField(4, 7)] public partial byte Priority { get; set; }
 }
 
-[BitFields(typeof(ushort))]
+[BitFields(StorageType.UInt16)]
 public partial struct ProtocolHeader
 {
     [BitField(0, 7)]  public partial StatusFlags Status { get; set; }  // embedded!
@@ -667,7 +689,7 @@ bool ready = header.Status.Ready;  // true
 handle packing and unpacking automatically:
 
 ```csharp
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Active { get; set; }
@@ -799,7 +821,7 @@ to the same underlying buffer.
 ### 8-bit VIA Register
 
 ```csharp
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct ViaRegB
 {
     [BitField(0, 2)] public partial byte SoundVolume { get; set; }
@@ -814,7 +836,7 @@ public partial struct ViaRegB
 ### 16-bit Keyboard Register
 
 ```csharp
-[BitFields(typeof(ushort))]
+[BitFields(StorageType.UInt16)]
 public partial struct KeyboardReg0
 {
     [BitField(0, 6)]  public partial byte SecondKeyCode { get; set; }
@@ -827,7 +849,7 @@ public partial struct KeyboardReg0
 ### 64-bit Status Register
 
 ```csharp
-[BitFields(typeof(ulong))]
+[BitFields(StorageType.UInt64)]
 public partial struct StatusReg64
 {
     [BitField(0, 7)]   public partial byte Status { get; set; }
@@ -839,43 +861,51 @@ public partial struct StatusReg64
 }
 ```
 
-## IEEE 754 Floating-Point Decomposition
+## Numeric Decomposition Types
 
-`[BitFields(typeof(double))]` decomposes IEEE 754 values into their constituent bit fields.
-Because the struct is `partial`, you can add computed properties alongside the generated accessors.
+The library ships four pre-defined BitFields structs that decompose .NET numeric types into
+their constituent bit fields. Just `using Stardust.Utilities;` and start using them -- no
+struct definitions required.
+
+| Type | Storage | Fields | Use case |
+|------|---------|--------|----------|
+| `IEEE754Half` | `Half` (16-bit) | Sign, BiasedExponent (5-bit, bias 15), Mantissa (10-bit) | Half-precision analysis |
+| `IEEE754Single` | `float` (32-bit) | Sign, BiasedExponent (8-bit, bias 127), Mantissa (23-bit) | Single-precision analysis |
+| `IEEE754Double` | `double` (64-bit) | Sign, BiasedExponent (11-bit, bias 1023), Mantissa (52-bit) | Double-precision analysis |
+| `DecimalBitFields` | `decimal` (128-bit) | Sign, Scale (0-28), Coefficient (96-bit) | Decimal inspection |
+
+All four types include implicit conversions to/from their storage type, full operator support,
+and classification properties.
+
+### IEEE754Double
 
 ```
-Bit:  63 | 62 ??? 52 | 51 ???????????????????? 0
-      S  | Exponent   | Mantissa (fractional)
-      1  |   11 bits  |       52 bits
+IEEE 754 Double-Precision (64-bit)
+                 6                                                 5                                                 4                                                 3                                                 2                                                 1                                                 0
+  3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|                    BiasedExponent                    |                                                                                                                             Mantissa                                                                                                                              |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Mantissa: 52-bit significand (fractional part); implicit leading 1 not stored
+  BiasedExponent: 11-bit biased exponent (bias 1023); subtract 1023 for true power of 2
+  Sign: Sign bit: 1 = negative, 0 = positive
 ```
 
 ```csharp
-[BitFields(typeof(double))]
-public partial struct IEEE754Double
-{
-    [BitField(0, 51)]  public partial ulong  Mantissa { get; set; }
-    [BitField(52, 62)] public partial ushort Exponent { get; set; }
-    [BitFlag(63)]      public partial bool   Sign     { get; set; }
+using Stardust.Utilities;
 
-    public bool IsNaN => Exponent == 0x7FF && Mantissa != 0;
-    public bool IsInfinity => Exponent == 0x7FF && Mantissa == 0;
-    public bool IsDenormalized => Exponent == 0 && Mantissa != 0;
-    public bool IsNormal => Exponent > 0 && Exponent < 0x7FF;
-    public int? UnbiasedExponent => IsNormal ? Exponent - 1023 : null;
-}
-
-// Inspect any double
+// Inspect any double -- implicit conversion from double
 IEEE754Double pi = Math.PI;
 pi.Sign;              // false
-pi.Exponent;          // 1024
-pi.UnbiasedExponent;  // 1 (2^1 range, since 2 <= pi < 4)
+pi.BiasedExponent;    // 1024 (raw stored value, includes +1023 bias)
+pi.Exponent;          // 1    (true mathematical power: 2^1, since 2 <= pi < 4)
 pi.Mantissa;          // 0x921FB54442D18
 
 // Construct from bit fields
 IEEE754Double val = default;
 val.Sign = false;
-val.Exponent = 1024;
+val.BiasedExponent = 1024;
 val.Mantissa = 0x921FB54442D18;
 double result = val;  // == Math.PI
 
@@ -886,48 +916,151 @@ x.Sign = !x.Sign;    // x == -42.0
 // Full arithmetic works through generated operators
 IEEE754Double a = 1.0, sqrt5 = Math.Sqrt(5.0), two = 2.0;
 IEEE754Double phi = (a + sqrt5) / two;  // golden ratio
+
+// Classification properties
+pi.IsNormal;              // true
+pi.IsNaN;                 // false
+pi.IsInfinity;            // false
+pi.IsDenormalized;        // false
+pi.IsZero;                // false
+
+// Classify special values
+IEEE754Double nan = double.NaN;
+nan.IsNaN;                // true
+
+IEEE754Double inf = double.PositiveInfinity;
+inf.IsInfinity;           // true
+
+IEEE754Double tiny = double.Epsilon;
+tiny.IsDenormalized;      // true
 ```
 
-The same pattern works for `Half` (16-bit) and `float` (32-bit):
+### IEEE754Single
+
+```
+IEEE 754 Single-Precision (32-bit)
+       3                                                 2                                                 1                                                 0
+  1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|            BiasedExponent             |                                                     Mantissa                                                     |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Mantissa: 23-bit significand (fractional part); implicit leading 1 not stored
+  BiasedExponent: 8-bit biased exponent (bias 127); subtract 127 for true power of 2
+  Sign: Sign bit: 1 = negative, 0 = positive
+```
 
 ```csharp
-[BitFields(typeof(Half))]
-public partial struct IEEE754Half
-{
-    [BitField(0, 9)]   public partial ushort Mantissa { get; set; }
-    [BitField(10, 14)] public partial byte   Exponent { get; set; }
-    [BitFlag(15)]      public partial bool   Sign     { get; set; }
-}
+IEEE754Single f = 1.5f;
+f.Sign;            // false
+f.BiasedExponent;  // 127 (raw stored value)
+f.Exponent;        // 0   (true power: 1.5 is in [1, 2), so 2^0)
+f.Mantissa;        // 0x400000 (bit 22 set = 0.5)
+
+// Build from parts
+var built = IEEE754Single.Zero
+    .WithSign(false)
+    .WithBiasedExponent(127)
+    .WithMantissa(0x400000u);
+((float)built);  // 1.5f
+
+// Classification
+IEEE754Single eps = float.Epsilon;
+eps.IsDenormalized;  // true
+eps.IsNormal;        // false
 ```
 
-## .NET Decimal Decomposition
-
-`[BitFields(typeof(decimal))]` decomposes .NET's 128-bit decimal into its constituent fields:
+### IEEE754Half
 
 ```
-Bits:  127 | 126-119 | 118-112 | 111-96   | 95 ?????????????????? 0
-       Sign| Reserved| Scale   | Reserved | 96-bit unsigned coefficient
+IEEE 754 Half-Precision (16-bit)
+                           1                                                 0
+  5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|     BiasedExponent     |                    Mantissa                     |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Mantissa: 10-bit significand (fractional part); implicit leading 1 not stored
+  BiasedExponent: 5-bit biased exponent (bias 15); subtract 15 for true power of 2
+  Sign: Sign bit: 1 = negative, 0 = positive
 ```
 
 ```csharp
-[BitFields(typeof(decimal))]
-public partial struct DecimalParts
-{
-    [BitField(0, 95)]    public partial UInt128 Coefficient { get; set; }
-    [BitField(112, 118)] public partial byte    Scale       { get; set; }
-    [BitFlag(127)]       public partial bool    Sign        { get; set; }
-}
+IEEE754Half h = (Half)1.5;
+h.Sign;            // false
+h.BiasedExponent;  // 15 (raw stored value)
+h.Exponent;        // 0  (true power: 1.5 is in [1, 2), so 2^0)
+h.Mantissa;        // 0x200 (bit 9 set = 0.5)
+h.IsNormal;        // true
 
-DecimalParts price = 19.99m;
+// Constants for reference
+IEEE754Half.EXPONENT_BIAS;  // 15
+IEEE754Half.MAX_EXPONENT;   // 0x1F (31)
+```
+
+### DecimalBitFields
+
+```
+.NET Decimal (128-bit)
+       3                                                 2                                                 1                                                 0
+  1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|                                                                          Coefficient                                                                          |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|                                                                          Coefficient                                                                          |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|                                                                          Coefficient                                                                          |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|               Undefined               |              Scale               |                                   Undefined                                   |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Coefficient: 96-bit unsigned integer coefficient (value before scaling)
+  Scale: Scale factor (0-28); value = Coefficient / 10^Scale
+  Sign: Sign bit: 1 = negative, 0 = positive
+
+  U/Undefined = bits not defined in the struct
+```
+
+```csharp
+DecimalBitFields price = 19.99m;
 price.Sign;          // false
 price.Scale;         // 2 (divided by 10^2)
 price.Coefficient;   // 1999
 
 // Full decimal arithmetic
-DecimalParts a = 10.5m, b = 3m;
+DecimalBitFields a = 10.5m, b = 3m;
 decimal sum  = a + b;   // 13.5m
 decimal prod = a * b;   // 31.5m
+
+// Inspect sign
+DecimalBitFields neg = -42m;
+neg.Sign;       // true
+neg.Coefficient; // 42
 ```
+
+### Constants
+
+Each IEEE 754 type provides bias and max-exponent constants:
+
+| Type | `EXPONENT_BIAS` | `MAX_EXPONENT` |
+|------|-----------------|----------------|
+| `IEEE754Half` | 15 | 31 (0x1F) |
+| `IEEE754Single` | 127 | 255 (0xFF) |
+| `IEEE754Double` | 1023 | 2047 (0x7FF) |
+| `DecimalBitFields` | -- | `MAX_SCALE` = 28 |
+
+### Classification Properties (IEEE 754 types)
+
+All three IEEE 754 types provide the same classification properties:
+
+| Property | Condition | Description |
+|----------|-----------|-------------|
+| `IsNormal` | 0 < biasedExponent < max | Ordinary floating-point value |
+| `IsDenormalized` | biasedExponent = 0, mantissa != 0 | Subnormal (very small) value |
+| `IsZero` | biasedExponent = 0, mantissa = 0 | Positive or negative zero |
+| `IsInfinity` | biasedExponent = max, mantissa = 0 | Positive or negative infinity |
+| `IsNaN` | biasedExponent = max, mantissa != 0 | Not a Number |
+| `Exponent` | Normal values only | True mathematical exponent (biased minus bias), or `null` |
 
 ## Network Protocol Headers (RFC)
 

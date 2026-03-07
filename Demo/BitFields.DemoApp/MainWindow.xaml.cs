@@ -309,6 +309,10 @@ public partial class MainWindow : Window
             Single("COFF Header", typeof(CoffHeaderView)),
             Single("Optional Header", typeof(OptionalHeaderView)),
             Single("CPU Status Register", typeof(CpuStatusRegister)),
+            Single("IEEE 754 Half (16-bit)", typeof(IEEE754Half)),
+            Single("IEEE 754 Single (32-bit)", typeof(IEEE754Single)),
+            Single("IEEE 754 Double (64-bit)", typeof(IEEE754Double)),
+            Single("Decimal (128-bit)", typeof(DecimalBitFields)),
             new(
             [
                 typeof(M68020DataRegisters),

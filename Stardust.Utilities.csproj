@@ -42,12 +42,15 @@
 		<Compile Remove="Generators\**" />
 		<Compile Remove="Test\**" />
 		<Compile Remove="Demo\**" />
+		<Compile Remove="DiagramGen\**" />
 		<None Remove="Generators\**" />
 		<None Remove="Test\**" />
 		<None Remove="Demo\**" />
+		<None Remove="DiagramGen\**" />
 		<EmbeddedResource Remove="Generators\**" />
 		<EmbeddedResource Remove="Test\**" />
 		<EmbeddedResource Remove="Demo\**" />
+		<EmbeddedResource Remove="DiagramGen\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Include="Demo\BitFields.DemoApp\Utilities\AssemblyStructDiscovery.cs" />
@@ -74,6 +77,7 @@
 		<None Include=".github\workflows\ci.yml" />
 		<None Include=".github\workflows\dependency-submission.yml" />
 		<None Include=".github\workflows\deploy-demo.yml" />
+		<None Include="DiagramGen\DiagramGen.csproj" />
 		<None Include="PRIVACY.md" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
