@@ -995,7 +995,7 @@ h.IsNormal;        // true
 
 // Constants for reference
 IEEE754Half.EXPONENT_BIAS;  // 15
-IEEE754Half.MAX_EXPONENT;   // 0x1F (31)
+IEEE754Half.MAX_BIASED_EXPONENT;   // 0x1F (31)
 ```
 
 ### DecimalBitFields
@@ -1042,12 +1042,17 @@ neg.Coefficient; // 42
 
 Each IEEE 754 type provides bias and max-exponent constants:
 
-| Type | `EXPONENT_BIAS` | `MAX_EXPONENT` |
-|------|-----------------|----------------|
-| `IEEE754Half` | 15 | 31 (0x1F) |
-| `IEEE754Single` | 127 | 255 (0xFF) |
-| `IEEE754Double` | 1023 | 2047 (0x7FF) |
-| `DecimalBitFields` | -- | `MAX_SCALE` = 28 |
+| Type | `EXPONENT_BIAS` | `MAX_BIASED_EXPONENT` | `MIN_EXPONENT` | `MAX_EXPONENT` |
+|------|-----------------|----------------|----------------|---------------------|
+| `IEEE754Half` | 15 | 31 (0x1F) | -14 | 15 |
+| `IEEE754Single` | 127 | 255 (0xFF) | -126 | 127 |
+| `IEEE754Double` | 1023 | 2047 (0x7FF) | -1022 | 1023 |
+| `DecimalBitFields` | -- | `MAX_SCALE` = 28 | -- | -- |
+
+`MIN_EXPONENT` and `MAX_EXPONENT` define the normal range for the `WithExponent(int)` method
+and the `Exponent` setter (the true mathematical exponent, after bias removal). Values outside
+this range are masked by the underlying `WithBiasedExponent`/`BiasedExponent` setter and may
+produce non-normal encodings (zero, denormalized, infinity, or NaN).
 
 ### Classification Properties (IEEE 754 types)
 
@@ -1060,7 +1065,39 @@ All three IEEE 754 types provide the same classification properties:
 | `IsZero` | biasedExponent = 0, mantissa = 0 | Positive or negative zero |
 | `IsInfinity` | biasedExponent = max, mantissa = 0 | Positive or negative infinity |
 | `IsNaN` | biasedExponent = max, mantissa != 0 | Not a Number |
-| `Exponent` | Normal values only | True mathematical exponent (biased minus bias), or `null` |
+| `Exponent` | Normal values only | True mathematical exponent (biased minus bias), or `null`. Setter applies bias automatically; assigning `null` sets `BiasedExponent` to 0, and `BiasedExponent` == 0 returns null for `Exponent` |
+
+### WithExponent (Fluent True-Exponent Setter)
+
+All three IEEE 754 types provide a `WithExponent(int)` fluent method that sets the
+`BiasedExponent` from a true mathematical exponent (the bias is added automatically).
+Out-of-range values are masked by the underlying `WithBiasedExponent` method, consistent
+with all other generated `With...` methods.
+
+The `Exponent` property also provides a setter: assigning an `int` applies the bias and
+sets `BiasedExponent`; assigning `null` sets `BiasedExponent` to 0.
+
+```csharp
+// Build 2^3 = 8.0 from a true exponent
+var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+double value = d;  // 8.0
+
+// Round-trip: read Exponent, rebuild with WithExponent
+IEEE754Double pi = Math.PI;
+int exp = pi.Exponent!.Value;           // 1
+var rebuilt = IEEE754Double.Zero
+    .WithExponent(exp)
+    .WithMantissa(pi.Mantissa);
+double result = rebuilt;                 // == Math.PI
+
+// Set Exponent directly via the setter
+IEEE754Double d2 = 1.0;
+d2.Exponent = 3;                         // BiasedExponent = 3 + 1023 = 1026
+d2.Exponent = null;                      // BiasedExponent = 0
+
+// Out-of-range values are masked (no exception)
+var h = IEEE754Half.Zero.WithExponent(16);  // biased value masked to 5-bit field
+```
 
 ## Network Protocol Headers (RFC)
 

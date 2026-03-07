@@ -177,7 +177,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Half_MaxExponent_Is31()
     {
-        IEEE754Half.MAX_EXPONENT.Should().Be(0x1F);
+        IEEE754Half.MAX_BIASED_EXPONENT.Should().Be(0x1F);
     }
 
     #endregion
@@ -200,6 +200,87 @@ public class NumericBitFieldsTests
             .WithBiasedExponent(15)
             .WithMantissa(0x200);
         ((Half)h).Should().Be((Half)1.5);
+    }
+
+    [Fact]
+    public void Half_WithExponent_BuildsPowerOfTwo()
+    {
+        // 2^3 = 8.0
+        var h = IEEE754Half.Zero.WithExponent(3).WithMantissa(0);
+        ((Half)h).Should().Be((Half)8.0);
+        h.Exponent.Should().Be(3);
+    }
+
+    [Fact]
+    public void Half_WithExponent_RoundTrips()
+    {
+        IEEE754Half h = (Half)4.0;
+        int exp = h.Exponent!.Value;
+        var rebuilt = IEEE754Half.Zero.WithExponent(exp).WithMantissa(h.Mantissa);
+        ((Half)rebuilt).Should().Be((Half)4.0);
+    }
+
+    [Fact]
+    public void Half_WithExponent_MinExponent()
+    {
+        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MIN_EXPONENT);
+        h.BiasedExponent.Should().Be(1);
+        h.IsNormal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Half_WithExponent_MaxTrueExponent()
+    {
+        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MAX_EXPONENT);
+        h.BiasedExponent.Should().Be(IEEE754Half.MAX_BIASED_EXPONENT - 1);
+        h.IsNormal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Half_WithExponent_MasksBelowMin()
+    {
+        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MIN_EXPONENT - 1);
+        h.BiasedExponent.Should().Be(0, "out-of-range value is masked by WithBiasedExponent");
+    }
+
+    [Fact]
+    public void Half_WithExponent_MasksAboveMax()
+    {
+        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MAX_EXPONENT + 1);
+        h.BiasedExponent.Should().BeLessThanOrEqualTo(IEEE754Half.MAX_BIASED_EXPONENT,
+            "out-of-range value is masked by WithBiasedExponent");
+    }
+
+    [Fact]
+    public void Half_ExponentSetter_SetsTrueExponent()
+    {
+        IEEE754Half h = (Half)1.0;
+        h.Exponent = 3;
+        h.BiasedExponent.Should().Be((byte)(3 + IEEE754Half.EXPONENT_BIAS));
+    }
+
+    [Fact]
+    public void Half_ExponentSetter_NullSetsBiasedExponentToZero()
+    {
+        IEEE754Half h = (Half)4.0;
+        h.Exponent = null;
+        h.BiasedExponent.Should().Be(0);
+    }
+
+    #endregion
+
+    #region IEEE754Half: Exponent Range Constants
+
+    [Fact]
+    public void Half_MinExponent_IsNegative14()
+    {
+        IEEE754Half.MIN_EXPONENT.Should().Be(-14);
+    }
+
+    [Fact]
+    public void Half_MaxTrueExponent_Is15()
+    {
+        IEEE754Half.MAX_EXPONENT.Should().Be(15);
     }
 
     #endregion
@@ -429,7 +510,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Single_MaxExponent_Is255()
     {
-        IEEE754Single.MAX_EXPONENT.Should().Be(0xFF);
+        IEEE754Single.MAX_BIASED_EXPONENT.Should().Be(0xFF);
     }
 
     #endregion
@@ -463,6 +544,87 @@ public class NumericBitFieldsTests
             .WithBiasedExponent(127)
             .WithMantissa(0x400000u);
         ((float)f).Should().Be(1.5f);
+    }
+
+    [Fact]
+    public void Single_WithExponent_BuildsPowerOfTwo()
+    {
+        // 2^3 = 8.0f
+        var f = IEEE754Single.Zero.WithExponent(3).WithMantissa(0);
+        ((float)f).Should().Be(8.0f);
+        f.Exponent.Should().Be(3);
+    }
+
+    [Fact]
+    public void Single_WithExponent_RoundTrips()
+    {
+        IEEE754Single f = 8.0f;
+        int exp = f.Exponent!.Value;
+        var rebuilt = IEEE754Single.Zero.WithExponent(exp).WithMantissa(f.Mantissa);
+        ((float)rebuilt).Should().Be(8.0f);
+    }
+
+    [Fact]
+    public void Single_WithExponent_MinExponent()
+    {
+        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MIN_EXPONENT);
+        f.BiasedExponent.Should().Be(1);
+        f.IsNormal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Single_WithExponent_MaxTrueExponent()
+    {
+        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MAX_EXPONENT);
+        f.BiasedExponent.Should().Be(IEEE754Single.MAX_BIASED_EXPONENT - 1);
+        f.IsNormal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Single_WithExponent_MasksBelowMin()
+    {
+        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MIN_EXPONENT - 1);
+        f.BiasedExponent.Should().Be(0, "out-of-range value is masked by WithBiasedExponent");
+    }
+
+    [Fact]
+    public void Single_WithExponent_MasksAboveMax()
+    {
+        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MAX_EXPONENT + 1);
+        f.BiasedExponent.Should().BeLessThanOrEqualTo(IEEE754Single.MAX_BIASED_EXPONENT,
+            "out-of-range value is masked by WithBiasedExponent");
+    }
+
+    [Fact]
+    public void Single_ExponentSetter_SetsTrueExponent()
+    {
+        IEEE754Single f = 1.0f;
+        f.Exponent = 3;
+        f.BiasedExponent.Should().Be((byte)(3 + IEEE754Single.EXPONENT_BIAS));
+    }
+
+    [Fact]
+    public void Single_ExponentSetter_NullSetsBiasedExponentToZero()
+    {
+        IEEE754Single f = 8.0f;
+        f.Exponent = null;
+        f.BiasedExponent.Should().Be(0);
+    }
+
+    #endregion
+
+    #region IEEE754Single: Exponent Range Constants
+
+    [Fact]
+    public void Single_MinExponent_IsNegative126()
+    {
+        IEEE754Single.MIN_EXPONENT.Should().Be(-126);
+    }
+
+    [Fact]
+    public void Single_MaxTrueExponent_Is127()
+    {
+        IEEE754Single.MAX_EXPONENT.Should().Be(127);
     }
 
     #endregion
@@ -738,7 +900,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Double_MaxExponent_Is2047()
     {
-        IEEE754Double.MAX_EXPONENT.Should().Be(0x7FF);
+        IEEE754Double.MAX_BIASED_EXPONENT.Should().Be(0x7FF);
     }
 
     #endregion
@@ -812,6 +974,95 @@ public class NumericBitFieldsTests
         tiny.Mantissa = 1;
         double val = tiny;
         val.Should().Be(double.Epsilon);
+    }
+
+    [Fact]
+    public void Double_WithExponent_BuildsPowerOfTwo()
+    {
+        // 2^3 = 8.0
+        var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+        ((double)d).Should().Be(8.0);
+        d.Exponent.Should().Be(3);
+    }
+
+    [Fact]
+    public void Double_WithExponent_RoundTrips()
+    {
+        IEEE754Double d = Math.PI;
+        int exp = d.Exponent!.Value;
+        var rebuilt = IEEE754Double.Zero.WithExponent(exp).WithMantissa(d.Mantissa);
+        ((double)rebuilt).Should().Be(Math.PI);
+    }
+
+    [Fact]
+    public void Double_WithExponent_NegativeExponent()
+    {
+        // 2^-1 = 0.5
+        var d = IEEE754Double.Zero.WithExponent(-1).WithMantissa(0);
+        ((double)d).Should().Be(0.5);
+    }
+
+    [Fact]
+    public void Double_WithExponent_MinExponent()
+    {
+        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MIN_EXPONENT);
+        d.BiasedExponent.Should().Be(1);
+        d.IsNormal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Double_WithExponent_MaxTrueExponent()
+    {
+        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MAX_EXPONENT);
+        d.BiasedExponent.Should().Be(IEEE754Double.MAX_BIASED_EXPONENT - 1);
+        d.IsNormal.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Double_WithExponent_MasksBelowMin()
+    {
+        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MIN_EXPONENT - 1);
+        d.BiasedExponent.Should().Be(0, "out-of-range value is masked by WithBiasedExponent");
+    }
+
+    [Fact]
+    public void Double_WithExponent_MasksAboveMax()
+    {
+        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MAX_EXPONENT + 1);
+        d.BiasedExponent.Should().BeLessThanOrEqualTo((ushort)IEEE754Double.MAX_BIASED_EXPONENT,
+            "out-of-range value is masked by WithBiasedExponent");
+    }
+
+    [Fact]
+    public void Double_ExponentSetter_SetsTrueExponent()
+    {
+        IEEE754Double d = 1.0;
+        d.Exponent = 3;
+        d.BiasedExponent.Should().Be((ushort)(3 + IEEE754Double.EXPONENT_BIAS));
+    }
+
+    [Fact]
+    public void Double_ExponentSetter_NullSetsBiasedExponentToZero()
+    {
+        IEEE754Double d = Math.PI;
+        d.Exponent = null;
+        d.BiasedExponent.Should().Be(0);
+    }
+
+    #endregion
+
+    #region IEEE754Double: Exponent Range Constants
+
+    [Fact]
+    public void Double_MinExponent_IsNegative1022()
+    {
+        IEEE754Double.MIN_EXPONENT.Should().Be(-1022);
+    }
+
+    [Fact]
+    public void Double_MaxTrueExponent_Is1023()
+    {
+        IEEE754Double.MAX_EXPONENT.Should().Be(1023);
     }
 
     #endregion

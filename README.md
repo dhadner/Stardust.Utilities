@@ -671,7 +671,8 @@ struct definitions required.
 
 All four types include implicit conversions to/from their storage type, full operator support,
 classification properties (`IsNormal`, `IsNaN`, `IsInfinity`, `IsDenormalized`, `IsZero`),
-and both the raw `BiasedExponent` field and a computed `Exponent` property that removes the bias.
+both the raw `BiasedExponent` field and a computed `Exponent` property that removes the bias,
+and a `WithExponent(int)` fluent method that sets the exponent from its true mathematical value.
 
 ##### IEEE 754 Half-Precision (16-bit)
 
@@ -771,6 +772,31 @@ DecimalBitFields price = 19.99m;
 price.Sign;          // false
 price.Scale;         // 2 (divided by 10^2)
 price.Coefficient;   // 1999
+```
+
+##### WithExponent (Fluent True-Exponent Setter)
+
+The IEEE 754 types provide `WithExponent(int)` to set the biased exponent from a true
+mathematical exponent. Out-of-range values are masked by the underlying `WithBiasedExponent`
+method, consistent with all other generated `With...` methods. The `Exponent` property also
+provides a setter that applies the bias automatically (assigning `null` sets `BiasedExponent` to 0).
+
+```csharp
+// Build 2^3 = 8.0 from a true exponent
+var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+double value = d;  // 8.0
+
+// Round-trip: read Exponent, rebuild with WithExponent
+IEEE754Double pi = Math.PI;
+int exp = pi.Exponent!.Value;           // 1
+var rebuilt = IEEE754Double.Zero
+    .WithExponent(exp)
+    .WithMantissa(pi.Mantissa);
+double result = rebuilt;                 // == Math.PI
+
+// Set Exponent directly via the setter
+IEEE754Double d2 = 1.0;
+d2.Exponent = 3;                         // BiasedExponent = 3 + 1023 = 1026
 ```
 
 See [Numeric Decomposition Types](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#numeric-decomposition-types) in BITFIELDS.md for full details, constants, and classification property reference.

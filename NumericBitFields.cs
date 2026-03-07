@@ -47,21 +47,21 @@ public partial struct IEEE754Half
     public const int EXPONENT_BIAS = 15;
 
     /// <summary>Maximum biased exponent value (all 5 bits set).</summary>
-    public const int MAX_EXPONENT = 0x1F;
+    public const int MAX_BIASED_EXPONENT = 0x1F;
 
     // ── Classification properties ───────────────────────────────
 
     /// <summary><c>true</c> if this value is NaN (exponent = all 1s, mantissa != 0).</summary>
-    public bool IsNaN => BiasedExponent == MAX_EXPONENT && Mantissa != 0;
+    public bool IsNaN => BiasedExponent == MAX_BIASED_EXPONENT && Mantissa != 0;
 
     /// <summary><c>true</c> if this value is +/- infinity (exponent = all 1s, mantissa = 0).</summary>
-    public bool IsInfinity => BiasedExponent == MAX_EXPONENT && Mantissa == 0;
+    public bool IsInfinity => BiasedExponent == MAX_BIASED_EXPONENT && Mantissa == 0;
 
     /// <summary><c>true</c> if this value is a denormalized (subnormal) number (exponent = 0, mantissa != 0).</summary>
     public bool IsDenormalized => BiasedExponent == 0 && Mantissa != 0;
 
     /// <summary><c>true</c> if this value is a normalized number (0 &lt; exponent &lt; 31).</summary>
-    public bool IsNormal => BiasedExponent > 0 && BiasedExponent < MAX_EXPONENT;
+    public bool IsNormal => BiasedExponent > 0 && BiasedExponent < MAX_BIASED_EXPONENT;
 
     /// <summary><c>true</c> if this value is +/- zero (exponent = 0, mantissa = 0).</summary>
     public bool IsZero => BiasedExponent == 0 && Mantissa == 0;
@@ -69,6 +69,8 @@ public partial struct IEEE754Half
     /// <summary>
     /// The true mathematical exponent (<see cref="BiasedExponent"/> - 15), or <c>null</c>
     /// for non-normal values (zero, denormalized, infinity, NaN).
+    /// Setting to <c>null</c> sets <see cref="BiasedExponent"/> to 0;
+    /// otherwise the bias is added automatically.
     /// </summary>
     /// <example>
     /// <code>
@@ -77,7 +79,39 @@ public partial struct IEEE754Half
     /// h.Exponent;        // 2  (true power: 4.0 = 2^2)
     /// </code>
     /// </example>
-    public int? Exponent => IsNormal ? BiasedExponent - EXPONENT_BIAS : null;
+    public int? Exponent
+    {
+        get => IsNormal ? BiasedExponent - EXPONENT_BIAS : null;
+        set => BiasedExponent = value is { } v ? (byte)(v + EXPONENT_BIAS) : (byte)0;
+    }
+
+    // ── Computed exponent constants ──────────────────────────────
+
+    /// <summary>Minimum true exponent for a normal half-precision value (-14).</summary>
+    public const int MIN_EXPONENT = 1 - EXPONENT_BIAS;
+
+    /// <summary>Maximum true exponent for a normal half-precision value (15).</summary>
+    public const int MAX_EXPONENT = MAX_BIASED_EXPONENT - 1 - EXPONENT_BIAS;
+
+    // ── Fluent exponent setter ───────────────────────────────────
+
+    /// <summary>
+    /// Returns a new <see cref="IEEE754Half"/> with the <see cref="BiasedExponent"/> set
+    /// from a true mathematical exponent (the bias is added automatically).
+    /// Out-of-range values are masked by <see cref="WithBiasedExponent"/>.
+    /// </summary>
+    /// <param name="exponent">True exponent (bias is added automatically; out-of-range values are masked).</param>
+    /// <returns>A copy of this value with the exponent field updated.</returns>
+    /// <example>
+    /// <code>
+    /// // Build 2^3 = 8.0 from parts
+    /// var h = IEEE754Half.Zero.WithExponent(3).WithMantissa(0);
+    /// h.Sign = false;
+    /// Half value = h;  // 8.0
+    /// </code>
+    /// </example>
+    public IEEE754Half WithExponent(int exponent) =>
+        WithBiasedExponent((byte)(exponent + EXPONENT_BIAS));
 }
 
 /// <summary>
@@ -127,21 +161,21 @@ public partial struct IEEE754Single
     public const int EXPONENT_BIAS = 127;
 
     /// <summary>Maximum biased exponent value (all 8 bits set).</summary>
-    public const int MAX_EXPONENT = 0xFF;
+    public const int MAX_BIASED_EXPONENT = 0xFF;
 
     // ── Classification properties ───────────────────────────────
 
     /// <summary><c>true</c> if this value is NaN (exponent = all 1s, mantissa != 0).</summary>
-    public bool IsNaN => BiasedExponent == MAX_EXPONENT && Mantissa != 0;
+    public bool IsNaN => BiasedExponent == MAX_BIASED_EXPONENT && Mantissa != 0;
 
     /// <summary><c>true</c> if this value is +/- infinity (exponent = all 1s, mantissa = 0).</summary>
-    public bool IsInfinity => BiasedExponent == MAX_EXPONENT && Mantissa == 0;
+    public bool IsInfinity => BiasedExponent == MAX_BIASED_EXPONENT && Mantissa == 0;
 
     /// <summary><c>true</c> if this value is a denormalized (subnormal) number (exponent = 0, mantissa != 0).</summary>
     public bool IsDenormalized => BiasedExponent == 0 && Mantissa != 0;
 
     /// <summary><c>true</c> if this value is a normalized number (0 &lt; exponent &lt; 255).</summary>
-    public bool IsNormal => BiasedExponent > 0 && BiasedExponent < MAX_EXPONENT;
+    public bool IsNormal => BiasedExponent > 0 && BiasedExponent < MAX_BIASED_EXPONENT;
 
     /// <summary><c>true</c> if this value is +/- zero (exponent = 0, mantissa = 0).</summary>
     public bool IsZero => BiasedExponent == 0 && Mantissa == 0;
@@ -149,6 +183,8 @@ public partial struct IEEE754Single
     /// <summary>
     /// The true mathematical exponent (<see cref="BiasedExponent"/> - 127), or <c>null</c>
     /// for non-normal values (zero, denormalized, infinity, NaN).
+    /// Setting to <c>null</c> sets <see cref="BiasedExponent"/> to 0;
+    /// otherwise the bias is added automatically.
     /// </summary>
     /// <example>
     /// <code>
@@ -157,7 +193,39 @@ public partial struct IEEE754Single
     /// f.Exponent;        // 3   (true power: 8.0 = 2^3)
     /// </code>
     /// </example>
-    public int? Exponent => IsNormal ? BiasedExponent - EXPONENT_BIAS : null;
+    public int? Exponent
+    {
+        get => IsNormal ? BiasedExponent - EXPONENT_BIAS : null;
+        set => BiasedExponent = value is { } v ? (byte)(v + EXPONENT_BIAS) : (byte)0;
+    }
+
+    // ── Computed exponent constants ──────────────────────────────
+
+    /// <summary>Minimum true exponent for a normal single-precision value (-126).</summary>
+    public const int MIN_EXPONENT = 1 - EXPONENT_BIAS;
+
+    /// <summary>Maximum true exponent for a normal single-precision value (127).</summary>
+    public const int MAX_EXPONENT = MAX_BIASED_EXPONENT - 1 - EXPONENT_BIAS;
+
+    // ── Fluent exponent setter ───────────────────────────────────
+
+    /// <summary>
+    /// Returns a new <see cref="IEEE754Single"/> with the <see cref="BiasedExponent"/> set
+    /// from a true mathematical exponent (the bias is added automatically).
+    /// Out-of-range values are masked by <see cref="WithBiasedExponent"/>.
+    /// </summary>
+    /// <param name="exponent">True exponent (bias is added automatically; out-of-range values are masked).</param>
+    /// <returns>A copy of this value with the exponent field updated.</returns>
+    /// <example>
+    /// <code>
+    /// // Build 2^3 = 8.0f from parts
+    /// var f = IEEE754Single.Zero.WithExponent(3).WithMantissa(0);
+    /// f.Sign = false;
+    /// float value = f;  // 8.0f
+    /// </code>
+    /// </example>
+    public IEEE754Single WithExponent(int exponent) =>
+        WithBiasedExponent((byte)(exponent + EXPONENT_BIAS));
 }
 
 /// <summary>
@@ -207,21 +275,21 @@ public partial struct IEEE754Double
     public const int EXPONENT_BIAS = 1023;
 
     /// <summary>Maximum biased exponent value (all 11 bits set).</summary>
-    public const int MAX_EXPONENT = 0x7FF;
+    public const int MAX_BIASED_EXPONENT = 0x7FF;
 
     // ── Classification properties ───────────────────────────────
 
     /// <summary><c>true</c> if this value is NaN (exponent = all 1s, mantissa != 0).</summary>
-    public bool IsNaN => BiasedExponent == MAX_EXPONENT && Mantissa != 0;
+    public bool IsNaN => BiasedExponent == MAX_BIASED_EXPONENT && Mantissa != 0;
 
     /// <summary><c>true</c> if this value is +/- infinity (exponent = all 1s, mantissa = 0).</summary>
-    public bool IsInfinity => BiasedExponent == MAX_EXPONENT && Mantissa == 0;
+    public bool IsInfinity => BiasedExponent == MAX_BIASED_EXPONENT && Mantissa == 0;
 
     /// <summary><c>true</c> if this value is a denormalized (subnormal) number (exponent = 0, mantissa != 0).</summary>
     public bool IsDenormalized => BiasedExponent == 0 && Mantissa != 0;
 
     /// <summary><c>true</c> if this value is a normalized number (0 &lt; exponent &lt; 2047).</summary>
-    public bool IsNormal => BiasedExponent > 0 && BiasedExponent < MAX_EXPONENT;
+    public bool IsNormal => BiasedExponent > 0 && BiasedExponent < MAX_BIASED_EXPONENT;
 
     /// <summary><c>true</c> if this value is +/- zero (exponent = 0, mantissa = 0).</summary>
     public bool IsZero => BiasedExponent == 0 && Mantissa == 0;
@@ -229,6 +297,8 @@ public partial struct IEEE754Double
     /// <summary>
     /// The true mathematical exponent (<see cref="BiasedExponent"/> - 1023), or <c>null</c>
     /// for non-normal values (zero, denormalized, infinity, NaN).
+    /// Setting to <c>null</c> sets <see cref="BiasedExponent"/> to 0;
+    /// otherwise the bias is added automatically.
     /// </summary>
     /// <example>
     /// <code>
@@ -237,7 +307,39 @@ public partial struct IEEE754Double
     /// d.Exponent;        // 1    (true power: pi is in [2, 4), so 2^1)
     /// </code>
     /// </example>
-    public int? Exponent => IsNormal ? BiasedExponent - EXPONENT_BIAS : null;
+    public int? Exponent
+    {
+        get => IsNormal ? BiasedExponent - EXPONENT_BIAS : null;
+        set => BiasedExponent = value is { } v ? (ushort)(v + EXPONENT_BIAS) : (ushort)0;
+    }
+
+    // ── Computed exponent constants ──────────────────────────────
+
+    /// <summary>Minimum true exponent for a normal double-precision value (-1022).</summary>
+    public const int MIN_EXPONENT = 1 - EXPONENT_BIAS;
+
+    /// <summary>Maximum true exponent for a normal double-precision value (1023).</summary>
+    public const int MAX_EXPONENT = MAX_BIASED_EXPONENT - 1 - EXPONENT_BIAS;
+
+    // ── Fluent exponent setter ───────────────────────────────────
+
+    /// <summary>
+    /// Returns a new <see cref="IEEE754Double"/> with the <see cref="BiasedExponent"/> set
+    /// from a true mathematical exponent (the bias is added automatically).
+    /// Out-of-range values are masked by <see cref="WithBiasedExponent"/>.
+    /// </summary>
+    /// <param name="exponent">True exponent (bias is added automatically; out-of-range values are masked).</param>
+    /// <returns>A copy of this value with the exponent field updated.</returns>
+    /// <example>
+    /// <code>
+    /// // Build 2^3 = 8.0 from parts
+    /// var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+    /// d.Sign = false;
+    /// double value = d;  // 8.0
+    /// </code>
+    /// </example>
+    public IEEE754Double WithExponent(int exponent) =>
+        WithBiasedExponent((ushort)(exponent + EXPONENT_BIAS));
 }
 
 /// <summary>
