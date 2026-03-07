@@ -143,6 +143,21 @@ namespace Stardust.Utilities
             _ => 0
         };
 
+        private static int GetBitCountForStorageTypeEnum(int enumValue) => enumValue switch
+        {
+            0 or 1 => 8,         // Byte, SByte
+            2 or 3 => 16,        // Int16, UInt16
+            4 or 5 => 32,        // Int32, UInt32
+            6 or 7 => 64,        // Int64, UInt64
+            8 or 9 => 64,        // NInt, NUInt (treated as 64-bit for metadata)
+            10 => 16,            // Half
+            11 => 32,            // Single
+            12 => 64,            // Double
+            13 => 128,           // Decimal
+            14 or 15 => 128,     // Int128, UInt128
+            _ => 0
+        };
+
         /// <summary>
         /// Get the length of this BitField or BitFlag in bits.
         /// </summary>
@@ -532,6 +547,8 @@ namespace Stardust.Utilities
                         var first = cad.ConstructorArguments[0];
                         if (first.Value is Type storageType)
                             totalBits = GetBitCountForTypeName(storageType.Name);
+                        else if (first.ArgumentType.Name == nameof(StorageType) && first.Value is int enumValue)
+                            totalBits = GetBitCountForStorageTypeEnum(enumValue);
                         else if (first.Value is int bitCount)
                             totalBits = bitCount;
                     }

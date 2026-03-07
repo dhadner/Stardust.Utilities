@@ -15,6 +15,30 @@ namespace Stardust.Generators;
 [Generator]
 public partial class BitFieldsGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Result of parsing a [BitFields] attribute. Either carries valid info for code generation,
+    /// or error information for diagnostic reporting.
+    /// </summary>
+    private readonly struct ParseResult
+    {
+        public readonly BitFieldsInfo? Info;
+        public readonly string? UnsupportedTypeName;
+        public readonly string? StructName;
+        public readonly Location? ErrorLocation;
+
+        public ParseResult(BitFieldsInfo info)
+        {
+            Info = info;
+        }
+
+        public ParseResult(string unsupportedTypeName, string structName, Location? errorLocation)
+        {
+            UnsupportedTypeName = unsupportedTypeName;
+            StructName = structName;
+            ErrorLocation = errorLocation;
+        }
+    }
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Find all structs with [BitFields] attribute
@@ -23,7 +47,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 "Stardust.Utilities.BitFieldsAttribute",
                 predicate: static (node, _) => node is StructDeclarationSyntax,
                 transform: static (ctx, _) => GetBitFieldsInfo(ctx))
-            .Where(static info => info is not null);
+            .Where(static result => result is not null);
 
         // Read PlatformTarget from build properties for native integer diagnostics
         var platformTarget = context.AnalyzerConfigOptionsProvider
@@ -36,12 +60,27 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // Combine structs with platform target for diagnostic reporting
         var combined = structDeclarations.Combine(platformTarget);
 
-        // Generate source for each
+        // Generate source for each, or report diagnostics for unsupported types
         context.RegisterSourceOutput(combined,
-            static (spc, pair) => Execute(spc, pair.Left!, pair.Right));
+            static (spc, pair) =>
+            {
+                var result = pair.Left!.Value;
+                if (result.Info is not null)
+                {
+                    Execute(spc, result.Info, pair.Right);
+                }
+                else if (result.UnsupportedTypeName is not null)
+                {
+                    spc.ReportDiagnostic(Diagnostic.Create(
+                        BitFieldsDiagnostics.UnsupportedStorageType,
+                        result.ErrorLocation,
+                        result.UnsupportedTypeName,
+                        result.StructName));
+                }
+            });
     }
 
-    private static BitFieldsInfo? GetBitFieldsInfo(GeneratorAttributeSyntaxContext context)
+    private static ParseResult? GetBitFieldsInfo(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not INamedTypeSymbol structSymbol)
             return null;
@@ -57,7 +96,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         bool isMultiWord = false;
         int bitCount = 0;
 
-        // Detect constructor form: [BitFields(typeof(T))] vs [BitFields(int)]
+        // Detect constructor form: [BitFields(typeof(T))] vs [BitFields(StorageType.X)] vs [BitFields(int)]
         if (bitFieldsAttr.ConstructorArguments.Length >= 1)
         {
             var firstArg = bitFieldsAttr.ConstructorArguments[0];
@@ -66,13 +105,21 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 // Type-based constructor: [BitFields(typeof(byte))]
                 storageType = storageTypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             }
-            else if (firstArg.Value is int bitCountValue)
+            else if (firstArg.Value is int intValue)
             {
-                // Int-based constructor: [BitFields(200)]
-                isMultiWord = true;
-                bitCount = bitCountValue;
-                if (bitCount < 1 || bitCount > BitFieldsMultiWordGenerator.MAX_BIT_COUNT)
-                    return null;
+                if (firstArg.Type?.Name == "StorageType")
+                {
+                    // Enum-based constructor: [BitFields(StorageType.Byte)]
+                    storageType = MapStorageTypeEnum(intValue);
+                }
+                else
+                {
+                    // Int-based constructor: [BitFields(200)]
+                    isMultiWord = true;
+                    bitCount = intValue;
+                    if (bitCount < 1 || bitCount > BitFieldsMultiWordGenerator.MAX_BIT_COUNT)
+                        return null;
+                }
             }
         }
 
@@ -175,7 +222,9 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
         else
         {
-            return null;
+            // Unsupported storage type - return error info for diagnostic reporting
+            var errorLocation = structSymbol.Locations.Length > 0 ? structSymbol.Locations[0] : null;
+            return new ParseResult(storageType!, structSymbol.Name, errorLocation);
         }
 
 
@@ -335,7 +384,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // Get the source location of the struct declaration for diagnostic reporting
         var structLocation = structSymbol.Locations.Length > 0 ? structSymbol.Locations[0] : null;
 
-        return new BitFieldsInfo(
+        return new ParseResult(new BitFieldsInfo(
             structSymbol.Name,
             ns,
             GetAccessibility(structSymbol),
@@ -356,7 +405,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             declaredFlags,
             structDescription,
             structDescriptionResourceType,
-            location: structLocation);
+            location: structLocation));
     }
 
     /// <summary>
@@ -377,6 +426,33 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
 
         return (desc, descResType);
+    }
+
+    /// <summary>
+    /// Maps a StorageType enum integer value to the type name string used throughout the generator.
+    /// </summary>
+    private static string? MapStorageTypeEnum(int value)
+    {
+        return value switch
+        {
+            0 => "byte",       // StorageType.Byte
+            1 => "sbyte",      // StorageType.SByte
+            2 => "short",      // StorageType.Int16
+            3 => "ushort",     // StorageType.UInt16
+            4 => "int",        // StorageType.Int32
+            5 => "uint",       // StorageType.UInt32
+            6 => "long",       // StorageType.Int64
+            7 => "ulong",      // StorageType.UInt64
+            8 => "nint",       // StorageType.NInt
+            9 => "nuint",      // StorageType.NUInt
+            10 => "Half",      // StorageType.Half
+            11 => "float",     // StorageType.Single
+            12 => "double",    // StorageType.Double
+            13 => "decimal",   // StorageType.Decimal
+            14 => "Int128",    // StorageType.Int128
+            15 => "UInt128",   // StorageType.UInt128
+            _ => null,
+        };
     }
 
     private static string GetAccessibility(ISymbol symbol)

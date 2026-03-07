@@ -34,4 +34,17 @@ internal static class BitFieldsDiagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "When PlatformTarget is AnyCPU (or unset), the binary may run on 32-bit platforms where nint/nuint is 32 bits. Fields or flags above bit 31 will be unreachable, causing silent data corruption.");
+
+    /// <summary>
+    /// Error: The storage type passed to [BitFields(typeof(T))] is not a supported type.
+    /// The generator only supports a fixed set of primitive/numeric types.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor UnsupportedStorageType = new(
+        id: "SD0003",
+        title: "Unsupported BitFields storage type",
+        messageFormat: "Type '{0}' is not a supported storage type for [BitFields] on struct '{1}'. Supported types: byte, sbyte, short, ushort, int, uint, long, ulong, nint, nuint, Half, float, double, decimal, UInt128, Int128.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "The [BitFields] attribute requires a specific storage type that the generator knows how to manipulate at the bit level. Use one of the supported primitive types, or specify an integer bit count for arbitrary-size bitfields.");
 }

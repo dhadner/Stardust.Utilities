@@ -1098,6 +1098,178 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+    #region StorageType Enum Constructor Tests
+
+    /// <summary>
+    /// Tests that [BitFields(StorageType.Byte)] produces the same behavior as [BitFields(typeof(byte))].
+    /// </summary>
+    [Fact]
+    public void EnumReg8_MatchesTypeofBehavior()
+    {
+        // Set identical values on both structs
+        GeneratedStatusReg8 typeofReg = 0;
+        typeofReg.Ready = true;
+        typeofReg.Error = true;
+        typeofReg.Mode = OpMode.Mode5;
+        typeofReg.Priority = 2;
+
+        EnumReg8 enumReg = 0;
+        enumReg.Ready = true;
+        enumReg.Error = true;
+        enumReg.Mode = OpMode.Mode5;
+        enumReg.Priority = 2;
+
+        // Both should produce the same raw value
+        ((byte)typeofReg).Should().Be((byte)enumReg);
+    }
+
+    /// <summary>
+    /// Tests flags on an enum-constructed 8-bit register.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_Flags_GetAndSet()
+    {
+        EnumReg8 reg = 0;
+
+        reg.Ready = true;
+        reg.Ready.Should().BeTrue();
+        ((byte)reg).Should().Be(0x01);
+
+        reg.Busy = true;
+        reg.Busy.Should().BeTrue();
+        ((byte)reg).Should().Be(0x81);
+    }
+
+    /// <summary>
+    /// Tests implicit conversion with the enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_ImplicitConversion()
+    {
+        EnumReg8 reg = 0xFF;
+        ((byte)reg).Should().Be(0xFF);
+        reg.Ready.Should().BeTrue();
+
+        byte raw = reg;
+        raw.Should().Be(0xFF);
+    }
+
+    /// <summary>
+    /// Tests that [BitFields(StorageType.UInt32)] works correctly.
+    /// </summary>
+    [Fact]
+    public void EnumReg32_GetAndSet()
+    {
+        EnumReg32 reg = 0;
+
+        reg.Address = 0x00ABCDEF;
+        reg.Address.Should().Be(0x00ABCDEF);
+
+        reg.Command = 0x0F;
+        reg.Command.Should().Be(0x0F);
+
+        reg.Enable = true;
+        reg.Interrupt = true;
+
+        ((uint)reg).Should().Be(0x3FABCDEF);
+    }
+
+    /// <summary>
+    /// Tests that [BitFields(StorageType.UInt64)] works correctly.
+    /// </summary>
+    [Fact]
+    public void EnumReg64_GetAndSet()
+    {
+        EnumReg64 reg = 0;
+
+        reg.Status = 0xAB;
+        reg.Status.Should().Be(0xAB);
+
+        reg.Data = 0xCDEF;
+        reg.Data.Should().Be(0xCDEF);
+
+        reg.Valid = true;
+        reg.Valid.Should().BeTrue();
+
+        ulong expected = 0xAB | ((ulong)0xCDEF << 8) | (1UL << 56);
+        ((ulong)reg).Should().Be(expected);
+    }
+
+    /// <summary>
+    /// Tests SIZE_IN_BYTES on an enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_SizeInBytes()
+    {
+        EnumReg8.SIZE_IN_BYTES.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Tests byte span round-trip on an enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg32_SpanRoundTrip()
+    {
+        EnumReg32 original = 0xDEADBEEF;
+        var bytes = original.ToByteArray();
+        bytes.Length.Should().Be(4);
+        var restored = new EnumReg32((ReadOnlySpan<byte>)bytes);
+        ((uint)restored).Should().Be(0xDEADBEEF);
+    }
+
+    /// <summary>
+    /// Tests parsing on an enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_Parse()
+    {
+        var result = EnumReg8.Parse("0xFF");
+        ((byte)result).Should().Be(0xFF);
+    }
+
+    /// <summary>
+    /// Tests JSON round-trip on an enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_JsonRoundTrip()
+    {
+        EnumReg8 original = 0xAB;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<EnumReg8>(json);
+        ((byte)restored).Should().Be(0xAB);
+    }
+
+    /// <summary>
+    /// Tests With{Name} fluent methods on an enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_WithMethods()
+    {
+        EnumReg8 reg = 0;
+        var result = reg.WithReady(true).WithMode(OpMode.Mode5).WithPriority(2);
+
+        result.Ready.Should().BeTrue();
+        result.Mode.Should().Be(OpMode.Mode5);
+        result.Priority.Should().Be(2);
+
+        // Ready (bit 0) = 1, Mode (bits 2-4) = 5, Priority (bits 5-6) = 2
+        // Expected: 0x01 | 0x14 | 0x40 = 0x55
+        ((byte)result).Should().Be(0x55);
+    }
+
+    /// <summary>
+    /// Tests static bit/mask properties on an enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg8_StaticBitAndMaskProperties()
+    {
+        ((byte)EnumReg8.ReadyBit).Should().Be(0x01);
+        ((byte)EnumReg8.BusyBit).Should().Be(0x80);
+        ((byte)EnumReg8.ModeMask).Should().Be(0x1C);
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -1214,6 +1386,44 @@ public partial struct GeneratedWideRegNuint
     [BitFlag(56)] public partial bool Valid { get; set; }
     [BitFlag(57)] public partial bool Ready { get; set; }
 #pragma warning restore SD0002
+}
+
+/// <summary>
+/// 8-bit register using StorageType enum constructor.
+/// Verifies the enum-based constructor produces identical generated code to typeof(byte).
+/// </summary>
+[BitFields(StorageType.Byte)]
+public partial struct EnumReg8
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
+    [BitFlag(7)] public partial bool Busy { get; set; }
+    [BitField(2, 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
+    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
+}
+
+/// <summary>
+/// 32-bit register using StorageType enum constructor.
+/// Verifies the enum-based constructor works with larger types.
+/// </summary>
+[BitFields(StorageType.UInt32)]
+public partial struct EnumReg32
+{
+    [BitField(0, 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
+    [BitField(24, 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
+    [BitFlag(28)] public partial bool Enable { get; set; }
+    [BitFlag(29)] public partial bool Interrupt { get; set; }
+}
+
+/// <summary>
+/// 64-bit register using StorageType enum constructor.
+/// </summary>
+[BitFields(StorageType.UInt64)]
+public partial struct EnumReg64
+{
+    [BitField(0, 7)] public partial byte Status { get; set; }
+    [BitField(8, 23)] public partial ushort Data { get; set; }
+    [BitFlag(56)] public partial bool Valid { get; set; }
 }
 
 #endregion

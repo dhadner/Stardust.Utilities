@@ -475,4 +475,201 @@ public class BitFieldNativeIntDiagnosticTests
     }
 
     #endregion
+
+    #region Unsupported Storage Type - Error SD0003
+
+    /// <summary>
+    /// Using typeof(Guid) should produce error SD0003.
+    /// </summary>
+    [Fact]
+    public void UnsupportedType_Guid_ProducesError()
+    {
+        const string SOURCE = """
+            using System;
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(Guid))]
+            public partial struct GuidReg
+            {
+                [BitField(0, 7)] public partial byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0003 = diagnostics.Where(d => d.Id == "SD0003").ToList();
+        sd0003.Should().HaveCount(1);
+        sd0003[0].Severity.Should().Be(DiagnosticSeverity.Error);
+        sd0003[0].GetMessage().Should().Contain("Guid");
+        sd0003[0].GetMessage().Should().Contain("GuidReg");
+    }
+
+    /// <summary>
+    /// Using typeof(string) should produce error SD0003.
+    /// </summary>
+    [Fact]
+    public void UnsupportedType_String_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(string))]
+            public partial struct StringReg
+            {
+                [BitFlag(0)] public partial bool Flag { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0003 = diagnostics.Where(d => d.Id == "SD0003").ToList();
+        sd0003.Should().HaveCount(1);
+        sd0003[0].Severity.Should().Be(DiagnosticSeverity.Error);
+        sd0003[0].GetMessage().Should().Contain("string");
+        sd0003[0].GetMessage().Should().Contain("StringReg");
+    }
+
+    /// <summary>
+    /// Using typeof(bool) should produce error SD0003.
+    /// </summary>
+    [Fact]
+    public void UnsupportedType_Bool_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(bool))]
+            public partial struct BoolReg
+            {
+                [BitFlag(0)] public partial bool Flag { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0003 = diagnostics.Where(d => d.Id == "SD0003").ToList();
+        sd0003.Should().HaveCount(1);
+        sd0003[0].Severity.Should().Be(DiagnosticSeverity.Error);
+        sd0003[0].GetMessage().Should().Contain("bool");
+    }
+
+    /// <summary>
+    /// Supported types like byte should NOT produce SD0003.
+    /// </summary>
+    [Fact]
+    public void SupportedType_Byte_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct ByteReg
+            {
+                [BitFlag(0)] public partial bool Flag { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        diagnostics.Where(d => d.Id == "SD0003").Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Supported type Int128 should NOT produce SD0003.
+    /// </summary>
+    [Fact]
+    public void SupportedType_Int128_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(Int128))]
+            public partial struct Int128Reg
+            {
+                [BitField(0, 7)] public partial byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        diagnostics.Where(d => d.Id == "SD0003").Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The diagnostic message should list supported types so the user knows what to use.
+    /// </summary>
+    [Fact]
+    public void UnsupportedType_MessageListsSupportedTypes()
+    {
+        const string SOURCE = """
+            using System;
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(Guid))]
+            public partial struct GuidReg
+            {
+                [BitFlag(0)] public partial bool Flag { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0003 = diagnostics.First(d => d.Id == "SD0003");
+        var message = sd0003.GetMessage();
+        message.Should().Contain("byte");
+        message.Should().Contain("ulong");
+        message.Should().Contain("UInt128");
+        message.Should().Contain("Half");
+        message.Should().Contain("decimal");
+    }
+
+    /// <summary>
+    /// The diagnostic should point to a source location (the struct).
+    /// </summary>
+    [Fact]
+    public void UnsupportedType_DiagnosticHasLocation()
+    {
+        const string SOURCE = """
+            using System;
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(Guid))]
+            public partial struct GuidReg
+            {
+                [BitFlag(0)] public partial bool Flag { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        var sd0003 = diagnostics.First(d => d.Id == "SD0003");
+        sd0003.Location.Should().NotBe(Location.None);
+    }
+
+    /// <summary>
+    /// Bit-count constructor [BitFields(200)] should NOT produce SD0003.
+    /// </summary>
+    [Fact]
+    public void BitCountConstructor_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(200)]
+            public partial struct WideReg
+            {
+                [BitField(0, 7)] public partial byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        diagnostics.Where(d => d.Id == "SD0003").Should().BeEmpty();
+    }
+
+    #endregion
 }
