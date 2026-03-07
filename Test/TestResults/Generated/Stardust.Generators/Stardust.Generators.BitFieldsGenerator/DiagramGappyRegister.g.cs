@@ -27,11 +27,13 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     // --- Bit field mask constants ---
     // TypeCode: bits [0..3], width 4
+    private const int TYPE_CODE_START_BIT = 0;
     private const ushort TYPE_CODE_MASK = 0x000F;
     private const ushort TYPE_CODE_INVERTED_MASK = 0xFFF0;  // ~TYPE_CODE_MASK
     // Version: bits [12..15], width 4
+    private const int VERSION_START_BIT = 12;
     private const ushort VERSION_MASK = 0x000F;
-    private const ushort VERSION_SHIFTED_MASK = 0xF000;  // VERSION_MASK << 12
+    private const ushort VERSION_SHIFTED_MASK = 0xF000;  // VERSION_MASK << VERSION_START_BIT
     private const ushort VERSION_INVERTED_MASK = 0x0FFF;  // ~VERSION_SHIFTED_MASK
 
     // --- Constructor normalization masks ---
@@ -51,9 +53,9 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 12) & VERSION_MASK);
+        get => (byte)((Value >> VERSION_START_BIT) & VERSION_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & VERSION_INVERTED_MASK) | ((((ushort)value) << 12) & VERSION_SHIFTED_MASK));
+        set => Value = (ushort)((Value & VERSION_INVERTED_MASK) | ((((ushort)value) << VERSION_START_BIT) & VERSION_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramGappyRegister with the mask for the TypeCode field (bits 0-3).</summary>
@@ -79,7 +81,7 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     /// <summary>Returns a new DiagramGappyRegister with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramGappyRegister WithVersion(byte value) => new((ushort)((Value & VERSION_INVERTED_MASK) | (((ushort)value << 12) & VERSION_SHIFTED_MASK)));
+    public DiagramGappyRegister WithVersion(byte value) => new((ushort)((Value & VERSION_INVERTED_MASK) | (((ushort)value << VERSION_START_BIT) & VERSION_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

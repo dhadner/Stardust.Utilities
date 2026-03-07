@@ -27,17 +27,21 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
 
     // --- Bit field mask constants ---
     // SecondKeyCode: bits [0..6], width 7
+    private const int SECOND_KEY_CODE_START_BIT = 0;
     private const ushort SECOND_KEY_CODE_MASK = 0x007F;
     private const ushort SECOND_KEY_CODE_INVERTED_MASK = 0xFF80;  // ~SECOND_KEY_CODE_MASK
     // FirstKeyCode: bits [8..14], width 7
+    private const int FIRST_KEY_CODE_START_BIT = 8;
     private const ushort FIRST_KEY_CODE_MASK = 0x007F;
-    private const ushort FIRST_KEY_CODE_SHIFTED_MASK = 0x7F00;  // FIRST_KEY_CODE_MASK << 8
+    private const ushort FIRST_KEY_CODE_SHIFTED_MASK = 0x7F00;  // FIRST_KEY_CODE_MASK << FIRST_KEY_CODE_START_BIT
     private const ushort FIRST_KEY_CODE_INVERTED_MASK = 0x80FF;  // ~FIRST_KEY_CODE_SHIFTED_MASK
     // SecondKeyUp: bit 7
-    private const ushort SECOND_KEY_UP_MASK = 0x0080;
+    private const int SECOND_KEY_UP_BIT = 7;
+    private const ushort SECOND_KEY_UP_MASK = 0x0080;  // 1 << SECOND_KEY_UP_BIT
     private const ushort SECOND_KEY_UP_INVERTED_MASK = 0xFF7F;  // ~SECOND_KEY_UP_MASK
     // FirstKeyUp: bit 15
-    private const ushort FIRST_KEY_UP_MASK = 0x8000;
+    private const int FIRST_KEY_UP_BIT = 15;
+    private const ushort FIRST_KEY_UP_MASK = 0x8000;  // 1 << FIRST_KEY_UP_BIT
     private const ushort FIRST_KEY_UP_INVERTED_MASK = 0x7FFF;  // ~FIRST_KEY_UP_MASK
 
     /// <summary>Creates a new GeneratedKeyboardReg16 with the specified raw bits value.</summary>
@@ -54,9 +58,9 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     public partial byte FirstKeyCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 8) & FIRST_KEY_CODE_MASK);
+        get => (byte)((Value >> FIRST_KEY_CODE_START_BIT) & FIRST_KEY_CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & FIRST_KEY_CODE_INVERTED_MASK) | ((((ushort)value) << 8) & FIRST_KEY_CODE_SHIFTED_MASK));
+        set => Value = (ushort)((Value & FIRST_KEY_CODE_INVERTED_MASK) | ((((ushort)value) << FIRST_KEY_CODE_START_BIT) & FIRST_KEY_CODE_SHIFTED_MASK));
     }
 
     public partial bool SecondKeyUp
@@ -114,7 +118,7 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the FirstKeyCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedKeyboardReg16 WithFirstKeyCode(byte value) => new((ushort)((Value & FIRST_KEY_CODE_INVERTED_MASK) | (((ushort)value << 8) & FIRST_KEY_CODE_SHIFTED_MASK)));
+    public GeneratedKeyboardReg16 WithFirstKeyCode(byte value) => new((ushort)((Value & FIRST_KEY_CODE_INVERTED_MASK) | (((ushort)value << FIRST_KEY_CODE_START_BIT) & FIRST_KEY_CODE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

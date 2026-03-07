@@ -29,31 +29,40 @@ public partial class BitFieldProtocolTests
 
         // --- Bit field mask constants ---
         // FIN: bit 0
-        private const ushort FIN_MASK = 0x0001;
+        private const int FIN_BIT = 0;
+        private const ushort FIN_MASK = 0x0001;  // 1 << FIN_BIT
         private const ushort FIN_INVERTED_MASK = 0xFFFE;  // ~FIN_MASK
         // SYN: bit 1
-        private const ushort SYN_MASK = 0x0002;
+        private const int SYN_BIT = 1;
+        private const ushort SYN_MASK = 0x0002;  // 1 << SYN_BIT
         private const ushort SYN_INVERTED_MASK = 0xFFFD;  // ~SYN_MASK
         // RST: bit 2
-        private const ushort RST_MASK = 0x0004;
+        private const int RST_BIT = 2;
+        private const ushort RST_MASK = 0x0004;  // 1 << RST_BIT
         private const ushort RST_INVERTED_MASK = 0xFFFB;  // ~RST_MASK
         // PSH: bit 3
-        private const ushort PSH_MASK = 0x0008;
+        private const int PSH_BIT = 3;
+        private const ushort PSH_MASK = 0x0008;  // 1 << PSH_BIT
         private const ushort PSH_INVERTED_MASK = 0xFFF7;  // ~PSH_MASK
         // ACK: bit 4
-        private const ushort ACK_MASK = 0x0010;
+        private const int ACK_BIT = 4;
+        private const ushort ACK_MASK = 0x0010;  // 1 << ACK_BIT
         private const ushort ACK_INVERTED_MASK = 0xFFEF;  // ~ACK_MASK
         // URG: bit 5
-        private const ushort URG_MASK = 0x0020;
+        private const int URG_BIT = 5;
+        private const ushort URG_MASK = 0x0020;  // 1 << URG_BIT
         private const ushort URG_INVERTED_MASK = 0xFFDF;  // ~URG_MASK
         // ECE: bit 6
-        private const ushort ECE_MASK = 0x0040;
+        private const int ECE_BIT = 6;
+        private const ushort ECE_MASK = 0x0040;  // 1 << ECE_BIT
         private const ushort ECE_INVERTED_MASK = 0xFFBF;  // ~ECE_MASK
         // CWR: bit 7
-        private const ushort CWR_MASK = 0x0080;
+        private const int CWR_BIT = 7;
+        private const ushort CWR_MASK = 0x0080;  // 1 << CWR_BIT
         private const ushort CWR_INVERTED_MASK = 0xFF7F;  // ~CWR_MASK
         // NS: bit 8
-        private const ushort NS_MASK = 0x0100;
+        private const int NS_BIT = 8;
+        private const ushort NS_MASK = 0x0100;  // 1 << NS_BIT
         private const ushort NS_INVERTED_MASK = 0xFEFF;  // ~NS_MASK
 
         // --- Constructor normalization masks ---

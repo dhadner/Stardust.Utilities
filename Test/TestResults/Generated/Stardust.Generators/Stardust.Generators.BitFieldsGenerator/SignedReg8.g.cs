@@ -27,21 +27,26 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
 
     // --- Bit field mask constants ---
     // LowField: bits [2..4], width 3
+    private const int LOW_FIELD_START_BIT = 2;
     private const byte LOW_FIELD_MASK = 0x07;
-    private const byte LOW_FIELD_SHIFTED_MASK = 0x1C;  // LOW_FIELD_MASK << 2
+    private const byte LOW_FIELD_SHIFTED_MASK = 0x1C;  // LOW_FIELD_MASK << LOW_FIELD_START_BIT
     private const byte LOW_FIELD_INVERTED_MASK = 0xE3;  // ~LOW_FIELD_SHIFTED_MASK
     // HighField: bits [5..6], width 2
+    private const int HIGH_FIELD_START_BIT = 5;
     private const byte HIGH_FIELD_MASK = 0x03;
-    private const byte HIGH_FIELD_SHIFTED_MASK = 0x60;  // HIGH_FIELD_MASK << 5
+    private const byte HIGH_FIELD_SHIFTED_MASK = 0x60;  // HIGH_FIELD_MASK << HIGH_FIELD_START_BIT
     private const byte HIGH_FIELD_INVERTED_MASK = 0x9F;  // ~HIGH_FIELD_SHIFTED_MASK
     // Flag0: bit 0
-    private const byte FLAG0_MASK = 0x01;
+    private const int FLAG0_BIT = 0;
+    private const byte FLAG0_MASK = 0x01;  // 1 << FLAG0_BIT
     private const byte FLAG0_INVERTED_MASK = 0xFE;  // ~FLAG0_MASK
     // Flag1: bit 1
-    private const byte FLAG1_MASK = 0x02;
+    private const int FLAG1_BIT = 1;
+    private const byte FLAG1_MASK = 0x02;  // 1 << FLAG1_BIT
     private const byte FLAG1_INVERTED_MASK = 0xFD;  // ~FLAG1_MASK
     // Sign: bit 7
-    private const byte SIGN_MASK = 0x80;
+    private const int SIGN_BIT = 7;
+    private const byte SIGN_MASK = 0x80;  // 1 << SIGN_BIT
     private const byte SIGN_INVERTED_MASK = 0x7F;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg8 with the specified raw bits value.</summary>
@@ -50,17 +55,17 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     public partial byte LowField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 2) & LOW_FIELD_MASK);
+        get => (byte)((((byte)Value) >> LOW_FIELD_START_BIT) & LOW_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << 2) & LOW_FIELD_SHIFTED_MASK));
+        set => Value = (sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK));
     }
 
     public partial byte HighField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 5) & HIGH_FIELD_MASK);
+        get => (byte)((((byte)Value) >> HIGH_FIELD_START_BIT) & HIGH_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << 5) & HIGH_FIELD_SHIFTED_MASK));
+        set => Value = (sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
@@ -130,11 +135,11 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
 
     /// <summary>Returns a new SignedReg8 with the LowField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithLowField(byte value) => new((sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << 2) & LOW_FIELD_SHIFTED_MASK)));
+    public SignedReg8 WithLowField(byte value) => new((sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg8 with the HighField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithHighField(byte value) => new((sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << 5) & HIGH_FIELD_SHIFTED_MASK)));
+    public SignedReg8 WithHighField(byte value) => new((sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

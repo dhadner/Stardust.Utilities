@@ -29,14 +29,17 @@ public partial class ExtensionsTests
 
         // --- Bit field mask constants ---
         // Identification: bits [16..31], width 16
+        private const int IDENTIFICATION_START_BIT = 16;
         private const uint IDENTIFICATION_MASK = 0x0000FFFFU;
-        private const uint IDENTIFICATION_SHIFTED_MASK = 0xFFFF0000U;  // IDENTIFICATION_MASK << 16
+        private const uint IDENTIFICATION_SHIFTED_MASK = 0xFFFF0000U;  // IDENTIFICATION_MASK << IDENTIFICATION_START_BIT
         private const uint IDENTIFICATION_INVERTED_MASK = 0x0000FFFFU;  // ~IDENTIFICATION_SHIFTED_MASK
         // Flags: bits [13..15], width 3
+        private const int FLAGS_START_BIT = 13;
         private const uint FLAGS_MASK = 0x00000007U;
-        private const uint FLAGS_SHIFTED_MASK = 0x0000E000U;  // FLAGS_MASK << 13
+        private const uint FLAGS_SHIFTED_MASK = 0x0000E000U;  // FLAGS_MASK << FLAGS_START_BIT
         private const uint FLAGS_INVERTED_MASK = 0xFFFF1FFFU;  // ~FLAGS_SHIFTED_MASK
         // FragmentOffset: bits [0..12], width 13
+        private const int FRAGMENT_OFFSET_START_BIT = 0;
         private const uint FRAGMENT_OFFSET_MASK = 0x00001FFFU;
         private const uint FRAGMENT_OFFSET_INVERTED_MASK = 0xFFFFE000U;  // ~FRAGMENT_OFFSET_MASK
 
@@ -46,17 +49,17 @@ public partial class ExtensionsTests
         public partial ushort Identification
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> 16) & IDENTIFICATION_MASK);
+            get => (ushort)((Value >> IDENTIFICATION_START_BIT) & IDENTIFICATION_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & IDENTIFICATION_INVERTED_MASK) | ((((uint)value) << 16) & IDENTIFICATION_SHIFTED_MASK));
+            set => Value = (uint)((Value & IDENTIFICATION_INVERTED_MASK) | ((((uint)value) << IDENTIFICATION_START_BIT) & IDENTIFICATION_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.Tests.ExtensionsTests.IPv4Flags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.ExtensionsTests.IPv4Flags)((Value >> 13) & FLAGS_MASK);
+            get => (global::Stardust.Utilities.Tests.ExtensionsTests.IPv4Flags)((Value >> FLAGS_START_BIT) & FLAGS_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << 13) & FLAGS_SHIFTED_MASK));
+            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
         }
 
         public partial ushort FragmentOffset
@@ -90,11 +93,11 @@ public partial class ExtensionsTests
 
         /// <summary>Returns a new IPv4FragmentWord with the Identification field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((Value & IDENTIFICATION_INVERTED_MASK) | (((uint)value << 16) & IDENTIFICATION_SHIFTED_MASK)));
+        public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((Value & IDENTIFICATION_INVERTED_MASK) | (((uint)value << IDENTIFICATION_START_BIT) & IDENTIFICATION_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4FragmentWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.ExtensionsTests.IPv4Flags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << 13) & FLAGS_SHIFTED_MASK)));
+        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.ExtensionsTests.IPv4Flags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4FragmentWord with the FragmentOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

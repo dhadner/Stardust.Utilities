@@ -27,23 +27,28 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     // --- Bit field mask constants ---
     // Magic: bits [0..15], width 16
+    private const int MAGIC_START_BIT = 0;
     private const ulong MAGIC_MASK = 0x000000000000FFFFUL;
     private const ulong MAGIC_INVERTED_MASK = 0xFFFFFFFFFFFF0000UL;  // ~MAGIC_MASK
     // Flags: bits [16..23], width 8
+    private const int FLAGS_START_BIT = 16;
     private const ulong FLAGS_MASK = 0x00000000000000FFUL;
-    private const ulong FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // FLAGS_MASK << 16
+    private const ulong FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // FLAGS_MASK << FLAGS_START_BIT
     private const ulong FLAGS_INVERTED_MASK = 0xFFFFFFFFFF00FFFFUL;  // ~FLAGS_SHIFTED_MASK
     // VersionMajor: bits [24..31], width 8
+    private const int VERSION_MAJOR_START_BIT = 24;
     private const ulong VERSION_MAJOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // VERSION_MAJOR_MASK << 24
+    private const ulong VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // VERSION_MAJOR_MASK << VERSION_MAJOR_START_BIT
     private const ulong VERSION_MAJOR_INVERTED_MASK = 0xFFFFFFFF00FFFFFFUL;  // ~VERSION_MAJOR_SHIFTED_MASK
     // VersionMinor: bits [32..39], width 8
+    private const int VERSION_MINOR_START_BIT = 32;
     private const ulong VERSION_MINOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // VERSION_MINOR_MASK << 32
+    private const ulong VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // VERSION_MINOR_MASK << VERSION_MINOR_START_BIT
     private const ulong VERSION_MINOR_INVERTED_MASK = 0xFFFFFF00FFFFFFFFUL;  // ~VERSION_MINOR_SHIFTED_MASK
     // Reserved: bits [40..63], width 24
+    private const int RESERVED_START_BIT = 40;
     private const ulong RESERVED_MASK = 0x0000000000FFFFFFUL;
-    private const ulong RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // RESERVED_MASK << 40
+    private const ulong RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // RESERVED_MASK << RESERVED_START_BIT
     private const ulong RESERVED_INVERTED_MASK = 0x000000FFFFFFFFFFUL;  // ~RESERVED_SHIFTED_MASK
 
     /// <summary>Creates a new FileHeader with the specified raw bits value.</summary>
@@ -60,33 +65,33 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     public partial global::Stardust.Utilities.Tests.StatusFlags Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)((Value >> 16) & FLAGS_MASK);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)((Value >> FLAGS_START_BIT) & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & FLAGS_INVERTED_MASK) | ((((ulong)value) << 16) & FLAGS_SHIFTED_MASK));
+        set => Value = (ulong)((Value & FLAGS_INVERTED_MASK) | ((((ulong)value) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
     }
 
     public partial byte VersionMajor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 24) & VERSION_MAJOR_MASK);
+        get => (byte)((Value >> VERSION_MAJOR_START_BIT) & VERSION_MAJOR_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << 24) & VERSION_MAJOR_SHIFTED_MASK));
+        set => Value = (ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK));
     }
 
     public partial byte VersionMinor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 32) & VERSION_MINOR_MASK);
+        get => (byte)((Value >> VERSION_MINOR_START_BIT) & VERSION_MINOR_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << 32) & VERSION_MINOR_SHIFTED_MASK));
+        set => Value = (ulong)((Value & VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK));
     }
 
     public partial uint Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> 40) & RESERVED_MASK);
+        get => (uint)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & RESERVED_INVERTED_MASK) | ((((ulong)value) << 40) & RESERVED_SHIFTED_MASK));
+        set => Value = (ulong)((Value & RESERVED_INVERTED_MASK) | ((((ulong)value) << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK));
     }
 
     /// <summary>Returns a FileHeader with the mask for the Magic field (bits 0-15).</summary>
@@ -124,19 +129,19 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & FLAGS_INVERTED_MASK) | (((ulong)value << 16) & FLAGS_SHIFTED_MASK)));
+    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & FLAGS_INVERTED_MASK) | (((ulong)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the VersionMajor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << 24) & VERSION_MAJOR_SHIFTED_MASK)));
+    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the VersionMinor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & VERSION_MINOR_INVERTED_MASK) | (((ulong)value << 32) & VERSION_MINOR_SHIFTED_MASK)));
+    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & VERSION_MINOR_INVERTED_MASK) | (((ulong)value << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithReserved(uint value) => new((ulong)((Value & RESERVED_INVERTED_MASK) | (((ulong)value << 40) & RESERVED_SHIFTED_MASK)));
+    public FileHeader WithReserved(uint value) => new((ulong)((Value & RESERVED_INVERTED_MASK) | (((ulong)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

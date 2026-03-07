@@ -29,11 +29,13 @@ public partial class ParsingFuzzTests
 
         // --- Bit field mask constants ---
         // Field1: bits [1..4], width 4
+        private const int FIELD1_START_BIT = 1;
         private const byte FIELD1_MASK = 0x0F;
-        private const byte FIELD1_SHIFTED_MASK = 0x1E;  // FIELD1_MASK << 1
+        private const byte FIELD1_SHIFTED_MASK = 0x1E;  // FIELD1_MASK << FIELD1_START_BIT
         private const byte FIELD1_INVERTED_MASK = 0xE1;  // ~FIELD1_SHIFTED_MASK
         // Flag0: bit 0
-        private const byte FLAG0_MASK = 0x01;
+        private const int FLAG0_BIT = 0;
+        private const byte FLAG0_MASK = 0x01;  // 1 << FLAG0_BIT
         private const byte FLAG0_INVERTED_MASK = 0xFE;  // ~FLAG0_MASK
 
         /// <summary>Creates a new FuzzTestReg8 with the specified raw bits value.</summary>
@@ -42,9 +44,9 @@ public partial class ParsingFuzzTests
         public partial byte Field1
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 1) & FIELD1_MASK);
+            get => (byte)((Value >> FIELD1_START_BIT) & FIELD1_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & FIELD1_INVERTED_MASK) | ((((byte)value) << 1) & FIELD1_SHIFTED_MASK));
+            set => Value = (byte)((Value & FIELD1_INVERTED_MASK) | ((((byte)value) << FIELD1_START_BIT) & FIELD1_SHIFTED_MASK));
         }
 
         public partial bool Flag0
@@ -78,7 +80,7 @@ public partial class ParsingFuzzTests
 
         /// <summary>Returns a new FuzzTestReg8 with the Field1 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FuzzTestReg8 WithField1(byte value) => new((byte)((Value & FIELD1_INVERTED_MASK) | (((byte)value << 1) & FIELD1_SHIFTED_MASK)));
+        public FuzzTestReg8 WithField1(byte value) => new((byte)((Value & FIELD1_INVERTED_MASK) | (((byte)value << FIELD1_START_BIT) & FIELD1_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

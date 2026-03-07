@@ -56,7 +56,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.5" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.6" />
 ```
 
 That's it, the source generator is included automatically.
@@ -228,6 +228,7 @@ The following storage types are supported for `[BitFields]` value-type structs:
 | `ushort` | 16 bits | Signed alternative: `short` |
 | `uint` | 32 bits | Signed alternative: `int` |
 | `ulong` | 64 bits | Signed alternative: `long` |
+| `nuint` | 32 or 64 bits | Platform-dependent; signed alternative: `nint` |
 | `UInt128` | 128 bits | Signed alternative: `Int128` |
 | `Half` | 16 bits | IEEE 754 half-precision |
 | `float` | 32 bits | IEEE 754 single-precision |
@@ -847,7 +848,7 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-    <PackageReference Include="Stardust.Utilities" Version="0.9.5" />
+    <PackageReference Include="Stardust.Utilities" Version="0.9.6" />
     ```
 2. Clean and rebuild the solution
 3. Restart Visual Studio if needed (sometimes required after first install)
@@ -872,6 +873,25 @@ a video walkthrough and screenshots. To fix the underlying issue, add the site t
 Edge's exception list at `edge://settings/privacy/security/secureModeSites`. This
 only affects Edge with Enhanced Security set to *Strict*. The default *Balanced*
 mode and all other browsers are not affected.
+
+### Compiler diagnostics for nint/nuint (SD0001, SD0002)
+
+`nint` and `nuint` are platform-dependent types: 32 bits on a 32-bit process, 64 bits on a 64-bit
+process. The source generator emits diagnostics when a `[BitFields]` struct backed by `nint` or
+`nuint` contains fields or flags that access bits above bit 31:
+
+| Diagnostic | Severity | Condition | Meaning |
+|------------|----------|-----------|---------|
+| **SD0001** | Error | `PlatformTarget` is `x86` | Bits 32+ are unreachable on a 32-bit-only build. The struct is broken and will corrupt data. |
+| **SD0002** | Warning | `PlatformTarget` is `AnyCPU` or unset | Bits 32+ work on 64-bit but are silently unreachable on 32-bit. The binary may run on either. |
+
+No diagnostic is emitted when `PlatformTarget` is `x64` or `ARM64` (always 64-bit).
+
+To resolve these diagnostics:
+- **Move fields to bits 0-31** if you need 32-bit compatibility.
+- **Change the storage type to `ulong`/`long`** for a fixed 64-bit width on all platforms.
+- **Set `<PlatformTarget>x64</PlatformTarget>`** in your `.csproj` if you only target 64-bit.
+- **Suppress SD0002** with `#pragma warning disable SD0002` if you have verified the binary will only run on 64-bit.
 
 ### IntelliSense not working for generated members
 

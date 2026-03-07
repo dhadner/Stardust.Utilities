@@ -27,11 +27,13 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
 
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
+    private const int STATUS_START_BIT = 0;
     private const ushort STATUS_MASK = 0x00FF;
     private const ushort STATUS_INVERTED_MASK = 0xFF00;  // ~STATUS_MASK
     // Length: bits [8..15], width 8
+    private const int LENGTH_START_BIT = 8;
     private const ushort LENGTH_MASK = 0x00FF;
-    private const ushort LENGTH_SHIFTED_MASK = 0xFF00;  // LENGTH_MASK << 8
+    private const ushort LENGTH_SHIFTED_MASK = 0xFF00;  // LENGTH_MASK << LENGTH_START_BIT
     private const ushort LENGTH_INVERTED_MASK = 0x00FF;  // ~LENGTH_SHIFTED_MASK
 
     /// <summary>Creates a new ProtocolHeader16 with the specified raw bits value.</summary>
@@ -48,9 +50,9 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     public partial byte Length
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 8) & LENGTH_MASK);
+        get => (byte)((Value >> LENGTH_START_BIT) & LENGTH_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & LENGTH_INVERTED_MASK) | ((((ushort)value) << 8) & LENGTH_SHIFTED_MASK));
+        set => Value = (ushort)((Value & LENGTH_INVERTED_MASK) | ((((ushort)value) << LENGTH_START_BIT) & LENGTH_SHIFTED_MASK));
     }
 
     /// <summary>Returns a ProtocolHeader16 with the mask for the Status field (bits 0-7).</summary>
@@ -76,7 +78,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
 
     /// <summary>Returns a new ProtocolHeader16 with the Length field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithLength(byte value) => new((ushort)((Value & LENGTH_INVERTED_MASK) | (((ushort)value << 8) & LENGTH_SHIFTED_MASK)));
+    public ProtocolHeader16 WithLength(byte value) => new((ushort)((Value & LENGTH_INVERTED_MASK) | (((ushort)value << LENGTH_START_BIT) & LENGTH_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

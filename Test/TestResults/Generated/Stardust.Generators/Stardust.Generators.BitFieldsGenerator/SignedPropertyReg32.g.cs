@@ -27,14 +27,17 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
 
     // --- Bit field mask constants ---
     // HighByte: bits [24..31], width 8
+    private const int HIGH_BYTE_START_BIT = 24;
     private const uint HIGH_BYTE_MASK = 0x000000FFU;
-    private const uint HIGH_BYTE_SHIFTED_MASK = 0xFF000000U;  // HIGH_BYTE_MASK << 24
+    private const uint HIGH_BYTE_SHIFTED_MASK = 0xFF000000U;  // HIGH_BYTE_MASK << HIGH_BYTE_START_BIT
     private const uint HIGH_BYTE_INVERTED_MASK = 0x00FFFFFFU;  // ~HIGH_BYTE_SHIFTED_MASK
     // MiddleWord: bits [8..23], width 16
+    private const int MIDDLE_WORD_START_BIT = 8;
     private const uint MIDDLE_WORD_MASK = 0x0000FFFFU;
-    private const uint MIDDLE_WORD_SHIFTED_MASK = 0x00FFFF00U;  // MIDDLE_WORD_MASK << 8
+    private const uint MIDDLE_WORD_SHIFTED_MASK = 0x00FFFF00U;  // MIDDLE_WORD_MASK << MIDDLE_WORD_START_BIT
     private const uint MIDDLE_WORD_INVERTED_MASK = 0xFF0000FFU;  // ~MIDDLE_WORD_SHIFTED_MASK
     // LowByte: bits [0..7], width 8
+    private const int LOW_BYTE_START_BIT = 0;
     private const uint LOW_BYTE_MASK = 0x000000FFU;
     private const uint LOW_BYTE_INVERTED_MASK = 0xFFFFFF00U;  // ~LOW_BYTE_MASK
 
@@ -44,17 +47,17 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     public partial sbyte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)((Value >> 24) & HIGH_BYTE_MASK);
+        get => (sbyte)((Value >> HIGH_BYTE_START_BIT) & HIGH_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & HIGH_BYTE_INVERTED_MASK) | ((((uint)value) << 24) & HIGH_BYTE_SHIFTED_MASK));
+        set => Value = (uint)((Value & HIGH_BYTE_INVERTED_MASK) | ((((uint)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK));
     }
 
     public partial short MiddleWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (short)((Value >> 8) & MIDDLE_WORD_MASK);
+        get => (short)((Value >> MIDDLE_WORD_START_BIT) & MIDDLE_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & MIDDLE_WORD_INVERTED_MASK) | ((((uint)value) << 8) & MIDDLE_WORD_SHIFTED_MASK));
+        set => Value = (uint)((Value & MIDDLE_WORD_INVERTED_MASK) | ((((uint)value) << MIDDLE_WORD_START_BIT) & MIDDLE_WORD_SHIFTED_MASK));
     }
 
     public partial byte LowByte
@@ -88,11 +91,11 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg32 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((Value & HIGH_BYTE_INVERTED_MASK) | (((uint)value << 24) & HIGH_BYTE_SHIFTED_MASK)));
+    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((Value & HIGH_BYTE_INVERTED_MASK) | (((uint)value << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg32 with the MiddleWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((Value & MIDDLE_WORD_INVERTED_MASK) | (((uint)value << 8) & MIDDLE_WORD_SHIFTED_MASK)));
+    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((Value & MIDDLE_WORD_INVERTED_MASK) | (((uint)value << MIDDLE_WORD_START_BIT) & MIDDLE_WORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg32 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

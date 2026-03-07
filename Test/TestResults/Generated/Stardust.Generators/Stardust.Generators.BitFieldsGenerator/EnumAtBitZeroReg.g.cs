@@ -27,15 +27,18 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
 
     // --- Bit field mask constants ---
     // Command: bits [0..2], width 3
+    private const int COMMAND_START_BIT = 0;
     private const byte COMMAND_MASK = 0x07;
     private const byte COMMAND_INVERTED_MASK = 0xF8;  // ~COMMAND_MASK
     // Status: bits [3..5], width 3
+    private const int STATUS_START_BIT = 3;
     private const byte STATUS_MASK = 0x07;
-    private const byte STATUS_SHIFTED_MASK = 0x38;  // STATUS_MASK << 3
+    private const byte STATUS_SHIFTED_MASK = 0x38;  // STATUS_MASK << STATUS_START_BIT
     private const byte STATUS_INVERTED_MASK = 0xC7;  // ~STATUS_SHIFTED_MASK
     // Flags: bits [6..7], width 2
+    private const int FLAGS_START_BIT = 6;
     private const byte FLAGS_MASK = 0x03;
-    private const byte FLAGS_SHIFTED_MASK = 0xC0;  // FLAGS_MASK << 6
+    private const byte FLAGS_SHIFTED_MASK = 0xC0;  // FLAGS_MASK << FLAGS_START_BIT
     private const byte FLAGS_INVERTED_MASK = 0x3F;  // ~FLAGS_SHIFTED_MASK
 
     /// <summary>Creates a new EnumAtBitZeroReg with the specified raw bits value.</summary>
@@ -52,17 +55,17 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     public partial global::Stardust.Utilities.Tests.OpMode Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 3) & STATUS_MASK);
+        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> STATUS_START_BIT) & STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & STATUS_INVERTED_MASK) | ((((byte)value) << 3) & STATUS_SHIFTED_MASK));
+        set => Value = (byte)((Value & STATUS_INVERTED_MASK) | ((((byte)value) << STATUS_START_BIT) & STATUS_SHIFTED_MASK));
     }
 
     public partial byte Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 6) & FLAGS_MASK);
+        get => (byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & FLAGS_INVERTED_MASK) | ((((byte)value) << 6) & FLAGS_SHIFTED_MASK));
+        set => Value = (byte)((Value & FLAGS_INVERTED_MASK) | ((((byte)value) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
     }
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Command field (bits 0-2).</summary>
@@ -92,11 +95,11 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
 
     /// <summary>Returns a new EnumAtBitZeroReg with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumAtBitZeroReg WithStatus(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & STATUS_INVERTED_MASK) | (((byte)value << 3) & STATUS_SHIFTED_MASK)));
+    public EnumAtBitZeroReg WithStatus(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & STATUS_INVERTED_MASK) | (((byte)value << STATUS_START_BIT) & STATUS_SHIFTED_MASK)));
 
     /// <summary>Returns a new EnumAtBitZeroReg with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumAtBitZeroReg WithFlags(byte value) => new((byte)((Value & FLAGS_INVERTED_MASK) | (((byte)value << 6) & FLAGS_SHIFTED_MASK)));
+    public EnumAtBitZeroReg WithFlags(byte value) => new((byte)((Value & FLAGS_INVERTED_MASK) | (((byte)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

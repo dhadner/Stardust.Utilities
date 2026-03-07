@@ -27,18 +27,22 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     // --- Bit field mask constants ---
     // Delta: bits [13..15], width 3
+    private const int DELTA_START_BIT = 13;
     private const ushort DELTA_MASK = 0x0007;
-    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << 13
+    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << DELTA_START_BIT
     private const ushort DELTA_INVERTED_MASK = 0x1FFF;  // ~DELTA_SHIFTED_MASK
     // UnsignedField: bits [10..12], width 3
+    private const int UNSIGNED_FIELD_START_BIT = 10;
     private const ushort UNSIGNED_FIELD_MASK = 0x0007;
-    private const ushort UNSIGNED_FIELD_SHIFTED_MASK = 0x1C00;  // UNSIGNED_FIELD_MASK << 10
+    private const ushort UNSIGNED_FIELD_SHIFTED_MASK = 0x1C00;  // UNSIGNED_FIELD_MASK << UNSIGNED_FIELD_START_BIT
     private const ushort UNSIGNED_FIELD_INVERTED_MASK = 0xE3FF;  // ~UNSIGNED_FIELD_SHIFTED_MASK
     // SignedNibble: bits [6..9], width 4
+    private const int SIGNED_NIBBLE_START_BIT = 6;
     private const ushort SIGNED_NIBBLE_MASK = 0x000F;
-    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x03C0;  // SIGNED_NIBBLE_MASK << 6
+    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x03C0;  // SIGNED_NIBBLE_MASK << SIGNED_NIBBLE_START_BIT
     private const ushort SIGNED_NIBBLE_INVERTED_MASK = 0xFC3F;  // ~SIGNED_NIBBLE_SHIFTED_MASK
     // Offset: bits [0..5], width 6
+    private const int OFFSET_START_BIT = 0;
     private const ushort OFFSET_MASK = 0x003F;
     private const ushort OFFSET_INVERTED_MASK = 0xFFC0;  // ~OFFSET_MASK
 
@@ -50,15 +54,15 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (sbyte)(((int)(Value & DELTA_SHIFTED_MASK) << 16) >> 29);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & DELTA_INVERTED_MASK) | ((((ushort)value) << 13) & DELTA_SHIFTED_MASK));
+        set => Value = (ushort)((Value & DELTA_INVERTED_MASK) | ((((ushort)value) << DELTA_START_BIT) & DELTA_SHIFTED_MASK));
     }
 
     public partial byte UnsignedField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 10) & UNSIGNED_FIELD_MASK);
+        get => (byte)((Value >> UNSIGNED_FIELD_START_BIT) & UNSIGNED_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | ((((ushort)value) << 10) & UNSIGNED_FIELD_SHIFTED_MASK));
+        set => Value = (ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | ((((ushort)value) << UNSIGNED_FIELD_START_BIT) & UNSIGNED_FIELD_SHIFTED_MASK));
     }
 
     public partial sbyte SignedNibble
@@ -66,7 +70,7 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (sbyte)(((int)(Value & SIGNED_NIBBLE_SHIFTED_MASK) << 22) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << 6) & SIGNED_NIBBLE_SHIFTED_MASK));
+        set => Value = (ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK));
     }
 
     public partial sbyte Offset
@@ -104,15 +108,15 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((Value & DELTA_INVERTED_MASK) | (((ushort)value << 13) & DELTA_SHIFTED_MASK)));
+    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((Value & DELTA_INVERTED_MASK) | (((ushort)value << DELTA_START_BIT) & DELTA_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the UnsignedField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | (((ushort)value << 10) & UNSIGNED_FIELD_SHIFTED_MASK)));
+    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | (((ushort)value << UNSIGNED_FIELD_START_BIT) & UNSIGNED_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the SignedNibble field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | (((ushort)value << 6) & SIGNED_NIBBLE_SHIFTED_MASK)));
+    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | (((ushort)value << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the Offset field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

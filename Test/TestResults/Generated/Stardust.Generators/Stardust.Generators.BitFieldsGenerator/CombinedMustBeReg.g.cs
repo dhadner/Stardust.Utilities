@@ -27,10 +27,12 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
 
     // --- Bit field mask constants ---
     // Flags: bits [0..2], width 3
+    private const int FLAGS_START_BIT = 0;
     private const byte FLAGS_MASK = 0x07;
     private const byte FLAGS_INVERTED_MASK = 0xF8;  // ~FLAGS_MASK
     // AlwaysHigh: bit 3
-    private const byte ALWAYS_HIGH_MASK = 0x08;
+    private const int ALWAYS_HIGH_BIT = 3;
+    private const byte ALWAYS_HIGH_MASK = 0x08;  // 1 << ALWAYS_HIGH_BIT
     private const byte ALWAYS_HIGH_INVERTED_MASK = 0xF7;  // ~ALWAYS_HIGH_MASK
 
     // --- Constructor normalization masks ---

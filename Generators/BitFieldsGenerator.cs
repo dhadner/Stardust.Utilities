@@ -25,9 +25,20 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => GetBitFieldsInfo(ctx))
             .Where(static info => info is not null);
 
+        // Read PlatformTarget from build properties for native integer diagnostics
+        var platformTarget = context.AnalyzerConfigOptionsProvider
+            .Select(static (provider, _) =>
+            {
+                provider.GlobalOptions.TryGetValue("build_property.PlatformTarget", out var value);
+                return value ?? "";
+            });
+
+        // Combine structs with platform target for diagnostic reporting
+        var combined = structDeclarations.Combine(platformTarget);
+
         // Generate source for each
-        context.RegisterSourceOutput(structDeclarations,
-            static (spc, info) => Execute(spc, info!));
+        context.RegisterSourceOutput(combined,
+            static (spc, pair) => Execute(spc, pair.Left!, pair.Right));
     }
 
     private static BitFieldsInfo? GetBitFieldsInfo(GeneratorAttributeSyntaxContext context)
@@ -130,6 +141,20 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             nativeWideType = "decimal";
             storageType = "ulong";
         }
+        // Native integer types: nint/nuint are pointer-width, treated as 64-bit for code generation.
+        // Masks use ulong to avoid const nuint range limitations (max uint on 32-bit).
+        else if (storageType == "nint" || storageType == "IntPtr")
+        {
+            storageType = "nint";
+            storageTypeIsSigned = true;
+            unsignedStorageType = "ulong";
+        }
+        else if (storageType == "nuint" || storageType == "UIntPtr")
+        {
+            storageType = "nuint";
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+        }
         // Validate storage type
         else if (storageType == "byte" || storageType == "ushort" || storageType == "uint" || storageType == "ulong")
         {
@@ -181,7 +206,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 
-                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, valueOverride, description: desc, descriptionResourceType: descResType));
+                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, valueOverride, description: desc, descriptionResourceType: descResType, location: member.Locations.Length > 0 ? member.Locations[0] : null));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
@@ -197,7 +222,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 
-                    flags.Add(new BitFlagInfo(member.Name, bit, valueOverride, desc, descResType));
+                    flags.Add(new BitFlagInfo(member.Name, bit, valueOverride, desc, descResType, location: member.Locations.Length > 0 ? member.Locations[0] : null));
                 }
             }
         }
@@ -307,6 +332,9 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             }
         }
 
+        // Get the source location of the struct declaration for diagnostic reporting
+        var structLocation = structSymbol.Locations.Length > 0 ? structSymbol.Locations[0] : null;
+
         return new BitFieldsInfo(
             structSymbol.Name,
             ns,
@@ -327,7 +355,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             declaredFields,
             declaredFlags,
             structDescription,
-            structDescriptionResourceType);
+            structDescriptionResourceType,
+            location: structLocation);
     }
 
     /// <summary>
@@ -362,8 +391,14 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         };
     }
 
-    private static void Execute(SourceProductionContext context, BitFieldsInfo info)
+    private static void Execute(SourceProductionContext context, BitFieldsInfo info, string platformTarget)
     {
+        // Report diagnostics for native integer types with fields above bit 31
+        if (info.IsNativeIntegerType)
+        {
+            ReportNativeIntDiagnostics(context, info, platformTarget);
+        }
+
         // Dispatch to the appropriate generator based on storage mode
         if (info.Mode == StorageMode.MultiWord)
         {
@@ -418,7 +453,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         int storageBits = GetStorageTypeBitWidth(info.StorageType);
         ulong allBitsMask = storageBits == 64 ? ulong.MaxValue : (1UL << storageBits) - 1;
         ulong undefinedBitsMask = allBitsMask & ~definedBitsMask;
-        string maskType = info.StorageTypeIsSigned ? info.UnsignedStorageType : info.StorageType;
+        string maskType = info.NeedsUnsignedCast ? info.UnsignedStorageType : info.StorageType;
 
         // Calculate combined enforcement masks (per-field MustBe + UndefinedBitsMustBe)
         var (mustClearMask, mustSetMask) = CalculateNormalizationMasks(info, undefinedBitsMask);
@@ -427,9 +462,17 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // Generate private Value field and constructor
         sb.AppendLine($"{memberIndent}private {info.StorageType} Value;");
         sb.AppendLine();
-        int sizeInBytes = GetStorageTypeBitWidth(info.StorageType) / 8;
-        sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes.</summary>");
-        sb.AppendLine($"{memberIndent}public const int SIZE_IN_BYTES = {sizeInBytes};");
+        if (info.IsNativeIntegerType)
+        {
+            sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes (platform-dependent: 4 on 32-bit, 8 on 64-bit).</summary>");
+            sb.AppendLine($"{memberIndent}public static int SIZE_IN_BYTES => nint.Size;");
+        }
+        else
+        {
+            int sizeInBytes = GetStorageTypeBitWidth(info.StorageType) / 8;
+            sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes.</summary>");
+            sb.AppendLine($"{memberIndent}public const int SIZE_IN_BYTES = {sizeInBytes};");
+        }
         sb.AppendLine();
         sb.AppendLine($"{memberIndent}/// <summary>Returns a {info.TypeName} with all bits set to zero.</summary>");
         sb.AppendLine($"{memberIndent}public static {info.TypeName} Zero => default;");
@@ -451,7 +494,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         else if (mustSetMask == 0)
         {
             // Only clearing needed: Value = value & NORMALIZATION_AND_MASK
-            if (info.StorageTypeIsSigned)
+            if (info.NeedsUnsignedCast)
                 sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) & NORMALIZATION_AND_MASK); }}");
             else
                 sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value & NORMALIZATION_AND_MASK); }}");
@@ -459,7 +502,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         else if (mustClearMask == 0)
         {
             // Only setting needed: Value = value | NORMALIZATION_OR_MASK
-            if (info.StorageTypeIsSigned)
+            if (info.NeedsUnsignedCast)
                 sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) | NORMALIZATION_OR_MASK); }}");
             else
                 sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value | NORMALIZATION_OR_MASK); }}");
@@ -467,7 +510,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         else
         {
             // Both: Value = (value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK
-            if (info.StorageTypeIsSigned)
+            if (info.NeedsUnsignedCast)
                 sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(((({info.UnsignedStorageType})value) & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }}");
             else
                 sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }}");
@@ -541,5 +584,51 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             : $"{info.TypeName}.g.cs";
 
         context.AddSource(fileName, SourceText.From(sb.ToString(), Encoding.UTF8));
+    }
+
+    /// <summary>
+    /// Reports diagnostics for nint/nuint structs that use bit positions above 31.
+    /// On x86 builds, nint/nuint is always 32 bits so fields above bit 31 are unreachable (error).
+    /// On AnyCPU builds, the binary may run on 32-bit platforms where those fields would silently fail (warning).
+    /// On x64/arm64 builds, no diagnostic is needed (always 64-bit).
+    /// </summary>
+    private static void ReportNativeIntDiagnostics(SourceProductionContext context, BitFieldsInfo info, string platformTarget)
+    {
+        // Normalize for case-insensitive comparison
+        var platform = platformTarget.Trim();
+        bool isExplicit32Bit = platform.Equals("x86", System.StringComparison.OrdinalIgnoreCase);
+        bool isExplicit64Bit = platform.Equals("x64", System.StringComparison.OrdinalIgnoreCase)
+                            || platform.Equals("ARM64", System.StringComparison.OrdinalIgnoreCase);
+
+        // x64/ARM64: no diagnostic needed, nint/nuint is always 64-bit
+        if (isExplicit64Bit)
+            return;
+
+        var descriptor = isExplicit32Bit
+            ? BitFieldsDiagnostics.NativeIntExceedsBits32Error
+            : BitFieldsDiagnostics.NativeIntExceedsBits32Warning;
+
+        foreach (var field in info.Fields)
+        {
+            int highestBit = field.Shift + field.Width - 1;
+            if (highestBit >= 32)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    descriptor,
+                    field.Location ?? info.Location,
+                    field.Name, info.TypeName, highestBit));
+            }
+        }
+
+        foreach (var flag in info.Flags)
+        {
+            if (flag.Bit >= 32)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    descriptor,
+                    flag.Location ?? info.Location,
+                    flag.Name, info.TypeName, flag.Bit));
+            }
+        }
     }
 }

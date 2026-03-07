@@ -1184,4 +1184,36 @@ public partial struct GeneratedWideReg64
     [BitFlag(57)] public partial bool Ready { get; set; }
 }
 
+/// <summary>
+/// 64-bit wide register for testing code generation.
+/// Intentionally uses bits above 31 to test 64-bit nint behavior.
+/// </summary>
+[BitFields(typeof(nint))]
+public partial struct GeneratedWideRegNint
+{
+#pragma warning disable SD0002 // Intentional: testing 64-bit nint with high-bit fields
+    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
+    [BitFlag(56)] public partial bool Valid { get; set; }
+    [BitFlag(57)] public partial bool Ready { get; set; }
+#pragma warning restore SD0002
+}
+
+/// <summary>
+/// 64-bit wide register for testing code generation.
+/// Intentionally uses bits above 31 to test 64-bit nuint behavior.
+/// </summary>
+[BitFields(typeof(nuint))]
+public partial struct GeneratedWideRegNuint
+{
+#pragma warning disable SD0002 // Intentional: testing 64-bit nuint with high-bit fields
+    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
+    [BitFlag(56)] public partial bool Valid { get; set; }
+    [BitFlag(57)] public partial bool Ready { get; set; }
+#pragma warning restore SD0002
+}
+
 #endregion

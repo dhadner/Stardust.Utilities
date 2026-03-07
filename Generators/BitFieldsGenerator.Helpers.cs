@@ -78,7 +78,7 @@ public partial class BitFieldsGenerator
     /// </summary>
     private static bool IsSignedType(string typeName)
     {
-        return typeName == "sbyte" || typeName == "short" || typeName == "int" || typeName == "long";
+        return typeName == "sbyte" || typeName == "short" || typeName == "int" || typeName == "long" || typeName == "nint";
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public partial class BitFieldsGenerator
             "sbyte" or "byte" => 8,
             "short" or "ushort" => 16,
             "int" or "uint" => 32,
-            "long" or "ulong" => 64,
+            "long" or "ulong" or "nint" or "nuint" => 64,
             _ => 32 // Default to int size for unknown types
         };
     }
@@ -105,7 +105,7 @@ public partial class BitFieldsGenerator
         return propertyType switch
         {
             "sbyte" or "short" or "int" => "int",
-            "long" => "long",
+            "long" or "nint" => "long",
             _ => "int"
         };
     }
@@ -120,7 +120,7 @@ public partial class BitFieldsGenerator
             "sbyte" or "byte" => 8,
             "short" or "ushort" => 16,
             "int" or "uint" => 32,
-            "long" or "ulong" => 64,
+            "long" or "ulong" or "nint" or "nuint" => 64,
             _ => 32
         };
     }
@@ -269,8 +269,8 @@ public partial class BitFieldsGenerator
             "ushort" => "UInt16",
             "int" => "Int32",
             "uint" => "UInt32",
-            "long" => "Int64",
-            "ulong" => "UInt64",
+            "long" or "nint" => "Int64",
+            "ulong" or "nuint" => "UInt64",
             _ => "Int32"
         };
     }

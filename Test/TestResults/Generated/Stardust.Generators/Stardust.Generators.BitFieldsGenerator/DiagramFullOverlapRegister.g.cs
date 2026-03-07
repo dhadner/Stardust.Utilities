@@ -27,14 +27,17 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
 
     // --- Bit field mask constants ---
     // ModeA: bits [0..3], width 4
+    private const int MODE_A_START_BIT = 0;
     private const byte MODE_A_MASK = 0x0F;
     private const byte MODE_A_INVERTED_MASK = 0xF0;  // ~MODE_A_MASK
     // ModeB: bits [0..3], width 4
+    private const int MODE_B_START_BIT = 0;
     private const byte MODE_B_MASK = 0x0F;
     private const byte MODE_B_INVERTED_MASK = 0xF0;  // ~MODE_B_MASK
     // Upper: bits [4..7], width 4
+    private const int UPPER_START_BIT = 4;
     private const byte UPPER_MASK = 0x0F;
-    private const byte UPPER_SHIFTED_MASK = 0xF0;  // UPPER_MASK << 4
+    private const byte UPPER_SHIFTED_MASK = 0xF0;  // UPPER_MASK << UPPER_START_BIT
     private const byte UPPER_INVERTED_MASK = 0x0F;  // ~UPPER_SHIFTED_MASK
 
     /// <summary>Creates a new DiagramFullOverlapRegister with the specified raw bits value.</summary>
@@ -59,9 +62,9 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     public partial byte Upper
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & UPPER_MASK);
+        get => (byte)((Value >> UPPER_START_BIT) & UPPER_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & UPPER_INVERTED_MASK) | ((((byte)value) << 4) & UPPER_SHIFTED_MASK));
+        set => Value = (byte)((Value & UPPER_INVERTED_MASK) | ((((byte)value) << UPPER_START_BIT) & UPPER_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the ModeA field (bits 0-3).</summary>
@@ -95,7 +98,7 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
 
     /// <summary>Returns a new DiagramFullOverlapRegister with the Upper field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramFullOverlapRegister WithUpper(byte value) => new((byte)((Value & UPPER_INVERTED_MASK) | (((byte)value << 4) & UPPER_SHIFTED_MASK)));
+    public DiagramFullOverlapRegister WithUpper(byte value) => new((byte)((Value & UPPER_INVERTED_MASK) | (((byte)value << UPPER_START_BIT) & UPPER_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

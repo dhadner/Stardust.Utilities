@@ -29,14 +29,17 @@ public partial class BitFieldSpecializationTests
 
         // --- Bit field mask constants ---
         // Mantissa: bits [0..9], width 10
+        private const int MANTISSA_START_BIT = 0;
         private const ushort MANTISSA_MASK = 0x03FF;
         private const ushort MANTISSA_INVERTED_MASK = 0xFC00;  // ~MANTISSA_MASK
         // Exponent: bits [10..14], width 5
+        private const int EXPONENT_START_BIT = 10;
         private const ushort EXPONENT_MASK = 0x001F;
-        private const ushort EXPONENT_SHIFTED_MASK = 0x7C00;  // EXPONENT_MASK << 10
+        private const ushort EXPONENT_SHIFTED_MASK = 0x7C00;  // EXPONENT_MASK << EXPONENT_START_BIT
         private const ushort EXPONENT_INVERTED_MASK = 0x83FF;  // ~EXPONENT_SHIFTED_MASK
         // Sign: bit 15
-        private const ushort SIGN_MASK = 0x8000;
+        private const int SIGN_BIT = 15;
+        private const ushort SIGN_MASK = 0x8000;  // 1 << SIGN_BIT
         private const ushort SIGN_INVERTED_MASK = 0x7FFF;  // ~SIGN_MASK
 
         /// <summary>Creates a new HalfRegister with the specified raw bits value.</summary>
@@ -57,9 +60,9 @@ public partial class BitFieldSpecializationTests
         public partial byte Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 10) & EXPONENT_MASK);
+            get => (byte)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ushort)((Value & EXPONENT_INVERTED_MASK) | ((((ushort)value) << 10) & EXPONENT_SHIFTED_MASK));
+            set => Value = (ushort)((Value & EXPONENT_INVERTED_MASK) | ((((ushort)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
@@ -101,7 +104,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new HalfRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithExponent(byte value) => new((ushort)((Value & EXPONENT_INVERTED_MASK) | (((ushort)value << 10) & EXPONENT_SHIFTED_MASK)));
+        public HalfRegister WithExponent(byte value) => new((ushort)((Value & EXPONENT_INVERTED_MASK) | (((ushort)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -149,7 +149,10 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}private static {s} ParseBinary(ReadOnlySpan<char> s)");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    var clean = RemoveUnderscores(s);");
-        sb.AppendLine($"{indent}    return Convert.To{GetConvertMethodName(s)}(clean, 2);");
+        if (info.IsNativeIntegerType)
+            sb.AppendLine($"{indent}    return ({s})Convert.To{GetConvertMethodName(s)}(clean, 2);");
+        else
+            sb.AppendLine($"{indent}    return Convert.To{GetConvertMethodName(s)}(clean, 2);");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
         sb.AppendLine($"{indent}private static bool TryParseBinary(ReadOnlySpan<char> s, out {s} result)");
@@ -379,6 +382,7 @@ public partial class BitFieldsGenerator
         string? readMethod = GetBinaryPrimitivesReadMethod(s, isBE);
         string? writeMethod = GetBinaryPrimitivesWriteMethod(s, isBE);
         bool isByte = s == "byte" || s == "sbyte";
+        bool isNativeInt = info.IsNativeIntegerType;
         string endianLabel = isBE ? "big-endian" : "little-endian";
 
         // For NativeFloat types, use the unsigned storage type for binary reads/writes
@@ -401,6 +405,18 @@ public partial class BitFieldsGenerator
                 sb.AppendLine($"{indent}    this = new {t}(unchecked((sbyte)bytes[0]));");
             else
                 sb.AppendLine($"{indent}    this = new {t}(bytes[0]);");
+        }
+        else if (isNativeInt)
+        {
+            // nint/nuint: branch at runtime based on platform pointer size
+            string readU32 = isBE ? "ReadUInt32BigEndian" : "ReadUInt32LittleEndian";
+            string readU64 = isBE ? "ReadUInt64BigEndian" : "ReadUInt64LittleEndian";
+            string readI32 = isBE ? "ReadInt32BigEndian" : "ReadInt32LittleEndian";
+            string readI64 = isBE ? "ReadInt64BigEndian" : "ReadInt64LittleEndian";
+            if (s == "nint")
+                sb.AppendLine($"{indent}    this = new {t}(nint.Size == 8 ? (nint)BinaryPrimitives.{readI64}(bytes) : (nint)BinaryPrimitives.{readI32}(bytes));");
+            else
+                sb.AppendLine($"{indent}    this = new {t}(nint.Size == 8 ? (nuint)BinaryPrimitives.{readU64}(bytes) : (nuint)BinaryPrimitives.{readU32}(bytes));");
         }
         else
             sb.AppendLine($"{indent}    this = new {t}(BinaryPrimitives.{readMethod}(bytes));");
@@ -425,6 +441,23 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(destination));");
         if (isByte)
             sb.AppendLine($"{indent}    destination[0] = unchecked((byte)Value);");
+        else if (isNativeInt)
+        {
+            string writeU32 = isBE ? "WriteUInt32BigEndian" : "WriteUInt32LittleEndian";
+            string writeU64 = isBE ? "WriteUInt64BigEndian" : "WriteUInt64LittleEndian";
+            string writeI32 = isBE ? "WriteInt32BigEndian" : "WriteInt32LittleEndian";
+            string writeI64 = isBE ? "WriteInt64BigEndian" : "WriteInt64LittleEndian";
+            if (s == "nint")
+            {
+                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeI64}(destination, (long)Value);");
+                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeI32}(destination, (int)Value);");
+            }
+            else
+            {
+                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeU64}(destination, (ulong)Value);");
+                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeU32}(destination, (uint)Value);");
+            }
+        }
         else
             sb.AppendLine($"{indent}    BinaryPrimitives.{writeMethod}(destination, Value);");
         sb.AppendLine($"{indent}}}");

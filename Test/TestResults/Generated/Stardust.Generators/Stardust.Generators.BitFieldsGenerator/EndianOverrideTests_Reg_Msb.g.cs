@@ -29,14 +29,17 @@ public partial class EndianOverrideTests
 
         // --- Bit field mask constants ---
         // BeU16: bits [48..63], width 16
+        private const int BE_U16_START_BIT = 48;
         private const ulong BE_U16_MASK = 0x000000000000FFFFUL;
-        private const ulong BE_U16_SHIFTED_MASK = 0xFFFF000000000000UL;  // BE_U16_MASK << 48
+        private const ulong BE_U16_SHIFTED_MASK = 0xFFFF000000000000UL;  // BE_U16_MASK << BE_U16_START_BIT
         private const ulong BE_U16_INVERTED_MASK = 0x0000FFFFFFFFFFFFUL;  // ~BE_U16_SHIFTED_MASK
         // LeU16: bits [32..47], width 16
+        private const int LE_U16_START_BIT = 32;
         private const ulong LE_U16_MASK = 0x000000000000FFFFUL;
-        private const ulong LE_U16_SHIFTED_MASK = 0x0000FFFF00000000UL;  // LE_U16_MASK << 32
+        private const ulong LE_U16_SHIFTED_MASK = 0x0000FFFF00000000UL;  // LE_U16_MASK << LE_U16_START_BIT
         private const ulong LE_U16_INVERTED_MASK = 0xFFFF0000FFFFFFFFUL;  // ~LE_U16_SHIFTED_MASK
         // BeU32: bits [0..31], width 32
+        private const int BE_U32_START_BIT = 0;
         private const ulong BE_U32_MASK = 0x00000000FFFFFFFFUL;
         private const ulong BE_U32_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~BE_U32_MASK
 
@@ -46,17 +49,17 @@ public partial class EndianOverrideTests
         public partial global::Stardust.Utilities.UInt16Be BeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.UInt16Be)((Value >> 48) & BE_U16_MASK);
+            get => (global::Stardust.Utilities.UInt16Be)((Value >> BE_U16_START_BIT) & BE_U16_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & BE_U16_INVERTED_MASK) | ((((ulong)value) << 48) & BE_U16_SHIFTED_MASK));
+            set => Value = (ulong)((Value & BE_U16_INVERTED_MASK) | ((((ulong)value) << BE_U16_START_BIT) & BE_U16_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.UInt16Le LeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.UInt16Le)((Value >> 32) & LE_U16_MASK);
+            get => (global::Stardust.Utilities.UInt16Le)((Value >> LE_U16_START_BIT) & LE_U16_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & LE_U16_INVERTED_MASK) | ((((ulong)value) << 32) & LE_U16_SHIFTED_MASK));
+            set => Value = (ulong)((Value & LE_U16_INVERTED_MASK) | ((((ulong)value) << LE_U16_START_BIT) & LE_U16_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.UInt32Be BeU32
@@ -90,11 +93,11 @@ public partial class EndianOverrideTests
 
         /// <summary>Returns a new Reg_Msb with the BeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & BE_U16_INVERTED_MASK) | (((ulong)value << 48) & BE_U16_SHIFTED_MASK)));
+        public Reg_Msb WithBeU16(global::Stardust.Utilities.UInt16Be value) => new((ulong)((Value & BE_U16_INVERTED_MASK) | (((ulong)value << BE_U16_START_BIT) & BE_U16_SHIFTED_MASK)));
 
         /// <summary>Returns a new Reg_Msb with the LeU16 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Reg_Msb WithLeU16(global::Stardust.Utilities.UInt16Le value) => new((ulong)((Value & LE_U16_INVERTED_MASK) | (((ulong)value << 32) & LE_U16_SHIFTED_MASK)));
+        public Reg_Msb WithLeU16(global::Stardust.Utilities.UInt16Le value) => new((ulong)((Value & LE_U16_INVERTED_MASK) | (((ulong)value << LE_U16_START_BIT) & LE_U16_SHIFTED_MASK)));
 
         /// <summary>Returns a new Reg_Msb with the BeU32 field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

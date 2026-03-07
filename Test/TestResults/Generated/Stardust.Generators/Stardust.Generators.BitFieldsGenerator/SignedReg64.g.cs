@@ -27,18 +27,22 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
 
     // --- Bit field mask constants ---
     // LowDword: bits [1..31], width 31
+    private const int LOW_DWORD_START_BIT = 1;
     private const ulong LOW_DWORD_MASK = 0x000000007FFFFFFFUL;
-    private const ulong LOW_DWORD_SHIFTED_MASK = 0x00000000FFFFFFFEUL;  // LOW_DWORD_MASK << 1
+    private const ulong LOW_DWORD_SHIFTED_MASK = 0x00000000FFFFFFFEUL;  // LOW_DWORD_MASK << LOW_DWORD_START_BIT
     private const ulong LOW_DWORD_INVERTED_MASK = 0xFFFFFFFF00000001UL;  // ~LOW_DWORD_SHIFTED_MASK
     // HighDword: bits [32..62], width 31
+    private const int HIGH_DWORD_START_BIT = 32;
     private const ulong HIGH_DWORD_MASK = 0x000000007FFFFFFFUL;
-    private const ulong HIGH_DWORD_SHIFTED_MASK = 0x7FFFFFFF00000000UL;  // HIGH_DWORD_MASK << 32
+    private const ulong HIGH_DWORD_SHIFTED_MASK = 0x7FFFFFFF00000000UL;  // HIGH_DWORD_MASK << HIGH_DWORD_START_BIT
     private const ulong HIGH_DWORD_INVERTED_MASK = 0x80000000FFFFFFFFUL;  // ~HIGH_DWORD_SHIFTED_MASK
     // Flag0: bit 0
-    private const ulong FLAG0_MASK = 0x0000000000000001UL;
+    private const int FLAG0_BIT = 0;
+    private const ulong FLAG0_MASK = 0x0000000000000001UL;  // 1 << FLAG0_BIT
     private const ulong FLAG0_INVERTED_MASK = 0xFFFFFFFFFFFFFFFEUL;  // ~FLAG0_MASK
     // Sign: bit 63
-    private const ulong SIGN_MASK = 0x8000000000000000UL;
+    private const int SIGN_BIT = 63;
+    private const ulong SIGN_MASK = 0x8000000000000000UL;  // 1 << SIGN_BIT
     private const ulong SIGN_INVERTED_MASK = 0x7FFFFFFFFFFFFFFFUL;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg64 with the specified raw bits value.</summary>
@@ -47,17 +51,17 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
     public partial uint LowDword
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((((ulong)Value) >> 1) & LOW_DWORD_MASK);
+        get => (uint)((((ulong)Value) >> LOW_DWORD_START_BIT) & LOW_DWORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (long)((((ulong)Value) & LOW_DWORD_INVERTED_MASK) | ((((ulong)value) << 1) & LOW_DWORD_SHIFTED_MASK));
+        set => Value = (long)((((ulong)Value) & LOW_DWORD_INVERTED_MASK) | ((((ulong)value) << LOW_DWORD_START_BIT) & LOW_DWORD_SHIFTED_MASK));
     }
 
     public partial uint HighDword
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((((ulong)Value) >> 32) & HIGH_DWORD_MASK);
+        get => (uint)((((ulong)Value) >> HIGH_DWORD_START_BIT) & HIGH_DWORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (long)((((ulong)Value) & HIGH_DWORD_INVERTED_MASK) | ((((ulong)value) << 32) & HIGH_DWORD_SHIFTED_MASK));
+        set => Value = (long)((((ulong)Value) & HIGH_DWORD_INVERTED_MASK) | ((((ulong)value) << HIGH_DWORD_START_BIT) & HIGH_DWORD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
@@ -111,11 +115,11 @@ public partial struct SignedReg64 : IComparable, IComparable<SignedReg64>, IEqua
 
     /// <summary>Returns a new SignedReg64 with the LowDword field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg64 WithLowDword(uint value) => new((long)((((ulong)Value) & LOW_DWORD_INVERTED_MASK) | ((((ulong)value) << 1) & LOW_DWORD_SHIFTED_MASK)));
+    public SignedReg64 WithLowDword(uint value) => new((long)((((ulong)Value) & LOW_DWORD_INVERTED_MASK) | ((((ulong)value) << LOW_DWORD_START_BIT) & LOW_DWORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg64 with the HighDword field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg64 WithHighDword(uint value) => new((long)((((ulong)Value) & HIGH_DWORD_INVERTED_MASK) | ((((ulong)value) << 32) & HIGH_DWORD_SHIFTED_MASK)));
+    public SignedReg64 WithHighDword(uint value) => new((long)((((ulong)Value) & HIGH_DWORD_INVERTED_MASK) | ((((ulong)value) << HIGH_DWORD_START_BIT) & HIGH_DWORD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -27,12 +27,14 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
 
     // --- Bit field mask constants ---
     // LowField: bits [1..2], width 2
+    private const int LOW_FIELD_START_BIT = 1;
     private const byte LOW_FIELD_MASK = 0x03;
-    private const byte LOW_FIELD_SHIFTED_MASK = 0x06;  // LOW_FIELD_MASK << 1
+    private const byte LOW_FIELD_SHIFTED_MASK = 0x06;  // LOW_FIELD_MASK << LOW_FIELD_START_BIT
     private const byte LOW_FIELD_INVERTED_MASK = 0xF9;  // ~LOW_FIELD_SHIFTED_MASK
     // HighField: bits [4..6], width 3
+    private const int HIGH_FIELD_START_BIT = 4;
     private const byte HIGH_FIELD_MASK = 0x07;
-    private const byte HIGH_FIELD_SHIFTED_MASK = 0x70;  // HIGH_FIELD_MASK << 4
+    private const byte HIGH_FIELD_SHIFTED_MASK = 0x70;  // HIGH_FIELD_MASK << HIGH_FIELD_START_BIT
     private const byte HIGH_FIELD_INVERTED_MASK = 0x8F;  // ~HIGH_FIELD_SHIFTED_MASK
 
     /// <summary>Creates a new SparseUndefinedNative with the specified raw bits value.</summary>
@@ -41,17 +43,17 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
     public partial byte LowField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 1) & LOW_FIELD_MASK);
+        get => (byte)((((byte)Value) >> LOW_FIELD_START_BIT) & LOW_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << 1) & LOW_FIELD_SHIFTED_MASK));
+        set => Value = (sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK));
     }
 
     public partial byte HighField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 4) & HIGH_FIELD_MASK);
+        get => (byte)((((byte)Value) >> HIGH_FIELD_START_BIT) & HIGH_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << 4) & HIGH_FIELD_SHIFTED_MASK));
+        set => Value = (sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SparseUndefinedNative with the mask for the LowField field (bits 1-2).</summary>
@@ -73,11 +75,11 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
 
     /// <summary>Returns a new SparseUndefinedNative with the LowField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SparseUndefinedNative WithLowField(byte value) => new((sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << 1) & LOW_FIELD_SHIFTED_MASK)));
+    public SparseUndefinedNative WithLowField(byte value) => new((sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SparseUndefinedNative with the HighField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SparseUndefinedNative WithHighField(byte value) => new((sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << 4) & HIGH_FIELD_SHIFTED_MASK)));
+    public SparseUndefinedNative WithHighField(byte value) => new((sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

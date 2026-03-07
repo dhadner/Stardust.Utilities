@@ -29,14 +29,17 @@ public partial class BitFieldsViewTests
 
         // --- Bit field mask constants ---
         // Code: bits [4..7], width 4
+        private const int CODE_START_BIT = 4;
         private const byte CODE_MASK = 0x0F;
-        private const byte CODE_SHIFTED_MASK = 0xF0;  // CODE_MASK << 4
+        private const byte CODE_SHIFTED_MASK = 0xF0;  // CODE_MASK << CODE_START_BIT
         private const byte CODE_INVERTED_MASK = 0x0F;  // ~CODE_SHIFTED_MASK
         // Active: bit 0
-        private const byte ACTIVE_MASK = 0x01;
+        private const int ACTIVE_BIT = 0;
+        private const byte ACTIVE_MASK = 0x01;  // 1 << ACTIVE_BIT
         private const byte ACTIVE_INVERTED_MASK = 0xFE;  // ~ACTIVE_MASK
         // Valid: bit 1
-        private const byte VALID_MASK = 0x02;
+        private const int VALID_BIT = 1;
+        private const byte VALID_MASK = 0x02;  // 1 << VALID_BIT
         private const byte VALID_INVERTED_MASK = 0xFD;  // ~VALID_MASK
 
         /// <summary>Creates a new EmbeddedFlags with the specified raw bits value.</summary>
@@ -45,9 +48,9 @@ public partial class BitFieldsViewTests
         public partial byte Code
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 4) & CODE_MASK);
+            get => (byte)((Value >> CODE_START_BIT) & CODE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & CODE_INVERTED_MASK) | ((((byte)value) << 4) & CODE_SHIFTED_MASK));
+            set => Value = (byte)((Value & CODE_INVERTED_MASK) | ((((byte)value) << CODE_START_BIT) & CODE_SHIFTED_MASK));
         }
 
         public partial bool Active
@@ -97,7 +100,7 @@ public partial class BitFieldsViewTests
 
         /// <summary>Returns a new EmbeddedFlags with the Code field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EmbeddedFlags WithCode(byte value) => new((byte)((Value & CODE_INVERTED_MASK) | (((byte)value << 4) & CODE_SHIFTED_MASK)));
+        public EmbeddedFlags WithCode(byte value) => new((byte)((Value & CODE_INVERTED_MASK) | (((byte)value << CODE_START_BIT) & CODE_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

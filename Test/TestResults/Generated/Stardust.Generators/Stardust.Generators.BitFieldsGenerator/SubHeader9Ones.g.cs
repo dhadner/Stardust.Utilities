@@ -27,11 +27,13 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
 
     // --- Bit field mask constants ---
     // TypeCode: bits [0..3], width 4
+    private const int TYPE_CODE_START_BIT = 0;
     private const ushort TYPE_CODE_MASK = 0x000F;
     private const ushort TYPE_CODE_INVERTED_MASK = 0xFFF0;  // ~TYPE_CODE_MASK
     // Flags: bits [4..8], width 5
+    private const int FLAGS_START_BIT = 4;
     private const ushort FLAGS_MASK = 0x001F;
-    private const ushort FLAGS_SHIFTED_MASK = 0x01F0;  // FLAGS_MASK << 4
+    private const ushort FLAGS_SHIFTED_MASK = 0x01F0;  // FLAGS_MASK << FLAGS_START_BIT
     private const ushort FLAGS_INVERTED_MASK = 0xFE0F;  // ~FLAGS_SHIFTED_MASK
 
     // --- Constructor normalization masks ---
@@ -51,9 +53,9 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
     public partial byte Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & FLAGS_MASK);
+        get => (byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & FLAGS_INVERTED_MASK) | ((((ushort)value) << 4) & FLAGS_SHIFTED_MASK));
+        set => Value = (ushort)((Value & FLAGS_INVERTED_MASK) | ((((ushort)value) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SubHeader9Ones with the mask for the TypeCode field (bits 0-3).</summary>
@@ -79,7 +81,7 @@ public partial struct SubHeader9Ones : IComparable, IComparable<SubHeader9Ones>,
 
     /// <summary>Returns a new SubHeader9Ones with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SubHeader9Ones WithFlags(byte value) => new((ushort)((Value & FLAGS_INVERTED_MASK) | (((ushort)value << 4) & FLAGS_SHIFTED_MASK)));
+    public SubHeader9Ones WithFlags(byte value) => new((ushort)((Value & FLAGS_INVERTED_MASK) | (((ushort)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

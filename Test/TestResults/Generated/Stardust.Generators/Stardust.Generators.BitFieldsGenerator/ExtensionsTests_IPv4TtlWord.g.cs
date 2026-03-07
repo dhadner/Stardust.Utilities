@@ -29,14 +29,17 @@ public partial class ExtensionsTests
 
         // --- Bit field mask constants ---
         // TTL: bits [24..31], width 8
+        private const int TTL_START_BIT = 24;
         private const uint TTL_MASK = 0x000000FFU;
-        private const uint TTL_SHIFTED_MASK = 0xFF000000U;  // TTL_MASK << 24
+        private const uint TTL_SHIFTED_MASK = 0xFF000000U;  // TTL_MASK << TTL_START_BIT
         private const uint TTL_INVERTED_MASK = 0x00FFFFFFU;  // ~TTL_SHIFTED_MASK
         // Protocol: bits [16..23], width 8
+        private const int PROTOCOL_START_BIT = 16;
         private const uint PROTOCOL_MASK = 0x000000FFU;
-        private const uint PROTOCOL_SHIFTED_MASK = 0x00FF0000U;  // PROTOCOL_MASK << 16
+        private const uint PROTOCOL_SHIFTED_MASK = 0x00FF0000U;  // PROTOCOL_MASK << PROTOCOL_START_BIT
         private const uint PROTOCOL_INVERTED_MASK = 0xFF00FFFFU;  // ~PROTOCOL_SHIFTED_MASK
         // HeaderChecksum: bits [0..15], width 16
+        private const int HEADER_CHECKSUM_START_BIT = 0;
         private const uint HEADER_CHECKSUM_MASK = 0x0000FFFFU;
         private const uint HEADER_CHECKSUM_INVERTED_MASK = 0xFFFF0000U;  // ~HEADER_CHECKSUM_MASK
 
@@ -46,17 +49,17 @@ public partial class ExtensionsTests
         public partial byte TTL
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 24) & TTL_MASK);
+            get => (byte)((Value >> TTL_START_BIT) & TTL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & TTL_INVERTED_MASK) | ((((uint)value) << 24) & TTL_SHIFTED_MASK));
+            set => Value = (uint)((Value & TTL_INVERTED_MASK) | ((((uint)value) << TTL_START_BIT) & TTL_SHIFTED_MASK));
         }
 
         public partial byte Protocol
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 16) & PROTOCOL_MASK);
+            get => (byte)((Value >> PROTOCOL_START_BIT) & PROTOCOL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & PROTOCOL_INVERTED_MASK) | ((((uint)value) << 16) & PROTOCOL_SHIFTED_MASK));
+            set => Value = (uint)((Value & PROTOCOL_INVERTED_MASK) | ((((uint)value) << PROTOCOL_START_BIT) & PROTOCOL_SHIFTED_MASK));
         }
 
         public partial ushort HeaderChecksum
@@ -90,11 +93,11 @@ public partial class ExtensionsTests
 
         /// <summary>Returns a new IPv4TtlWord with the TTL field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4TtlWord WithTTL(byte value) => new((uint)((Value & TTL_INVERTED_MASK) | (((uint)value << 24) & TTL_SHIFTED_MASK)));
+        public IPv4TtlWord WithTTL(byte value) => new((uint)((Value & TTL_INVERTED_MASK) | (((uint)value << TTL_START_BIT) & TTL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4TtlWord with the Protocol field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4TtlWord WithProtocol(byte value) => new((uint)((Value & PROTOCOL_INVERTED_MASK) | (((uint)value << 16) & PROTOCOL_SHIFTED_MASK)));
+        public IPv4TtlWord WithProtocol(byte value) => new((uint)((Value & PROTOCOL_INVERTED_MASK) | (((uint)value << PROTOCOL_START_BIT) & PROTOCOL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4TtlWord with the HeaderChecksum field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

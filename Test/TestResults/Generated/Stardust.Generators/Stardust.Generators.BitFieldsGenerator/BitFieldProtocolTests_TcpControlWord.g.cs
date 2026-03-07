@@ -29,18 +29,22 @@ public partial class BitFieldProtocolTests
 
         // --- Bit field mask constants ---
         // DataOffset: bits [28..31], width 4
+        private const int DATA_OFFSET_START_BIT = 28;
         private const uint DATA_OFFSET_MASK = 0x0000000FU;
-        private const uint DATA_OFFSET_SHIFTED_MASK = 0xF0000000U;  // DATA_OFFSET_MASK << 28
+        private const uint DATA_OFFSET_SHIFTED_MASK = 0xF0000000U;  // DATA_OFFSET_MASK << DATA_OFFSET_START_BIT
         private const uint DATA_OFFSET_INVERTED_MASK = 0x0FFFFFFFU;  // ~DATA_OFFSET_SHIFTED_MASK
         // Reserved: bits [25..27], width 3
+        private const int RESERVED_START_BIT = 25;
         private const uint RESERVED_MASK = 0x00000007U;
-        private const uint RESERVED_SHIFTED_MASK = 0x0E000000U;  // RESERVED_MASK << 25
+        private const uint RESERVED_SHIFTED_MASK = 0x0E000000U;  // RESERVED_MASK << RESERVED_START_BIT
         private const uint RESERVED_INVERTED_MASK = 0xF1FFFFFFU;  // ~RESERVED_SHIFTED_MASK
         // Flags: bits [16..24], width 9
+        private const int FLAGS_START_BIT = 16;
         private const uint FLAGS_MASK = 0x000001FFU;
-        private const uint FLAGS_SHIFTED_MASK = 0x01FF0000U;  // FLAGS_MASK << 16
+        private const uint FLAGS_SHIFTED_MASK = 0x01FF0000U;  // FLAGS_MASK << FLAGS_START_BIT
         private const uint FLAGS_INVERTED_MASK = 0xFE00FFFFU;  // ~FLAGS_SHIFTED_MASK
         // WindowSize: bits [0..15], width 16
+        private const int WINDOW_SIZE_START_BIT = 0;
         private const uint WINDOW_SIZE_MASK = 0x0000FFFFU;
         private const uint WINDOW_SIZE_INVERTED_MASK = 0xFFFF0000U;  // ~WINDOW_SIZE_MASK
 
@@ -50,25 +54,25 @@ public partial class BitFieldProtocolTests
         public partial byte DataOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 28) & DATA_OFFSET_MASK);
+            get => (byte)((Value >> DATA_OFFSET_START_BIT) & DATA_OFFSET_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & DATA_OFFSET_INVERTED_MASK) | ((((uint)value) << 28) & DATA_OFFSET_SHIFTED_MASK));
+            set => Value = (uint)((Value & DATA_OFFSET_INVERTED_MASK) | ((((uint)value) << DATA_OFFSET_START_BIT) & DATA_OFFSET_SHIFTED_MASK));
         }
 
         public partial byte Reserved
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 25) & RESERVED_MASK);
+            get => (byte)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & RESERVED_INVERTED_MASK) | ((((uint)value) << 25) & RESERVED_SHIFTED_MASK));
+            set => Value = (uint)((Value & RESERVED_INVERTED_MASK) | ((((uint)value) << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((Value >> 16) & FLAGS_MASK);
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((Value >> FLAGS_START_BIT) & FLAGS_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << 16) & FLAGS_SHIFTED_MASK));
+            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
         }
 
         public partial ushort WindowSize
@@ -106,15 +110,15 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new TcpControlWord with the DataOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithDataOffset(byte value) => new((uint)((Value & DATA_OFFSET_INVERTED_MASK) | (((uint)value << 28) & DATA_OFFSET_SHIFTED_MASK)));
+        public TcpControlWord WithDataOffset(byte value) => new((uint)((Value & DATA_OFFSET_INVERTED_MASK) | (((uint)value << DATA_OFFSET_START_BIT) & DATA_OFFSET_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the Reserved field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithReserved(byte value) => new((uint)((Value & RESERVED_INVERTED_MASK) | (((uint)value << 25) & RESERVED_SHIFTED_MASK)));
+        public TcpControlWord WithReserved(byte value) => new((uint)((Value & RESERVED_INVERTED_MASK) | (((uint)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << 16) & FLAGS_SHIFTED_MASK)));
+        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the WindowSize field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

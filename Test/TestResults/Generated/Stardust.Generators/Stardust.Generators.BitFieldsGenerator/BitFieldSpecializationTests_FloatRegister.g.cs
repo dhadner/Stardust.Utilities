@@ -29,14 +29,17 @@ public partial class BitFieldSpecializationTests
 
         // --- Bit field mask constants ---
         // Mantissa: bits [0..22], width 23
+        private const int MANTISSA_START_BIT = 0;
         private const uint MANTISSA_MASK = 0x007FFFFFU;
         private const uint MANTISSA_INVERTED_MASK = 0xFF800000U;  // ~MANTISSA_MASK
         // Exponent: bits [23..30], width 8
+        private const int EXPONENT_START_BIT = 23;
         private const uint EXPONENT_MASK = 0x000000FFU;
-        private const uint EXPONENT_SHIFTED_MASK = 0x7F800000U;  // EXPONENT_MASK << 23
+        private const uint EXPONENT_SHIFTED_MASK = 0x7F800000U;  // EXPONENT_MASK << EXPONENT_START_BIT
         private const uint EXPONENT_INVERTED_MASK = 0x807FFFFFU;  // ~EXPONENT_SHIFTED_MASK
         // Sign: bit 31
-        private const uint SIGN_MASK = 0x80000000U;
+        private const int SIGN_BIT = 31;
+        private const uint SIGN_MASK = 0x80000000U;  // 1 << SIGN_BIT
         private const uint SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~SIGN_MASK
 
         /// <summary>Creates a new FloatRegister with the specified raw bits value.</summary>
@@ -57,9 +60,9 @@ public partial class BitFieldSpecializationTests
         public partial byte Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 23) & EXPONENT_MASK);
+            get => (byte)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & EXPONENT_INVERTED_MASK) | ((((uint)value) << 23) & EXPONENT_SHIFTED_MASK));
+            set => Value = (uint)((Value & EXPONENT_INVERTED_MASK) | ((((uint)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
@@ -101,7 +104,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new FloatRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithExponent(byte value) => new((uint)((Value & EXPONENT_INVERTED_MASK) | (((uint)value << 23) & EXPONENT_SHIFTED_MASK)));
+        public FloatRegister WithExponent(byte value) => new((uint)((Value & EXPONENT_INVERTED_MASK) | (((uint)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

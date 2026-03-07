@@ -27,18 +27,22 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     // --- Bit field mask constants ---
     // Reserved: bits [1..2], width 2
+    private const int RESERVED_START_BIT = 1;
     private const byte RESERVED_MASK = 0x03;
-    private const byte RESERVED_SHIFTED_MASK = 0x06;  // RESERVED_MASK << 1
+    private const byte RESERVED_SHIFTED_MASK = 0x06;  // RESERVED_MASK << RESERVED_START_BIT
     private const byte RESERVED_INVERTED_MASK = 0xF9;  // ~RESERVED_SHIFTED_MASK
     // Data: bits [3..6], width 4
+    private const int DATA_START_BIT = 3;
     private const byte DATA_MASK = 0x0F;
-    private const byte DATA_SHIFTED_MASK = 0x78;  // DATA_MASK << 3
+    private const byte DATA_SHIFTED_MASK = 0x78;  // DATA_MASK << DATA_START_BIT
     private const byte DATA_INVERTED_MASK = 0x87;  // ~DATA_SHIFTED_MASK
     // Active: bit 0
-    private const byte ACTIVE_MASK = 0x01;
+    private const int ACTIVE_BIT = 0;
+    private const byte ACTIVE_MASK = 0x01;  // 1 << ACTIVE_BIT
     private const byte ACTIVE_INVERTED_MASK = 0xFE;  // ~ACTIVE_MASK
     // Sync: bit 7
-    private const byte SYNC_MASK = 0x80;
+    private const int SYNC_BIT = 7;
+    private const byte SYNC_MASK = 0x80;  // 1 << SYNC_BIT
     private const byte SYNC_INVERTED_MASK = 0x7F;  // ~SYNC_MASK
 
     // --- Constructor normalization masks ---
@@ -51,7 +55,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     public partial byte Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 1) & RESERVED_MASK);
+        get => (byte)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (byte)(Value & RESERVED_INVERTED_MASK);
     }
@@ -59,9 +63,9 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     public partial byte Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 3) & DATA_MASK);
+        get => (byte)((Value >> DATA_START_BIT) & DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & DATA_INVERTED_MASK) | ((((byte)value) << 3) & DATA_SHIFTED_MASK));
+        set => Value = (byte)((Value & DATA_INVERTED_MASK) | ((((byte)value) << DATA_START_BIT) & DATA_SHIFTED_MASK));
     }
 
     public partial bool Active
@@ -115,11 +119,11 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     /// <summary>Returns a new MustBeTestReg with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithReserved(byte value) => new((byte)((Value & RESERVED_INVERTED_MASK) | (((byte)value << 1) & RESERVED_SHIFTED_MASK)));
+    public MustBeTestReg WithReserved(byte value) => new((byte)((Value & RESERVED_INVERTED_MASK) | (((byte)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
 
     /// <summary>Returns a new MustBeTestReg with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithData(byte value) => new((byte)((Value & DATA_INVERTED_MASK) | (((byte)value << 3) & DATA_SHIFTED_MASK)));
+    public MustBeTestReg WithData(byte value) => new((byte)((Value & DATA_INVERTED_MASK) | (((byte)value << DATA_START_BIT) & DATA_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

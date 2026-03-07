@@ -27,12 +27,14 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
 
     // --- Bit field mask constants ---
     // Delta: bits [13..15], width 3
+    private const int DELTA_START_BIT = 13;
     private const ushort DELTA_MASK = 0x0007;
-    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << 13
+    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << DELTA_START_BIT
     private const ushort DELTA_INVERTED_MASK = 0x1FFF;  // ~DELTA_SHIFTED_MASK
     // SignedNibble: bits [9..12], width 4
+    private const int SIGNED_NIBBLE_START_BIT = 9;
     private const ushort SIGNED_NIBBLE_MASK = 0x000F;
-    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x1E00;  // SIGNED_NIBBLE_MASK << 9
+    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x1E00;  // SIGNED_NIBBLE_MASK << SIGNED_NIBBLE_START_BIT
     private const ushort SIGNED_NIBBLE_INVERTED_MASK = 0xE1FF;  // ~SIGNED_NIBBLE_SHIFTED_MASK
 
     /// <summary>Creates a new SignedPropertyRegSigned16 with the specified raw bits value.</summary>
@@ -43,7 +45,7 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (sbyte)(((int)(((ushort)Value) & DELTA_SHIFTED_MASK) << 16) >> 29);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & DELTA_INVERTED_MASK) | ((((ushort)value) << 13) & DELTA_SHIFTED_MASK));
+        set => Value = (short)((((ushort)Value) & DELTA_INVERTED_MASK) | ((((ushort)value) << DELTA_START_BIT) & DELTA_SHIFTED_MASK));
     }
 
     public partial sbyte SignedNibble
@@ -51,7 +53,7 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => (sbyte)(((int)(((ushort)Value) & SIGNED_NIBBLE_SHIFTED_MASK) << 19) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << 9) & SIGNED_NIBBLE_SHIFTED_MASK));
+        set => Value = (short)((((ushort)Value) & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SignedPropertyRegSigned16 with the mask for the Delta field (bits 13-15).</summary>
@@ -73,11 +75,11 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
 
     /// <summary>Returns a new SignedPropertyRegSigned16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyRegSigned16 WithDelta(sbyte value) => new((short)((((ushort)Value) & DELTA_INVERTED_MASK) | ((((ushort)value) << 13) & DELTA_SHIFTED_MASK)));
+    public SignedPropertyRegSigned16 WithDelta(sbyte value) => new((short)((((ushort)Value) & DELTA_INVERTED_MASK) | ((((ushort)value) << DELTA_START_BIT) & DELTA_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyRegSigned16 with the SignedNibble field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyRegSigned16 WithSignedNibble(sbyte value) => new((short)((((ushort)Value) & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << 9) & SIGNED_NIBBLE_SHIFTED_MASK)));
+    public SignedPropertyRegSigned16 WithSignedNibble(sbyte value) => new((short)((((ushort)Value) & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

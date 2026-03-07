@@ -27,29 +27,37 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
 
     // --- Bit field mask constants ---
     // AllAtOnce: bits [7..7], width 1
+    private const int ALL_AT_ONCE_START_BIT = 7;
     private const byte ALL_AT_ONCE_MASK = 0x01;
-    private const byte ALL_AT_ONCE_SHIFTED_MASK = 0x80;  // ALL_AT_ONCE_MASK << 7
+    private const byte ALL_AT_ONCE_SHIFTED_MASK = 0x80;  // ALL_AT_ONCE_MASK << ALL_AT_ONCE_START_BIT
     private const byte ALL_AT_ONCE_INVERTED_MASK = 0x7F;  // ~ALL_AT_ONCE_SHIFTED_MASK
     // Newline: bit 0
-    private const byte NEWLINE_MASK = 0x01;
+    private const int NEWLINE_BIT = 0;
+    private const byte NEWLINE_MASK = 0x01;  // 1 << NEWLINE_BIT
     private const byte NEWLINE_INVERTED_MASK = 0xFE;  // ~NEWLINE_MASK
     // Tab: bit 1
-    private const byte TAB_MASK = 0x02;
+    private const int TAB_BIT = 1;
+    private const byte TAB_MASK = 0x02;  // 1 << TAB_BIT
     private const byte TAB_INVERTED_MASK = 0xFD;  // ~TAB_MASK
     // Quotes: bit 2
-    private const byte QUOTES_MASK = 0x04;
+    private const int QUOTES_BIT = 2;
+    private const byte QUOTES_MASK = 0x04;  // 1 << QUOTES_BIT
     private const byte QUOTES_INVERTED_MASK = 0xFB;  // ~QUOTES_MASK
     // Backslash: bit 3
-    private const byte BACKSLASH_MASK = 0x08;
+    private const int BACKSLASH_BIT = 3;
+    private const byte BACKSLASH_MASK = 0x08;  // 1 << BACKSLASH_BIT
     private const byte BACKSLASH_INVERTED_MASK = 0xF7;  // ~BACKSLASH_MASK
     // CarriageReturn: bit 4
-    private const byte CARRIAGE_RETURN_MASK = 0x10;
+    private const int CARRIAGE_RETURN_BIT = 4;
+    private const byte CARRIAGE_RETURN_MASK = 0x10;  // 1 << CARRIAGE_RETURN_BIT
     private const byte CARRIAGE_RETURN_INVERTED_MASK = 0xEF;  // ~CARRIAGE_RETURN_MASK
     // NullChar: bit 5
-    private const byte NULL_CHAR_MASK = 0x20;
+    private const int NULL_CHAR_BIT = 5;
+    private const byte NULL_CHAR_MASK = 0x20;  // 1 << NULL_CHAR_BIT
     private const byte NULL_CHAR_INVERTED_MASK = 0xDF;  // ~NULL_CHAR_MASK
     // ControlChars: bit 6
-    private const byte CONTROL_CHARS_MASK = 0x40;
+    private const int CONTROL_CHARS_BIT = 6;
+    private const byte CONTROL_CHARS_MASK = 0x40;  // 1 << CONTROL_CHARS_BIT
     private const byte CONTROL_CHARS_INVERTED_MASK = 0xBF;  // ~CONTROL_CHARS_MASK
 
     /// <summary>Creates a new DescEscapeRegister with the specified raw bits value.</summary>
@@ -58,9 +66,9 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     public partial byte AllAtOnce
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 7) & ALL_AT_ONCE_MASK);
+        get => (byte)((Value >> ALL_AT_ONCE_START_BIT) & ALL_AT_ONCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | ((((byte)value) << 7) & ALL_AT_ONCE_SHIFTED_MASK));
+        set => Value = (byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | ((((byte)value) << ALL_AT_ONCE_START_BIT) & ALL_AT_ONCE_SHIFTED_MASK));
     }
 
     public partial bool Newline
@@ -190,7 +198,7 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
 
     /// <summary>Returns a new DescEscapeRegister with the AllAtOnce field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithAllAtOnce(byte value) => new((byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | (((byte)value << 7) & ALL_AT_ONCE_SHIFTED_MASK)));
+    public DescEscapeRegister WithAllAtOnce(byte value) => new((byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | (((byte)value << ALL_AT_ONCE_START_BIT) & ALL_AT_ONCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

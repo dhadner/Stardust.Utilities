@@ -27,21 +27,26 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
 
     // --- Bit field mask constants ---
     // Mode: bits [2..4], width 3
+    private const int MODE_START_BIT = 2;
     private const byte MODE_MASK = 0x07;
-    private const byte MODE_SHIFTED_MASK = 0x1C;  // MODE_MASK << 2
+    private const byte MODE_SHIFTED_MASK = 0x1C;  // MODE_MASK << MODE_START_BIT
     private const byte MODE_INVERTED_MASK = 0xE3;  // ~MODE_SHIFTED_MASK
     // Priority: bits [5..6], width 2
+    private const int PRIORITY_START_BIT = 5;
     private const byte PRIORITY_MASK = 0x03;
-    private const byte PRIORITY_SHIFTED_MASK = 0x60;  // PRIORITY_MASK << 5
+    private const byte PRIORITY_SHIFTED_MASK = 0x60;  // PRIORITY_MASK << PRIORITY_START_BIT
     private const byte PRIORITY_INVERTED_MASK = 0x9F;  // ~PRIORITY_SHIFTED_MASK
     // Ready: bit 0
-    private const byte READY_MASK = 0x01;
+    private const int READY_BIT = 0;
+    private const byte READY_MASK = 0x01;  // 1 << READY_BIT
     private const byte READY_INVERTED_MASK = 0xFE;  // ~READY_MASK
     // Error: bit 1
-    private const byte ERROR_MASK = 0x02;
+    private const int ERROR_BIT = 1;
+    private const byte ERROR_MASK = 0x02;  // 1 << ERROR_BIT
     private const byte ERROR_INVERTED_MASK = 0xFD;  // ~ERROR_MASK
     // Busy: bit 7
-    private const byte BUSY_MASK = 0x80;
+    private const int BUSY_BIT = 7;
+    private const byte BUSY_MASK = 0x80;  // 1 << BUSY_BIT
     private const byte BUSY_INVERTED_MASK = 0x7F;  // ~BUSY_MASK
 
     /// <summary>Creates a new GeneratedStatusReg8 with the specified raw bits value.</summary>
@@ -50,17 +55,17 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
     public partial global::Stardust.Utilities.Tests.OpMode Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> 2) & MODE_MASK);
+        get => (global::Stardust.Utilities.Tests.OpMode)((Value >> MODE_START_BIT) & MODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & MODE_INVERTED_MASK) | ((((byte)value) << 2) & MODE_SHIFTED_MASK));
+        set => Value = (byte)((Value & MODE_INVERTED_MASK) | ((((byte)value) << MODE_START_BIT) & MODE_SHIFTED_MASK));
     }
 
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 5) & PRIORITY_MASK);
+        get => (byte)((Value >> PRIORITY_START_BIT) & PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << 5) & PRIORITY_SHIFTED_MASK));
+        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK));
     }
 
     public partial bool Ready
@@ -130,11 +135,11 @@ public partial struct GeneratedStatusReg8 : IComparable, IComparable<GeneratedSt
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Mode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithMode(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & MODE_INVERTED_MASK) | (((byte)value << 2) & MODE_SHIFTED_MASK)));
+    public GeneratedStatusReg8 WithMode(global::Stardust.Utilities.Tests.OpMode value) => new((byte)((Value & MODE_INVERTED_MASK) | (((byte)value << MODE_START_BIT) & MODE_SHIFTED_MASK)));
 
     /// <summary>Returns a new GeneratedStatusReg8 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedStatusReg8 WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << 5) & PRIORITY_SHIFTED_MASK)));
+    public GeneratedStatusReg8 WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

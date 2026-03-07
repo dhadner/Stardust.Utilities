@@ -27,18 +27,22 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
 
     // --- Bit field mask constants ---
     // Japanese: bits [2..7], width 6
+    private const int JAPANESE_START_BIT = 2;
     private const ushort JAPANESE_MASK = 0x003F;
-    private const ushort JAPANESE_SHIFTED_MASK = 0x00FC;  // JAPANESE_MASK << 2
+    private const ushort JAPANESE_SHIFTED_MASK = 0x00FC;  // JAPANESE_MASK << JAPANESE_START_BIT
     private const ushort JAPANESE_INVERTED_MASK = 0xFF03;  // ~JAPANESE_SHIFTED_MASK
     // Accented: bits [8..15], width 8
+    private const int ACCENTED_START_BIT = 8;
     private const ushort ACCENTED_MASK = 0x00FF;
-    private const ushort ACCENTED_SHIFTED_MASK = 0xFF00;  // ACCENTED_MASK << 8
+    private const ushort ACCENTED_SHIFTED_MASK = 0xFF00;  // ACCENTED_MASK << ACCENTED_START_BIT
     private const ushort ACCENTED_INVERTED_MASK = 0x00FF;  // ~ACCENTED_SHIFTED_MASK
     // Check: bit 0
-    private const ushort CHECK_MASK = 0x0001;
+    private const int CHECK_BIT = 0;
+    private const ushort CHECK_MASK = 0x0001;  // 1 << CHECK_BIT
     private const ushort CHECK_INVERTED_MASK = 0xFFFE;  // ~CHECK_MASK
     // Rocket: bit 1
-    private const ushort ROCKET_MASK = 0x0002;
+    private const int ROCKET_BIT = 1;
+    private const ushort ROCKET_MASK = 0x0002;  // 1 << ROCKET_BIT
     private const ushort ROCKET_INVERTED_MASK = 0xFFFD;  // ~ROCKET_MASK
 
     /// <summary>Creates a new DescUnicodeRegister with the specified raw bits value.</summary>
@@ -47,17 +51,17 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     public partial byte Japanese
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & JAPANESE_MASK);
+        get => (byte)((Value >> JAPANESE_START_BIT) & JAPANESE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & JAPANESE_INVERTED_MASK) | ((((ushort)value) << 2) & JAPANESE_SHIFTED_MASK));
+        set => Value = (ushort)((Value & JAPANESE_INVERTED_MASK) | ((((ushort)value) << JAPANESE_START_BIT) & JAPANESE_SHIFTED_MASK));
     }
 
     public partial byte Accented
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 8) & ACCENTED_MASK);
+        get => (byte)((Value >> ACCENTED_START_BIT) & ACCENTED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & ACCENTED_INVERTED_MASK) | ((((ushort)value) << 8) & ACCENTED_SHIFTED_MASK));
+        set => Value = (ushort)((Value & ACCENTED_INVERTED_MASK) | ((((ushort)value) << ACCENTED_START_BIT) & ACCENTED_SHIFTED_MASK));
     }
 
     public partial bool Check
@@ -111,11 +115,11 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
 
     /// <summary>Returns a new DescUnicodeRegister with the Japanese field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((Value & JAPANESE_INVERTED_MASK) | (((ushort)value << 2) & JAPANESE_SHIFTED_MASK)));
+    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((Value & JAPANESE_INVERTED_MASK) | (((ushort)value << JAPANESE_START_BIT) & JAPANESE_SHIFTED_MASK)));
 
     /// <summary>Returns a new DescUnicodeRegister with the Accented field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((Value & ACCENTED_INVERTED_MASK) | (((ushort)value << 8) & ACCENTED_SHIFTED_MASK)));
+    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((Value & ACCENTED_INVERTED_MASK) | (((ushort)value << ACCENTED_START_BIT) & ACCENTED_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

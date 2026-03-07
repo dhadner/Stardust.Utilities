@@ -27,6 +27,7 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
 
     // --- Bit field mask constants ---
     // Code: bits [0..3], width 4
+    private const int CODE_START_BIT = 0;
     private const byte CODE_MASK = 0x0F;
     private const byte CODE_INVERTED_MASK = 0xF0;  // ~CODE_MASK
 

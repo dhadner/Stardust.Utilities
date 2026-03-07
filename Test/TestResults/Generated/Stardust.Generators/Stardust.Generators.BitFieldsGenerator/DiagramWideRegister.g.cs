@@ -27,11 +27,13 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
 
     // --- Bit field mask constants ---
     // LowHalf: bits [0..15], width 16
+    private const int LOW_HALF_START_BIT = 0;
     private const uint LOW_HALF_MASK = 0x0000FFFFU;
     private const uint LOW_HALF_INVERTED_MASK = 0xFFFF0000U;  // ~LOW_HALF_MASK
     // HighHalf: bits [16..31], width 16
+    private const int HIGH_HALF_START_BIT = 16;
     private const uint HIGH_HALF_MASK = 0x0000FFFFU;
-    private const uint HIGH_HALF_SHIFTED_MASK = 0xFFFF0000U;  // HIGH_HALF_MASK << 16
+    private const uint HIGH_HALF_SHIFTED_MASK = 0xFFFF0000U;  // HIGH_HALF_MASK << HIGH_HALF_START_BIT
     private const uint HIGH_HALF_INVERTED_MASK = 0x0000FFFFU;  // ~HIGH_HALF_SHIFTED_MASK
 
     /// <summary>Creates a new DiagramWideRegister with the specified raw bits value.</summary>
@@ -48,9 +50,9 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     public partial ushort HighHalf
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 16) & HIGH_HALF_MASK);
+        get => (ushort)((Value >> HIGH_HALF_START_BIT) & HIGH_HALF_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & HIGH_HALF_INVERTED_MASK) | ((((uint)value) << 16) & HIGH_HALF_SHIFTED_MASK));
+        set => Value = (uint)((Value & HIGH_HALF_INVERTED_MASK) | ((((uint)value) << HIGH_HALF_START_BIT) & HIGH_HALF_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramWideRegister with the mask for the LowHalf field (bits 0-15).</summary>
@@ -76,7 +78,7 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
 
     /// <summary>Returns a new DiagramWideRegister with the HighHalf field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramWideRegister WithHighHalf(ushort value) => new((uint)((Value & HIGH_HALF_INVERTED_MASK) | (((uint)value << 16) & HIGH_HALF_SHIFTED_MASK)));
+    public DiagramWideRegister WithHighHalf(ushort value) => new((uint)((Value & HIGH_HALF_INVERTED_MASK) | (((uint)value << HIGH_HALF_START_BIT) & HIGH_HALF_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -864,10 +864,10 @@ bitwise operations. For most use cases, this overhead is acceptable.
 4. Verify `README.md` installation snippet references the new version
 5. Build and test: `.\Build-Combined-NuGetPackages.ps1`
 6. Commit all changes and push to `main`
-7. Create a Git tag with the `v` prefix: `git tag v0.9.5 && git push origin v0.9.5`
+7. Create a Git tag with the `v` prefix: `git tag v0.9.6 && git push origin v0.9.6`
 8. Publish to NuGet.org using the command shown by the build script
 
 ### Tag Naming Convention
 
-All release tags use the `v` prefix (e.g., `v0.9.5`, `v1.0.0`). The initial `0.9.2` tag
+All release tags use the `v` prefix (e.g., `v0.9.6`, `v1.0.0`). The initial `0.9.2` tag
 predates this convention. New releases must use the `v` prefix for consistency.

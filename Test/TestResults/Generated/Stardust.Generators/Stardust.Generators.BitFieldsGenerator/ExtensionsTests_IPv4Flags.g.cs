@@ -29,13 +29,16 @@ public partial class ExtensionsTests
 
         // --- Bit field mask constants ---
         // MoreFragments: bit 0
-        private const byte MORE_FRAGMENTS_MASK = 0x01;
+        private const int MORE_FRAGMENTS_BIT = 0;
+        private const byte MORE_FRAGMENTS_MASK = 0x01;  // 1 << MORE_FRAGMENTS_BIT
         private const byte MORE_FRAGMENTS_INVERTED_MASK = 0xFE;  // ~MORE_FRAGMENTS_MASK
         // DontFragment: bit 1
-        private const byte DONT_FRAGMENT_MASK = 0x02;
+        private const int DONT_FRAGMENT_BIT = 1;
+        private const byte DONT_FRAGMENT_MASK = 0x02;  // 1 << DONT_FRAGMENT_BIT
         private const byte DONT_FRAGMENT_INVERTED_MASK = 0xFD;  // ~DONT_FRAGMENT_MASK
         // Reserved: bit 2
-        private const byte RESERVED_MASK = 0x04;
+        private const int RESERVED_BIT = 2;
+        private const byte RESERVED_MASK = 0x04;  // 1 << RESERVED_BIT
         private const byte RESERVED_INVERTED_MASK = 0xFB;  // ~RESERVED_MASK
 
         // --- Constructor normalization masks ---

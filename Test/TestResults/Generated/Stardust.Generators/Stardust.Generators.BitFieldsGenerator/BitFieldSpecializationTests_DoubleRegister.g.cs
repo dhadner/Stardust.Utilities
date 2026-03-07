@@ -29,14 +29,17 @@ public partial class BitFieldSpecializationTests
 
         // --- Bit field mask constants ---
         // Mantissa: bits [0..51], width 52
+        private const int MANTISSA_START_BIT = 0;
         private const ulong MANTISSA_MASK = 0x000FFFFFFFFFFFFFUL;
         private const ulong MANTISSA_INVERTED_MASK = 0xFFF0000000000000UL;  // ~MANTISSA_MASK
         // Exponent: bits [52..62], width 11
+        private const int EXPONENT_START_BIT = 52;
         private const ulong EXPONENT_MASK = 0x00000000000007FFUL;
-        private const ulong EXPONENT_SHIFTED_MASK = 0x7FF0000000000000UL;  // EXPONENT_MASK << 52
+        private const ulong EXPONENT_SHIFTED_MASK = 0x7FF0000000000000UL;  // EXPONENT_MASK << EXPONENT_START_BIT
         private const ulong EXPONENT_INVERTED_MASK = 0x800FFFFFFFFFFFFFUL;  // ~EXPONENT_SHIFTED_MASK
         // Sign: bit 63
-        private const ulong SIGN_MASK = 0x8000000000000000UL;
+        private const int SIGN_BIT = 63;
+        private const ulong SIGN_MASK = 0x8000000000000000UL;  // 1 << SIGN_BIT
         private const ulong SIGN_INVERTED_MASK = 0x7FFFFFFFFFFFFFFFUL;  // ~SIGN_MASK
 
         /// <summary>Creates a new DoubleRegister with the specified raw bits value.</summary>
@@ -57,9 +60,9 @@ public partial class BitFieldSpecializationTests
         public partial ushort Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> 52) & EXPONENT_MASK);
+            get => (ushort)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & EXPONENT_INVERTED_MASK) | ((((ulong)value) << 52) & EXPONENT_SHIFTED_MASK));
+            set => Value = (ulong)((Value & EXPONENT_INVERTED_MASK) | ((((ulong)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
@@ -101,7 +104,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new DoubleRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithExponent(ushort value) => new((ulong)((Value & EXPONENT_INVERTED_MASK) | (((ulong)value << 52) & EXPONENT_SHIFTED_MASK)));
+        public DoubleRegister WithExponent(ushort value) => new((ulong)((Value & EXPONENT_INVERTED_MASK) | (((ulong)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

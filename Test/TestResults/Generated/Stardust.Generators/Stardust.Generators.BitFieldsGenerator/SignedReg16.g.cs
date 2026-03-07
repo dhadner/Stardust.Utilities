@@ -27,18 +27,22 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     // --- Bit field mask constants ---
     // LowByte: bits [1..7], width 7
+    private const int LOW_BYTE_START_BIT = 1;
     private const ushort LOW_BYTE_MASK = 0x007F;
-    private const ushort LOW_BYTE_SHIFTED_MASK = 0x00FE;  // LOW_BYTE_MASK << 1
+    private const ushort LOW_BYTE_SHIFTED_MASK = 0x00FE;  // LOW_BYTE_MASK << LOW_BYTE_START_BIT
     private const ushort LOW_BYTE_INVERTED_MASK = 0xFF01;  // ~LOW_BYTE_SHIFTED_MASK
     // HighByte: bits [8..14], width 7
+    private const int HIGH_BYTE_START_BIT = 8;
     private const ushort HIGH_BYTE_MASK = 0x007F;
-    private const ushort HIGH_BYTE_SHIFTED_MASK = 0x7F00;  // HIGH_BYTE_MASK << 8
+    private const ushort HIGH_BYTE_SHIFTED_MASK = 0x7F00;  // HIGH_BYTE_MASK << HIGH_BYTE_START_BIT
     private const ushort HIGH_BYTE_INVERTED_MASK = 0x80FF;  // ~HIGH_BYTE_SHIFTED_MASK
     // Flag0: bit 0
-    private const ushort FLAG0_MASK = 0x0001;
+    private const int FLAG0_BIT = 0;
+    private const ushort FLAG0_MASK = 0x0001;  // 1 << FLAG0_BIT
     private const ushort FLAG0_INVERTED_MASK = 0xFFFE;  // ~FLAG0_MASK
     // Sign: bit 15
-    private const ushort SIGN_MASK = 0x8000;
+    private const int SIGN_BIT = 15;
+    private const ushort SIGN_MASK = 0x8000;  // 1 << SIGN_BIT
     private const ushort SIGN_INVERTED_MASK = 0x7FFF;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg16 with the specified raw bits value.</summary>
@@ -47,17 +51,17 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     public partial byte LowByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ushort)Value) >> 1) & LOW_BYTE_MASK);
+        get => (byte)((((ushort)Value) >> LOW_BYTE_START_BIT) & LOW_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << 1) & LOW_BYTE_SHIFTED_MASK));
+        set => Value = (short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << LOW_BYTE_START_BIT) & LOW_BYTE_SHIFTED_MASK));
     }
 
     public partial byte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ushort)Value) >> 8) & HIGH_BYTE_MASK);
+        get => (byte)((((ushort)Value) >> HIGH_BYTE_START_BIT) & HIGH_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << 8) & HIGH_BYTE_SHIFTED_MASK));
+        set => Value = (short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK));
     }
 
     public partial bool Flag0
@@ -111,11 +115,11 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     /// <summary>Returns a new SignedReg16 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithLowByte(byte value) => new((short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << 1) & LOW_BYTE_SHIFTED_MASK)));
+    public SignedReg16 WithLowByte(byte value) => new((short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << LOW_BYTE_START_BIT) & LOW_BYTE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg16 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithHighByte(byte value) => new((short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << 8) & HIGH_BYTE_SHIFTED_MASK)));
+    public SignedReg16 WithHighByte(byte value) => new((short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

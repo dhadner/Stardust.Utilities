@@ -27,17 +27,21 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
 
     // --- Bit field mask constants ---
     // Address: bits [0..23], width 24
+    private const int ADDRESS_START_BIT = 0;
     private const uint ADDRESS_MASK = 0x00FFFFFFU;
     private const uint ADDRESS_INVERTED_MASK = 0xFF000000U;  // ~ADDRESS_MASK
     // Command: bits [24..27], width 4
+    private const int COMMAND_START_BIT = 24;
     private const uint COMMAND_MASK = 0x0000000FU;
-    private const uint COMMAND_SHIFTED_MASK = 0x0F000000U;  // COMMAND_MASK << 24
+    private const uint COMMAND_SHIFTED_MASK = 0x0F000000U;  // COMMAND_MASK << COMMAND_START_BIT
     private const uint COMMAND_INVERTED_MASK = 0xF0FFFFFFU;  // ~COMMAND_SHIFTED_MASK
     // Enable: bit 28
-    private const uint ENABLE_MASK = 0x10000000U;
+    private const int ENABLE_BIT = 28;
+    private const uint ENABLE_MASK = 0x10000000U;  // 1 << ENABLE_BIT
     private const uint ENABLE_INVERTED_MASK = 0xEFFFFFFFU;  // ~ENABLE_MASK
     // Interrupt: bit 29
-    private const uint INTERRUPT_MASK = 0x20000000U;
+    private const int INTERRUPT_BIT = 29;
+    private const uint INTERRUPT_MASK = 0x20000000U;  // 1 << INTERRUPT_BIT
     private const uint INTERRUPT_INVERTED_MASK = 0xDFFFFFFFU;  // ~INTERRUPT_MASK
 
     /// <summary>Creates a new GeneratedControlReg32 with the specified raw bits value.</summary>
@@ -54,9 +58,9 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 24) & COMMAND_MASK);
+        get => (byte)((Value >> COMMAND_START_BIT) & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << 24) & COMMAND_SHIFTED_MASK));
+        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
     }
 
     public partial bool Enable
@@ -114,7 +118,7 @@ public partial struct GeneratedControlReg32 : IComparable, IComparable<Generated
 
     /// <summary>Returns a new GeneratedControlReg32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedControlReg32 WithCommand(byte value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << 24) & COMMAND_SHIFTED_MASK)));
+    public GeneratedControlReg32 WithCommand(byte value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

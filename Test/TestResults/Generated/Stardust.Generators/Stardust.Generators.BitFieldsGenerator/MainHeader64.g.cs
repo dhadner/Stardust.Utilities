@@ -27,15 +27,18 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
 
     // --- Bit field mask constants ---
     // Protocol: bits [0..26], width 27
+    private const int PROTOCOL_START_BIT = 0;
     private const ulong PROTOCOL_MASK = 0x0000000007FFFFFFUL;
     private const ulong PROTOCOL_INVERTED_MASK = 0xFFFFFFFFF8000000UL;  // ~PROTOCOL_MASK
     // Priority: bits [27..31], width 5
+    private const int PRIORITY_START_BIT = 27;
     private const ulong PRIORITY_MASK = 0x000000000000001FUL;
-    private const ulong PRIORITY_SHIFTED_MASK = 0x00000000F8000000UL;  // PRIORITY_MASK << 27
+    private const ulong PRIORITY_SHIFTED_MASK = 0x00000000F8000000UL;  // PRIORITY_MASK << PRIORITY_START_BIT
     private const ulong PRIORITY_INVERTED_MASK = 0xFFFFFFFF07FFFFFFUL;  // ~PRIORITY_SHIFTED_MASK
     // Timestamp: bits [32..63], width 32
+    private const int TIMESTAMP_START_BIT = 32;
     private const ulong TIMESTAMP_MASK = 0x00000000FFFFFFFFUL;
-    private const ulong TIMESTAMP_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // TIMESTAMP_MASK << 32
+    private const ulong TIMESTAMP_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // TIMESTAMP_MASK << TIMESTAMP_START_BIT
     private const ulong TIMESTAMP_INVERTED_MASK = 0x00000000FFFFFFFFUL;  // ~TIMESTAMP_SHIFTED_MASK
 
     /// <summary>Creates a new MainHeader64 with the specified raw bits value.</summary>
@@ -52,17 +55,17 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 27) & PRIORITY_MASK);
+        get => (byte)((Value >> PRIORITY_START_BIT) & PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & PRIORITY_INVERTED_MASK) | ((((ulong)value) << 27) & PRIORITY_SHIFTED_MASK));
+        set => Value = (ulong)((Value & PRIORITY_INVERTED_MASK) | ((((ulong)value) << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK));
     }
 
     public partial uint Timestamp
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> 32) & TIMESTAMP_MASK);
+        get => (uint)((Value >> TIMESTAMP_START_BIT) & TIMESTAMP_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & TIMESTAMP_INVERTED_MASK) | ((((ulong)value) << 32) & TIMESTAMP_SHIFTED_MASK));
+        set => Value = (ulong)((Value & TIMESTAMP_INVERTED_MASK) | ((((ulong)value) << TIMESTAMP_START_BIT) & TIMESTAMP_SHIFTED_MASK));
     }
 
     /// <summary>Returns a MainHeader64 with the mask for the Protocol field (bits 0-26).</summary>
@@ -92,11 +95,11 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
 
     /// <summary>Returns a new MainHeader64 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithPriority(byte value) => new((ulong)((Value & PRIORITY_INVERTED_MASK) | (((ulong)value << 27) & PRIORITY_SHIFTED_MASK)));
+    public MainHeader64 WithPriority(byte value) => new((ulong)((Value & PRIORITY_INVERTED_MASK) | (((ulong)value << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Returns a new MainHeader64 with the Timestamp field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithTimestamp(uint value) => new((ulong)((Value & TIMESTAMP_INVERTED_MASK) | (((ulong)value << 32) & TIMESTAMP_SHIFTED_MASK)));
+    public MainHeader64 WithTimestamp(uint value) => new((ulong)((Value & TIMESTAMP_INVERTED_MASK) | (((ulong)value << TIMESTAMP_START_BIT) & TIMESTAMP_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

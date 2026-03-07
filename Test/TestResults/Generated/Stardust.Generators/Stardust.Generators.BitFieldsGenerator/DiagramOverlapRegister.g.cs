@@ -27,17 +27,21 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
 
     // --- Bit field mask constants ---
     // Address: bits [4..7], width 4
+    private const int ADDRESS_START_BIT = 4;
     private const byte ADDRESS_MASK = 0x0F;
-    private const byte ADDRESS_SHIFTED_MASK = 0xF0;  // ADDRESS_MASK << 4
+    private const byte ADDRESS_SHIFTED_MASK = 0xF0;  // ADDRESS_MASK << ADDRESS_START_BIT
     private const byte ADDRESS_INVERTED_MASK = 0x0F;  // ~ADDRESS_SHIFTED_MASK
     // Command: bits [2..3], width 2
+    private const int COMMAND_START_BIT = 2;
     private const byte COMMAND_MASK = 0x03;
-    private const byte COMMAND_SHIFTED_MASK = 0x0C;  // COMMAND_MASK << 2
+    private const byte COMMAND_SHIFTED_MASK = 0x0C;  // COMMAND_MASK << COMMAND_START_BIT
     private const byte COMMAND_INVERTED_MASK = 0xF3;  // ~COMMAND_SHIFTED_MASK
     // Register: bits [0..1], width 2
+    private const int REGISTER_START_BIT = 0;
     private const byte REGISTER_MASK = 0x03;
     private const byte REGISTER_INVERTED_MASK = 0xFC;  // ~REGISTER_MASK
     // ExtendedCommand: bits [0..3], width 4
+    private const int EXTENDED_COMMAND_START_BIT = 0;
     private const byte EXTENDED_COMMAND_MASK = 0x0F;
     private const byte EXTENDED_COMMAND_INVERTED_MASK = 0xF0;  // ~EXTENDED_COMMAND_MASK
 
@@ -47,17 +51,17 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     public partial byte Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & ADDRESS_MASK);
+        get => (byte)((Value >> ADDRESS_START_BIT) & ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & ADDRESS_INVERTED_MASK) | ((((byte)value) << 4) & ADDRESS_SHIFTED_MASK));
+        set => Value = (byte)((Value & ADDRESS_INVERTED_MASK) | ((((byte)value) << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK));
     }
 
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & COMMAND_MASK);
+        get => (byte)((Value >> COMMAND_START_BIT) & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & COMMAND_INVERTED_MASK) | ((((byte)value) << 2) & COMMAND_SHIFTED_MASK));
+        set => Value = (byte)((Value & COMMAND_INVERTED_MASK) | ((((byte)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
     }
 
     public partial byte Register
@@ -103,11 +107,11 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
 
     /// <summary>Returns a new DiagramOverlapRegister with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithAddress(byte value) => new((byte)((Value & ADDRESS_INVERTED_MASK) | (((byte)value << 4) & ADDRESS_SHIFTED_MASK)));
+    public DiagramOverlapRegister WithAddress(byte value) => new((byte)((Value & ADDRESS_INVERTED_MASK) | (((byte)value << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithCommand(byte value) => new((byte)((Value & COMMAND_INVERTED_MASK) | (((byte)value << 2) & COMMAND_SHIFTED_MASK)));
+    public DiagramOverlapRegister WithCommand(byte value) => new((byte)((Value & COMMAND_INVERTED_MASK) | (((byte)value << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the Register field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

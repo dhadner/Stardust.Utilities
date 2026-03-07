@@ -29,17 +29,21 @@ public partial class BitFieldsViewTests
 
         // --- Bit field mask constants ---
         // HighNibble: bits [4..7], width 4
+        private const int HIGH_NIBBLE_START_BIT = 4;
         private const byte HIGH_NIBBLE_MASK = 0x0F;
-        private const byte HIGH_NIBBLE_SHIFTED_MASK = 0xF0;  // HIGH_NIBBLE_MASK << 4
+        private const byte HIGH_NIBBLE_SHIFTED_MASK = 0xF0;  // HIGH_NIBBLE_MASK << HIGH_NIBBLE_START_BIT
         private const byte HIGH_NIBBLE_INVERTED_MASK = 0x0F;  // ~HIGH_NIBBLE_SHIFTED_MASK
         // LowNibble: bits [0..3], width 4
+        private const int LOW_NIBBLE_START_BIT = 0;
         private const byte LOW_NIBBLE_MASK = 0x0F;
         private const byte LOW_NIBBLE_INVERTED_MASK = 0xF0;  // ~LOW_NIBBLE_MASK
         // MsbFlag: bit 7
-        private const byte MSB_FLAG_MASK = 0x80;
+        private const int MSB_FLAG_BIT = 7;
+        private const byte MSB_FLAG_MASK = 0x80;  // 1 << MSB_FLAG_BIT
         private const byte MSB_FLAG_INVERTED_MASK = 0x7F;  // ~MSB_FLAG_MASK
         // LsbFlag: bit 0
-        private const byte LSB_FLAG_MASK = 0x01;
+        private const int LSB_FLAG_BIT = 0;
+        private const byte LSB_FLAG_MASK = 0x01;  // 1 << LSB_FLAG_BIT
         private const byte LSB_FLAG_INVERTED_MASK = 0xFE;  // ~LSB_FLAG_MASK
 
         /// <summary>Creates a new BitZeroIsMsbRegister with the specified raw bits value.</summary>
@@ -48,9 +52,9 @@ public partial class BitFieldsViewTests
         public partial byte HighNibble
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 4) & HIGH_NIBBLE_MASK);
+            get => (byte)((Value >> HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | ((((byte)value) << 4) & HIGH_NIBBLE_SHIFTED_MASK));
+            set => Value = (byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | ((((byte)value) << HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_SHIFTED_MASK));
         }
 
         public partial byte LowNibble
@@ -112,7 +116,7 @@ public partial class BitFieldsViewTests
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the HighNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithHighNibble(byte value) => new((byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | (((byte)value << 4) & HIGH_NIBBLE_SHIFTED_MASK)));
+        public BitZeroIsMsbRegister WithHighNibble(byte value) => new((byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | (((byte)value << HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_SHIFTED_MASK)));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the LowNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

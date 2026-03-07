@@ -31,14 +31,17 @@ public partial class BitFieldTests
 
             // --- Bit field mask constants ---
             // FieldC: bits [3..4], width 2
+            private const int FIELD_C_START_BIT = 3;
             private const byte FIELD_C_MASK = 0x03;
-            private const byte FIELD_C_SHIFTED_MASK = 0x18;  // FIELD_C_MASK << 3
+            private const byte FIELD_C_SHIFTED_MASK = 0x18;  // FIELD_C_MASK << FIELD_C_START_BIT
             private const byte FIELD_C_INVERTED_MASK = 0xE7;  // ~FIELD_C_SHIFTED_MASK
             // FlagA: bit 0
-            private const byte FLAG_A_MASK = 0x01;
+            private const int FLAG_A_BIT = 0;
+            private const byte FLAG_A_MASK = 0x01;  // 1 << FLAG_A_BIT
             private const byte FLAG_A_INVERTED_MASK = 0xFE;  // ~FLAG_A_MASK
             // FlagB: bit 1
-            private const byte FLAG_B_MASK = 0x02;
+            private const int FLAG_B_BIT = 1;
+            private const byte FLAG_B_MASK = 0x02;  // 1 << FLAG_B_BIT
             private const byte FLAG_B_INVERTED_MASK = 0xFD;  // ~FLAG_B_MASK
 
             /// <summary>Creates a new InternalReg8 with the specified raw bits value.</summary>
@@ -47,9 +50,9 @@ public partial class BitFieldTests
             public partial byte FieldC
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (byte)((Value >> 3) & FIELD_C_MASK);
+                get => (byte)((Value >> FIELD_C_START_BIT) & FIELD_C_MASK);
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => Value = (byte)((Value & FIELD_C_INVERTED_MASK) | ((((byte)value) << 3) & FIELD_C_SHIFTED_MASK));
+                set => Value = (byte)((Value & FIELD_C_INVERTED_MASK) | ((((byte)value) << FIELD_C_START_BIT) & FIELD_C_SHIFTED_MASK));
             }
 
             public partial bool FlagA
@@ -99,7 +102,7 @@ public partial class BitFieldTests
 
             /// <summary>Returns a new InternalReg8 with the FieldC field set to the specified value.</summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public InternalReg8 WithFieldC(byte value) => new((byte)((Value & FIELD_C_INVERTED_MASK) | (((byte)value << 3) & FIELD_C_SHIFTED_MASK)));
+            public InternalReg8 WithFieldC(byte value) => new((byte)((Value & FIELD_C_INVERTED_MASK) | (((byte)value << FIELD_C_START_BIT) & FIELD_C_SHIFTED_MASK)));
 
             /// <summary>Bitwise complement operator.</summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

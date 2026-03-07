@@ -29,22 +29,27 @@ public partial class BitFieldProtocolTests
 
         // --- Bit field mask constants ---
         // Version: bits [28..31], width 4
+        private const int VERSION_START_BIT = 28;
         private const uint VERSION_MASK = 0x0000000FU;
-        private const uint VERSION_SHIFTED_MASK = 0xF0000000U;  // VERSION_MASK << 28
+        private const uint VERSION_SHIFTED_MASK = 0xF0000000U;  // VERSION_MASK << VERSION_START_BIT
         private const uint VERSION_INVERTED_MASK = 0x0FFFFFFFU;  // ~VERSION_SHIFTED_MASK
         // IHL: bits [24..27], width 4
+        private const int IHL_START_BIT = 24;
         private const uint IHL_MASK = 0x0000000FU;
-        private const uint IHL_SHIFTED_MASK = 0x0F000000U;  // IHL_MASK << 24
+        private const uint IHL_SHIFTED_MASK = 0x0F000000U;  // IHL_MASK << IHL_START_BIT
         private const uint IHL_INVERTED_MASK = 0xF0FFFFFFU;  // ~IHL_SHIFTED_MASK
         // DSCP: bits [18..23], width 6
+        private const int DSCP_START_BIT = 18;
         private const uint DSCP_MASK = 0x0000003FU;
-        private const uint DSCP_SHIFTED_MASK = 0x00FC0000U;  // DSCP_MASK << 18
+        private const uint DSCP_SHIFTED_MASK = 0x00FC0000U;  // DSCP_MASK << DSCP_START_BIT
         private const uint DSCP_INVERTED_MASK = 0xFF03FFFFU;  // ~DSCP_SHIFTED_MASK
         // ECN: bits [16..17], width 2
+        private const int ECN_START_BIT = 16;
         private const uint ECN_MASK = 0x00000003U;
-        private const uint ECN_SHIFTED_MASK = 0x00030000U;  // ECN_MASK << 16
+        private const uint ECN_SHIFTED_MASK = 0x00030000U;  // ECN_MASK << ECN_START_BIT
         private const uint ECN_INVERTED_MASK = 0xFFFCFFFFU;  // ~ECN_SHIFTED_MASK
         // TotalLength: bits [0..15], width 16
+        private const int TOTAL_LENGTH_START_BIT = 0;
         private const uint TOTAL_LENGTH_MASK = 0x0000FFFFU;
         private const uint TOTAL_LENGTH_INVERTED_MASK = 0xFFFF0000U;  // ~TOTAL_LENGTH_MASK
 
@@ -54,33 +59,33 @@ public partial class BitFieldProtocolTests
         public partial byte Version
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 28) & VERSION_MASK);
+            get => (byte)((Value >> VERSION_START_BIT) & VERSION_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << 28) & VERSION_SHIFTED_MASK));
+            set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << VERSION_START_BIT) & VERSION_SHIFTED_MASK));
         }
 
         public partial byte IHL
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 24) & IHL_MASK);
+            get => (byte)((Value >> IHL_START_BIT) & IHL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & IHL_INVERTED_MASK) | ((((uint)value) << 24) & IHL_SHIFTED_MASK));
+            set => Value = (uint)((Value & IHL_INVERTED_MASK) | ((((uint)value) << IHL_START_BIT) & IHL_SHIFTED_MASK));
         }
 
         public partial byte DSCP
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 18) & DSCP_MASK);
+            get => (byte)((Value >> DSCP_START_BIT) & DSCP_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & DSCP_INVERTED_MASK) | ((((uint)value) << 18) & DSCP_SHIFTED_MASK));
+            set => Value = (uint)((Value & DSCP_INVERTED_MASK) | ((((uint)value) << DSCP_START_BIT) & DSCP_SHIFTED_MASK));
         }
 
         public partial byte ECN
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 16) & ECN_MASK);
+            get => (byte)((Value >> ECN_START_BIT) & ECN_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & ECN_INVERTED_MASK) | ((((uint)value) << 16) & ECN_SHIFTED_MASK));
+            set => Value = (uint)((Value & ECN_INVERTED_MASK) | ((((uint)value) << ECN_START_BIT) & ECN_SHIFTED_MASK));
         }
 
         public partial ushort TotalLength
@@ -122,19 +127,19 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new IPv4VersionWord with the Version field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << 28) & VERSION_SHIFTED_MASK)));
+        public IPv4VersionWord WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << VERSION_START_BIT) & VERSION_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the IHL field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithIHL(byte value) => new((uint)((Value & IHL_INVERTED_MASK) | (((uint)value << 24) & IHL_SHIFTED_MASK)));
+        public IPv4VersionWord WithIHL(byte value) => new((uint)((Value & IHL_INVERTED_MASK) | (((uint)value << IHL_START_BIT) & IHL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the DSCP field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithDSCP(byte value) => new((uint)((Value & DSCP_INVERTED_MASK) | (((uint)value << 18) & DSCP_SHIFTED_MASK)));
+        public IPv4VersionWord WithDSCP(byte value) => new((uint)((Value & DSCP_INVERTED_MASK) | (((uint)value << DSCP_START_BIT) & DSCP_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the ECN field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithECN(byte value) => new((uint)((Value & ECN_INVERTED_MASK) | (((uint)value << 16) & ECN_SHIFTED_MASK)));
+        public IPv4VersionWord WithECN(byte value) => new((uint)((Value & ECN_INVERTED_MASK) | (((uint)value << ECN_START_BIT) & ECN_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the TotalLength field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

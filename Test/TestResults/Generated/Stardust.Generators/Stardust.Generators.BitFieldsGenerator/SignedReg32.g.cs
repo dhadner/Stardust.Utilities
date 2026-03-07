@@ -27,18 +27,22 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
 
     // --- Bit field mask constants ---
     // LowWord: bits [1..15], width 15
+    private const int LOW_WORD_START_BIT = 1;
     private const uint LOW_WORD_MASK = 0x00007FFFU;
-    private const uint LOW_WORD_SHIFTED_MASK = 0x0000FFFEU;  // LOW_WORD_MASK << 1
+    private const uint LOW_WORD_SHIFTED_MASK = 0x0000FFFEU;  // LOW_WORD_MASK << LOW_WORD_START_BIT
     private const uint LOW_WORD_INVERTED_MASK = 0xFFFF0001U;  // ~LOW_WORD_SHIFTED_MASK
     // HighWord: bits [16..30], width 15
+    private const int HIGH_WORD_START_BIT = 16;
     private const uint HIGH_WORD_MASK = 0x00007FFFU;
-    private const uint HIGH_WORD_SHIFTED_MASK = 0x7FFF0000U;  // HIGH_WORD_MASK << 16
+    private const uint HIGH_WORD_SHIFTED_MASK = 0x7FFF0000U;  // HIGH_WORD_MASK << HIGH_WORD_START_BIT
     private const uint HIGH_WORD_INVERTED_MASK = 0x8000FFFFU;  // ~HIGH_WORD_SHIFTED_MASK
     // Flag0: bit 0
-    private const uint FLAG0_MASK = 0x00000001U;
+    private const int FLAG0_BIT = 0;
+    private const uint FLAG0_MASK = 0x00000001U;  // 1 << FLAG0_BIT
     private const uint FLAG0_INVERTED_MASK = 0xFFFFFFFEU;  // ~FLAG0_MASK
     // Sign: bit 31
-    private const uint SIGN_MASK = 0x80000000U;
+    private const int SIGN_BIT = 31;
+    private const uint SIGN_MASK = 0x80000000U;  // 1 << SIGN_BIT
     private const uint SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg32 with the specified raw bits value.</summary>
@@ -47,17 +51,17 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     public partial ushort LowWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> 1) & LOW_WORD_MASK);
+        get => (ushort)((((uint)Value) >> LOW_WORD_START_BIT) & LOW_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << 1) & LOW_WORD_SHIFTED_MASK));
+        set => Value = (int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << LOW_WORD_START_BIT) & LOW_WORD_SHIFTED_MASK));
     }
 
     public partial ushort HighWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> 16) & HIGH_WORD_MASK);
+        get => (ushort)((((uint)Value) >> HIGH_WORD_START_BIT) & HIGH_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << 16) & HIGH_WORD_SHIFTED_MASK));
+        set => Value = (int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << HIGH_WORD_START_BIT) & HIGH_WORD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
@@ -111,11 +115,11 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
 
     /// <summary>Returns a new SignedReg32 with the LowWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithLowWord(ushort value) => new((int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << 1) & LOW_WORD_SHIFTED_MASK)));
+    public SignedReg32 WithLowWord(ushort value) => new((int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << LOW_WORD_START_BIT) & LOW_WORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg32 with the HighWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithHighWord(ushort value) => new((int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << 16) & HIGH_WORD_SHIFTED_MASK)));
+    public SignedReg32 WithHighWord(ushort value) => new((int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << HIGH_WORD_START_BIT) & HIGH_WORD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

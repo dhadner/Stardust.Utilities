@@ -27,19 +27,23 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
 
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
+    private const int STATUS_START_BIT = 0;
     private const uint STATUS_MASK = 0x000000FFU;
     private const uint STATUS_INVERTED_MASK = 0xFFFFFF00U;  // ~STATUS_MASK
     // Command: bits [8..11], width 4
+    private const int COMMAND_START_BIT = 8;
     private const uint COMMAND_MASK = 0x0000000FU;
-    private const uint COMMAND_SHIFTED_MASK = 0x00000F00U;  // COMMAND_MASK << 8
+    private const uint COMMAND_SHIFTED_MASK = 0x00000F00U;  // COMMAND_MASK << COMMAND_START_BIT
     private const uint COMMAND_INVERTED_MASK = 0xFFFFF0FFU;  // ~COMMAND_SHIFTED_MASK
     // Version: bits [12..15], width 4
+    private const int VERSION_START_BIT = 12;
     private const uint VERSION_MASK = 0x0000000FU;
-    private const uint VERSION_SHIFTED_MASK = 0x0000F000U;  // VERSION_MASK << 12
+    private const uint VERSION_SHIFTED_MASK = 0x0000F000U;  // VERSION_MASK << VERSION_START_BIT
     private const uint VERSION_INVERTED_MASK = 0xFFFF0FFFU;  // ~VERSION_SHIFTED_MASK
     // Sequence: bits [16..31], width 16
+    private const int SEQUENCE_START_BIT = 16;
     private const uint SEQUENCE_MASK = 0x0000FFFFU;
-    private const uint SEQUENCE_SHIFTED_MASK = 0xFFFF0000U;  // SEQUENCE_MASK << 16
+    private const uint SEQUENCE_SHIFTED_MASK = 0xFFFF0000U;  // SEQUENCE_MASK << SEQUENCE_START_BIT
     private const uint SEQUENCE_INVERTED_MASK = 0x0000FFFFU;  // ~SEQUENCE_SHIFTED_MASK
 
     /// <summary>Creates a new ProtocolHeader32 with the specified raw bits value.</summary>
@@ -56,25 +60,25 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     public partial global::Stardust.Utilities.Tests.CommandCode Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.CommandCode)((Value >> 8) & COMMAND_MASK);
+        get => (global::Stardust.Utilities.Tests.CommandCode)((Value >> COMMAND_START_BIT) & COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << 8) & COMMAND_SHIFTED_MASK));
+        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
     }
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 12) & VERSION_MASK);
+        get => (byte)((Value >> VERSION_START_BIT) & VERSION_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << 12) & VERSION_SHIFTED_MASK));
+        set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << VERSION_START_BIT) & VERSION_SHIFTED_MASK));
     }
 
     public partial ushort Sequence
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 16) & SEQUENCE_MASK);
+        get => (ushort)((Value >> SEQUENCE_START_BIT) & SEQUENCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 16) & SEQUENCE_SHIFTED_MASK));
+        set => Value = (uint)((Value & SEQUENCE_INVERTED_MASK) | ((((uint)value) << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Status field (bits 0-7).</summary>
@@ -108,15 +112,15 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
 
     /// <summary>Returns a new ProtocolHeader32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithCommand(global::Stardust.Utilities.Tests.CommandCode value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << 8) & COMMAND_SHIFTED_MASK)));
+    public ProtocolHeader32 WithCommand(global::Stardust.Utilities.Tests.CommandCode value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << 12) & VERSION_SHIFTED_MASK)));
+    public ProtocolHeader32 WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << VERSION_START_BIT) & VERSION_SHIFTED_MASK)));
 
     /// <summary>Returns a new ProtocolHeader32 with the Sequence field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader32 WithSequence(ushort value) => new((uint)((Value & SEQUENCE_INVERTED_MASK) | (((uint)value << 16) & SEQUENCE_SHIFTED_MASK)));
+    public ProtocolHeader32 WithSequence(ushort value) => new((uint)((Value & SEQUENCE_INVERTED_MASK) | (((uint)value << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

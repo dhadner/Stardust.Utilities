@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
 namespace Stardust.Generators;
 
@@ -89,6 +90,13 @@ internal sealed class BitFieldsInfo
     public string? NativeWideType { get; }
     /// <summary>The byte order for serialization (ReadFrom/WriteTo). Default is LittleEndian.</summary>
     public ByteOrder ByteOrder { get; }
+    /// <summary>Whether generated code needs to cast Value through UnsignedStorageType for bit operations.
+    /// True for signed types and for nint/nuint (whose UnsignedStorageType is ulong).</summary>
+    public bool NeedsUnsignedCast => StorageTypeIsSigned || UnsignedStorageType != StorageType;
+    /// <summary>True when the storage type is nint or nuint (platform-dependent width).</summary>
+    public bool IsNativeIntegerType => StorageType == "nint" || StorageType == "nuint";
+    /// <summary>The source location of the struct declaration, for diagnostic reporting.</summary>
+    public Location? Location { get; }
     /// <summary>Optional struct-level description from the [BitFields] attribute.</summary>
     public string? Description { get; }
     /// <summary>
@@ -106,7 +114,7 @@ internal sealed class BitFieldsInfo
     /// </summary>
     public List<BitFlagInfo> DeclaredFlags { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, UndefinedBitsMustBe undefinedBitsMode = UndefinedBitsMustBe.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrder byteOrder = ByteOrder.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null, Type? descriptionResourceType = null)
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, UndefinedBitsMustBe undefinedBitsMode = UndefinedBitsMustBe.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrder byteOrder = ByteOrder.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null, Type? descriptionResourceType = null, Location? location = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -128,6 +136,7 @@ internal sealed class BitFieldsInfo
         DeclaredFlags = declaredFlags ?? flags;
         Description = description;
         DescriptionResourceType = descriptionResourceType;
+        Location = location;
     }
 }
 
@@ -160,7 +169,10 @@ internal sealed class BitFieldInfo
     /// <summary>Fully qualified type name for resource lookup, or null for literal descriptions.</summary>
     public string? DescriptionResourceType { get; }
 
-    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBe valueOverride = MustBe.Any, ByteOrder? fieldByteOrder = null, string? nativeType = null, string? description = null, string? descriptionResourceType = null)
+    /// <summary>The source location of the property declaration, for diagnostic reporting.</summary>
+    public Location? Location { get; }
+
+    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBe valueOverride = MustBe.Any, ByteOrder? fieldByteOrder = null, string? nativeType = null, string? description = null, string? descriptionResourceType = null, Location? location = null)
     {
         Name = name;
         PropertyType = propertyType;
@@ -171,6 +183,7 @@ internal sealed class BitFieldInfo
         FieldByteOrder = fieldByteOrder;
         Description = description;
         DescriptionResourceType = descriptionResourceType;
+        Location = location;
     }
 }
 
@@ -190,12 +203,16 @@ internal sealed class BitFlagInfo
     /// <summary>Fully qualified type name for resource lookup, or null for literal descriptions.</summary>
     public string? DescriptionResourceType { get; }
 
-    public BitFlagInfo(string name, int bit, MustBe valueOverride = MustBe.Any, string? description = null, string? descriptionResourceType = null)
+    /// <summary>The source location of the property declaration, for diagnostic reporting.</summary>
+    public Location? Location { get; }
+
+    public BitFlagInfo(string name, int bit, MustBe valueOverride = MustBe.Any, string? description = null, string? descriptionResourceType = null, Location? location = null)
     {
         Name = name;
         Bit = bit;
         ValueOverride = valueOverride;
         Description = description;
         DescriptionResourceType = descriptionResourceType;
+        Location = location;
     }
 }

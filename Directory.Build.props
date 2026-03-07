@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- Single source of truth for the package version.
          Used by demo app PackageReferences and Build-Combined-NuGetPackages.ps1. -->
-    <Version>0.9.5</Version>
+    <Version>0.9.6</Version>
 
     <!-- Suppress SonarLint duplicate globalconfig warning (VS extension bug where
          suppression_exclusions.globalconfig is registered twice). -->

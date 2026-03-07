@@ -27,20 +27,25 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
 
     // --- Bit field mask constants ---
     // Priority: bits [4..7], width 4
+    private const int PRIORITY_START_BIT = 4;
     private const byte PRIORITY_MASK = 0x0F;
-    private const byte PRIORITY_SHIFTED_MASK = 0xF0;  // PRIORITY_MASK << 4
+    private const byte PRIORITY_SHIFTED_MASK = 0xF0;  // PRIORITY_MASK << PRIORITY_START_BIT
     private const byte PRIORITY_INVERTED_MASK = 0x0F;  // ~PRIORITY_SHIFTED_MASK
     // Ready: bit 0
-    private const byte READY_MASK = 0x01;
+    private const int READY_BIT = 0;
+    private const byte READY_MASK = 0x01;  // 1 << READY_BIT
     private const byte READY_INVERTED_MASK = 0xFE;  // ~READY_MASK
     // Error: bit 1
-    private const byte ERROR_MASK = 0x02;
+    private const int ERROR_BIT = 1;
+    private const byte ERROR_MASK = 0x02;  // 1 << ERROR_BIT
     private const byte ERROR_INVERTED_MASK = 0xFD;  // ~ERROR_MASK
     // Busy: bit 2
-    private const byte BUSY_MASK = 0x04;
+    private const int BUSY_BIT = 2;
+    private const byte BUSY_MASK = 0x04;  // 1 << BUSY_BIT
     private const byte BUSY_INVERTED_MASK = 0xFB;  // ~BUSY_MASK
     // Complete: bit 3
-    private const byte COMPLETE_MASK = 0x08;
+    private const int COMPLETE_BIT = 3;
+    private const byte COMPLETE_MASK = 0x08;  // 1 << COMPLETE_BIT
     private const byte COMPLETE_INVERTED_MASK = 0xF7;  // ~COMPLETE_MASK
 
     /// <summary>Creates a new StatusFlags with the specified raw bits value.</summary>
@@ -49,9 +54,9 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & PRIORITY_MASK);
+        get => (byte)((Value >> PRIORITY_START_BIT) & PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << 4) & PRIORITY_SHIFTED_MASK));
+        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK));
     }
 
     public partial bool Ready
@@ -133,7 +138,7 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
 
     /// <summary>Returns a new StatusFlags with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << 4) & PRIORITY_SHIFTED_MASK)));
+    public StatusFlags WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

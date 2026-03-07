@@ -54,6 +54,14 @@ public partial class BitFieldsGenerator
             // Widening int operators (return long)
             GenerateWideningBitwiseOps(sb, t, "int", "long", "(long)", indent);
         }
+        else if (s == "nint")
+        {
+            GenerateMixedBitwiseOps(sb, t, "nint", indent);
+        }
+        else if (s == "nuint")
+        {
+            GenerateMixedBitwiseOps(sb, t, "nuint", indent);
+        }
         else if (s == "long")
         {
             GenerateMixedBitwiseOps(sb, t, "long", indent);

@@ -27,14 +27,17 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
 
     // --- Bit field mask constants ---
     // Data: bits [0..2], width 3
+    private const int DATA_START_BIT = 0;
     private const byte DATA_MASK = 0x07;
     private const byte DATA_INVERTED_MASK = 0xF8;  // ~DATA_MASK
     // Rsvd: bits [4..5], width 2
+    private const int RSVD_START_BIT = 4;
     private const byte RSVD_MASK = 0x03;
-    private const byte RSVD_SHIFTED_MASK = 0x30;  // RSVD_MASK << 4
+    private const byte RSVD_SHIFTED_MASK = 0x30;  // RSVD_MASK << RSVD_START_BIT
     private const byte RSVD_INVERTED_MASK = 0xCF;  // ~RSVD_SHIFTED_MASK
     // MustBeSet: bit 3
-    private const byte MUST_BE_SET_MASK = 0x08;
+    private const int MUST_BE_SET_BIT = 3;
+    private const byte MUST_BE_SET_MASK = 0x08;  // 1 << MUST_BE_SET_BIT
     private const byte MUST_BE_SET_INVERTED_MASK = 0xF7;  // ~MUST_BE_SET_MASK
 
     // --- Constructor normalization masks ---
@@ -55,7 +58,7 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     public partial byte Rsvd
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 4) & RSVD_MASK);
+        get => (byte)((((byte)Value) >> RSVD_START_BIT) & RSVD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Value = (sbyte)(((byte)Value) & RSVD_INVERTED_MASK);
     }
@@ -99,7 +102,7 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
 
     /// <summary>Returns a new SignedMustBeReg with the Rsvd field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithRsvd(byte value) => new((sbyte)((((byte)Value) & RSVD_INVERTED_MASK) | ((((byte)value) << 4) & RSVD_SHIFTED_MASK)));
+    public SignedMustBeReg WithRsvd(byte value) => new((sbyte)((((byte)Value) & RSVD_INVERTED_MASK) | ((((byte)value) << RSVD_START_BIT) & RSVD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

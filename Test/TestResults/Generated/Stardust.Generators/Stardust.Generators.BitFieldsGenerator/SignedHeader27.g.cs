@@ -27,15 +27,18 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
 
     // --- Bit field mask constants ---
     // SubHeader: bits [0..8], width 9
+    private const int SUB_HEADER_START_BIT = 0;
     private const uint SUB_HEADER_MASK = 0x000001FFU;
     private const uint SUB_HEADER_INVERTED_MASK = 0xFFFFFE00U;  // ~SUB_HEADER_MASK
     // PayloadSize: bits [9..18], width 10
+    private const int PAYLOAD_SIZE_START_BIT = 9;
     private const uint PAYLOAD_SIZE_MASK = 0x000003FFU;
-    private const uint PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // PAYLOAD_SIZE_MASK << 9
+    private const uint PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // PAYLOAD_SIZE_MASK << PAYLOAD_SIZE_START_BIT
     private const uint PAYLOAD_SIZE_INVERTED_MASK = 0xFFF801FFU;  // ~PAYLOAD_SIZE_SHIFTED_MASK
     // Sequence: bits [19..26], width 8
+    private const int SEQUENCE_START_BIT = 19;
     private const uint SEQUENCE_MASK = 0x000000FFU;
-    private const uint SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // SEQUENCE_MASK << 19
+    private const uint SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // SEQUENCE_MASK << SEQUENCE_START_BIT
     private const uint SEQUENCE_INVERTED_MASK = 0xF807FFFFU;  // ~SEQUENCE_SHIFTED_MASK
 
     // --- Constructor normalization masks ---
@@ -55,17 +58,17 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     public partial ushort PayloadSize
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> 9) & PAYLOAD_SIZE_MASK);
+        get => (ushort)((((uint)Value) >> PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << 9) & PAYLOAD_SIZE_SHIFTED_MASK));
+        set => Value = (int)((((uint)Value) & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_SHIFTED_MASK));
     }
 
     public partial byte Sequence
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((uint)Value) >> 19) & SEQUENCE_MASK);
+        get => (byte)((((uint)Value) >> SEQUENCE_START_BIT) & SEQUENCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 19) & SEQUENCE_SHIFTED_MASK));
+        set => Value = (int)((((uint)Value) & SEQUENCE_INVERTED_MASK) | ((((uint)value) << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SignedHeader27 with the mask for the SubHeader field (bits 0-8).</summary>
@@ -95,11 +98,11 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
 
     /// <summary>Returns a new SignedHeader27 with the PayloadSize field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedHeader27 WithPayloadSize(ushort value) => new((int)((((uint)Value) & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << 9) & PAYLOAD_SIZE_SHIFTED_MASK)));
+    public SignedHeader27 WithPayloadSize(ushort value) => new((int)((((uint)Value) & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedHeader27 with the Sequence field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedHeader27 WithSequence(byte value) => new((int)((((uint)Value) & SEQUENCE_INVERTED_MASK) | ((((uint)value) << 19) & SEQUENCE_SHIFTED_MASK)));
+    public SignedHeader27 WithSequence(byte value) => new((int)((((uint)Value) & SEQUENCE_INVERTED_MASK) | ((((uint)value) << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

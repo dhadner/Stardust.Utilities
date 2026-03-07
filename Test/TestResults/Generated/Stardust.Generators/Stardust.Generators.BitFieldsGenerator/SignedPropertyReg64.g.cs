@@ -27,10 +27,12 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
 
     // --- Bit field mask constants ---
     // HighInt: bits [32..63], width 32
+    private const int HIGH_INT_START_BIT = 32;
     private const ulong HIGH_INT_MASK = 0x00000000FFFFFFFFUL;
-    private const ulong HIGH_INT_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // HIGH_INT_MASK << 32
+    private const ulong HIGH_INT_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // HIGH_INT_MASK << HIGH_INT_START_BIT
     private const ulong HIGH_INT_INVERTED_MASK = 0x00000000FFFFFFFFUL;  // ~HIGH_INT_SHIFTED_MASK
     // LowUInt: bits [0..31], width 32
+    private const int LOW_U_INT_START_BIT = 0;
     private const ulong LOW_U_INT_MASK = 0x00000000FFFFFFFFUL;
     private const ulong LOW_U_INT_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~LOW_U_INT_MASK
 
@@ -40,9 +42,9 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     public partial int HighInt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (int)((Value >> 32) & HIGH_INT_MASK);
+        get => (int)((Value >> HIGH_INT_START_BIT) & HIGH_INT_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & HIGH_INT_INVERTED_MASK) | ((((ulong)value) << 32) & HIGH_INT_SHIFTED_MASK));
+        set => Value = (ulong)((Value & HIGH_INT_INVERTED_MASK) | ((((ulong)value) << HIGH_INT_START_BIT) & HIGH_INT_SHIFTED_MASK));
     }
 
     public partial uint LowUInt
@@ -72,7 +74,7 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg64 with the HighInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg64 WithHighInt(int value) => new((ulong)((Value & HIGH_INT_INVERTED_MASK) | (((ulong)value << 32) & HIGH_INT_SHIFTED_MASK)));
+    public SignedPropertyReg64 WithHighInt(int value) => new((ulong)((Value & HIGH_INT_INVERTED_MASK) | (((ulong)value << HIGH_INT_START_BIT) & HIGH_INT_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg64 with the LowUInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

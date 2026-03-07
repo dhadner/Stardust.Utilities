@@ -6,7 +6,7 @@ Two attributes, one concept: define bit-level fields with `[BitField]` and `[Bit
 
 | Attribute | Backing | Best for |
 |-----------|---------|----------|
-| `[BitFields]` | Value type (`byte`, `ushort`, `uint`, ...) | Hardware registers, opcodes, small bit-packed structs |
+| `[BitFields]` | Value type (`byte`, `ushort`, `uint`, `nuint`, ...) | Hardware registers, opcodes, small bit-packed structs |
 | `[BitFieldsView]` | `Memory<byte>` (zero-copy buffer view) | Network packets, file headers, DMA buffers |
 
 Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Learn one, use both.
@@ -25,6 +25,7 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 
 **BitFields (Value Type)**
 - [Supported Storage Types](#supported-storage-types)
+- [Native Integer Types (nint / nuint)](#native-integer-types-nint--nuint)
 - [Operators](#operators)
 - [Parsing and Formatting](#parsing-and-formatting)
 - [Static Bit and Mask Properties](#static-bit-and-mask-properties)
@@ -233,12 +234,78 @@ Console.WriteLine(reg.Speed);   // 5 (unsigned, stays positive)
 | `ushort` / `short` | 16 bits | |
 | `uint` / `int` | 32 bits | |
 | `ulong` / `long` | 64 bits | |
+| `nuint` / `nint` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint--nuint) |
 | `UInt128` / `Int128` | 128 bits | |
 | `Half` | 16 bits | IEEE 754 half-precision |
 | `float` | 32 bits | IEEE 754 single-precision |
 | `double` | 64 bits | IEEE 754 double-precision |
 | `decimal` | 128 bits | .NET decimal |
 | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
+
+## Native Integer Types (nint / nuint)
+
+`nint` and `nuint` are platform-dependent native integer types: 32 bits wide in a 32-bit process,
+64 bits wide in a 64-bit process. They are useful for memory-mapped registers, pointer-sized
+bit-packed values, and other platform-width-sensitive structures.
+
+```csharp
+// 32-bit safe: all fields fit within bits 0-31 on any platform
+[BitFields(typeof(nuint))]
+public partial struct PointerTagReg
+{
+    [BitField(0, 7)]  public partial byte Tag { get; set; }       // bits 0..=7
+    [BitField(8, 11)] public partial byte Command { get; set; }   // bits 8..=11
+    [BitFlag(28)]     public partial bool Enabled { get; set; }   // bit 28
+    [BitFlag(31)]     public partial bool Valid { get; set; }     // bit 31
+}
+
+// 64-bit only: uses high bits above 31
+[BitFields(typeof(nuint))]
+public partial struct WideNativeReg
+{
+#pragma warning disable SD0002 // High bits: only valid on 64-bit
+    [BitField(0, 7)]   public partial byte Status { get; set; }    // bits 0..=7
+    [BitField(8, 23)]  public partial ushort Data { get; set; }    // bits 8..=23
+    [BitField(24, 55)] public partial uint Address { get; set; }   // bits 24..=55
+    [BitFlag(56)]      public partial bool Valid { get; set; }     // bit 56
+    [BitFlag(57)]      public partial bool Ready { get; set; }     // bit 57
+#pragma warning restore SD0002
+}
+```
+
+The generated struct includes a platform-dependent `SIZE_IN_BYTES` property (`nint.Size`) and
+uses platform-branched serialization for byte span operations (`BinaryPrimitives.ReadUInt32LittleEndian`
+on 32-bit, `BinaryPrimitives.ReadUInt64LittleEndian` on 64-bit).
+
+### Compiler Diagnostics for nint/nuint
+
+Because `nint`/`nuint` can be 32 bits on some platforms, the source generator performs
+compile-time validation of all field and flag bit positions. If any field or flag accesses a bit
+above bit 31, the generator emits a diagnostic whose severity depends on the project's
+`PlatformTarget` setting:
+
+| Diagnostic | Severity | When Emitted | Meaning |
+|------------|----------|--------------|---------|
+| **SD0001** | **Error** | `PlatformTarget` is `x86` | The build is restricted to 32-bit. `nint`/`nuint` is always 32 bits, so bits 32+ are unreachable. The struct will corrupt data at runtime. |
+| **SD0002** | **Warning** | `PlatformTarget` is `AnyCPU` (default) or unset | The binary may run on either 32-bit or 64-bit. Bits 32+ work on 64-bit but are silently unreachable on 32-bit, causing data loss. |
+| *(none)* | | `PlatformTarget` is `x64` or `ARM64` | The build is restricted to 64-bit. `nint`/`nuint` is always 64 bits, so all bit positions are valid. |
+
+The diagnostic location points to the specific property declaration that exceeds the 32-bit boundary.
+For multi-bit fields, the check uses the highest bit of the field (e.g., `[BitField(24, 55)]` checks
+bit 55, not bit 24).
+
+**Resolving SD0001 (Error):**
+- Move all fields to bits 0-31.
+- Or change the storage type to `ulong`/`long` for a guaranteed 64-bit width.
+
+**Resolving SD0002 (Warning):**
+- Set `<PlatformTarget>x64</PlatformTarget>` in your `.csproj` if the binary only runs on 64-bit.
+- Or change the storage type to `ulong`/`long` for a fixed 64-bit width on all platforms.
+- Or suppress the warning with `#pragma warning disable SD0002` if you have confirmed the binary
+  will only run on 64-bit processes.
+
+Non-native storage types (`byte`, `uint`, `ulong`, etc.) are never affected by these diagnostics.
+Their bit widths are fixed regardless of platform.
 
 ## Enum Property Types
 
