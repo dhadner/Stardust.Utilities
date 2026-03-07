@@ -435,8 +435,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
     {
         return value switch
         {
-            0 => "byte",       // StorageType.Byte
-            1 => "sbyte",      // StorageType.SByte
+            0 => "sbyte",      // StorageType.SByte
+            1 => "byte",       // StorageType.Byte
             2 => "short",      // StorageType.Int16
             3 => "ushort",     // StorageType.UInt16
             4 => "int",        // StorageType.Int32
