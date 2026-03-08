@@ -22,75 +22,12 @@ public partial struct GeneratedTestRegister
     [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 
-/// <summary>
-/// Hand-coded struct with identical bit layout for comparison.
-/// This is what a developer would write manually.
-/// </summary>
-public struct HandCodedTestRegister
-{
-    public byte Value;
-
-    // Compile-time constants (same as what generator produces)
-    private const byte READY_MASK = 0x01;
-    private const byte READY_INVERTED = 0xFE;
-    private const byte ERROR_MASK = 0x02;
-    private const byte ERROR_INVERTED = 0xFD;
-    private const byte BUSY_MASK = 0x80;
-    private const byte BUSY_INVERTED = 0x7F;
-    private const byte MODE_MASK = 0x07;
-    private const int MODE_SHIFT = 2;
-    private const byte MODE_SHIFTED_MASK = 0x1C;
-    private const byte MODE_INVERTED = 0xE3;
-    private const byte PRIORITY_MASK = 0x03;
-    private const int PRIORITY_SHIFT = 5;
-    private const byte PRIORITY_SHIFTED_MASK = 0x60;
-    private const byte PRIORITY_INVERTED = 0x9F;
-
-    public bool Ready
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & READY_MASK) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED);
-    }
-
-    public bool Error
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & ERROR_MASK) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED);
-    }
-
-    public bool Busy
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & BUSY_MASK) != 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED);
-    }
-
-    public byte Mode
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> MODE_SHIFT) & MODE_MASK);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & MODE_INVERTED) | ((value << MODE_SHIFT) & MODE_SHIFTED_MASK));
-    }
-
-    public byte Priority
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> PRIORITY_SHIFT) & PRIORITY_MASK);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & PRIORITY_INVERTED) | ((value << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
-    }
-}
-
 #endregion
 
 /// <summary>
-/// Performance tests comparing generated BitField code vs hand-coded bit manipulation.
+/// Performance tests comparing generated BitField code vs hand-coded inline shift-and-mask
+/// operations. The hand-coded baseline uses raw byte variables with direct bitwise operations
+/// (no property accessors or function calls) to ensure the comparison is obviously fair.
 /// The generated code should have identical performance since it uses compile-time constants.
 /// </summary>
 [Trait("Category", "Performance")]
@@ -98,6 +35,29 @@ public class BitFieldPerformanceTests
 {
     private const int ITERATIONS = 200_000_000;
     private const int WARMUP_ITERATIONS = 100_000_000;
+
+    // Hand-coded bit manipulation constants (identical layout to GeneratedTestRegister).
+    // Used directly in test loops with raw byte variables for a fair comparison
+    // that involves no property accessors or function calls of any kind.
+    // BitFlag: Ready = bit 0
+    private const byte READY_MASK = 0x01;
+    private const byte READY_INVERTED = 0xFE;
+    // BitFlag: Error = bit 1
+    private const byte ERROR_MASK = 0x02;
+    private const byte ERROR_INVERTED = 0xFD;
+    // BitFlag: Busy = bit 7
+    private const byte BUSY_MASK = 0x80;
+    private const byte BUSY_INVERTED = 0x7F;
+    // BitField: Mode = bits 2..4 (3 bits)
+    private const byte MODE_MASK = 0x07;
+    private const int MODE_SHIFT = 2;
+    private const byte MODE_SHIFTED_MASK = 0x1C;
+    private const byte MODE_INVERTED = 0xE3;
+    // BitField: Priority = bits 5..6 (2 bits)
+    private const byte PRIORITY_MASK = 0x03;
+    private const int PRIORITY_SHIFT = 5;
+    private const byte PRIORITY_SHIFTED_MASK = 0x60;
+    private const byte PRIORITY_INVERTED = 0x9F;
 
     private readonly ITestOutputHelper _output;
 
@@ -166,14 +126,14 @@ public class BitFieldPerformanceTests
     private void RunBitFlagGetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
     {
         // Test hand-coded first (order doesn't matter after warmup)
-        var handCodedReg = new HandCodedTestRegister { Value = 0xAA };
+        byte handCodedVal = 0xAA;
         var sw = Stopwatch.StartNew();
         int trueCount2 = 0;
         for (int i = 0; i < ITERATIONS; i++)
         {
-            if (handCodedReg.Ready) trueCount2++;
-            if (handCodedReg.Error) trueCount2++;
-            if (handCodedReg.Busy) trueCount2++;
+            if ((handCodedVal & READY_MASK) != 0) trueCount2++;
+            if ((handCodedVal & ERROR_MASK) != 0) trueCount2++;
+            if ((handCodedVal & BUSY_MASK) != 0) trueCount2++;
         }
         sw.Stop();
         handCodedTime = sw.Elapsed;
@@ -223,13 +183,13 @@ public class BitFieldPerformanceTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunBitFlagSetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
     {
-        var handCodedReg = new HandCodedTestRegister();
+        byte handCodedVal = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
-            handCodedReg.Ready = true;
-            handCodedReg.Error = false;
-            handCodedReg.Busy = true;
+            handCodedVal = (byte)(handCodedVal | READY_MASK);
+            handCodedVal = (byte)(handCodedVal & ERROR_INVERTED);
+            handCodedVal = (byte)(handCodedVal | BUSY_MASK);
         }
         sw.Stop();
         handCodedTime = sw.Elapsed;
@@ -245,7 +205,7 @@ public class BitFieldPerformanceTests
         sw.Stop();
         generatedTime = sw.Elapsed;
 
-        ((byte)generatedReg).Should().Be(handCodedReg.Value);
+        ((byte)generatedReg).Should().Be(handCodedVal);
     }
 
     [Fact]
@@ -275,13 +235,13 @@ public class BitFieldPerformanceTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunBitFieldGetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
     {
-        var handCodedReg = new HandCodedTestRegister { Value = 0xFF };
+        byte handCodedVal = 0xFF;
         int sum2 = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
-            sum2 += handCodedReg.Mode;
-            sum2 += handCodedReg.Priority;
+            sum2 += (byte)((handCodedVal >> MODE_SHIFT) & MODE_MASK);
+            sum2 += (byte)((handCodedVal >> PRIORITY_SHIFT) & PRIORITY_MASK);
         }
         sw.Stop();
         handCodedTime = sw.Elapsed;
@@ -328,12 +288,12 @@ public class BitFieldPerformanceTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunBitFieldSetTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
     {
-        var handCodedReg = new HandCodedTestRegister();
+        byte handCodedVal = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
-            handCodedReg.Mode = (byte)(i & 0x07);
-            handCodedReg.Priority = (byte)(i & 0x03);
+            handCodedVal = (byte)((handCodedVal & MODE_INVERTED) | (((byte)(i & 0x07) << MODE_SHIFT) & MODE_SHIFTED_MASK));
+            handCodedVal = (byte)((handCodedVal & PRIORITY_INVERTED) | (((byte)(i & 0x03) << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
         }
         sw.Stop();
         handCodedTime = sw.Elapsed;
@@ -348,7 +308,7 @@ public class BitFieldPerformanceTests
         sw.Stop();
         generatedTime = sw.Elapsed;
 
-        ((byte)generatedReg).Should().Be(handCodedReg.Value);
+        ((byte)generatedReg).Should().Be(handCodedVal);
     }
 
     /// <summary>
@@ -387,17 +347,19 @@ public class BitFieldPerformanceTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void RunMixedReadWriteTest(out TimeSpan generatedTime, out TimeSpan handCodedTime)
     {
-        var handCodedReg = new HandCodedTestRegister();
+        byte handCodedVal = 0;
         var sw = Stopwatch.StartNew();
         for (int i = 0; i < ITERATIONS; i++)
         {
-            handCodedReg.Ready = true;
-            if (handCodedReg.Ready && !handCodedReg.Busy)
+            handCodedVal = (byte)(handCodedVal | READY_MASK);
+            if ((handCodedVal & READY_MASK) != 0 && (handCodedVal & BUSY_MASK) == 0)
             {
-                handCodedReg.Mode = 5;
-                handCodedReg.Priority = (byte)(handCodedReg.Mode >> 1);
+                handCodedVal = (byte)((handCodedVal & MODE_INVERTED) | ((5 << MODE_SHIFT) & MODE_SHIFTED_MASK));
+                byte mode = (byte)((handCodedVal >> MODE_SHIFT) & MODE_MASK);
+                handCodedVal = (byte)((handCodedVal & PRIORITY_INVERTED) | (((byte)(mode >> 1) << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
             }
-            handCodedReg.Busy = handCodedReg.Priority > 1;
+            byte priority = (byte)((handCodedVal >> PRIORITY_SHIFT) & PRIORITY_MASK);
+            handCodedVal = priority > 1 ? (byte)(handCodedVal | BUSY_MASK) : (byte)(handCodedVal & BUSY_INVERTED);
         }
         sw.Stop();
         handCodedTime = sw.Elapsed;
@@ -417,7 +379,7 @@ public class BitFieldPerformanceTests
         sw.Stop();
         generatedTime = sw.Elapsed;
 
-        ((byte)generatedReg).Should().Be(handCodedReg.Value);
+        ((byte)generatedReg).Should().Be(handCodedVal);
     }
 
     /// <summary>
@@ -470,13 +432,13 @@ public class BitFieldPerformanceTests
                 return c;
             }, () =>
             {
-                var reg = new HandCodedTestRegister { Value = 0xAA };
+                byte val = 0xAA;
                 int c = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
-                    if (reg.Ready) c++;
-                    if (reg.Error) c++;
-                    if (reg.Busy) c++;
+                    if ((val & READY_MASK) != 0) c++;
+                    if ((val & ERROR_MASK) != 0) c++;
+                    if ((val & BUSY_MASK) != 0) c++;
                 }
                 return c;
             });
@@ -495,14 +457,14 @@ public class BitFieldPerformanceTests
                 return reg;
             }, () =>
             {
-                var reg = new HandCodedTestRegister();
+                byte val = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
-                    reg.Ready = true;
-                    reg.Error = false;
-                    reg.Busy = true;
+                    val = (byte)(val | READY_MASK);
+                    val = (byte)(val & ERROR_INVERTED);
+                    val = (byte)(val | BUSY_MASK);
                 }
-                return reg.Value;
+                return val;
             });
             allResults["BitFlag SET"].Add((gen, hand, gen / hand));
 
@@ -519,12 +481,12 @@ public class BitFieldPerformanceTests
                 return sum;
             }, () =>
             {
-                var reg = new HandCodedTestRegister { Value = 0xFF };
+                byte val = 0xFF;
                 int sum = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
-                    sum += reg.Mode;
-                    sum += reg.Priority;
+                    sum += (byte)((val >> MODE_SHIFT) & MODE_MASK);
+                    sum += (byte)((val >> PRIORITY_SHIFT) & PRIORITY_MASK);
                 }
                 return sum;
             });
@@ -542,13 +504,13 @@ public class BitFieldPerformanceTests
                 return reg;
             }, () =>
             {
-                var reg = new HandCodedTestRegister();
+                byte val = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
-                    reg.Mode = (byte)(i & 0x07);
-                    reg.Priority = (byte)(i & 0x03);
+                    val = (byte)((val & MODE_INVERTED) | (((byte)(i & 0x07) << MODE_SHIFT) & MODE_SHIFTED_MASK));
+                    val = (byte)((val & PRIORITY_INVERTED) | (((byte)(i & 0x03) << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
                 }
-                return reg.Value;
+                return val;
             });
             allResults["BitField SET"].Add((gen, hand, gen / hand));
 
@@ -569,18 +531,20 @@ public class BitFieldPerformanceTests
                 return reg;
             }, () =>
             {
-                var reg = new HandCodedTestRegister();
+                byte val = 0;
                 for (int i = 0; i < ITERATIONS; i++)
                 {
-                    reg.Ready = true;
-                    if (reg.Ready && !reg.Busy)
+                    val = (byte)(val | READY_MASK);
+                    if ((val & READY_MASK) != 0 && (val & BUSY_MASK) == 0)
                     {
-                        reg.Mode = 5;
-                        reg.Priority = (byte)(reg.Mode >> 1);
+                        val = (byte)((val & MODE_INVERTED) | ((5 << MODE_SHIFT) & MODE_SHIFTED_MASK));
+                        byte mode = (byte)((val >> MODE_SHIFT) & MODE_MASK);
+                        val = (byte)((val & PRIORITY_INVERTED) | (((byte)(mode >> 1) << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
                     }
-                    reg.Busy = reg.Priority > 1;
+                    byte priority = (byte)((val >> PRIORITY_SHIFT) & PRIORITY_MASK);
+                    val = priority > 1 ? (byte)(val | BUSY_MASK) : (byte)(val & BUSY_INVERTED);
                 }
-                return reg.Value;
+                return val;
             });
             allResults["Mixed R/W"].Add((gen, hand, gen / hand));
         }
@@ -705,16 +669,18 @@ public class BitFieldPerformanceTests
 
     /// <summary>
     /// Symmetric warmup for hand-coded - matches WarmupGenerated structure exactly.
+    /// Uses raw inline shift-and-mask operations (no property accessors).
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void WarmupHandCoded()
     {
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
-            var reg = new HandCodedTestRegister { Value = (byte)i };
-            reg.Ready = !reg.Ready;
-            reg.Mode = (byte)(i & 7);
-            _ = reg.Priority;
+            byte val = (byte)i;
+            bool ready = (val & READY_MASK) != 0;
+            val = !ready ? (byte)(val | READY_MASK) : (byte)(val & READY_INVERTED);
+            val = (byte)((val & MODE_INVERTED) | (((byte)(i & 0x07) << MODE_SHIFT) & MODE_SHIFTED_MASK));
+            _ = (byte)((val >> PRIORITY_SHIFT) & PRIORITY_MASK);
         }
     }
 

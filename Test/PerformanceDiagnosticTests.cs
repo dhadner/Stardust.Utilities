@@ -7,7 +7,8 @@ using FluentAssertions;
 namespace Stardust.Utilities.Tests;
 
 /// <summary>
-/// Diagnostic test to isolate the performance difference between generated and hand-coded structs.
+/// Diagnostic test to isolate the performance difference between generated property accessors
+/// and raw inline bit manipulation.
 /// </summary>
 [Trait("Category", "Performance")]
 public partial class PerformanceDiagnosticTests
@@ -22,9 +23,8 @@ public partial class PerformanceDiagnosticTests
     /// <summary>
     /// The $64,000 question: What is the overhead of property accessors vs raw bit manipulation?
     /// This test compares:
-    /// 1. Generated struct (partial properties with AggressiveInlining)
-    /// 2. Hand-coded struct (regular properties with AggressiveInlining)
-    /// 3. Raw inline bit manipulation (no properties, just masks and shifts)
+    /// 1. Raw inline bit manipulation (no properties, just masks and shifts)
+    /// 2. Generated struct (partial properties with AggressiveInlining)
     /// </summary>
     [Fact]
     public void PropertyVsRawBitManipulation_Overhead()
@@ -66,23 +66,7 @@ public partial class PerformanceDiagnosticTests
             _output.WriteLine($"Raw bit ops (baseline):     {sw.Elapsed.TotalMilliseconds,8:F2} ms  count={count}");
         }
 
-        // ===== TEST 2: Hand-coded struct with properties =====
-        {
-            var reg = new HandCodedTestRegister { Value = 0xAA };
-            int count = 0;
-            sw.Restart();
-            for (int i = 0; i < ITERATIONS; i++)
-            {
-                if (reg.Ready) count++;
-                if (reg.Error) count++;
-                if (reg.Busy) count++;
-            }
-            sw.Stop();
-            results.Add(("Hand-coded properties", sw.Elapsed.TotalMilliseconds));
-            _output.WriteLine($"Hand-coded properties:      {sw.Elapsed.TotalMilliseconds,8:F2} ms  count={count}");
-        }
-
-        // ===== TEST 3: Generated struct with partial properties =====
+        // ===== TEST 2: Generated struct with partial properties =====
         {
             GeneratedTestRegister reg = 0xAA;
             int count = 0;
@@ -118,22 +102,7 @@ public partial class PerformanceDiagnosticTests
             _output.WriteLine($"Raw shift+mask (baseline):  {sw.Elapsed.TotalMilliseconds,8:F2} ms  sum={sum}");
         }
 
-        // ===== TEST 5: Hand-coded struct for multi-bit fields =====
-        {
-            var reg = new HandCodedTestRegister { Value = 0xFF };
-            int sum = 0;
-            sw.Restart();
-            for (int i = 0; i < ITERATIONS; i++)
-            {
-                sum += reg.Mode;
-                sum += reg.Priority;
-            }
-            sw.Stop();
-            results.Add(("Hand-coded field props", sw.Elapsed.TotalMilliseconds));
-            _output.WriteLine($"Hand-coded field props:     {sw.Elapsed.TotalMilliseconds,8:F2} ms  sum={sum}");
-        }
-
-        // ===== TEST 6: Generated struct for multi-bit fields =====
+        // ===== TEST 4: Generated struct for multi-bit fields =====
         {
             var reg = new GeneratedTestRegister(0xFF);
             int sum = 0;
@@ -151,60 +120,51 @@ public partial class PerformanceDiagnosticTests
         // ===== ANALYSIS =====
         _output.WriteLine("");
         _output.WriteLine("=".PadRight(70, '='));
-        _output.WriteLine("ANALYSIS: Overhead of property accessors vs raw bit manipulation");
+        _output.WriteLine("ANALYSIS: Generated property accessors vs raw bit manipulation");
         _output.WriteLine("=".PadRight(70, '='));
         _output.WriteLine("");
 
         // Boolean flag operations
         var rawBoolMs = results.First(r => r.Name == "Raw bit ops (baseline)").Ms;
-        var handBoolMs = results.First(r => r.Name == "Hand-coded properties").Ms;
         var genBoolMs = results.First(r => r.Name == "Generated properties").Ms;
 
         _output.WriteLine("BOOLEAN FLAGS (single bit test):");
         _output.WriteLine($"  Raw bit ops:        {rawBoolMs,8:F2} ms  (baseline)");
-        _output.WriteLine($"  Hand-coded props:   {handBoolMs,8:F2} ms  ({(handBoolMs / rawBoolMs - 1) * 100:+0.0;-0.0;0}% overhead)");
         _output.WriteLine($"  Generated props:    {genBoolMs,8:F2} ms  ({(genBoolMs / rawBoolMs - 1) * 100:+0.0;-0.0;0}% overhead)");
         _output.WriteLine("");
 
         // Multi-bit field operations
         var rawFieldMs = results.First(r => r.Name == "Raw shift+mask (baseline)").Ms;
-        var handFieldMs = results.First(r => r.Name == "Hand-coded field props").Ms;
         var genFieldMs = results.First(r => r.Name == "Generated field props").Ms;
 
         _output.WriteLine("MULTI-BIT FIELDS (shift + mask):");
         _output.WriteLine($"  Raw shift+mask:     {rawFieldMs,8:F2} ms  (baseline)");
-        _output.WriteLine($"  Hand-coded props:   {handFieldMs,8:F2} ms  ({(handFieldMs / rawFieldMs - 1) * 100:+0.0;-0.0;0}% overhead)");
         _output.WriteLine($"  Generated props:    {genFieldMs,8:F2} ms  ({(genFieldMs / rawFieldMs - 1) * 100:+0.0;-0.0;0}% overhead)");
         _output.WriteLine("");
 
         // Summary
         _output.WriteLine("=".PadRight(70, '='));
         _output.WriteLine("CONCLUSION:");
-        
+
         var avgRawMs = (rawBoolMs + rawFieldMs) / 2;
-        var avgHandMs = (handBoolMs + handFieldMs) / 2;
         var avgGenMs = (genBoolMs + genFieldMs) / 2;
 
-        var handOverhead = (avgHandMs / avgRawMs - 1) * 100;
         var genOverhead = (avgGenMs / avgRawMs - 1) * 100;
 
-        if (Math.Abs(handOverhead) < 10 && Math.Abs(genOverhead) < 10)
+        if (Math.Abs(genOverhead) < 10)
         {
-            _output.WriteLine("? AggressiveInlining eliminates property accessor overhead!");
-            _output.WriteLine("  All approaches are statistically indistinguishable (within measurement noise).");
-            _output.WriteLine("  There is ZERO performance penalty for using property accessors.");
+            _output.WriteLine("✓ Generated property accessors have zero measurable overhead vs raw bit manipulation!");
+            _output.WriteLine("  Both approaches are statistically indistinguishable (within measurement noise).");
         }
-        else if (handOverhead > 10 || genOverhead > 10)
+        else if (genOverhead > 10)
         {
-            _output.WriteLine($"?? Property accessor overhead detected:");
-            _output.WriteLine($"   Hand-coded: {handOverhead:+0.0;-0.0;0}% vs raw");
+            _output.WriteLine($"⚠️ Generated property accessor overhead detected:");
             _output.WriteLine($"   Generated:  {genOverhead:+0.0;-0.0;0}% vs raw");
         }
         else
         {
-            _output.WriteLine("? All approaches are statistically indistinguishable.");
-            _output.WriteLine($"   Hand-coded: {handOverhead:+0.0;-0.0;0}% vs raw (within noise)");
-            _output.WriteLine($"   Generated:  {genOverhead:+0.0;-0.0;0}% vs raw (within noise)");
+            _output.WriteLine($"ℹ️ Generated properties are faster than raw (unexpected):");
+            _output.WriteLine($"   Generated:  {genOverhead:+0.0;-0.0;0}% vs raw");
         }
         _output.WriteLine("=".PadRight(70, '='));
     }
@@ -249,22 +209,7 @@ public partial class PerformanceDiagnosticTests
             _output.WriteLine($"Raw bit SET (baseline):     {sw.Elapsed.TotalMilliseconds,8:F2} ms  value=0x{value:X2}");
         }
 
-        // ===== TEST 2: Hand-coded struct SET =====
-        {
-            var reg = new HandCodedTestRegister();
-            sw.Restart();
-            for (int i = 0; i < ITERATIONS; i++)
-            {
-                reg.Ready = true;
-                reg.Error = false;
-                reg.Busy = true;
-            }
-            sw.Stop();
-            results.Add(("Hand-coded SET", sw.Elapsed.TotalMilliseconds));
-            _output.WriteLine($"Hand-coded SET:             {sw.Elapsed.TotalMilliseconds,8:F2} ms  value=0x{reg.Value:X2}");
-        }
-
-        // ===== TEST 3: Generated struct SET =====
+        // ===== TEST 2: Generated struct SET =====
         {
             GeneratedTestRegister reg = 0;
             sw.Restart();
@@ -282,12 +227,10 @@ public partial class PerformanceDiagnosticTests
         // ===== ANALYSIS =====
         _output.WriteLine("");
         var rawMs = results[0].Ms;
-        var handMs = results[1].Ms;
-        var genMs = results[2].Ms;
+        var genMs = results[1].Ms;
 
         _output.WriteLine("OVERHEAD ANALYSIS:");
         _output.WriteLine($"  Raw bit SET:      {rawMs,8:F2} ms  (baseline)");
-        _output.WriteLine($"  Hand-coded SET:   {handMs,8:F2} ms  ({(handMs / rawMs - 1) * 100:+0.0;-0.0;0}% overhead)");
         _output.WriteLine($"  Generated SET:    {genMs,8:F2} ms  ({(genMs / rawMs - 1) * 100:+0.0;-0.0;0}% overhead)");
     }
 
@@ -302,11 +245,11 @@ public partial class PerformanceDiagnosticTests
             value = (byte)(value & 0xFE);
         }
 
-        // Warmup hand-coded
-        var hand = new HandCodedTestRegister();
+        // Warmup raw byte variable ops (symmetry with raw baselines)
+        byte rawVal = 0;
         for (int i = 0; i < iterations; i++)
         {
-            hand.Ready = !hand.Ready;
+            rawVal = (rawVal & 0x01) != 0 ? (byte)(rawVal & 0xFE) : (byte)(rawVal | 0x01);
         }
 
         // Warmup generated
