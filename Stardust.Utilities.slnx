@@ -5,5 +5,10 @@
   <Folder Name="/Test/">
     <Project Path="Test/Stardust.Utilities.Tests.csproj" />
   </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="DiagramGen/DiagramGen.csproj" />
+  </Folder>
+  <Project Path="Demo/BitFields.DemoApp/BitFields.DemoApp.csproj" />
+  <Project Path="Demo/BitFields.DemoWeb/BitFields.DemoWeb.csproj" />
   <Project Path="Stardust.Utilities.csproj" />
 </Solution>

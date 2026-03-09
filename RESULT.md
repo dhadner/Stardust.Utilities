@@ -1,6 +1,6 @@
 # Result Types
 
-Railway-oriented error handling without exceptions. Inspired by Rust's `Result<T, E>` type.
+Efficient railway-oriented (ROP) error handling without exceptions. Inspired by Rust's `Result<T, E>` type.
 
 ## Overview
 

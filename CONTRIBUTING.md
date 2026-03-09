@@ -143,6 +143,7 @@ Stardust.Utilities/
 │   └── BitFieldsGenerator.cs
 ├── Test/                   # Unit tests
 ├── build/                  # MSBuild props/targets for NuGet
+├── PRIVACY.md              # Privacy statement
 └── nupkg/                  # Local NuGet output (gitignored)
 ```
 

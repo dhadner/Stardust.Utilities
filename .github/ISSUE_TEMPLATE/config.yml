@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/dhadner/Stardust.Utilities/blob/main/README.md
+    about: Check the documentation before opening an issue
+  - name: Security Vulnerabilities
+    url: https://github.com/dhadner/Stardust.Utilities/security/advisories/new
+    about: Report security vulnerabilities privately (do NOT open a public issue)

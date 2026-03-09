@@ -1,10 +1,10 @@
-# Big-Endian Types
+﻿# Endian Types
 
-Type-safe big-endian (network byte order) integer types for .NET.
+Type-safe big-endian and little-endian integer types for .NET.
 
 ## Overview
 
-Big-endian types store the most significant byte first in memory, which is the standard byte order for network protocols, many file formats, and non-x86 hardware. These types provide:
+Endian types store bytes in a guaranteed byte order regardless of the host platform. Big-endian types store the most significant byte first (network byte order), while little-endian types store the least significant byte first (x86 native order). These types provide:
 
 - **Type safety** - Distinct types prevent accidentally mixing endianness
 - **Natural syntax** - Full operator support for arithmetic and bitwise operations
@@ -14,6 +14,8 @@ Big-endian types store the most significant byte first in memory, which is the s
 
 ## Available Types
 
+### Big-Endian (Network Byte Order)
+
 | Type | Size | Native Equivalent | Description |
 |------|------|-------------------|-------------|
 | `UInt16Be` | 2 bytes | `ushort` | Unsigned 16-bit |
@@ -22,6 +24,17 @@ Big-endian types store the most significant byte first in memory, which is the s
 | `Int32Be` | 4 bytes | `int` | Signed 32-bit |
 | `UInt64Be` | 8 bytes | `ulong` | Unsigned 64-bit |
 | `Int64Be` | 8 bytes | `long` | Signed 64-bit |
+
+### Little-Endian
+
+| Type | Size | Native Equivalent | Description |
+|------|------|-------------------|-------------|
+| `UInt16Le` | 2 bytes | `ushort` | Unsigned 16-bit |
+| `Int16Le` | 2 bytes | `short` | Signed 16-bit |
+| `UInt32Le` | 4 bytes | `uint` | Unsigned 32-bit |
+| `Int32Le` | 4 bytes | `int` | Signed 32-bit |
+| `UInt64Le` | 8 bytes | `ulong` | Unsigned 64-bit |
+| `Int64Le` | 8 bytes | `long` | Signed 64-bit |
 
 ## Quick Start
 
@@ -425,6 +438,10 @@ if (magic != 0x89504E47)  // PNG magic number
 
 ### Hardware Register (with BitFields)
 
+Big-endian types can be used as storage types in `[BitFields]` structs, and as per-field
+endian overrides in `[BitFieldsView]` structs. See [BITFIELDS.md](BITFIELDS.md) for full
+documentation on composition and mixed-endian nesting.
+
 ```csharp
 // Combining Big-Endian with BitFields for hardware emulation
 [BitFields(typeof(UInt32Be))]
@@ -446,6 +463,22 @@ if (status.Ready && !status.Error)
     // Process data...
 }
 ```
+
+Big-endian types can also override individual field endianness within a `[BitFieldsView]`
+struct. This is useful when a single struct mixes byte orders at the field level:
+
+```csharp
+// x86 file blob (little-endian default) with one big-endian IP address field
+[BitFieldsView]
+public partial record struct FileBlobView
+{
+    [BitField(0, 31)]  public partial uint Timestamp { get; set; }          // LE (struct default)
+    [BitField(32, 63)] public partial UInt32Be NetworkIp { get; set; }      // BE (per-field override)
+}
+```
+
+For uniform-endian structs, per-field overrides are unnecessary -- just set
+`ByteOrder.BigEndian` on the `[BitFieldsView]` attribute and use plain `uint`, `ushort`, etc.
 
 ### Zero-Allocation Network I/O
 
@@ -494,6 +527,12 @@ Each type has a `TypeConverter` for WinForms PropertyGrid and similar UI scenari
 | `Int32Be` | `Int32BeTypeConverter` |
 | `UInt64Be` | `UInt64BeTypeConverter` |
 | `Int64Be` | `Int64BeTypeConverter` |
+| `UInt16Le` | `UInt16LeTypeConverter` |
+| `Int16Le` | `Int16LeTypeConverter` |
+| `UInt32Le` | `UInt32LeTypeConverter` |
+| `Int32Le` | `Int32LeTypeConverter` |
+| `UInt64Le` | `UInt64LeTypeConverter` |
+| `Int64Le` | `Int64LeTypeConverter` |
 
 ```csharp
 // TypeConverters support hex input with 0x prefix
@@ -546,37 +585,59 @@ Both produce identical machine code, but the big-endian type version:
 
 ## Design Decisions
 
-### Why No Little-Endian (*Le) Types?
+### When to Use Endian Types
 
-This library provides only big-endian types (`*Be`) and intentionally omits little-endian counterparts (`*Le`). Here's why:
-
-**1. Native types are already little-endian on modern platforms**
-
-The vast majority of .NET target platforms (x86, x64, ARM, ARM64) are little-endian. Native types like `uint` and `ulong` already store bytes in little-endian order, so `UInt32Le` would be redundant.
-
-**2. Big-endian is the exception that needs explicit handling**
-
-The `*Be` types exist because big-endian byte order is needed for:
+**Big-endian types (`*Be`)** are for data that must be stored most-significant-byte first:
 - Network protocols (TCP/IP uses "network byte order" = big-endian)
 - Many file formats (PNG, JPEG, Java class files, etc.)
-- Big-endian hardware emulation (68000, PowerPC, SPARC)
+- Big-endian hardware emulation (68000, PowerPC, SPARC, MIPS32/64 (BE), ARM (BE-8 mode))
 
-On a little-endian machine, you need explicit conversion to/from big-endian. The `*Be` types provide this.
+**Little-endian types (`*Le`)** are for data that must be stored least-significant-byte first:
+- Per-field endian overrides in a `[BitFields]` or `[BitFieldsView]` struct whose default is big-endian
+- Cross-platform binary formats that mandate little-endian storage
+- Big-endian host machines that need to read/write x86-native data
 
-**3. BCL already provides little-endian support for big-endian machines**
+On mainstream platforms (x86, x64, ARM), native types like `uint` are already little-endian
+in memory. In most code you can use plain native types and only reach for `*Le` when you need
+a type-safe marker or a per-field override inside a BE `[BitFields]` or `[BitFieldsView]`.
 
-For the rare case of running on a big-endian machine and needing little-endian data, the BCL provides:
-```csharp
-// Reading little-endian on any platform
-ushort value = BinaryPrimitives.ReadUInt16LittleEndian(span);
+### Historical Context
+1. **Mono Runtime (Cross-Platform .NET Implementation)**<br><br>
+  Mono was designed to be portable and has been compiled for several big-endian architectures.
 
-// Writing little-endian on any platform
-BinaryPrimitives.WriteUInt32LittleEndian(span, value);
-```
+    |Platform / Device	|CPU Architecture	|Endianness	|Notes |
+    |:------------------|:------------------|:--------------|:------------------|
+    |PowerPC (PPC) (older Macs, Linux PPC)	| PowerPC 32/64-bit	| Big-endian	| Early Mono supported Mac OS X PPC and Linux PPC. |
+    |PlayStation 3	| Cell Broadband Engine (PPE core = PowerPC)	| Big-endian	| Unity games on PS3 used Mono in big-endian mode. |
+    |Nintendo Wii	| PowerPC 750CL	| Big-endian	| Mono was ported unofficially for homebrew. |
+    |Nintendo GameCube	| PowerPC Gekko	| Big-endian	| Experimental Mono builds existed. |
+    |SPARC (Solaris, Linux)	| SPARC V8/V9	| Big-endian	| Mono had experimental SPARC support. |
+    |MIPS (BE mode)	| MIPS32/64	| Big-endian	| Used in some embedded devices and routers. |
 
-**4. YAGNI (You Aren't Gonna Need It)**
+2. **.NET Compact Framework (CF)**<br><br>
+  The .NET Compact Framework (for Windows CE / Windows Mobile) ran on multiple CPU types, including big-endian ones.
 
-Adding `*Le` types would double the API surface for a use case with minimal demand. If a specific need arises, they can be added later following the same patterns as the `*Be` types.
+    |Platform / Device	|CPU Architecture	|Endianness	|Notes |
+    |:------------------|:------------------|:--------------|:------------------|
+    |MIPS (BE)	| MIPS32	| Big-endian	| Some Windows CE devices used big-endian MIPS.
+    | SH-4	| Hitachi SuperH-4	| Big-endian	| Used in some industrial controllers and set-top boxes. |
+    | ARM (BE-8 mode)	| ARMv5/v6	| Mixed-endian (big-endian data)	| Rare; some specialized CE devices used this mode. |
+
+3. **Unity Engine (Mono-based)**<br><br>
+  Unity’s scripting backend was Mono for many years, so any Unity build targeting a big-endian console inherited Mono’s endianness.
+
+    |Platform / Device	|CPU Architecture	|Endianness	|Notes |
+    |:------------------|:------------------|:--------------|:------------------|
+    | PS3	| PowerPC	| Big-endian	| Widely used in AAA games. |
+    | Wii	| PowerPC	| Big-endian	| Unity 4.x supported Wii. |        
+4. **Experimental / Research Ports**<br><br>
+  Mono on IBM System z (s390x) → Big-endian mainframe architecture.<br>
+  Mono on HP-UX PA-RISC → Big-endian RISC CPU.<br>
+  Custom embedded boards → Some ARM and MIPS boards in big-endian mode.
+5. **Modern Status (as of 2026)**<br><br>
+  Microsoft .NET (Core / 5 / 6 / 7 / 8) → Only little-endian officially.<br>
+  Mono → Still can be compiled for big-endian, but most active builds are little-endian.<br>
+  Unity → Dropped support for big-endian consoles after PS3/Wii era.
 
 ### Memory Layout
 

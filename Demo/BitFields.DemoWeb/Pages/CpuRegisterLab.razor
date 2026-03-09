@@ -1,0 +1,142 @@
+@page "/cpu"
+@using System.Text
+
+<h2 class="page-title">CPU Register Lab</h2>
+<p class="page-subtitle">Interactive 6502-style status register (16-bit)</p>
+
+<div class="card">
+    <div class="toolbar">
+        <label>Raw Hex:</label>
+        <input type="text" @bind="_rawHex" @bind:event="oninput" @bind:after="OnHexChanged"
+               style="width: 100px; text-align: center; font-family: var(--mono);" />
+    </div>
+
+    <div class="flag-checks">
+        <label><input type="checkbox" checked="@_reg.Carry" @onchange="e => { _reg.Carry = (bool)e.Value!; Refresh(nameof(CpuStatusRegister.Carry)); }" /> Carry</label>
+        <label><input type="checkbox" checked="@_reg.ZeroFlag" @onchange="e => { _reg.ZeroFlag = (bool)e.Value!; Refresh(nameof(CpuStatusRegister.ZeroFlag)); }" /> Zero</label>
+        <label><input type="checkbox" checked="@_reg.InterruptDisable" @onchange="e => { _reg.InterruptDisable = (bool)e.Value!; Refresh(nameof(CpuStatusRegister.InterruptDisable)); }" /> Interrupt</label>
+        <label><input type="checkbox" checked="@_reg.Decimal" @onchange="e => { _reg.Decimal = (bool)e.Value!; Refresh(nameof(CpuStatusRegister.Decimal)); }" /> Decimal</label>
+        <label><input type="checkbox" checked="@_reg.Overflow" @onchange="e => { _reg.Overflow = (bool)e.Value!; Refresh(nameof(CpuStatusRegister.Overflow)); }" /> Overflow</label>
+        <label><input type="checkbox" checked="@_reg.Negative" @onchange="e => { _reg.Negative = (bool)e.Value!; Refresh(nameof(CpuStatusRegister.Negative)); }" /> Negative</label>
+    </div>
+
+    <div class="mode-slider">
+        <label>Mode:</label>
+        <input type="range" min="0" max="7" @bind="_reg.Mode" @bind:event="oninput" @bind:after="() => Refresh(nameof(CpuStatusRegister.Mode))" />
+        <span style="font-family: var(--mono);">@_reg.Mode</span>
+    </div>
+</div>
+
+<div class="section-header">&#x25B8; Fields</div>
+<div class="field-chips">
+    @foreach (var f in _fields)
+    {
+        <div class="field-chip @(f.Name == _activeField ? "active" : "")"
+             style="border-color: @f.Color; background: @Palette.WithAlpha(f.Color, 0.18); color: @f.Color;"
+             title="@f.Description"
+             @onclick="() => ToggleField(f.Name)">
+            <span class="chip-name">@f.Name</span>
+            <span class="chip-value">@f.Value</span>
+        </div>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Hex</div>
+<div class="hex-display">
+    @{ var regBytes = BitConverter.GetBytes((ushort)_reg); }
+    @for (int i = 0; i < regBytes.Length; i++)
+    {
+        var idx = i;
+        var info = GetByteInfo(idx);
+        <span class="hex-byte @(info.Name == _activeField ? "active" : "")"
+              style="color: @info.Color;"
+              @onclick="() => ToggleField(info.Name)">@regBytes[idx].ToString("X2") </span>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Binary</div>
+<div class="binary-display">
+    @foreach (var f in _fields)
+    {
+        <div class="binary-segment @(f.Name == _activeField ? "active" : "")"
+             style="background: @Palette.WithAlpha(f.Color, 0.14); color: @f.Color;"
+             @onclick="() => ToggleField(f.Name)">
+            <span class="seg-label">@f.Name</span>
+            <span class="seg-bits">@f.Bits</span>
+        </div>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Mixed Endian Demo</div>
+<div class="diagram-output">@MixedEndianDemo.Summarize()</div>
+
+@code {
+    private record FieldDef(string Name, int StartBit, int EndBit, string Color, string Value, string Bits, string? Description);
+    private record ByteInfo(string? Name, string Color);
+
+    private CpuStatusRegister _reg;
+    private string _rawHex = "0x0000";
+    private List<FieldDef> _fields = [];
+    private string? _activeField;
+
+    protected override void OnInitialized() => Refresh(null);
+
+    private void OnHexChanged()
+    {
+        if (HexUtils.TryParseUShort(_rawHex, out var value))
+        {
+            _reg = value;
+            Refresh(null);
+        }
+    }
+
+    private void Refresh(string? highlight)
+    {
+        _rawHex = $"0x{(ushort)_reg:X4}";
+        _activeField = highlight;
+        _fields.Clear();
+
+        var bytes = BitConverter.GetBytes((ushort)_reg);
+        int ci = 0;
+        foreach (var m in CpuStatusRegister.Fields)
+        {
+            string val = Palette.FormatField(_reg, m);
+            string bits = BuildBits(bytes, m.StartBit, m.EndBit, m.BitOrder);
+            _fields.Add(new(m.Name, m.StartBit, m.EndBit, Palette.Get(ci++), val, bits, m.GetDescription()));
+        }
+    }
+
+    private static string BuildBits(byte[] bytes, int startBit, int endBit, BitOrder order)
+    {
+        bool isMsb = order == BitOrder.BitZeroIsMsb;
+        int width = endBit - startBit + 1;
+        var sb = new StringBuilder();
+        for (int i = 0; i < width; i++)
+        {
+            int bit = isMsb ? startBit + i : endBit - i;
+            if (bit / 8 >= bytes.Length) break;
+            int byteIdx = bit / 8;
+            int shift = isMsb ? 7 - (bit % 8) : bit % 8;
+            sb.Append((bytes[byteIdx] >> shift) & 1);
+            if ((i + 1) % 4 == 0 && i != width - 1) sb.Append(' ');
+        }
+        return sb.ToString();
+    }
+
+    private ByteInfo GetByteInfo(int byteIndex)
+    {
+        int bitStart = byteIndex * 8;
+        int bitEnd = bitStart + 7;
+        foreach (var f in _fields)
+        {
+            if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+                return new(f.Name, f.Color);
+        }
+        return new(null, "#888");
+    }
+
+    private void ToggleField(string? name)
+    {
+        _activeField = _activeField == name ? null : name;
+    }
+}

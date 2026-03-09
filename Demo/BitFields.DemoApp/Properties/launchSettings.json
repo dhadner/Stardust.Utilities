@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BitFields.DemoApp": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ENABLE_XAML_DIAGNOSTICS_SOURCE_INFO": "0"
+      }
+    }
+  }
+}

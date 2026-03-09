@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "BitFields.DemoWeb": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:7285;http://localhost:5285"
+    }
+  }
+}

@@ -7,12 +7,31 @@ using Xunit;
 namespace Stardust.Utilities.Tests;
 
 /// <summary>
-/// Tests for the BitFields generator comparing generated code vs hand-coded implementations.
+/// Tests for the BitFields generator comparing generated code vs raw inline bit manipulation.
 /// </summary>
 public class BitFieldComparisonTests
 {
     private const int ITERATIONS = 100_000_000;
     private const int WARMUP_ITERATIONS = 1_000_000;
+
+    // Hand-coded bit manipulation constants (identical layout to GeneratedTestRegister).
+    // BitFlag: Ready = bit 0
+    private const byte READY_MASK = 0x01;
+    private const byte READY_INVERTED = 0xFE;
+    // BitFlag: Error = bit 1
+    private const byte ERROR_MASK = 0x02;
+    // BitFlag: Busy = bit 7
+    private const byte BUSY_MASK = 0x80;
+    // BitField: Mode = bits 2..4 (3 bits)
+    private const byte MODE_MASK = 0x07;
+    private const int MODE_SHIFT = 2;
+    private const byte MODE_SHIFTED_MASK = 0x1C;
+    private const byte MODE_INVERTED = 0xE3;
+    // BitField: Priority = bits 5..6 (2 bits)
+    private const byte PRIORITY_MASK = 0x03;
+    private const int PRIORITY_SHIFT = 5;
+    private const byte PRIORITY_SHIFTED_MASK = 0x60;
+    private const byte PRIORITY_INVERTED = 0x9F;
 
     private readonly ITestOutputHelper _output;
 
@@ -90,56 +109,55 @@ public class BitFieldComparisonTests
 
     #endregion
 
-    #region Comparison with Hand-Coded
+    #region Comparison with Raw Bit Manipulation
 
     [Fact]
-    public void Generated_MatchesHandCoded_BitPatterns()
+    public void Generated_MatchesRawBitManipulation_BitPatterns()
     {
-        // Test that generated code produces identical bit patterns to hand-coded
+        // Test that generated code produces identical bit patterns to raw bit manipulation
         GeneratedTestRegister genReg = 0;
-        var handReg = new HandCodedTestRegister { Value = 0 };
+        byte handVal = 0;
 
-        // Set same values
+        // Set same values using generated properties and raw bit ops
         genReg.Ready = true;
         genReg.Error = false;
         genReg.Busy = true;
         genReg.Mode = 5;
         genReg.Priority = 2;
 
-        handReg.Ready = true;
-        handReg.Error = false;
-        handReg.Busy = true;
-        handReg.Mode = 5;
-        handReg.Priority = 2;
+        handVal = (byte)(handVal | READY_MASK);
+        handVal = (byte)(handVal & 0xFD);
+        handVal = (byte)(handVal | BUSY_MASK);
+        handVal = (byte)((handVal & MODE_INVERTED) | ((5 << MODE_SHIFT) & MODE_SHIFTED_MASK));
+        handVal = (byte)((handVal & PRIORITY_INVERTED) | ((2 << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
 
         // Both should produce same byte value
         byte genValue = genReg;
-        byte handValue = handReg.Value;
-        genValue.Should().Be(handValue);
+        genValue.Should().Be(handVal);
 
-        // Read back and verify
-        genReg.Ready.Should().Be(handReg.Ready);
-        genReg.Error.Should().Be(handReg.Error);
-        genReg.Busy.Should().Be(handReg.Busy);
-        genReg.Mode.Should().Be(handReg.Mode);
-        genReg.Priority.Should().Be(handReg.Priority);
+        // Read back and verify individual fields match raw extraction
+        genReg.Ready.Should().Be((handVal & READY_MASK) != 0);
+        genReg.Error.Should().Be((handVal & ERROR_MASK) != 0);
+        genReg.Busy.Should().Be((handVal & BUSY_MASK) != 0);
+        genReg.Mode.Should().Be((byte)((handVal >> MODE_SHIFT) & MODE_MASK));
+        genReg.Priority.Should().Be((byte)((handVal >> PRIORITY_SHIFT) & PRIORITY_MASK));
     }
 
     #endregion
 
-    #region Performance vs Hand-Coded
+    #region Performance vs Raw Bit Manipulation
 
     [Fact]
-    public void Performance_Generated_vs_HandCoded_Get()
+    public void Performance_Generated_vs_RawBitManipulation_Get()
     {
-        _output.WriteLine("Comparing GET performance: Generated vs Hand-coded");
+        _output.WriteLine("Comparing GET performance: Generated vs Raw bit manipulation");
         _output.WriteLine(new string('=', 70));
         _output.WriteLine($"Iterations: {ITERATIONS:N0}");
         _output.WriteLine("");
 
         // Warmup
         WarmupGenerated();
-        WarmupHandCoded();
+        WarmupRawBitOps();
 
         // Test Generated
         GeneratedTestRegister genReg = 0xFF;
@@ -154,37 +172,37 @@ public class BitFieldComparisonTests
         var genTime = sw.Elapsed;
         _output.WriteLine($"Generated:    {genTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / genTime.TotalSeconds:N0} ops/sec)");
 
-        // Test Hand-coded
-        var handReg = new HandCodedTestRegister { Value = 0xFF };
+        // Test raw bit manipulation
+        byte handVal = 0xFF;
         sw.Restart();
         int sum2 = 0;
         for (int i = 0; i < ITERATIONS; i++)
         {
-            sum2 += handReg.Mode;
-            sum2 += handReg.Priority;
+            sum2 += (byte)((handVal >> MODE_SHIFT) & MODE_MASK);
+            sum2 += (byte)((handVal >> PRIORITY_SHIFT) & PRIORITY_MASK);
         }
         sw.Stop();
         var handTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded:   {handTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / handTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Raw bit ops:  {handTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / handTime.TotalSeconds:N0} ops/sec)");
 
         sum1.Should().Be(sum2, "Both should produce same result");
 
         var ratio = genTime.TotalMilliseconds / handTime.TotalMilliseconds;
         _output.WriteLine("");
-        _output.WriteLine($"Ratio (Gen/Hand): {ratio:F3}x");
+        _output.WriteLine($"Ratio (Gen/Raw): {ratio:F3}x");
     }
 
     [Fact]
-    public void Performance_Generated_vs_HandCoded_Set()
+    public void Performance_Generated_vs_RawBitManipulation_Set()
     {
-        _output.WriteLine("Comparing SET performance: Generated vs Hand-coded");
+        _output.WriteLine("Comparing SET performance: Generated vs Raw bit manipulation");
         _output.WriteLine(new string('=', 70));
         _output.WriteLine($"Iterations: {ITERATIONS:N0}");
         _output.WriteLine("");
 
         // Warmup
         WarmupGenerated();
-        WarmupHandCoded();
+        WarmupRawBitOps();
 
         // Test Generated
         GeneratedTestRegister genReg = 0;
@@ -198,26 +216,25 @@ public class BitFieldComparisonTests
         var genTime = sw.Elapsed;
         _output.WriteLine($"Generated:    {genTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / genTime.TotalSeconds:N0} ops/sec)");
 
-        // Test Hand-coded
-        var handReg = new HandCodedTestRegister();
+        // Test raw bit manipulation
+        byte handVal = 0;
         sw.Restart();
         for (int i = 0; i < ITERATIONS; i++)
         {
-            handReg.Mode = (byte)(i & 0x07);
-            handReg.Priority = (byte)(i & 0x03);
+            handVal = (byte)((handVal & MODE_INVERTED) | (((byte)(i & 0x07) << MODE_SHIFT) & MODE_SHIFTED_MASK));
+            handVal = (byte)((handVal & PRIORITY_INVERTED) | (((byte)(i & 0x03) << PRIORITY_SHIFT) & PRIORITY_SHIFTED_MASK));
         }
         sw.Stop();
         var handTime = sw.Elapsed;
-        _output.WriteLine($"Hand-coded:   {handTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / handTime.TotalSeconds:N0} ops/sec)");
+        _output.WriteLine($"Raw bit ops:  {handTime.TotalMilliseconds,8:F2} ms ({ITERATIONS / handTime.TotalSeconds:N0} ops/sec)");
 
         // Both should end up with same final value
         byte genFinal = genReg;
-        byte handFinal = handReg.Value;
-        genFinal.Should().Be(handFinal, "Both should produce same final value");
+        genFinal.Should().Be(handVal, "Both should produce same final value");
 
         var ratio = genTime.TotalMilliseconds / handTime.TotalMilliseconds;
         _output.WriteLine("");
-        _output.WriteLine($"Ratio (Gen/Hand): {ratio:F3}x");
+        _output.WriteLine($"Ratio (Gen/Raw): {ratio:F3}x");
     }
 
     #endregion
@@ -237,14 +254,15 @@ public class BitFieldComparisonTests
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private void WarmupHandCoded()
+    private void WarmupRawBitOps()
     {
-        var reg = new HandCodedTestRegister { Value = 0x55 };
+        byte val = 0x55;
         for (int i = 0; i < WARMUP_ITERATIONS; i++)
         {
-            reg.Ready = !reg.Ready;
-            reg.Mode = (byte)(i & 7);
-            _ = reg.Priority;
+            bool ready = (val & READY_MASK) != 0;
+            val = !ready ? (byte)(val | READY_MASK) : (byte)(val & READY_INVERTED);
+            val = (byte)((val & MODE_INVERTED) | (((byte)(i & 0x07) << MODE_SHIFT) & MODE_SHIFTED_MASK));
+            _ = (byte)((val >> PRIORITY_SHIFT) & PRIORITY_MASK);
         }
     }
 

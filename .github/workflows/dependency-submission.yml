@@ -1,0 +1,44 @@
+name: Dependency Submission
+
+# Replaces GitHub's automatic NuGet dependency submission, which fails when
+# demo apps reference a Stardust.Utilities version not yet on NuGet.org.
+# This workflow packs the library locally first so all project restores succeed.
+#
+# After creating this workflow, disable the automatic NuGet submission at:
+# Settings > Code security > Dependency graph > Automatic dependency submission
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  submit-nuget:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 7, 8, 9, and 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          7.0.x
+          8.0.x
+          9.0.x
+          10.0.x
+
+    # Demo apps reference Stardust.Utilities via PackageReference using the
+    # version from Directory.Build.props. During development the version may
+    # not yet be published to NuGet.org. Build and pack the library locally
+    # so all project restores succeed.
+    - name: Pack library locally
+      run: dotnet pack Stardust.Utilities.csproj -c Release -o ./nupkg
+
+    - name: Register local NuGet source
+      run: dotnet nuget add source "${{ github.workspace }}/nupkg" --name local
+
+    - name: Submit dependencies
+      uses: advanced-security/component-detection-dependency-submission-action@v0.1.1

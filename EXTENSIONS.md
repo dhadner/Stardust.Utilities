@@ -155,6 +155,6 @@ All methods use `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to hint to 
 
 ## See Also
 
-- [BITFIELD.md](BITFIELD.md) - Source generator for bit field structs
+- [BITFIELDS.md](BITFIELDS.md) - Source generator for bit field structs and buffer views
 - [ENDIAN.md](ENDIAN.md) - Big-endian primitive types
 - [README.md](README.md) - Package overview
