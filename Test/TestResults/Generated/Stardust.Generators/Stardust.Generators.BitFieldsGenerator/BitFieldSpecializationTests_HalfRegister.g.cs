@@ -22,10 +22,25 @@ public partial class BitFieldSpecializationTests
         private ushort Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 2;
+        public const int SIZE_IN_BYTES = 2;
 
         /// <summary>Returns a HalfRegister with all bits set to zero.</summary>
         public static HalfRegister Zero => default;
+
+        // --- Bit field mask constants ---
+        // Mantissa: bits [0..9], width 10
+        private const int MANTISSA_START_BIT = 0;
+        private const ushort MANTISSA_MASK = 0x03FF;
+        private const ushort MANTISSA_INVERTED_MASK = 0xFC00;  // ~MANTISSA_MASK
+        // Exponent: bits [10..14], width 5
+        private const int EXPONENT_START_BIT = 10;
+        private const ushort EXPONENT_MASK = 0x001F;
+        private const ushort EXPONENT_SHIFTED_MASK = 0x7C00;  // EXPONENT_MASK << EXPONENT_START_BIT
+        private const ushort EXPONENT_INVERTED_MASK = 0x83FF;  // ~EXPONENT_SHIFTED_MASK
+        // Sign: bit 15
+        private const int SIGN_BIT = 15;
+        private const ushort SIGN_MASK = 0x8000;  // 1 << SIGN_BIT
+        private const ushort SIGN_INVERTED_MASK = 0x7FFF;  // ~SIGN_MASK
 
         /// <summary>Creates a new HalfRegister with the specified raw bits value.</summary>
         public HalfRegister(ushort value) { Value = value; }
@@ -37,55 +52,59 @@ public partial class BitFieldSpecializationTests
         public partial ushort Mantissa
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & 0x03FF);
+            get => (ushort)(Value & MANTISSA_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ushort)((Value & 0xFC00) | (((ushort)value) & 0x03FF));
+            set => Value = (ushort)((Value & MANTISSA_INVERTED_MASK) | (((ushort)value) & MANTISSA_MASK));
         }
 
         public partial byte Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 10) & 0x001F);
+            get => (byte)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ushort)((Value & 0x83FF) | ((((ushort)value) << 10) & 0x7C00));
+            set => Value = (ushort)((Value & EXPONENT_INVERTED_MASK) | ((((ushort)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x8000) != 0;
+            get => (Value & SIGN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | 0x8000) : (ushort)(Value & 0x7FFF);
+            set => Value = value ? (ushort)(Value | SIGN_MASK) : (ushort)(Value & SIGN_INVERTED_MASK);
         }
 
         /// <summary>Returns a HalfRegister with only the Sign bit set.</summary>
-        public static HalfRegister SignBit => new((ushort)0x8000);
+        public static HalfRegister SignBit => new(SIGN_MASK);
 
         /// <summary>Returns a HalfRegister with the mask for the Mantissa field (bits 0-9).</summary>
-        public static HalfRegister MantissaMask => new((ushort)0x03FF);
+        public static HalfRegister MantissaMask => new(MANTISSA_MASK);
 
         /// <summary>Returns a HalfRegister with the mask for the Exponent field (bits 10-14).</summary>
-        public static HalfRegister ExponentMask => new((ushort)0x7C00);
+        public static HalfRegister ExponentMask => new(EXPONENT_SHIFTED_MASK);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Mantissa", 0, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Exponent", 10, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Sign", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Mantissa", 0, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Exponent", 10, 5, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Sign", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new HalfRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithSign(bool value) => new(value ? (ushort)(Value | 0x8000) : (ushort)(Value & 0x7FFF));
+        public HalfRegister WithSign(bool value) => new(value ? (ushort)(Value | SIGN_MASK) : (ushort)(Value & SIGN_INVERTED_MASK));
 
         /// <summary>Returns a new HalfRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithMantissa(ushort value) => new((ushort)((Value & 0xFC00) | (value & 0x03FF)));
+        public HalfRegister WithMantissa(ushort value) => new((ushort)((Value & MANTISSA_INVERTED_MASK) | ((ushort)value & MANTISSA_MASK)));
 
         /// <summary>Returns a new HalfRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithExponent(byte value) => new((ushort)((Value & 0x83FF) | (((ushort)value << 10) & 0x7C00)));
+        public HalfRegister WithExponent(byte value) => new((ushort)((Value & EXPONENT_INVERTED_MASK) | (((ushort)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -237,28 +256,28 @@ public partial class BitFieldSpecializationTests
         public static implicit operator HalfRegister(int value) => new(unchecked((ushort)value));
 
         /// <summary>Creates a new HalfRegister from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public HalfRegister(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+            this = new HalfRegister(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new HalfRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new HalfRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized HalfRegister.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static HalfRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
         }
 
@@ -268,21 +287,21 @@ public partial class BitFieldSpecializationTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

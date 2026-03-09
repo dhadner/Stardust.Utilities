@@ -20,10 +20,33 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a StatusFlags with all bits set to zero.</summary>
     public static StatusFlags Zero => default;
+
+    // --- Bit field mask constants ---
+    // Priority: bits [4..7], width 4
+    private const int PRIORITY_START_BIT = 4;
+    private const byte PRIORITY_MASK = 0x0F;
+    private const byte PRIORITY_SHIFTED_MASK = 0xF0;  // PRIORITY_MASK << PRIORITY_START_BIT
+    private const byte PRIORITY_INVERTED_MASK = 0x0F;  // ~PRIORITY_SHIFTED_MASK
+    // Ready: bit 0
+    private const int READY_BIT = 0;
+    private const byte READY_MASK = 0x01;  // 1 << READY_BIT
+    private const byte READY_INVERTED_MASK = 0xFE;  // ~READY_MASK
+    // Error: bit 1
+    private const int ERROR_BIT = 1;
+    private const byte ERROR_MASK = 0x02;  // 1 << ERROR_BIT
+    private const byte ERROR_INVERTED_MASK = 0xFD;  // ~ERROR_MASK
+    // Busy: bit 2
+    private const int BUSY_BIT = 2;
+    private const byte BUSY_MASK = 0x04;  // 1 << BUSY_BIT
+    private const byte BUSY_INVERTED_MASK = 0xFB;  // ~BUSY_MASK
+    // Complete: bit 3
+    private const int COMPLETE_BIT = 3;
+    private const byte COMPLETE_MASK = 0x08;  // 1 << COMPLETE_BIT
+    private const byte COMPLETE_INVERTED_MASK = 0xF7;  // ~COMPLETE_MASK
 
     /// <summary>Creates a new StatusFlags with the specified raw bits value.</summary>
     public StatusFlags(byte value) { Value = value; }
@@ -31,87 +54,91 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 4) & 0x0F);
+        get => (byte)((Value >> PRIORITY_START_BIT) & PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0x0F) | ((((byte)value) << 4) & 0xF0));
+        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK));
     }
 
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (Value & READY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => Value = value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED_MASK);
     }
 
     public partial bool Error
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x02) != 0;
+        get => (Value & ERROR_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD);
+        set => Value = value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED_MASK);
     }
 
     public partial bool Busy
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x04) != 0;
+        get => (Value & BUSY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x04) : (byte)(Value & 0xFB);
+        set => Value = value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED_MASK);
     }
 
     public partial bool Complete
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x08) != 0;
+        get => (Value & COMPLETE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x08) : (byte)(Value & 0xF7);
+        set => Value = value ? (byte)(Value | COMPLETE_MASK) : (byte)(Value & COMPLETE_INVERTED_MASK);
     }
 
     /// <summary>Returns a StatusFlags with only the Ready bit set.</summary>
-    public static StatusFlags ReadyBit => new((byte)0x01);
+    public static StatusFlags ReadyBit => new(READY_MASK);
 
     /// <summary>Returns a StatusFlags with only the Error bit set.</summary>
-    public static StatusFlags ErrorBit => new((byte)0x02);
+    public static StatusFlags ErrorBit => new(ERROR_MASK);
 
     /// <summary>Returns a StatusFlags with only the Busy bit set.</summary>
-    public static StatusFlags BusyBit => new((byte)0x04);
+    public static StatusFlags BusyBit => new(BUSY_MASK);
 
     /// <summary>Returns a StatusFlags with only the Complete bit set.</summary>
-    public static StatusFlags CompleteBit => new((byte)0x08);
+    public static StatusFlags CompleteBit => new(COMPLETE_MASK);
 
     /// <summary>Returns a StatusFlags with the mask for the Priority field (bits 4-7).</summary>
-    public static StatusFlags PriorityMask => new((byte)0xF0);
+    public static StatusFlags PriorityMask => new(PRIORITY_SHIFTED_MASK);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Priority", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Busy", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Complete", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Priority", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Ready", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Error", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Busy", 2, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Complete", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new StatusFlags with the Ready flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithReady(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+    public StatusFlags WithReady(bool value) => new(value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Error flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithError(bool value) => new(value ? (byte)(Value | 0x02) : (byte)(Value & 0xFD));
+    public StatusFlags WithError(bool value) => new(value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Busy flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithBusy(bool value) => new(value ? (byte)(Value | 0x04) : (byte)(Value & 0xFB));
+    public StatusFlags WithBusy(bool value) => new(value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Complete flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithComplete(bool value) => new(value ? (byte)(Value | 0x08) : (byte)(Value & 0xF7));
+    public StatusFlags WithComplete(bool value) => new(value ? (byte)(Value | COMPLETE_MASK) : (byte)(Value & COMPLETE_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithPriority(byte value) => new((byte)((Value & 0x0F) | (((byte)value << 4) & 0xF0)));
+    public StatusFlags WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -253,28 +280,28 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     public static implicit operator StatusFlags(int value) => new(unchecked((byte)value));
 
     /// <summary>Creates a new StatusFlags from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public StatusFlags(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = bytes[0];
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new StatusFlags(bytes[0]);
     }
 
-    /// <summary>Creates a new StatusFlags by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new StatusFlags by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized StatusFlags.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static StatusFlags ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -284,21 +311,21 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

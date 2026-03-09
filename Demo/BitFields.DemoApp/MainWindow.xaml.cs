@@ -19,6 +19,10 @@ public partial class MainWindow : Window
     private string? _activePeField;
     private string? _activeCpuField;
 
+    private FileSystemWatcher? _rfcAssemblyWatcher;
+    private Timer? _rfcReloadDebounce;
+    private string? _rfcWatchedFilePath;
+
     private static readonly Color[] Palette =
     [
         Rgb(0x61,0xAF,0xEF), Rgb(0xC6,0x78,0xDD), Rgb(0x56,0x9C,0x3B), Rgb(0xC4,0x8A,0x1A),
@@ -77,69 +81,49 @@ public partial class MainWindow : Window
         PeHexBytesPanel.Children.Clear();
         PeBinaryBitsPanel.Children.Clear();
 
-        if (bytes.Length < DosHeaderView.SizeInBytes)
-        {
-            AddInfoCard(PeFieldSummaryPanel, "Error", "File too small", Colors.Red);
-            return;
-        }
+        // Parse PE headers using Result pipeline
+        PeParser.Parse(bytes)
+            .OnSuccess(pe => PopulatePeDisplay(pe))
+            .OnFailure(error => AddInfoCard(PeFieldSummaryPanel, "Error", error, Colors.Red));
+    }
 
-        var dos = new DosHeaderView(bytes);
-        int peOffset = (int)dos.Lfanew;
-        int coffByteOffset = peOffset + 4;
-
-        if (bytes.Length < coffByteOffset + CoffHeaderView.SizeInBytes)
-        {
-            AddInfoCard(PeFieldSummaryPanel, "Error", "Missing PE header", Colors.Red);
-            return;
-        }
-
-        var signature = BitConverter.ToUInt32(bytes, peOffset);
-        var coff = new CoffHeaderView(bytes, coffByteOffset);
-        int optByteOffset = coffByteOffset + CoffHeaderView.SizeInBytes;
-        int optHeaderSize = Math.Min((int)coff.SizeOfOptionalHeader, OptionalHeaderView.SizeInBytes);
-        bool hasOptional = coff.SizeOfOptionalHeader > 0 && bytes.Length >= optByteOffset + optHeaderSize;
-
-        // Determine total display byte count
-        int totalDisplayBytes = hasOptional
-            ? Math.Min(optByteOffset + optHeaderSize, bytes.Length)
-            : Math.Min(coffByteOffset + CoffHeaderView.SizeInBytes, bytes.Length);
-
-        // Build field list with GLOBAL bit positions (byte offset * 8)
+    private void PopulatePeDisplay(PeParseResult pe)
+    {
+        var bytes = pe.Bytes;
         var allFields = new List<FieldDef>();
         int ci = 0;
 
-        // DOS header fields: view starts at byte 0, so bit positions are already global
+        // DOS header fields
         foreach (var m in DosHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(dos, m), m.BitOrder, m.GetDescription()));
+            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(pe.Dos, m), m.BitOrder, m.GetDescription()));
 
-        // PE signature: 4 bytes at peOffset
-        int sigBitBase = peOffset * 8;
+        // PE signature
+        int sigBitBase = pe.PeOffset * 8;
         allFields.Add(new FieldDef("PE Sig", sigBitBase, sigBitBase + 31, Palette[ci++ % Palette.Length],
-            signature == PeHeader.Signature ? "PE\\0\\0" : $"0x{signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
+            pe.Signature == PeHeader.SIGNATURE ? "PE\\0\\0" : $"0x{pe.Signature:X8}", Description: "PE signature magic bytes ('PE\\0\\0' = 0x00004550)"));
 
         // COFF header fields
-        int coffBitBase = coffByteOffset * 8;
+        int coffBitBase = pe.CoffByteOffset * 8;
         foreach (var m in CoffHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(coff, m), m.BitOrder, m.GetDescription()));
+            allFields.Add(new FieldDef(m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(pe.Coff, m), m.BitOrder, m.GetDescription()));
 
         // Optional header fields (if present)
-        if (hasOptional)
+        if (pe.Optional is { } opt)
         {
-            int optBitBase = optByteOffset * 8;
-            var opt = new OptionalHeaderView(bytes, optByteOffset);
+            int optBitBase = pe.OptByteOffset * 8;
             foreach (var m in OptionalHeaderView.Fields)
             {
                 int globalStart = m.StartBit + optBitBase;
                 int globalEnd = m.EndBit + optBitBase;
-                if (globalEnd / 8 < totalDisplayBytes)
+                if (globalEnd / 8 < pe.TotalDisplayBytes)
                     allFields.Add(new FieldDef(m.Name, globalStart, globalEnd, Palette[ci++ % Palette.Length], FormatViewField(opt, m), m.BitOrder, m.GetDescription()));
             }
         }
 
         _activePeField = null;
         PopulateFieldSummary(PeFieldSummaryPanel, allFields, nameof(_activePeField));
-        PopulateHexDisplay(PeHexBytesPanel, bytes, totalDisplayBytes, allFields, nameof(_activePeField));
-        PopulateBinaryDisplay(PeBinaryBitsPanel, bytes, totalDisplayBytes, allFields, nameof(_activePeField));
+        PopulateHexDisplay(PeHexBytesPanel, bytes, pe.TotalDisplayBytes, allFields, nameof(_activePeField));
+        PopulateBinaryDisplay(PeBinaryBitsPanel, bytes, pe.TotalDisplayBytes, allFields, nameof(_activePeField));
     }
 
     // ?? Network Packet Viewer ??????????????????????????????????
@@ -164,7 +148,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (bytes.Length < IPv4HeaderView.SizeInBytes)
+        if (bytes.Length < IPv4HeaderView.SIZE_IN_BYTES)
         {
             HttpPayload.Text = "Packet too small.";
             return;
@@ -173,7 +157,7 @@ public partial class MainWindow : Window
         var ip = new IPv4HeaderView(bytes);
         int tcpOffset = ip.HeaderLengthBytes;
 
-        if (bytes.Length < tcpOffset + TcpHeaderView.SizeInBytes)
+        if (bytes.Length < tcpOffset + TcpHeaderView.SIZE_IN_BYTES)
         {
             HttpPayload.Text = "Packet missing TCP header.";
             return;
@@ -305,44 +289,54 @@ public partial class MainWindow : Window
 
     // ── RFC Diagram ──────────────────────────────────────────────
 
+#pragma warning disable CS0618 // DiagramSection: retained until DemoApp migrates to Type-based API
+
     private readonly record struct DiagramSource(string Label, DiagramSection[] Sections);
 
-    private DiagramSource[] _diagramSources = [];
+    private BitFieldDiagram[] _diagramSources = [];
+    private BitFieldDiagram[] _builtInDiagramSources = [];
 
-    private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
-        new(label, [new("", fields)]);
+    private static BitFieldDiagram Single(string label, Type bitType) =>
+        new(bitType, label);
 
     private void InitRfcTab()
     {
         _diagramSources =
         [
-            Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
-            Single("TCP Header", TcpHeaderView.Fields.ToArray()),
-            Single("DOS Header", DosHeaderView.Fields.ToArray()),
-            Single("COFF Header", CoffHeaderView.Fields.ToArray()),
-            Single("Optional Header", OptionalHeaderView.Fields.ToArray()),
-            Single("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
-            new("68020 Register Set",
+            Single("IPv4 Header", typeof(IPv4HeaderView)),
+            Single("TCP Header", typeof(TcpHeaderView)),
+            Single("DOS Header", typeof(DosHeaderView)),
+            Single("COFF Header", typeof(CoffHeaderView)),
+            Single("Optional Header", typeof(OptionalHeaderView)),
+            Single("CPU Status Register", typeof(CpuStatusRegister)),
+            Single("IEEE 754 Half (16-bit)", typeof(IEEE754Half)),
+            Single("IEEE 754 Single (32-bit)", typeof(IEEE754Single)),
+            Single("IEEE 754 Double (64-bit)", typeof(IEEE754Double)),
+            Single("Decimal (128-bit)", typeof(DecimalBitFields)),
+            new(
             [
-                new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
-                new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
-                new("PC", M68020PC.Fields.ToArray()),
-                new("SR", M68020SR.Fields.ToArray()),
-                new("CCR", M68020CCR.Fields.ToArray()),
-                new("USP", M68020USP.Fields.ToArray()),
-                new("ISP", M68020ISP.Fields.ToArray()),
-                new("MSP", M68020MSP.Fields.ToArray()),
-                new("VBR", M68020VBR.Fields.ToArray()),
-                new("SFC", M68020SFC.Fields.ToArray()),
-                new("DFC", M68020DFC.Fields.ToArray()),
-                new("CACR", M68020CACR.Fields.ToArray()),
-                new("CAAR", M68020CAAR.Fields.ToArray()),
-            ]),
+                typeof(M68020DataRegisters),
+                typeof(M68020AddressRegisters),
+                typeof(M68020PC),
+                typeof(M68020SR),
+                typeof(M68020CCR),
+                typeof(M68020USP),
+                typeof(M68020ISP),
+                typeof(M68020MSP),
+                typeof(M68020VBR),
+                typeof(M68020SFC),
+                typeof(M68020DFC),
+                typeof(M68020CACR),
+                typeof(M68020CAAR),
+            ],
+            "68020 Register Set")
         ];
+
+        _builtInDiagramSources = _diagramSources;
 
         RfcStructPicker.Items.Clear();
         foreach (var s in _diagramSources)
-            RfcStructPicker.Items.Add(s.Label);
+            RfcStructPicker.Items.Add(s.Description);
         RfcStructPicker.SelectedIndex = 0;
 
         RfcBitsPerRow.Items.Clear();
@@ -351,6 +345,13 @@ public partial class MainWindow : Window
         RfcBitsPerRow.Items.Add("32");
         RfcBitsPerRow.Items.Add("64");
         RfcBitsPerRow.SelectedIndex = 2; // default 32
+
+        RfcCommentStyle.Items.Clear();
+        RfcCommentStyle.Items.Add("None");
+        RfcCommentStyle.Items.Add("* (asterisk)");
+        RfcCommentStyle.Items.Add("// (double-slash)");
+        RfcCommentStyle.Items.Add("/// (triple-slash)");
+        RfcCommentStyle.SelectedIndex = 0;
     }
 
     private void OnRfcStructChanged(object sender, RoutedEventArgs e) => UpdateRfcDiagram();
@@ -362,13 +363,21 @@ public partial class MainWindow : Window
             return;
 
         var source = _diagramSources[RfcStructPicker.SelectedIndex];
-        int bitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
-        bool showDesc = RfcShowDescriptions.IsChecked == true;
-        bool showOffset = RfcShowByteOffset.IsChecked == true;
+        source.BitsPerRow = int.Parse((string)RfcBitsPerRow.SelectedItem);
+        source.IncludeDescriptions = RfcShowDescriptions.IsChecked == true;
+        source.ShowByteOffset = RfcShowByteOffset.IsChecked == true;
+        source.CommentPrefix = RfcCommentStyle.SelectedIndex switch
+        {
+            1 => "* ",
+            2 => "// ",
+            3 => "/// ",
+            _ => null
+        };
 
-        RfcDiagramOutput.Text = BitFieldDiagram.RenderListToString(
-            source.Sections, bitsPerRow, showDesc, showOffset);
+        RfcDiagramOutput.Text = source.RenderToString().Value;
     }
+
+#pragma warning restore CS0618
 
     private void OnCopyRfcDiagram(object sender, RoutedEventArgs e)
     {
@@ -387,6 +396,133 @@ public partial class MainWindow : Window
                 }
             }
         }
+    }
+
+    private void OnOpenAssemblyForRfc(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Open .NET Assembly",
+            Filter = "Assemblies (*.dll;*.exe)|*.dll;*.exe|All Files (*.*)|*.*"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        LoadAssemblyForRfc(dialog.FileName);
+    }
+
+    private void LoadAssemblyForRfc(string filePath)
+    {
+        var result = AssemblyStructDiscovery.Discover(filePath);
+
+        if (result.Error != null && result.Structs.Count == 0)
+        {
+            RfcAssemblyStatus.Text = $"{result.AssemblyName}: {result.Error}";
+            RfcAssemblyStatus.Visibility = Visibility.Visible;
+            return;
+        }
+
+        // Remember the currently selected struct name so we can restore it after reload
+        string? previousSelection = RfcStructPicker.SelectedItem as string;
+
+        // Replace the dropdown with discovered structs
+        var sources = new List<BitFieldDiagram>();
+        foreach (var s in result.Structs)
+            sources.Add(Single(s.DisplayName, s.BitType));
+
+        _diagramSources = sources.ToArray();
+
+        RfcStructPicker.Items.Clear();
+        foreach (var s in _diagramSources)
+            RfcStructPicker.Items.Add(s.Description);
+
+        // Restore previous selection if the struct still exists, otherwise pick the first
+        int restoredIndex = -1;
+        if (previousSelection != null)
+        {
+            for (int i = 0; i < _diagramSources.Length; i++)
+            {
+                if (_diagramSources[i].Description == previousSelection)
+                {
+                    restoredIndex = i;
+                    break;
+                }
+            }
+        }
+        RfcStructPicker.SelectedIndex = restoredIndex >= 0 ? restoredIndex : 0;
+
+        RfcAssemblyStatus.Text = $"Loaded {result.Structs.Count} struct(s) from {result.AssemblyName} — watching for changes";
+        RfcAssemblyStatus.Visibility = Visibility.Visible;
+        RfcResetButton.Visibility = Visibility.Visible;
+
+        // Start watching the file for rebuild changes
+        WatchAssemblyFile(filePath);
+    }
+
+    private void WatchAssemblyFile(string filePath)
+    {
+        // Clean up any previous watcher
+        StopWatchingAssembly();
+
+        _rfcWatchedFilePath = filePath;
+        string? dir = Path.GetDirectoryName(filePath);
+        string fileName = Path.GetFileName(filePath);
+        if (dir == null) return;
+
+        _rfcAssemblyWatcher = new FileSystemWatcher(dir, fileName)
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
+            EnableRaisingEvents = true
+        };
+
+        _rfcAssemblyWatcher.Changed += OnWatchedAssemblyChanged;
+        _rfcAssemblyWatcher.Created += OnWatchedAssemblyChanged;
+    }
+
+    private void StopWatchingAssembly()
+    {
+        _rfcReloadDebounce?.Dispose();
+        _rfcReloadDebounce = null;
+
+        if (_rfcAssemblyWatcher != null)
+        {
+            _rfcAssemblyWatcher.EnableRaisingEvents = false;
+            _rfcAssemblyWatcher.Dispose();
+            _rfcAssemblyWatcher = null;
+        }
+
+        _rfcWatchedFilePath = null;
+    }
+
+    private void OnWatchedAssemblyChanged(object sender, FileSystemEventArgs e)
+    {
+        // Debounce: builds write the file multiple times in quick succession.
+        // Wait 500ms after the last change before reloading.
+        _rfcReloadDebounce?.Dispose();
+        _rfcReloadDebounce = new Timer(_ =>
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_rfcWatchedFilePath != null && File.Exists(_rfcWatchedFilePath))
+                    LoadAssemblyForRfc(_rfcWatchedFilePath);
+            });
+        }, null, 500, Timeout.Infinite);
+    }
+
+    private void OnResetRfcStructs(object sender, RoutedEventArgs e)
+    {
+        StopWatchingAssembly();
+
+        _diagramSources = _builtInDiagramSources;
+
+        RfcStructPicker.Items.Clear();
+        foreach (var s in _diagramSources)
+            RfcStructPicker.Items.Add(s.Description);
+        RfcStructPicker.SelectedIndex = 0;
+
+        RfcAssemblyStatus.Visibility = Visibility.Collapsed;
+        RfcResetButton.Visibility = Visibility.Collapsed;
     }
 
     // ?? Shared Three-Panel Display ?????????????????????????????

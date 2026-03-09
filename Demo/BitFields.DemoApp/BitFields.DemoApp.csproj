@@ -7,8 +7,12 @@
     <Nullable>enable</Nullable>
     <!-- Allow restore on non-Windows CI (e.g., GitHub dependency submission on Linux) -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationIcon>Stardust-Utilities-Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stardust.Utilities" Version="0.9.4" />
+    <Content Include="Stardust-Utilities-Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Stardust.Utilities" Version="$(Version)" />
   </ItemGroup>
 </Project>

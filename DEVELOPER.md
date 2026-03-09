@@ -32,23 +32,27 @@ This guide explains how to modify the source generators and update consuming pro
   - [Nested Struct Support](#nested-struct-support)
   - [Automatic IntelliSense](#automatic-intellisense)
   - [Full Operator Support](#full-operator-support)
+- [Demo Apps](#demo-apps)
+  - [DemoWeb (Blazor WebAssembly)](#demoweb-blazor-webassembly)
+  - [DemoApp (WPF)](#demoapp-wpf)
 - [Troubleshooting](#troubleshooting)
 - [Version History](#version-history)
 - [API Simplification Trade Study (v0.3.0)](#api-simplification-trade-study-v030)
+- [Releasing a Version](#releasing-a-version)
 
 ## Quick Reference: Build Workflow
 
-**To build a new version (e.g., 0.9.0):**
+**To build a new version (e.g., 0.9.6):**
 
 ```powershell
 # Navigate to the Stardust.Utilities directory
 cd Stardust.Utilities
 
 # Build both NuGet packages (automatically publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.0
+.\Build-Combined-NuGetPackages.ps1 0.9.6
 
 # Or skip tests for faster iteration during development
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
 ```
 
 **What happens automatically:**
@@ -89,17 +93,27 @@ Stardust.Utilities/
 ├── Generators/
 │   ├── Stardust.Generators.csproj       # Source generator project
 │   ├── BitFieldsGenerator.cs            # [BitFields] generator
-│   └── BitFieldsViewGenerator.cs         # [BitFieldsView] generator
+│   ├── BitFieldsViewGenerator.cs        # [BitFieldsView] generator
+│   └── *.cs                             # Additional generator source files
 ├── Test/
 │   └── Stardust.Utilities.Tests.csproj
+│   └── *.cs                             # Test cases and supporting source files
 ├── build/
 │   ├── Stardust.Utilities.props         # Auto-enables IntelliSense for consumers
 │   └── Stardust.Utilities.targets       # Auto-excludes generated files from compilation
 ├── nupkg/                               # Local NuGet packages output
+├── *.cs                                 # Stardust.Utilities source files
 ├── Build-Generator-NuGetPackage.ps1     # Builds generator package (for local development)
 ├── Build-Combined-NuGetPackages.ps1     # Builds the distributable package
+├── CODE_OF_CONDUCT.md                   # Code of conduct
+├── CONTRIBUTING.md                      # Contribution guidelines
+├── DEVELOPER.md                         # This file
+├── ENDIAN.md                            # Endianness documentation (Int32Be, UInt16Be, etc.)
+├── EXTENSIONS.md                        # Detailed documentation on the Extensions class methods
+├── PRIVACY.md                           # Privacy statement (no telemetry, no data collection)
 ├── README.md                            # User documentation
-└── DEVELOPER.md                         # This file
+├── RESULT.md                            # Result documentation -- used extensively throughout Stardust.Utilities
+└── SECURITY.md                          # Security documentation and how to report vulnerabilities
 ```
 
 ## Submodule Workflow
@@ -212,21 +226,21 @@ git pull origin main
 # Show help
 .\Build-Combined-NuGetPackages.ps1 -Help
 
-# Build version 0.9.0 (runs tests, publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.0
+# Build version 0.9.6 (runs tests, publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.6
 
 # Skip tests for faster iteration
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
 
 # Use Debug configuration
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -Configuration Debug
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -Configuration Debug
 ```
 
 **Parameters:**
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `<version>` | Yes | Version number (e.g., `0.9.0`, `1.0.0-beta1`) |
+| `<version>` | Yes | Version number (e.g., `0.9.6`, `1.0.0-beta1`) |
 | `-SkipTests` | No | Skip running unit tests |
 | `-Configuration` | No | `Debug` or `Release` (default: Release) |
 | `-Help` | No | Show help message |
@@ -244,6 +258,14 @@ git pull origin main
 - `./nupkg/` - Package files
 - `~/.nuget/local-packages/` - Local NuGet feed (packages appear in NuGet Package Manager)
 
+> **Local feed setup for contributors:** The build script copies packages to `~/.nuget/local-packages/`.
+> If this is your first time building, you may need to register the folder as a NuGet source:
+> ```powershell
+> dotnet nuget add source "$env:USERPROFILE\.nuget\local-packages" --name local-packages
+> ```
+> You can verify it was added with `dotnet nuget list source`. The local feed appears in
+> Visual Studio's NuGet Package Manager under **Package source > local-packages**.
+
 #### Build-Generator-NuGetPackage.ps1
 
 Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package **for local development**.
@@ -257,7 +279,7 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 ```powershell
 # Specify a version
-.\Build-Generator-NuGetPackage.ps1 -Version "0.9.0"
+.\Build-Generator-NuGetPackage.ps1 -Version "0.9.6"
 ```
 
 ### Package Reference Scenarios
@@ -274,11 +296,18 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 **Step 1:** Edit the generator in `Generators/BitFieldsGenerator.cs`.
 
+> **Enum casting rule:** When generating code that applies bitwise operators (`&`, `|`, `^`)
+> to a `value` parameter whose type comes from `field.PropertyType`, always cast `value` to
+> the storage type first (e.g., `({info.StorageType})value`). C# does not allow `enum & int`
+> directly. The setter and shift != 0 paths already follow this pattern; the shift == 0 path
+> in `GenerateWithBitFieldMethod` was fixed in v0.9.5 to match. See the test
+> `GeneratedBitFields_WithEnumAtBitZero` for the regression test.
+
 **Step 2:** Rebuild the package:
 
 ```powershell
 # Rebuild both packages (recommended)
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
 ```
 
 **Step 3:** Test locally with a consuming project:
@@ -623,6 +652,81 @@ var parsed = GeneratedStatusReg8.Parse("0xFF");
 > **Note:** Unary `-` for unsigned types is an extension (native `uint`/`ulong` don't support it).
 > It produces two's complement negation: `-1` on a `byte` yields `255`.
 
+## Demo Apps
+
+### DemoWeb (Blazor WebAssembly)
+
+The `Demo/BitFields.DemoWeb` project is a Blazor WebAssembly app that showcases
+BitFields, protocol headers, PE viewers, and the RFC diagram generator.
+
+**Build requirements:**
+
+- The `wasm-tools` workload is required because the project customizes the
+  native WASM build. Install it once:
+  ```powershell
+  dotnet workload install wasm-tools
+  ```
+- After installing the workload, **restart Visual Studio** so its build host
+  picks up the new workload.
+
+**WASM compatibility settings (csproj):**
+
+The project disables two WASM features to maximize browser compatibility:
+
+| Property | Default | DemoWeb | Why |
+|----------|---------|---------|-----|
+| `WasmEnableSIMD` | `true` | `false` | V8 JIT-less mode crashes on SIMD instructions |
+| `WasmEnableExceptionHandling` | `true` | `false` | V8 JIT-less mode crashes on native WASM EH |
+
+These settings cause `dotnet.native.wasm` to be relinked without SIMD and with
+JavaScript-based exception handling. The result is a slightly slower but
+universally compatible binary. This is appropriate for a demo app.
+
+**Edge Enhanced Security Mode (Strict):**
+
+Edge's Enhanced Security Mode (Strict) disables WebAssembly JIT compilation for
+large modules. Even with SIMD and native EH disabled, the 14 MB
+`dotnet.native.wasm` crashes the renderer with `STATUS_ILLEGAL_INSTRUCTION`.
+Small WASM modules (under ~1 MB) compile fine, so no JavaScript probe can detect
+the problem ahead of time.
+
+The `index.html` boot script uses a three-tier strategy to handle this:
+
+**Non-Edge browsers** (Chrome, Firefox, Safari): auto-load Blazor immediately.
+These browsers are not affected by the JIT-less issue.
+
+**Edge, first visit**: the script detects Edge via User-Agent (`/Edg\//`) and
+shows a welcome page with a "Load Interactive Demo" button, a video walkthrough
+link, and README screenshots link. This prevents the renderer crash from being
+the first thing a visitor sees. If the user clicks "Load Demo":
+
+- **Balanced mode** (default): Blazor loads successfully. `Program.cs` sets
+  `localStorage('blazorBoot') = 'success'`. All subsequent visits auto-load.
+- **Strict mode**: the renderer crashes with `STATUS_ILLEGAL_INSTRUCTION`.
+  The `localStorage` flag stays at `'loading'` (the browser process manages
+  localStorage, so it survives renderer crashes). The next visit shows a
+  compatibility panel with the Edge settings fix and fallback content links.
+
+**Edge, return visit after crash** (`blazorBoot === 'loading'`): shows the
+compatibility panel immediately (no crash). The primary fix instructs the user
+to add the site to the exception list at
+`edge://settings/privacy/security/secureModeSites`, with video/screenshots as
+a fallback. A "Try again" button clears the flag and reloads.
+
+**Any browser, return visit after success** (`blazorBoot === 'success'`):
+auto-loads Blazor regardless of User-Agent.
+
+**GitHub Pages deployment:**
+
+The `deploy-demo.yml` workflow installs `wasm-tools` and publishes with the
+same WASM settings as local builds. Both environments produce identical binaries.
+
+### DemoApp (WPF)
+
+The `Demo/BitFields.DemoApp` project is a WPF desktop app (Windows only). It
+shares model and utility files with DemoWeb via `<Compile Include>` links.
+No special build requirements beyond the standard .NET SDK.
+
 ## Troubleshooting
 
 ### Generator changes not taking effect
@@ -748,3 +852,22 @@ v0.3.0 also added support for signed storage types (`sbyte`, `short`, `int`, `lo
 Performance testing showed signed types are approximately 22% slower than unsigned
 equivalents due to the additional casts required to avoid sign extension issues in
 bitwise operations. For most use cases, this overhead is acceptable.
+
+## Releasing a Version
+
+### Release Checklist
+
+1. Update `Version` in `Directory.Build.props` (single source of truth; demo app
+   `PackageReference` versions use `$(Version)` automatically)
+2. Update `CHANGELOG.md` with the new version, date, and changes
+3. Update `PackageReleaseNotes` in `Stardust.Utilities.csproj` with version-specific notes
+4. Verify `README.md` installation snippet references the new version
+5. Build and test: `.\Build-Combined-NuGetPackages.ps1`
+6. Commit all changes and push to `main`
+7. Create a Git tag with the `v` prefix: `git tag v0.9.6 && git push origin v0.9.6`
+8. Publish to NuGet.org using the command shown by the build script
+
+### Tag Naming Convention
+
+All release tags use the `v` prefix (e.g., `v0.9.6`, `v1.0.0`). The initial `0.9.2` tag
+predates this convention. New releases must use the `v` prefix for consistency.

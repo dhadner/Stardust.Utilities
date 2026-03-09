@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Resources;
 
 namespace Stardust.Utilities;
+using static Result<string>;
 
 /// <summary>
 /// Describes a single field or flag within a bitfield struct, providing its name,
@@ -28,10 +29,14 @@ namespace Stardust.Utilities;
 /// 256 for <c>[BitFields(256)]</c>). Used by diagram renderers to show undefined trailing bits.
 /// </param>
 /// <param name="FieldMustBe">
-/// Per-field MustBe constraint: 0 = no constraint, 1 = must be zero, 2 = must be one.
+/// Per-field MustBe constraint: Any = no constraint, Zero = must be zero, Ones = must be all ones.
 /// </param>
 /// <param name="StructUndefinedMustBe">
-/// Struct-level UndefinedBitsMustBe mode: 0 = any, 1 = zeroes, 2 = ones.
+/// Struct-level UndefinedBitsMustBe: Any = any, Zeroes = zeroes, Ones = ones.
+/// </param>
+/// <param name="StructDescription">
+/// An optional description of the containing struct, from the <c>[BitFields]</c> or <c>[BitFieldsView]</c>
+/// attribute's <c>Description</c> property. Used as a section label in multi-struct diagram rendering.
 /// </param>
 public sealed record BitFieldInfo(
     string Name,
@@ -44,9 +49,139 @@ public sealed record BitFieldInfo(
     string? Description = null,
     Type? DescriptionResourceType = null,
     int StructTotalBits = 0,
-    int FieldMustBe = 0,
-    int StructUndefinedMustBe = 0)
+    MustBe FieldMustBe = MustBe.Any,
+    UndefinedBitsMustBe StructUndefinedMustBe = UndefinedBitsMustBe.Any,
+    string? StructDescription = null)
 {
+    public static Result<BitFieldInfo, string> Create(Type type, string? field = null, bool inherit = true)
+    {
+        string name;
+        int startBit;
+        int bitLength;
+        string propertyType;
+        bool isFlag;
+        ByteOrder byteOrder = ByteOrder.LittleEndian;
+        BitOrder bitOrder = BitOrder.BitZeroIsLsb;
+        string? description = null;
+        Type? descriptionResourceType = null;
+        int structTotalBits;
+        MustBe fieldMustBe = MustBe.Any;
+        UndefinedBitsMustBe structUndefinedMustBe = UndefinedBitsMustBe.Any;
+        string? structDescription = null;
+
+        if (type == null)
+        {
+            return Result<BitFieldInfo, string>.Err("Type cannot be null.");
+        }
+
+        if (!type.IsBitsType())
+        {
+            return Result<BitFieldInfo, string>.Err($"Type '{type.FullName}' is not a valid bitfield struct type.");
+        }
+        var fieldInfo = field == null ? null : type.GetProperty(field);
+        if (field != null && fieldInfo == null)
+        {
+            return Result<BitFieldInfo, string>.Err($"Field '{field}' not found in type '{type.FullName}'.");
+        }
+
+        // At this point, we have a valid type and (if specified) a valid field.
+        // We can proceed to extract all the relevant information.
+
+        // Description is the same for either struct or field
+        var descRes = type.GetBitsDescription(field, inherit);
+        if (descRes.IsFailure) return Result<BitFieldInfo, string>.Err(descRes.Error);
+        description = descRes.Value.description;
+        descriptionResourceType = descRes.Value.descriptionResourceType;
+        if (field == null)
+        {
+            // For struct-level description, also set structDescription for convenience
+            structDescription = description;
+        }
+        else
+        {
+            // For field-level description, get struct-level description separately for convenience
+            var fldDescRes = type.GetBitsDescription(null, inherit);
+            if (fldDescRes.IsFailure) return Result<BitFieldInfo, string>.Err(fldDescRes.Error);
+            structDescription = fldDescRes.Value.description;
+        }
+        var byteOrderRes = type.GetBitAndByteOrder(inherit);
+
+        // Undefined bits defined at the struct level.
+        type.GetUndefinedBitsMustBe(inherit).Match(
+            onSuccess: mustBe => structUndefinedMustBe = mustBe,
+            onFailure: _ => structUndefinedMustBe = UndefinedBitsMustBe.Any
+        );
+        var bitLengthRes = type.GetBitLength(field, inherit);
+        if (bitLengthRes.IsFailure) return Result<BitFieldInfo, string>.Err(bitLengthRes.Error);
+        bitLength = bitLengthRes.Value;
+
+        if (field != null)
+        {
+            var structTotalBitsRes = type.GetBitLength(null, inherit);
+            if (structTotalBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(structTotalBitsRes.Error);
+            structTotalBits = structTotalBitsRes.Value;
+        }
+        else
+        {
+            structTotalBits = bitLength;
+        }
+
+        if (field != null)
+        {
+            name = field;
+            propertyType = fieldInfo!.PropertyType.FullName ?? fieldInfo.PropertyType.Name;
+
+            var seBitsRes = type.GetStartAndEndBits(field, inherit);
+            if (seBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(seBitsRes.Error);
+
+            startBit = seBitsRes.Value.startBit;
+            bitLength = seBitsRes.Value.endBit - startBit + 1;
+            type.GetFieldValueOverride(field, inherit).OnSuccess(mustBe => fieldMustBe = mustBe);
+            var fieldAttr = type.GetAttribute<BitFieldAttribute>(field, inherit);
+            if (fieldAttr != null)
+            {
+                isFlag = false;
+            }
+            else
+            {
+                var flagAttr = type.GetAttribute<BitFlagAttribute>(field, inherit);
+                if (flagAttr != null)
+                {
+                    isFlag = true;
+                }
+                else
+                {
+                    return Result<BitFieldInfo, string>.Err($"Field '{field}' in type '{type.FullName}' is missing both [BitField] and [BitFlag] attributes.");
+                }
+            }
+            structDescription = description;
+        }
+        else
+        {
+            // Dealing with the struct itself
+            name = type.Name;
+            propertyType = type.FullName ?? type.Name;
+            startBit = 0;
+            isFlag = false;
+        }
+
+        return Ok(new BitFieldInfo(
+            Name: name,
+            StartBit: startBit,
+            BitLength: bitLength,
+            PropertyType: propertyType,
+            IsFlag: isFlag,
+            ByteOrder: byteOrder,
+            BitOrder: bitOrder,
+            Description: description,
+            DescriptionResourceType: descriptionResourceType,
+            StructTotalBits: structTotalBits,
+            FieldMustBe: fieldMustBe,
+            StructUndefinedMustBe: structUndefinedMustBe,
+            StructDescription: structDescription
+            ));
+    }
+
     /// <summary>The ending bit position (inclusive, 0-based, as declared by the user).</summary>
     public int EndBit => StartBit + BitLength - 1;
 

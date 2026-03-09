@@ -12,6 +12,155 @@
     <div id="app">
         <div class="loading">Loading&hellip;</div>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- Welcome page for Edge first-time visitors (shown BEFORE loading WASM) -->
+    <div id="edge-welcome" style="display:none; max-width:680px; margin:60px auto; padding:32px;
+         font-family:'Segoe UI',system-ui,sans-serif; color:#e0e0e0; background:#242424;
+         border:1px solid #3a3a3a; border-radius:8px; line-height:1.6;">
+        <h2 style="margin-top:0; margin-bottom:12px;">Stardust BitFields Playground</h2>
+        <p>Interactive browser demo for
+           <a href="https://github.com/dhadner/Stardust.Utilities" style="color:#38bdf8;">Stardust.Utilities</a>
+           &mdash; explore BitFields, PE headers, network packets, CPU registers,
+           and RFC diagrams.</p>
+        <p style="margin-top:16px;">
+            <button onclick="attemptLoad()"
+                    style="padding:10px 28px; background:#38bdf8; color:#1a1a1a; border:none;
+                           border-radius:4px; cursor:pointer; font-size:15px; font-weight:600;">
+                &#x25b6; Load Interactive Demo
+            </button>
+        </p>
+        <p style="margin-top:20px; color:#aaa; font-size:14px;">
+            Or preview without loading &mdash;
+            <a href="https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4"
+               style="color:#38bdf8;">watch the video walkthrough</a> or
+            <a href="https://github.com/dhadner/Stardust.Utilities#try-it-live"
+               style="color:#38bdf8;">view screenshots</a>.
+        </p>
+    </div>
+
+    <!-- Shown on return visit after two consecutive crashes -->
+    <div id="wasm-blocked" style="display:none; max-width:680px; margin:60px auto; padding:32px;
+         font-family:'Segoe UI',system-ui,sans-serif; color:#e0e0e0; background:#242424;
+         border:1px solid #3a3a3a; border-radius:8px; line-height:1.6;">
+        <h2 style="margin-top:0; margin-bottom:12px;">&#x1F310; Browser Compatibility Issue</h2>
+        <p>The interactive demo could not load because your browser configuration
+           limits WebAssembly for large applications. This is a known limitation of
+           <strong>Microsoft Edge Enhanced Security Mode (Strict)</strong>.</p>
+        <details open style="margin-top:16px; color:#aaa;">
+            <summary style="cursor:pointer; color:#e0e0e0;">How to fix this in Edge</summary>
+            <p style="margin-top:8px;">Allow WebAssembly for this site:</p>
+            <ol style="margin:8px 0 0 20px;">
+                <li>Navigate to <code style="background:#1a1a1a; padding:2px 6px; border-radius:3px;">edge://settings/privacy/security/secureModeSites</code></li>
+                <li>Add <code id="site-url" style="background:#1a1a1a; padding:2px 6px; border-radius:3px;"></code>
+                    to the <em>&ldquo;Never use enhanced security for these sites&rdquo;</em> list</li>
+                <li>Come back and refresh this page (or click <strong>Try again</strong> below)</li>
+            </ol>
+            <p style="margin-top:8px; font-size:13px;">This only affects Edge with Enhanced
+               Security set to <em>Strict</em>. The default <em>Balanced</em> mode is not
+               affected.</p>
+        </details>
+        <p style="margin-top:16px;">
+            <button onclick="localStorage.removeItem('blazorBoot');location.reload();"
+                    style="padding:10px 28px; background:#38bdf8; color:#1a1a1a; border:none;
+                           border-radius:4px; cursor:pointer; font-size:15px; font-weight:600;">
+                &#x21bb; Try again
+            </button>
+        </p>
+        <details style="margin-top:16px; color:#aaa;">
+            <summary style="cursor:pointer; color:#e0e0e0;">Preview without WebAssembly</summary>
+            <p style="margin-top:8px;">You can preview the demo via screenshots and video:</p>
+            <ul style="margin:8px 0 0 20px;">
+                <li><a href="https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4"
+                       style="color:#38bdf8;">Video walkthrough</a></li>
+                <li><a href="https://github.com/dhadner/Stardust.Utilities#try-it-live"
+                       style="color:#38bdf8;">Screenshots on the README</a></li>
+            </ul>
+        </details>
+        <details style="margin-top:12px; color:#aaa;">
+            <summary style="cursor:pointer; color:#e0e0e0;">Use a different browser</summary>
+            <p style="margin-top:8px;">This issue is specific to Edge Enhanced Security Mode.
+               Other browsers do not have this limitation.</p>
+        </details>
+    </div>
+
+    <script>
+        // Edge Enhanced Security Mode (Strict) runs V8 in JIT-less mode.
+        // The .NET WASM runtime (14 MB) is too complex for the JIT-less
+        // interpreter and crashes the renderer with STATUS_ILLEGAL_INSTRUCTION.
+        // No JavaScript probe can detect this ahead of time — the crash is
+        // at the renderer level, not catchable by try/catch.
+        //
+        // localStorage flag states:
+        //   (absent)   — first visit, never attempted
+        //   'loading'  — one crash so far; retry automatically on next load
+        //                so a normal browser refresh works after fixing settings
+        //   'crashed'  — two consecutive crashes; show the compatibility panel
+        //   'success'  — Blazor booted successfully; auto-load from now on
+        //
+        // Strategy:
+        //   - Non-Edge browsers: auto-load Blazor (not affected).
+        //   - Edge, first visit: show a welcome page with a "Load Demo"
+        //     button so the user is never surprised by a crash.
+        //   - Edge, previously succeeded: auto-load (proves Balanced mode).
+        //   - After first crash ('loading'): retry automatically so that a
+        //     normal browser refresh works after the user fixes settings.
+        //   - After second consecutive crash ('crashed'): show compatibility
+        //     panel. "Try again" clears the flag and restarts the cycle.
+        (function () {
+            var FLAG = 'blazorBoot';
+            var state = localStorage.getItem(FLAG);
+
+            function showPanel(id) {
+                document.getElementById('app').style.display = 'none';
+                document.getElementById(id).style.display = 'block';
+            }
+
+            function loadBlazor(flagValue) {
+                localStorage.setItem(FLAG, flagValue);
+                var s = document.createElement('script');
+                s.src = '_framework/blazor.webassembly.js';
+                document.body.appendChild(s);
+            }
+
+            // Two consecutive crashes — show compatibility panel.
+            if (state === 'crashed') {
+                showPanel('wasm-blocked');
+                // Fill in the actual site URL so the user knows what to add
+                var el = document.getElementById('site-url');
+                if (el) el.textContent = location.origin;
+                return;
+            }
+
+            // One previous crash — retry automatically. This makes a normal
+            // browser refresh work after the user fixes Edge settings.
+            // If it crashes again, the flag escalates to 'crashed'.
+            if (state === 'loading') {
+                loadBlazor('crashed');
+                return;
+            }
+
+            // Previous load succeeded — safe to auto-load in any browser.
+            if (state === 'success') {
+                loadBlazor('loading');
+                return;
+            }
+
+            // First visit in Edge: show welcome page instead of auto-loading.
+            // Prevents the unrecoverable renderer crash from being the first
+            // thing an Edge Enhanced Security (Strict) user sees.
+            if (/Edg\//.test(navigator.userAgent)) {
+                showPanel('edge-welcome');
+                window.attemptLoad = function () {
+                    document.getElementById('edge-welcome').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    loadBlazor('loading');
+                };
+                return;
+            }
+
+            // First visit, non-Edge: auto-load.
+            loadBlazor('loading');
+        })();
+    </script>
 </body>
 </html>

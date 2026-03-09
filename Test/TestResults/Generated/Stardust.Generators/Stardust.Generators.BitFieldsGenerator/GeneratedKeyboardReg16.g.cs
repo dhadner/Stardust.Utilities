@@ -20,10 +20,29 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     private ushort Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a GeneratedKeyboardReg16 with all bits set to zero.</summary>
     public static GeneratedKeyboardReg16 Zero => default;
+
+    // --- Bit field mask constants ---
+    // SecondKeyCode: bits [0..6], width 7
+    private const int SECOND_KEY_CODE_START_BIT = 0;
+    private const ushort SECOND_KEY_CODE_MASK = 0x007F;
+    private const ushort SECOND_KEY_CODE_INVERTED_MASK = 0xFF80;  // ~SECOND_KEY_CODE_MASK
+    // FirstKeyCode: bits [8..14], width 7
+    private const int FIRST_KEY_CODE_START_BIT = 8;
+    private const ushort FIRST_KEY_CODE_MASK = 0x007F;
+    private const ushort FIRST_KEY_CODE_SHIFTED_MASK = 0x7F00;  // FIRST_KEY_CODE_MASK << FIRST_KEY_CODE_START_BIT
+    private const ushort FIRST_KEY_CODE_INVERTED_MASK = 0x80FF;  // ~FIRST_KEY_CODE_SHIFTED_MASK
+    // SecondKeyUp: bit 7
+    private const int SECOND_KEY_UP_BIT = 7;
+    private const ushort SECOND_KEY_UP_MASK = 0x0080;  // 1 << SECOND_KEY_UP_BIT
+    private const ushort SECOND_KEY_UP_INVERTED_MASK = 0xFF7F;  // ~SECOND_KEY_UP_MASK
+    // FirstKeyUp: bit 15
+    private const int FIRST_KEY_UP_BIT = 15;
+    private const ushort FIRST_KEY_UP_MASK = 0x8000;  // 1 << FIRST_KEY_UP_BIT
+    private const ushort FIRST_KEY_UP_INVERTED_MASK = 0x7FFF;  // ~FIRST_KEY_UP_MASK
 
     /// <summary>Creates a new GeneratedKeyboardReg16 with the specified raw bits value.</summary>
     public GeneratedKeyboardReg16(ushort value) { Value = value; }
@@ -31,71 +50,75 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     public partial byte SecondKeyCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x007F);
+        get => (byte)(Value & SECOND_KEY_CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0xFF80) | (((ushort)value) & 0x007F));
+        set => Value = (ushort)((Value & SECOND_KEY_CODE_INVERTED_MASK) | (((ushort)value) & SECOND_KEY_CODE_MASK));
     }
 
     public partial byte FirstKeyCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 8) & 0x007F);
+        get => (byte)((Value >> FIRST_KEY_CODE_START_BIT) & FIRST_KEY_CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & 0x80FF) | ((((ushort)value) << 8) & 0x7F00));
+        set => Value = (ushort)((Value & FIRST_KEY_CODE_INVERTED_MASK) | ((((ushort)value) << FIRST_KEY_CODE_START_BIT) & FIRST_KEY_CODE_SHIFTED_MASK));
     }
 
     public partial bool SecondKeyUp
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0080) != 0;
+        get => (Value & SECOND_KEY_UP_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ushort)(Value | 0x0080) : (ushort)(Value & 0xFF7F);
+        set => Value = value ? (ushort)(Value | SECOND_KEY_UP_MASK) : (ushort)(Value & SECOND_KEY_UP_INVERTED_MASK);
     }
 
     public partial bool FirstKeyUp
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x8000) != 0;
+        get => (Value & FIRST_KEY_UP_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ushort)(Value | 0x8000) : (ushort)(Value & 0x7FFF);
+        set => Value = value ? (ushort)(Value | FIRST_KEY_UP_MASK) : (ushort)(Value & FIRST_KEY_UP_INVERTED_MASK);
     }
 
     /// <summary>Returns a GeneratedKeyboardReg16 with only the SecondKeyUp bit set.</summary>
-    public static GeneratedKeyboardReg16 SecondKeyUpBit => new((ushort)0x0080);
+    public static GeneratedKeyboardReg16 SecondKeyUpBit => new(SECOND_KEY_UP_MASK);
 
     /// <summary>Returns a GeneratedKeyboardReg16 with only the FirstKeyUp bit set.</summary>
-    public static GeneratedKeyboardReg16 FirstKeyUpBit => new((ushort)0x8000);
+    public static GeneratedKeyboardReg16 FirstKeyUpBit => new(FIRST_KEY_UP_MASK);
 
     /// <summary>Returns a GeneratedKeyboardReg16 with the mask for the SecondKeyCode field (bits 0-6).</summary>
-    public static GeneratedKeyboardReg16 SecondKeyCodeMask => new((ushort)0x007F);
+    public static GeneratedKeyboardReg16 SecondKeyCodeMask => new(SECOND_KEY_CODE_MASK);
 
     /// <summary>Returns a GeneratedKeyboardReg16 with the mask for the FirstKeyCode field (bits 8-14).</summary>
-    public static GeneratedKeyboardReg16 FirstKeyCodeMask => new((ushort)0x7F00);
+    public static GeneratedKeyboardReg16 FirstKeyCodeMask => new(FIRST_KEY_CODE_SHIFTED_MASK);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("SecondKeyCode", 0, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("FirstKeyCode", 8, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("SecondKeyUp", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("FirstKeyUp", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("SecondKeyCode", 0, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("FirstKeyCode", 8, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("SecondKeyUp", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("FirstKeyUp", 15, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the SecondKeyUp flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedKeyboardReg16 WithSecondKeyUp(bool value) => new(value ? (ushort)(Value | 0x0080) : (ushort)(Value & 0xFF7F));
+    public GeneratedKeyboardReg16 WithSecondKeyUp(bool value) => new(value ? (ushort)(Value | SECOND_KEY_UP_MASK) : (ushort)(Value & SECOND_KEY_UP_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the FirstKeyUp flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedKeyboardReg16 WithFirstKeyUp(bool value) => new(value ? (ushort)(Value | 0x8000) : (ushort)(Value & 0x7FFF));
+    public GeneratedKeyboardReg16 WithFirstKeyUp(bool value) => new(value ? (ushort)(Value | FIRST_KEY_UP_MASK) : (ushort)(Value & FIRST_KEY_UP_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the SecondKeyCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedKeyboardReg16 WithSecondKeyCode(byte value) => new((ushort)((Value & 0xFF80) | (value & 0x007F)));
+    public GeneratedKeyboardReg16 WithSecondKeyCode(byte value) => new((ushort)((Value & SECOND_KEY_CODE_INVERTED_MASK) | ((ushort)value & SECOND_KEY_CODE_MASK)));
 
     /// <summary>Returns a new GeneratedKeyboardReg16 with the FirstKeyCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedKeyboardReg16 WithFirstKeyCode(byte value) => new((ushort)((Value & 0x80FF) | (((ushort)value << 8) & 0x7F00)));
+    public GeneratedKeyboardReg16 WithFirstKeyCode(byte value) => new((ushort)((Value & FIRST_KEY_CODE_INVERTED_MASK) | (((ushort)value << FIRST_KEY_CODE_START_BIT) & FIRST_KEY_CODE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -237,28 +260,28 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     public static implicit operator GeneratedKeyboardReg16(int value) => new(unchecked((ushort)value));
 
     /// <summary>Creates a new GeneratedKeyboardReg16 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public GeneratedKeyboardReg16(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt16LittleEndian(bytes);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new GeneratedKeyboardReg16(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new GeneratedKeyboardReg16 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new GeneratedKeyboardReg16 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized GeneratedKeyboardReg16.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static GeneratedKeyboardReg16 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
     }
 
@@ -268,21 +291,21 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

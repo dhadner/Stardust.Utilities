@@ -1,4 +1,5 @@
-@page "/rfc"
+@page "/"
+@using BitFields.DemoApp
 @inject IJSRuntime JS
 
 <h2 class="page-title">RFC-Style Bit Field Diagrams</h2>
@@ -9,7 +10,7 @@
     <select @bind="_selectedIndex" @bind:after="UpdateDiagram">
         @for (int i = 0; i < _sources.Length; i++)
         {
-            <option value="@i">@_sources[i].Label</option>
+            <option value="@i">@_sources[i].Description</option>
         }
     </select>
 
@@ -19,6 +20,14 @@
         <option value="16">16</option>
         <option value="32">32</option>
         <option value="64">64</option>
+    </select>
+
+    <label>Comment:</label>
+    <select @bind="_commentStyle" @bind:after="UpdateDiagram">
+        <option value="0">None</option>
+        <option value="1">* (asterisk)</option>
+        <option value="2">// (double-slash)</option>
+        <option value="3">/// (triple-slash)</option>
     </select>
 
     <label><input type="checkbox" @bind="_showDescriptions" @bind:after="UpdateDiagram" /> Descriptions</label>
@@ -31,50 +40,71 @@
     }
 </div>
 
+<div class="toolbar" style="margin-top: 4px;">
+    <label>Open .NET Assembly:</label>
+    <InputFile OnChange="OnAssemblySelected" accept=".dll,.exe" />
+    @if (_assemblyStatus != null)
+    {
+        <span style="font-size: 0.8rem; color: var(--muted);">@_assemblyStatus</span>
+    }
+    @if (_hasLoadedAssembly)
+    {
+        <button @onclick="ResetToBuiltIn">Reset to Built-in</button>
+    }
+</div>
+
 <div class="section-header">&#x25B8; Diagram</div>
 <div class="diagram-output">@_diagramText</div>
 
 @code {
-    private record struct DiagramSource(string Label, DiagramSection[] Sections);
-
-    private DiagramSource[] _sources = [];
+    private BitFieldDiagram[] _sources = [];
+    private BitFieldDiagram[] _builtInSources = [];
     private int _selectedIndex;
     private int _bitsPerRow = 32;
+    private int _commentStyle;
     private bool _showDescriptions;
     private bool _showByteOffset;
     private string _diagramText = "";
     private bool _copied;
+    private string? _assemblyStatus;
+    private bool _hasLoadedAssembly;
 
-    private static DiagramSource Single(string label, BitFieldInfo[] fields) =>
-        new(label, [new("", fields)]);
+    private static BitFieldDiagram Single(string label, Type bitType) =>
+        new(bitType, label);
 
     protected override void OnInitialized()
     {
-        _sources =
+        _builtInSources =
         [
-            Single("IPv4 Header", IPv4HeaderView.Fields.ToArray()),
-            Single("TCP Header", TcpHeaderView.Fields.ToArray()),
-            Single("DOS Header", DosHeaderView.Fields.ToArray()),
-            Single("COFF Header", CoffHeaderView.Fields.ToArray()),
-            Single("Optional Header", OptionalHeaderView.Fields.ToArray()),
-            Single("CPU Status Register", CpuStatusRegister.Fields.ToArray()),
-            new("68020 Register Set",
+            Single("IPv4 Header", typeof(IPv4HeaderView)),
+            Single("TCP Header", typeof(TcpHeaderView)),
+            Single("DOS Header", typeof(DosHeaderView)),
+            Single("COFF Header", typeof(CoffHeaderView)),
+            Single("Optional Header", typeof(OptionalHeaderView)),
+            Single("CPU Status Register", typeof(CpuStatusRegister)),
+            Single("IEEE 754 Half (16-bit)", typeof(IEEE754Half)),
+            Single("IEEE 754 Single (32-bit)", typeof(IEEE754Single)),
+            Single("IEEE 754 Double (64-bit)", typeof(IEEE754Double)),
+            Single("Decimal (128-bit)", typeof(DecimalBitFields)),
+            new(
             [
-                new("── Data Registers ──", M68020DataRegisters.Fields.ToArray()),
-                new("── Address Registers ──", M68020AddressRegisters.Fields.ToArray()),
-                new("PC", M68020PC.Fields.ToArray()),
-                new("SR", M68020SR.Fields.ToArray()),
-                new("CCR", M68020CCR.Fields.ToArray()),
-                new("USP", M68020USP.Fields.ToArray()),
-                new("ISP", M68020ISP.Fields.ToArray()),
-                new("MSP", M68020MSP.Fields.ToArray()),
-                new("VBR", M68020VBR.Fields.ToArray()),
-                new("SFC", M68020SFC.Fields.ToArray()),
-                new("DFC", M68020DFC.Fields.ToArray()),
-                new("CACR", M68020CACR.Fields.ToArray()),
-                new("CAAR", M68020CAAR.Fields.ToArray()),
-            ]),
-        ];
+                typeof(M68020DataRegisters),
+                typeof(M68020AddressRegisters),
+                typeof(M68020PC),
+                typeof(M68020SR),
+                typeof(M68020CCR),
+                typeof(M68020USP),
+                typeof(M68020ISP),
+                typeof(M68020MSP),
+                typeof(M68020VBR),
+                typeof(M68020SFC),
+                typeof(M68020DFC),
+                typeof(M68020CACR),
+                typeof(M68020CAAR),
+            ],
+            "68020 Register Set")
+    ];
+        _sources = _builtInSources;
         UpdateDiagram();
     }
 
@@ -82,8 +112,99 @@
     {
         if (_selectedIndex < 0 || _selectedIndex >= _sources.Length) return;
         var source = _sources[_selectedIndex];
-        _diagramText = BitFieldDiagram.RenderListToString(
-            source.Sections, _bitsPerRow, _showDescriptions, _showByteOffset);
+        source.CommentPrefix = _commentStyle switch
+        {
+            1 => "* ",
+            2 => "// ",
+            3 => "/// ",
+            _ => null
+        };
+        source.BitsPerRow = _bitsPerRow;
+        source.IncludeDescriptions = _showDescriptions;
+        source.ShowByteOffset = _showByteOffset;
+        
+        _diagramText = source.RenderToString().Value;
+    }
+
+    private async Task OnAssemblySelected(InputFileChangeEventArgs e)
+    {
+        _assemblyStatus = null;
+
+        try
+        {
+            if ((await LoadAssembly(e.File)).IsFailure)
+            {
+                return;
+            }
+            UpdateDiagram();
+        }
+        catch (Exception ex)
+        {
+            _assemblyStatus = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task<Result<string>> LoadAssembly(IBrowserFile file)
+    {
+        _assemblyStatus = null;
+        try
+        {
+            _hasLoadedAssembly = false;
+
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024).CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            var result = AssemblyStructDiscovery.Discover(bytes, file.Name);
+
+            if (result.Error != null && result.Structs.Count == 0)
+            {
+                _assemblyStatus = $"{result.AssemblyName}: {result.Error}";
+                return Result<string>.Err(_assemblyStatus);
+            }
+
+            string? previousSelection = _selectedIndex >= 0 && _selectedIndex < _sources.Length
+                ? _sources[_selectedIndex].Description
+                : null;
+
+            var sources = new List<BitFieldDiagram>();
+            foreach (var s in result.Structs)
+                sources.Add(Single(s.DisplayName, s.BitType));
+
+            _sources = sources.ToArray();
+            _hasLoadedAssembly = true;
+
+            int restoredIndex = -1;
+            if (previousSelection != null)
+            {
+                for (int i = 0; i < _sources.Length; i++)
+                {
+                    if (_sources[i].Description == previousSelection)
+                    {
+                        restoredIndex = i;
+                        break;
+                    }
+                }
+            }
+            _selectedIndex = restoredIndex >= 0 ? restoredIndex : 0;
+
+            _assemblyStatus = $"Loaded {result.Structs.Count} struct(s) from {result.AssemblyName}";
+            return Result<string>.Ok();
+        }
+        catch (Exception ex)
+        {
+            _assemblyStatus = $"Error: {ex.Message}";   
+            return Result<string>.Err(_assemblyStatus);
+        }
+    }
+
+    private void ResetToBuiltIn()
+    {
+        _sources = _builtInSources;
+        _selectedIndex = 0;
+        _hasLoadedAssembly = false;
+        _assemblyStatus = null;
+        UpdateDiagram();
     }
 
     private async Task CopyToClipboard()

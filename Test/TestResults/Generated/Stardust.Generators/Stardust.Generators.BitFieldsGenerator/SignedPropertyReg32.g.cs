@@ -20,10 +20,26 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     private uint Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a SignedPropertyReg32 with all bits set to zero.</summary>
     public static SignedPropertyReg32 Zero => default;
+
+    // --- Bit field mask constants ---
+    // HighByte: bits [24..31], width 8
+    private const int HIGH_BYTE_START_BIT = 24;
+    private const uint HIGH_BYTE_MASK = 0x000000FFU;
+    private const uint HIGH_BYTE_SHIFTED_MASK = 0xFF000000U;  // HIGH_BYTE_MASK << HIGH_BYTE_START_BIT
+    private const uint HIGH_BYTE_INVERTED_MASK = 0x00FFFFFFU;  // ~HIGH_BYTE_SHIFTED_MASK
+    // MiddleWord: bits [8..23], width 16
+    private const int MIDDLE_WORD_START_BIT = 8;
+    private const uint MIDDLE_WORD_MASK = 0x0000FFFFU;
+    private const uint MIDDLE_WORD_SHIFTED_MASK = 0x00FFFF00U;  // MIDDLE_WORD_MASK << MIDDLE_WORD_START_BIT
+    private const uint MIDDLE_WORD_INVERTED_MASK = 0xFF0000FFU;  // ~MIDDLE_WORD_SHIFTED_MASK
+    // LowByte: bits [0..7], width 8
+    private const int LOW_BYTE_START_BIT = 0;
+    private const uint LOW_BYTE_MASK = 0x000000FFU;
+    private const uint LOW_BYTE_INVERTED_MASK = 0xFFFFFF00U;  // ~LOW_BYTE_MASK
 
     /// <summary>Creates a new SignedPropertyReg32 with the specified raw bits value.</summary>
     public SignedPropertyReg32(uint value) { Value = value; }
@@ -31,55 +47,59 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     public partial sbyte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)((Value >> 24) & 0x000000FFU);
+        get => (sbyte)((Value >> HIGH_BYTE_START_BIT) & HIGH_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0x00FFFFFFU) | ((((uint)value) << 24) & 0xFF000000U));
+        set => Value = (uint)((Value & HIGH_BYTE_INVERTED_MASK) | ((((uint)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK));
     }
 
     public partial short MiddleWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (short)((Value >> 8) & 0x0000FFFFU);
+        get => (short)((Value >> MIDDLE_WORD_START_BIT) & MIDDLE_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFF0000FFU) | ((((uint)value) << 8) & 0x00FFFF00U));
+        set => Value = (uint)((Value & MIDDLE_WORD_INVERTED_MASK) | ((((uint)value) << MIDDLE_WORD_START_BIT) & MIDDLE_WORD_SHIFTED_MASK));
     }
 
     public partial byte LowByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x000000FFU);
+        get => (byte)(Value & LOW_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & 0xFFFFFF00U) | (((uint)value) & 0x000000FFU));
+        set => Value = (uint)((Value & LOW_BYTE_INVERTED_MASK) | (((uint)value) & LOW_BYTE_MASK));
     }
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the HighByte field (bits 24-31).</summary>
-    public static SignedPropertyReg32 HighByteMask => new((uint)0xFF000000U);
+    public static SignedPropertyReg32 HighByteMask => new(HIGH_BYTE_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the MiddleWord field (bits 8-23).</summary>
-    public static SignedPropertyReg32 MiddleWordMask => new((uint)0x00FFFF00U);
+    public static SignedPropertyReg32 MiddleWordMask => new(MIDDLE_WORD_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the LowByte field (bits 0-7).</summary>
-    public static SignedPropertyReg32 LowByteMask => new((uint)0x000000FFU);
+    public static SignedPropertyReg32 LowByteMask => new(LOW_BYTE_MASK);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("HighByte", 24, 8, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("MiddleWord", 8, 16, "short", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("LowByte", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("HighByte", 24, 8, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("MiddleWord", 8, 16, "short", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("LowByte", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedPropertyReg32 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((Value & 0x00FFFFFFU) | (((uint)value << 24) & 0xFF000000U)));
+    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((Value & HIGH_BYTE_INVERTED_MASK) | (((uint)value << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg32 with the MiddleWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((Value & 0xFF0000FFU) | (((uint)value << 8) & 0x00FFFF00U)));
+    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((Value & MIDDLE_WORD_INVERTED_MASK) | (((uint)value << MIDDLE_WORD_START_BIT) & MIDDLE_WORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg32 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((Value & 0xFFFFFF00U) | (value & 0x000000FFU)));
+    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((Value & LOW_BYTE_INVERTED_MASK) | ((uint)value & LOW_BYTE_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -265,28 +285,28 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     public static implicit operator SignedPropertyReg32(uint value) => new(value);
 
     /// <summary>Creates a new SignedPropertyReg32 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedPropertyReg32(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new SignedPropertyReg32(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedPropertyReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedPropertyReg32 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedPropertyReg32.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedPropertyReg32 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
     }
 
@@ -296,21 +316,21 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

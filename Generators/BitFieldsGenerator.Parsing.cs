@@ -149,7 +149,10 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}private static {s} ParseBinary(ReadOnlySpan<char> s)");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    var clean = RemoveUnderscores(s);");
-        sb.AppendLine($"{indent}    return Convert.To{GetConvertMethodName(s)}(clean, 2);");
+        if (info.IsNativeIntegerType)
+            sb.AppendLine($"{indent}    return ({s})Convert.To{GetConvertMethodName(s)}(clean, 2);");
+        else
+            sb.AppendLine($"{indent}    return Convert.To{GetConvertMethodName(s)}(clean, 2);");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
         sb.AppendLine($"{indent}private static bool TryParseBinary(ReadOnlySpan<char> s, out {s} result)");
@@ -375,10 +378,11 @@ public partial class BitFieldsGenerator
         string t = info.TypeName;
         string s = info.StorageType;
         int sizeInBytes = GetStorageTypeBitWidth(s) / 8;
-        bool isBE = info.ByteOrder == ByteOrderValue.BigEndian;
+        bool isBE = info.ByteOrder == ByteOrder.BigEndian;
         string? readMethod = GetBinaryPrimitivesReadMethod(s, isBE);
         string? writeMethod = GetBinaryPrimitivesWriteMethod(s, isBE);
         bool isByte = s == "byte" || s == "sbyte";
+        bool isNativeInt = info.IsNativeIntegerType;
         string endianLabel = isBE ? "big-endian" : "little-endian";
 
         // For NativeFloat types, use the unsigned storage type for binary reads/writes
@@ -386,29 +390,42 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
             binaryType = info.StorageType; // already uint or ulong
 
-        // ReadOnlySpan<byte> constructor
+        // ReadOnlySpan<byte> constructor -- delegates to the primary constructor
+        // so UndefinedBitsMustBe and per-field MustBe normalization is applied.
         sb.AppendLine($"{indent}/// <summary>Creates a new {t} from a {endianLabel} byte span.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{indent}public {t}(ReadOnlySpan<byte> bytes)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (bytes.Length < SizeInBytes)");
-        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(bytes));");
+        sb.AppendLine($"{indent}    if (bytes.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(bytes));");
         if (isByte)
         {
             if (s == "sbyte")
-                sb.AppendLine($"{indent}    Value = unchecked((sbyte)bytes[0]);");
+                sb.AppendLine($"{indent}    this = new {t}(unchecked((sbyte)bytes[0]));");
             else
-                sb.AppendLine($"{indent}    Value = bytes[0];");
+                sb.AppendLine($"{indent}    this = new {t}(bytes[0]);");
+        }
+        else if (isNativeInt)
+        {
+            // nint/nuint: branch at runtime based on platform pointer size
+            string readU32 = isBE ? "ReadUInt32BigEndian" : "ReadUInt32LittleEndian";
+            string readU64 = isBE ? "ReadUInt64BigEndian" : "ReadUInt64LittleEndian";
+            string readI32 = isBE ? "ReadInt32BigEndian" : "ReadInt32LittleEndian";
+            string readI64 = isBE ? "ReadInt64BigEndian" : "ReadInt64LittleEndian";
+            if (s == "nint")
+                sb.AppendLine($"{indent}    this = new {t}(nint.Size == 8 ? (nint)BinaryPrimitives.{readI64}(bytes) : (nint)BinaryPrimitives.{readI32}(bytes));");
+            else
+                sb.AppendLine($"{indent}    this = new {t}(nint.Size == 8 ? (nuint)BinaryPrimitives.{readU64}(bytes) : (nuint)BinaryPrimitives.{readU32}(bytes));");
         }
         else
-            sb.AppendLine($"{indent}    Value = BinaryPrimitives.{readMethod}(bytes);");
+            sb.AppendLine($"{indent}    this = new {t}(BinaryPrimitives.{readMethod}(bytes));");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
         // Static ReadFrom factory
-        sb.AppendLine($"{indent}/// <summary>Creates a new {t} by reading <see cref=\"SizeInBytes\"/> bytes from a {endianLabel} byte span.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{indent}/// <summary>Creates a new {t} by reading <see cref=\"SIZE_IN_BYTES\"/> bytes from a {endianLabel} byte span.</summary>");
+        sb.AppendLine($"{indent}/// <param name=\"bytes\">The source span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <returns>The deserialized {t}.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{indent}public static {t} ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);");
@@ -416,14 +433,31 @@ public partial class BitFieldsGenerator
 
         // WriteTo
         sb.AppendLine($"{indent}/// <summary>Writes the value as {endianLabel} bytes into the destination span.</summary>");
-        sb.AppendLine($"{indent}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{indent}/// <param name=\"destination\">The destination span. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">The span is too short.</exception>");
         sb.AppendLine($"{indent}public void WriteTo(Span<byte> destination)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (destination.Length < SizeInBytes)");
-        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SizeInBytes}} bytes.\", nameof(destination));");
+        sb.AppendLine($"{indent}    if (destination.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(destination));");
         if (isByte)
             sb.AppendLine($"{indent}    destination[0] = unchecked((byte)Value);");
+        else if (isNativeInt)
+        {
+            string writeU32 = isBE ? "WriteUInt32BigEndian" : "WriteUInt32LittleEndian";
+            string writeU64 = isBE ? "WriteUInt64BigEndian" : "WriteUInt64LittleEndian";
+            string writeI32 = isBE ? "WriteInt32BigEndian" : "WriteInt32LittleEndian";
+            string writeI64 = isBE ? "WriteInt64BigEndian" : "WriteInt64LittleEndian";
+            if (s == "nint")
+            {
+                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeI64}(destination, (long)Value);");
+                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeI32}(destination, (int)Value);");
+            }
+            else
+            {
+                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeU64}(destination, (ulong)Value);");
+                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeU32}(destination, (uint)Value);");
+            }
+        }
         else
             sb.AppendLine($"{indent}    BinaryPrimitives.{writeMethod}(destination, Value);");
         sb.AppendLine($"{indent}}}");
@@ -436,23 +470,23 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <returns>true if the destination span was large enough; otherwise, false.</returns>");
         sb.AppendLine($"{indent}public bool TryWriteTo(Span<byte> destination, out int bytesWritten)");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    if (destination.Length < SizeInBytes)");
+        sb.AppendLine($"{indent}    if (destination.Length < SIZE_IN_BYTES)");
         sb.AppendLine($"{indent}    {{");
         sb.AppendLine($"{indent}        bytesWritten = 0;");
         sb.AppendLine($"{indent}        return false;");
         sb.AppendLine($"{indent}    }}");
         sb.AppendLine($"{indent}    WriteTo(destination);");
-        sb.AppendLine($"{indent}    bytesWritten = SizeInBytes;");
+        sb.AppendLine($"{indent}    bytesWritten = SIZE_IN_BYTES;");
         sb.AppendLine($"{indent}    return true;");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
         // ToByteArray
         sb.AppendLine($"{indent}/// <summary>Returns the value as a new {endianLabel} byte array.</summary>");
-        sb.AppendLine($"{indent}/// <returns>A byte array of length <see cref=\"SizeInBytes\"/>.</returns>");
+        sb.AppendLine($"{indent}/// <returns>A byte array of length <see cref=\"SIZE_IN_BYTES\"/>.</returns>");
         sb.AppendLine($"{indent}public byte[] ToByteArray()");
         sb.AppendLine($"{indent}{{");
-        sb.AppendLine($"{indent}    var bytes = new byte[SizeInBytes];");
+        sb.AppendLine($"{indent}    var bytes = new byte[SIZE_IN_BYTES];");
         sb.AppendLine($"{indent}    WriteTo(bytes);");
         sb.AppendLine($"{indent}    return bytes;");
         sb.AppendLine($"{indent}}}");

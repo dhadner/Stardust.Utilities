@@ -20,10 +20,22 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     private short Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 2;
+    public const int SIZE_IN_BYTES = 2;
 
     /// <summary>Returns a SignedPropertyRegSigned16 with all bits set to zero.</summary>
     public static SignedPropertyRegSigned16 Zero => default;
+
+    // --- Bit field mask constants ---
+    // Delta: bits [13..15], width 3
+    private const int DELTA_START_BIT = 13;
+    private const ushort DELTA_MASK = 0x0007;
+    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << DELTA_START_BIT
+    private const ushort DELTA_INVERTED_MASK = 0x1FFF;  // ~DELTA_SHIFTED_MASK
+    // SignedNibble: bits [9..12], width 4
+    private const int SIGNED_NIBBLE_START_BIT = 9;
+    private const ushort SIGNED_NIBBLE_MASK = 0x000F;
+    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x1E00;  // SIGNED_NIBBLE_MASK << SIGNED_NIBBLE_START_BIT
+    private const ushort SIGNED_NIBBLE_INVERTED_MASK = 0xE1FF;  // ~SIGNED_NIBBLE_SHIFTED_MASK
 
     /// <summary>Creates a new SignedPropertyRegSigned16 with the specified raw bits value.</summary>
     public SignedPropertyRegSigned16(short value) { Value = value; }
@@ -31,39 +43,43 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     public partial sbyte Delta
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(((ushort)Value) & 0xE000) << 16) >> 29);
+        get => (sbyte)(((int)(((ushort)Value) & DELTA_SHIFTED_MASK) << 16) >> 29);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & 0x1FFF) | ((((ushort)value) << 13) & 0xE000));
+        set => Value = (short)((((ushort)Value) & DELTA_INVERTED_MASK) | ((((ushort)value) << DELTA_START_BIT) & DELTA_SHIFTED_MASK));
     }
 
     public partial sbyte SignedNibble
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(((ushort)Value) & 0x1E00) << 19) >> 28);
+        get => (sbyte)(((int)(((ushort)Value) & SIGNED_NIBBLE_SHIFTED_MASK) << 19) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & 0xE1FF) | ((((ushort)value) << 9) & 0x1E00));
+        set => Value = (short)((((ushort)Value) & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SignedPropertyRegSigned16 with the mask for the Delta field (bits 13-15).</summary>
-    public static SignedPropertyRegSigned16 DeltaMask => new(unchecked((short)0xE000));
+    public static SignedPropertyRegSigned16 DeltaMask => new(unchecked((short)DELTA_SHIFTED_MASK));
 
     /// <summary>Returns a SignedPropertyRegSigned16 with the mask for the SignedNibble field (bits 9-12).</summary>
-    public static SignedPropertyRegSigned16 SignedNibbleMask => new(unchecked((short)0x1E00));
+    public static SignedPropertyRegSigned16 SignedNibbleMask => new(unchecked((short)SIGNED_NIBBLE_SHIFTED_MASK));
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("SignedNibble", 9, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Delta", 13, 3, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("SignedNibble", 9, 4, "sbyte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedPropertyRegSigned16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyRegSigned16 WithDelta(sbyte value) => new((short)((((ushort)Value) & 0x1FFF) | ((((ushort)value) << 13) & 0xE000)));
+    public SignedPropertyRegSigned16 WithDelta(sbyte value) => new((short)((((ushort)Value) & DELTA_INVERTED_MASK) | ((((ushort)value) << DELTA_START_BIT) & DELTA_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyRegSigned16 with the SignedNibble field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyRegSigned16 WithSignedNibble(sbyte value) => new((short)((((ushort)Value) & 0xE1FF) | ((((ushort)value) << 9) & 0x1E00)));
+    public SignedPropertyRegSigned16 WithSignedNibble(sbyte value) => new((short)((((ushort)Value) & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -205,28 +221,28 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     public static implicit operator SignedPropertyRegSigned16(int value) => new(unchecked((short)value));
 
     /// <summary>Creates a new SignedPropertyRegSigned16 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedPropertyRegSigned16(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadInt16LittleEndian(bytes);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new SignedPropertyRegSigned16(BinaryPrimitives.ReadInt16LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedPropertyRegSigned16 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedPropertyRegSigned16 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedPropertyRegSigned16.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedPropertyRegSigned16 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteInt16LittleEndian(destination, Value);
     }
 
@@ -236,21 +252,21 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

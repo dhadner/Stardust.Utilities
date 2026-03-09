@@ -20,10 +20,34 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     private sbyte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a SignedReg8 with all bits set to zero.</summary>
     public static SignedReg8 Zero => default;
+
+    // --- Bit field mask constants ---
+    // LowField: bits [2..4], width 3
+    private const int LOW_FIELD_START_BIT = 2;
+    private const byte LOW_FIELD_MASK = 0x07;
+    private const byte LOW_FIELD_SHIFTED_MASK = 0x1C;  // LOW_FIELD_MASK << LOW_FIELD_START_BIT
+    private const byte LOW_FIELD_INVERTED_MASK = 0xE3;  // ~LOW_FIELD_SHIFTED_MASK
+    // HighField: bits [5..6], width 2
+    private const int HIGH_FIELD_START_BIT = 5;
+    private const byte HIGH_FIELD_MASK = 0x03;
+    private const byte HIGH_FIELD_SHIFTED_MASK = 0x60;  // HIGH_FIELD_MASK << HIGH_FIELD_START_BIT
+    private const byte HIGH_FIELD_INVERTED_MASK = 0x9F;  // ~HIGH_FIELD_SHIFTED_MASK
+    // Flag0: bit 0
+    private const int FLAG0_BIT = 0;
+    private const byte FLAG0_MASK = 0x01;  // 1 << FLAG0_BIT
+    private const byte FLAG0_INVERTED_MASK = 0xFE;  // ~FLAG0_MASK
+    // Flag1: bit 1
+    private const int FLAG1_BIT = 1;
+    private const byte FLAG1_MASK = 0x02;  // 1 << FLAG1_BIT
+    private const byte FLAG1_INVERTED_MASK = 0xFD;  // ~FLAG1_MASK
+    // Sign: bit 7
+    private const int SIGN_BIT = 7;
+    private const byte SIGN_MASK = 0x80;  // 1 << SIGN_BIT
+    private const byte SIGN_INVERTED_MASK = 0x7F;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg8 with the specified raw bits value.</summary>
     public SignedReg8(sbyte value) { Value = value; }
@@ -31,87 +55,91 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     public partial byte LowField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 2) & 0x07);
+        get => (byte)((((byte)Value) >> LOW_FIELD_START_BIT) & LOW_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & 0xE3) | ((((byte)value) << 2) & 0x1C));
+        set => Value = (sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK));
     }
 
     public partial byte HighField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 5) & 0x03);
+        get => (byte)((((byte)Value) >> HIGH_FIELD_START_BIT) & HIGH_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & 0x9F) | ((((byte)value) << 5) & 0x60));
+        set => Value = (sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((byte)Value) & 0x01) != 0;
+        get => (((byte)Value) & FLAG0_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (sbyte)(((byte)Value) | 0x01) : (sbyte)(((byte)Value) & 0xFE);
+        set => Value = value ? (sbyte)(((byte)Value) | FLAG0_MASK) : (sbyte)(((byte)Value) & FLAG0_INVERTED_MASK);
     }
 
     public partial bool Flag1
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((byte)Value) & 0x02) != 0;
+        get => (((byte)Value) & FLAG1_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (sbyte)(((byte)Value) | 0x02) : (sbyte)(((byte)Value) & 0xFD);
+        set => Value = value ? (sbyte)(((byte)Value) | FLAG1_MASK) : (sbyte)(((byte)Value) & FLAG1_INVERTED_MASK);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((byte)Value) & 0x80) != 0;
+        get => (((byte)Value) & SIGN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (sbyte)(((byte)Value) | 0x80) : (sbyte)(((byte)Value) & 0x7F);
+        set => Value = value ? (sbyte)(((byte)Value) | SIGN_MASK) : (sbyte)(((byte)Value) & SIGN_INVERTED_MASK);
     }
 
     /// <summary>Returns a SignedReg8 with only the Flag0 bit set.</summary>
-    public static SignedReg8 Flag0Bit => new(unchecked((sbyte)0x01));
+    public static SignedReg8 Flag0Bit => new(unchecked((sbyte)FLAG0_MASK));
 
     /// <summary>Returns a SignedReg8 with only the Flag1 bit set.</summary>
-    public static SignedReg8 Flag1Bit => new(unchecked((sbyte)0x02));
+    public static SignedReg8 Flag1Bit => new(unchecked((sbyte)FLAG1_MASK));
 
     /// <summary>Returns a SignedReg8 with only the Sign bit set.</summary>
-    public static SignedReg8 SignBit => new(unchecked((sbyte)0x80));
+    public static SignedReg8 SignBit => new(unchecked((sbyte)SIGN_MASK));
 
     /// <summary>Returns a SignedReg8 with the mask for the LowField field (bits 2-4).</summary>
-    public static SignedReg8 LowFieldMask => new(unchecked((sbyte)0x1C));
+    public static SignedReg8 LowFieldMask => new(unchecked((sbyte)LOW_FIELD_SHIFTED_MASK));
 
     /// <summary>Returns a SignedReg8 with the mask for the HighField field (bits 5-6).</summary>
-    public static SignedReg8 HighFieldMask => new(unchecked((sbyte)0x60));
+    public static SignedReg8 HighFieldMask => new(unchecked((sbyte)HIGH_FIELD_SHIFTED_MASK));
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("LowField", 2, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("HighField", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Flag1", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Sign", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("LowField", 2, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("HighField", 5, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Flag1", 1, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Sign", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedReg8 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithFlag0(bool value) => new(value ? (sbyte)(((byte)Value) | 0x01) : (sbyte)(((byte)Value) & 0xFE));
+    public SignedReg8 WithFlag0(bool value) => new(value ? (sbyte)(((byte)Value) | FLAG0_MASK) : (sbyte)(((byte)Value) & FLAG0_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg8 with the Flag1 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithFlag1(bool value) => new(value ? (sbyte)(((byte)Value) | 0x02) : (sbyte)(((byte)Value) & 0xFD));
+    public SignedReg8 WithFlag1(bool value) => new(value ? (sbyte)(((byte)Value) | FLAG1_MASK) : (sbyte)(((byte)Value) & FLAG1_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg8 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithSign(bool value) => new(value ? (sbyte)(((byte)Value) | 0x80) : (sbyte)(((byte)Value) & 0x7F));
+    public SignedReg8 WithSign(bool value) => new(value ? (sbyte)(((byte)Value) | SIGN_MASK) : (sbyte)(((byte)Value) & SIGN_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg8 with the LowField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithLowField(byte value) => new((sbyte)((((byte)Value) & 0xE3) | ((((byte)value) << 2) & 0x1C)));
+    public SignedReg8 WithLowField(byte value) => new((sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg8 with the HighField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg8 WithHighField(byte value) => new((sbyte)((((byte)Value) & 0x9F) | ((((byte)value) << 5) & 0x60)));
+    public SignedReg8 WithHighField(byte value) => new((sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -253,28 +281,28 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     public static implicit operator SignedReg8(int value) => new(unchecked((sbyte)value));
 
     /// <summary>Creates a new SignedReg8 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedReg8(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = unchecked((sbyte)bytes[0]);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new SignedReg8(unchecked((sbyte)bytes[0]));
     }
 
-    /// <summary>Creates a new SignedReg8 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedReg8 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedReg8.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedReg8 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -284,21 +312,21 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

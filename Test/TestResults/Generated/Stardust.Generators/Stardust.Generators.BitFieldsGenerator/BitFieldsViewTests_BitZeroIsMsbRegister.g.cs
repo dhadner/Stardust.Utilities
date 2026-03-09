@@ -22,10 +22,29 @@ public partial class BitFieldsViewTests
         private byte Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 1;
+        public const int SIZE_IN_BYTES = 1;
 
         /// <summary>Returns a BitZeroIsMsbRegister with all bits set to zero.</summary>
         public static BitZeroIsMsbRegister Zero => default;
+
+        // --- Bit field mask constants ---
+        // HighNibble: bits [4..7], width 4
+        private const int HIGH_NIBBLE_START_BIT = 4;
+        private const byte HIGH_NIBBLE_MASK = 0x0F;
+        private const byte HIGH_NIBBLE_SHIFTED_MASK = 0xF0;  // HIGH_NIBBLE_MASK << HIGH_NIBBLE_START_BIT
+        private const byte HIGH_NIBBLE_INVERTED_MASK = 0x0F;  // ~HIGH_NIBBLE_SHIFTED_MASK
+        // LowNibble: bits [0..3], width 4
+        private const int LOW_NIBBLE_START_BIT = 0;
+        private const byte LOW_NIBBLE_MASK = 0x0F;
+        private const byte LOW_NIBBLE_INVERTED_MASK = 0xF0;  // ~LOW_NIBBLE_MASK
+        // MsbFlag: bit 7
+        private const int MSB_FLAG_BIT = 7;
+        private const byte MSB_FLAG_MASK = 0x80;  // 1 << MSB_FLAG_BIT
+        private const byte MSB_FLAG_INVERTED_MASK = 0x7F;  // ~MSB_FLAG_MASK
+        // LsbFlag: bit 0
+        private const int LSB_FLAG_BIT = 0;
+        private const byte LSB_FLAG_MASK = 0x01;  // 1 << LSB_FLAG_BIT
+        private const byte LSB_FLAG_INVERTED_MASK = 0xFE;  // ~LSB_FLAG_MASK
 
         /// <summary>Creates a new BitZeroIsMsbRegister with the specified raw bits value.</summary>
         public BitZeroIsMsbRegister(byte value) { Value = value; }
@@ -33,71 +52,75 @@ public partial class BitFieldsViewTests
         public partial byte HighNibble
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 4) & 0x0F);
+            get => (byte)((Value >> HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & 0x0F) | ((((byte)value) << 4) & 0xF0));
+            set => Value = (byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | ((((byte)value) << HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_SHIFTED_MASK));
         }
 
         public partial byte LowNibble
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)(Value & 0x0F);
+            get => (byte)(Value & LOW_NIBBLE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & 0xF0) | (((byte)value) & 0x0F));
+            set => Value = (byte)((Value & LOW_NIBBLE_INVERTED_MASK) | (((byte)value) & LOW_NIBBLE_MASK));
         }
 
         public partial bool MsbFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x80) != 0;
+            get => (Value & MSB_FLAG_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F);
+            set => Value = value ? (byte)(Value | MSB_FLAG_MASK) : (byte)(Value & MSB_FLAG_INVERTED_MASK);
         }
 
         public partial bool LsbFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & 0x01) != 0;
+            get => (Value & LSB_FLAG_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+            set => Value = value ? (byte)(Value | LSB_FLAG_MASK) : (byte)(Value & LSB_FLAG_INVERTED_MASK);
         }
 
         /// <summary>Returns a BitZeroIsMsbRegister with only the MsbFlag bit set.</summary>
-        public static BitZeroIsMsbRegister MsbFlagBit => new((byte)0x80);
+        public static BitZeroIsMsbRegister MsbFlagBit => new(MSB_FLAG_MASK);
 
         /// <summary>Returns a BitZeroIsMsbRegister with only the LsbFlag bit set.</summary>
-        public static BitZeroIsMsbRegister LsbFlagBit => new((byte)0x01);
+        public static BitZeroIsMsbRegister LsbFlagBit => new(LSB_FLAG_MASK);
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the HighNibble field (bits 4-7).</summary>
-        public static BitZeroIsMsbRegister HighNibbleMask => new((byte)0xF0);
+        public static BitZeroIsMsbRegister HighNibbleMask => new(HIGH_NIBBLE_SHIFTED_MASK);
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the LowNibble field (bits 0-3).</summary>
-        public static BitZeroIsMsbRegister LowNibbleMask => new((byte)0x0F);
+        public static BitZeroIsMsbRegister LowNibbleMask => new(LOW_NIBBLE_MASK);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("HighNibble", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("LowNibble", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("MsbFlag", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("LsbFlag", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("HighNibble", 0, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("LowNibble", 4, 4, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("MsbFlag", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("LsbFlag", 7, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the MsbFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithMsbFlag(bool value) => new(value ? (byte)(Value | 0x80) : (byte)(Value & 0x7F));
+        public BitZeroIsMsbRegister WithMsbFlag(bool value) => new(value ? (byte)(Value | MSB_FLAG_MASK) : (byte)(Value & MSB_FLAG_INVERTED_MASK));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the LsbFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithLsbFlag(bool value) => new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+        public BitZeroIsMsbRegister WithLsbFlag(bool value) => new(value ? (byte)(Value | LSB_FLAG_MASK) : (byte)(Value & LSB_FLAG_INVERTED_MASK));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the HighNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithHighNibble(byte value) => new((byte)((Value & 0x0F) | (((byte)value << 4) & 0xF0)));
+        public BitZeroIsMsbRegister WithHighNibble(byte value) => new((byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | (((byte)value << HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_SHIFTED_MASK)));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the LowNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithLowNibble(byte value) => new((byte)((Value & 0xF0) | (value & 0x0F)));
+        public BitZeroIsMsbRegister WithLowNibble(byte value) => new((byte)((Value & LOW_NIBBLE_INVERTED_MASK) | ((byte)value & LOW_NIBBLE_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -239,28 +262,28 @@ public partial class BitFieldsViewTests
         public static implicit operator BitZeroIsMsbRegister(int value) => new(unchecked((byte)value));
 
         /// <summary>Creates a new BitZeroIsMsbRegister from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public BitZeroIsMsbRegister(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = bytes[0];
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+            this = new BitZeroIsMsbRegister(bytes[0]);
         }
 
-        /// <summary>Creates a new BitZeroIsMsbRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new BitZeroIsMsbRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized BitZeroIsMsbRegister.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BitZeroIsMsbRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             destination[0] = unchecked((byte)Value);
         }
 
@@ -270,21 +293,21 @@ public partial class BitFieldsViewTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

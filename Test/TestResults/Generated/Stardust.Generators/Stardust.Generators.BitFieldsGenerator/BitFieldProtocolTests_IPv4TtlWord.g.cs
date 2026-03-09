@@ -22,10 +22,26 @@ public partial class BitFieldProtocolTests
         private uint Value;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 4;
+        public const int SIZE_IN_BYTES = 4;
 
         /// <summary>Returns a IPv4TtlWord with all bits set to zero.</summary>
         public static IPv4TtlWord Zero => default;
+
+        // --- Bit field mask constants ---
+        // TTL: bits [24..31], width 8
+        private const int TTL_START_BIT = 24;
+        private const uint TTL_MASK = 0x000000FFU;
+        private const uint TTL_SHIFTED_MASK = 0xFF000000U;  // TTL_MASK << TTL_START_BIT
+        private const uint TTL_INVERTED_MASK = 0x00FFFFFFU;  // ~TTL_SHIFTED_MASK
+        // Protocol: bits [16..23], width 8
+        private const int PROTOCOL_START_BIT = 16;
+        private const uint PROTOCOL_MASK = 0x000000FFU;
+        private const uint PROTOCOL_SHIFTED_MASK = 0x00FF0000U;  // PROTOCOL_MASK << PROTOCOL_START_BIT
+        private const uint PROTOCOL_INVERTED_MASK = 0xFF00FFFFU;  // ~PROTOCOL_SHIFTED_MASK
+        // HeaderChecksum: bits [0..15], width 16
+        private const int HEADER_CHECKSUM_START_BIT = 0;
+        private const uint HEADER_CHECKSUM_MASK = 0x0000FFFFU;
+        private const uint HEADER_CHECKSUM_INVERTED_MASK = 0xFFFF0000U;  // ~HEADER_CHECKSUM_MASK
 
         /// <summary>Creates a new IPv4TtlWord with the specified raw bits value.</summary>
         public IPv4TtlWord(uint value) { Value = value; }
@@ -33,55 +49,59 @@ public partial class BitFieldProtocolTests
         public partial byte TTL
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 24) & 0x000000FFU);
+            get => (byte)((Value >> TTL_START_BIT) & TTL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0x00FFFFFFU) | ((((uint)value) << 24) & 0xFF000000U));
+            set => Value = (uint)((Value & TTL_INVERTED_MASK) | ((((uint)value) << TTL_START_BIT) & TTL_SHIFTED_MASK));
         }
 
         public partial byte Protocol
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> 16) & 0x000000FFU);
+            get => (byte)((Value >> PROTOCOL_START_BIT) & PROTOCOL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFF00FFFFU) | ((((uint)value) << 16) & 0x00FF0000U));
+            set => Value = (uint)((Value & PROTOCOL_INVERTED_MASK) | ((((uint)value) << PROTOCOL_START_BIT) & PROTOCOL_SHIFTED_MASK));
         }
 
         public partial ushort HeaderChecksum
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & 0x0000FFFFU);
+            get => (ushort)(Value & HEADER_CHECKSUM_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & 0xFFFF0000U) | (((uint)value) & 0x0000FFFFU));
+            set => Value = (uint)((Value & HEADER_CHECKSUM_INVERTED_MASK) | (((uint)value) & HEADER_CHECKSUM_MASK));
         }
 
         /// <summary>Returns a IPv4TtlWord with the mask for the TTL field (bits 24-31).</summary>
-        public static IPv4TtlWord TTLMask => new((uint)0xFF000000U);
+        public static IPv4TtlWord TTLMask => new(TTL_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4TtlWord with the mask for the Protocol field (bits 16-23).</summary>
-        public static IPv4TtlWord ProtocolMask => new((uint)0x00FF0000U);
+        public static IPv4TtlWord ProtocolMask => new(PROTOCOL_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4TtlWord with the mask for the HeaderChecksum field (bits 0-15).</summary>
-        public static IPv4TtlWord HeaderChecksumMask => new((uint)0x0000FFFFU);
+        public static IPv4TtlWord HeaderChecksumMask => new(HEADER_CHECKSUM_MASK);
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("TTL", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Protocol", 16, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("HeaderChecksum", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("TTL", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Protocol", 16, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("HeaderChecksum", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Returns a new IPv4TtlWord with the TTL field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4TtlWord WithTTL(byte value) => new((uint)((Value & 0x00FFFFFFU) | (((uint)value << 24) & 0xFF000000U)));
+        public IPv4TtlWord WithTTL(byte value) => new((uint)((Value & TTL_INVERTED_MASK) | (((uint)value << TTL_START_BIT) & TTL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4TtlWord with the Protocol field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4TtlWord WithProtocol(byte value) => new((uint)((Value & 0xFF00FFFFU) | (((uint)value << 16) & 0x00FF0000U)));
+        public IPv4TtlWord WithProtocol(byte value) => new((uint)((Value & PROTOCOL_INVERTED_MASK) | (((uint)value << PROTOCOL_START_BIT) & PROTOCOL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4TtlWord with the HeaderChecksum field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4TtlWord WithHeaderChecksum(ushort value) => new((uint)((Value & 0xFFFF0000U) | (value & 0x0000FFFFU)));
+        public IPv4TtlWord WithHeaderChecksum(ushort value) => new((uint)((Value & HEADER_CHECKSUM_INVERTED_MASK) | ((uint)value & HEADER_CHECKSUM_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -267,28 +287,28 @@ public partial class BitFieldProtocolTests
         public static implicit operator IPv4TtlWord(uint value) => new(value);
 
         /// <summary>Creates a new IPv4TtlWord from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public IPv4TtlWord(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-            Value = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+            this = new IPv4TtlWord(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
         }
 
-        /// <summary>Creates a new IPv4TtlWord by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new IPv4TtlWord by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized IPv4TtlWord.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPv4TtlWord ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
         }
 
@@ -298,21 +318,21 @@ public partial class BitFieldProtocolTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

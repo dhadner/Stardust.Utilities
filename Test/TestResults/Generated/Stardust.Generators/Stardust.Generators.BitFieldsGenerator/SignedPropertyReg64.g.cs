@@ -20,10 +20,21 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     private ulong Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 8;
+    public const int SIZE_IN_BYTES = 8;
 
     /// <summary>Returns a SignedPropertyReg64 with all bits set to zero.</summary>
     public static SignedPropertyReg64 Zero => default;
+
+    // --- Bit field mask constants ---
+    // HighInt: bits [32..63], width 32
+    private const int HIGH_INT_START_BIT = 32;
+    private const ulong HIGH_INT_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong HIGH_INT_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // HIGH_INT_MASK << HIGH_INT_START_BIT
+    private const ulong HIGH_INT_INVERTED_MASK = 0x00000000FFFFFFFFUL;  // ~HIGH_INT_SHIFTED_MASK
+    // LowUInt: bits [0..31], width 32
+    private const int LOW_U_INT_START_BIT = 0;
+    private const ulong LOW_U_INT_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong LOW_U_INT_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~LOW_U_INT_MASK
 
     /// <summary>Creates a new SignedPropertyReg64 with the specified raw bits value.</summary>
     public SignedPropertyReg64(ulong value) { Value = value; }
@@ -31,39 +42,43 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     public partial int HighInt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (int)((Value >> 32) & 0x00000000FFFFFFFFUL);
+        get => (int)((Value >> HIGH_INT_START_BIT) & HIGH_INT_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0x00000000FFFFFFFFUL) | ((((ulong)value) << 32) & 0xFFFFFFFF00000000UL));
+        set => Value = (ulong)((Value & HIGH_INT_INVERTED_MASK) | ((((ulong)value) << HIGH_INT_START_BIT) & HIGH_INT_SHIFTED_MASK));
     }
 
     public partial uint LowUInt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)(Value & 0x00000000FFFFFFFFUL);
+        get => (uint)(Value & LOW_U_INT_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFF00000000UL) | (((ulong)value) & 0x00000000FFFFFFFFUL));
+        set => Value = (ulong)((Value & LOW_U_INT_INVERTED_MASK) | (((ulong)value) & LOW_U_INT_MASK));
     }
 
     /// <summary>Returns a SignedPropertyReg64 with the mask for the HighInt field (bits 32-63).</summary>
-    public static SignedPropertyReg64 HighIntMask => new((ulong)0xFFFFFFFF00000000UL);
+    public static SignedPropertyReg64 HighIntMask => new(HIGH_INT_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg64 with the mask for the LowUInt field (bits 0-31).</summary>
-    public static SignedPropertyReg64 LowUIntMask => new((ulong)0x00000000FFFFFFFFUL);
+    public static SignedPropertyReg64 LowUIntMask => new(LOW_U_INT_MASK);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("HighInt", 32, 32, "int", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("LowUInt", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("HighInt", 32, 32, "int", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("LowUInt", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedPropertyReg64 with the HighInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg64 WithHighInt(int value) => new((ulong)((Value & 0x00000000FFFFFFFFUL) | (((ulong)value << 32) & 0xFFFFFFFF00000000UL)));
+    public SignedPropertyReg64 WithHighInt(int value) => new((ulong)((Value & HIGH_INT_INVERTED_MASK) | (((ulong)value << HIGH_INT_START_BIT) & HIGH_INT_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg64 with the LowUInt field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg64 WithLowUInt(uint value) => new((ulong)((Value & 0xFFFFFFFF00000000UL) | (value & 0x00000000FFFFFFFFUL)));
+    public SignedPropertyReg64 WithLowUInt(uint value) => new((ulong)((Value & LOW_U_INT_INVERTED_MASK) | ((ulong)value & LOW_U_INT_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -249,28 +264,28 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     public static implicit operator SignedPropertyReg64(ulong value) => new(value);
 
     /// <summary>Creates a new SignedPropertyReg64 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedPropertyReg64(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new SignedPropertyReg64(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedPropertyReg64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedPropertyReg64 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedPropertyReg64.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedPropertyReg64 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
     }
 
@@ -280,21 +295,21 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

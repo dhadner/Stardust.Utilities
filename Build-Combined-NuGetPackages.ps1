@@ -37,7 +37,7 @@ if ($Help) {
     Write-Host "  .\Build-Combined-NuGetPackages.ps1 <version> [options]"
     Write-Host ""
     Write-Host "ARGUMENTS:" -ForegroundColor Yellow
-    Write-Host "  <version>            Version number (required, e.g., '0.9.0')"
+    Write-Host "  <version>            Version number (default: read from Directory.Build.props)"
     Write-Host ""
     Write-Host "OPTIONS:" -ForegroundColor Yellow
     Write-Host "  -SkipTests           Skip running unit tests"
@@ -45,25 +45,36 @@ if ($Help) {
     Write-Host "  -Help, -h, -?        Show this help message"
     Write-Host ""
     Write-Host "EXAMPLES:" -ForegroundColor Yellow
-    Write-Host "  .\Build-Combined-NuGetPackages.ps1 0.9.0"
-    Write-Host "  .\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests"
+    Write-Host "  .\Build-Combined-NuGetPackages.ps1                                # Use version from Directory.Build.props"
+    Write-Host "  .\Build-Combined-NuGetPackages.ps1 -SkipTests                     # Skip tests, auto version"
+    Write-Host "  .\Build-Combined-NuGetPackages.ps1 0.9.0                          # Override version"
+    Write-Host "  .\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests               # Override version, skip tests"
     Write-Host "  .\Build-Combined-NuGetPackages.ps1 1.0.0-beta1 -SkipTests"
     Write-Host ""
     Write-Host "OUTPUT:" -ForegroundColor Yellow
     Write-Host "  - Packages saved to: ./nupkg/"
     Write-Host "  - Packages published to: ~/.nuget/local-packages/"
     Write-Host "  - NuGet cache cleared for stardust.utilities and stardust.generators"
+    Write-Host "  - Demo app bin/obj cleared to prevent stale builds"
     Write-Host ""
     exit 0
 }
 
 # Version is required when not showing help
 if (-not $Version) {
-    Write-Host "ERROR: Version is required." -ForegroundColor Red
-    Write-Host "Usage: .\Build-Combined-NuGetPackages.ps1 <version> [options]" -ForegroundColor Yellow
-    Write-Host "Example: .\Build-Combined-NuGetPackages.ps1 0.9.0" -ForegroundColor Gray
-    Write-Host "Run with -Help for more information." -ForegroundColor Gray
-    exit 1
+    # Read default version from Directory.Build.props
+    $propsFile = "$ScriptDir\Directory.Build.props"
+    if (Test-Path $propsFile) {
+        [xml]$props = Get-Content $propsFile
+        $Version = $props.Project.PropertyGroup.Version
+    }
+    if (-not $Version) {
+        Write-Host "ERROR: Version is required (not found in Directory.Build.props)." -ForegroundColor Red
+        Write-Host "Usage: .\Build-Combined-NuGetPackages.ps1 <version> [options]" -ForegroundColor Yellow
+        Write-Host "Run with -Help for more information." -ForegroundColor Gray
+        exit 1
+    }
+    Write-Host "Using version $Version from Directory.Build.props" -ForegroundColor Gray
 }
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -218,6 +229,20 @@ foreach ($cacheDir in $cacheDirs) {
     if (Test-Path $cacheDir) {
         Remove-Item -Path $cacheDir -Recurse -Force
         Write-Host "  Cleared cache: $cacheDir" -ForegroundColor Gray
+    }
+}
+
+# Clear bin/obj of consuming projects so they pick up the fresh package on next build
+$consumerDirs = @(
+    "$ScriptDir\Demo\BitFields.DemoApp\bin",
+    "$ScriptDir\Demo\BitFields.DemoApp\obj",
+    "$ScriptDir\Demo\BitFields.DemoWeb\bin",
+    "$ScriptDir\Demo\BitFields.DemoWeb\obj"
+)
+foreach ($dir in $consumerDirs) {
+    if (Test-Path $dir) {
+        Remove-Item -Path $dir -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "  Cleared consumer build: $dir" -ForegroundColor Gray
     }
 }
 

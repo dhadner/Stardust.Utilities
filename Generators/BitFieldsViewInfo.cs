@@ -1,36 +1,7 @@
+using System;
 using System.Collections.Generic;
 
 namespace Stardust.Generators;
-
-/// <summary>
-/// Mirrors the ByteOrder enum from the public API.
-/// </summary>
-internal enum ByteOrderValue
-{
-    BigEndian = 0,
-    LittleEndian = 1
-}
-
-/// <summary>
-/// Mirrors the BitOrder enum from the public API.
-/// </summary>
-internal enum BitOrderValue
-{
-    BitZeroIsMsb = 0,
-    BitZeroIsLsb = 1
-}
-
-/// <summary>
-/// Per-field byte order override, inferred from endian-aware property types
-/// such as UInt32Be or UInt16Le.
-/// </summary>
-internal enum ByteOrderOverride
-{
-    BigEndian,
-    LittleEndian
-}
-
-
 
 /// <summary>
 /// Describes a nested [BitFieldsView] property within another [BitFieldsView].
@@ -65,8 +36,8 @@ internal sealed class BitFieldsViewInfo
     public string TypeName { get; }
     public string? Namespace { get; }
     public string Accessibility { get; }
-    public ByteOrderValue ByteOrder { get; }
-    public BitOrderValue BitOrder { get; }
+    public ByteOrder ByteOrder { get; }
+    public BitOrder BitOrder { get; }
     public List<BitFieldInfo> Fields { get; }
     public List<BitFlagInfo> Flags { get; }
     public List<SubViewInfo> SubViews { get; }
@@ -82,17 +53,27 @@ internal sealed class BitFieldsViewInfo
     /// </summary>
     public int MinBytes { get; }
 
+    /// <summary>Optional struct-level description from the [BitFieldsView] attribute.</summary>
+    public string? Description { get; }
+
+    /// <summary>
+    /// An optional resource type for the Description property, allowing localization of struct descriptions in BitFieldDiagram.
+    /// </summary>
+    public Type? DescriptionResourceType { get; set; }
+
     public BitFieldsViewInfo(
         string typeName,
         string? ns,
         string accessibility,
-        ByteOrderValue byteOrder,
-        BitOrderValue bitOrder,
+        ByteOrder byteOrder,
+        BitOrder bitOrder,
         List<BitFieldInfo> fields,
         List<BitFlagInfo> flags,
         List<SubViewInfo> subViews,
         List<(string Kind, string Name, string Accessibility)> containingTypes,
-        int minBytes)
+        int minBytes,
+        string? description = null,
+        Type? descriptionResourceType = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -104,5 +85,7 @@ internal sealed class BitFieldsViewInfo
         SubViews = subViews;
         ContainingTypes = containingTypes;
         MinBytes = minBytes;
+        Description = description;
+        DescriptionResourceType = descriptionResourceType;
     }
 }

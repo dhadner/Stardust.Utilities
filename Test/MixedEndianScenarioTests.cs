@@ -74,7 +74,7 @@ public partial class MixedEndianScenarioTests
     [Fact]
     public void CaptureHeader_BE_RoundTrip()
     {
-        var data = new byte[CaptureHeaderView.SizeInBytes];
+        var data = new byte[CaptureHeaderView.SIZE_IN_BYTES];
         var view = new CaptureHeaderView(data);
 
         view.Protocol = 0x0800;
@@ -97,7 +97,7 @@ public partial class MixedEndianScenarioTests
     [Fact]
     public void FileBlob_LE_WithBeField_RoundTrip()
     {
-        var data = new byte[FileBlobView.SizeInBytes];
+        var data = new byte[FileBlobView.SIZE_IN_BYTES];
         var view = new FileBlobView(data);
 
         view.Magic = 0x46494C45;        // "FILE" in LE
@@ -136,7 +136,7 @@ public partial class MixedEndianScenarioTests
     [Fact]
     public void FileBlob_NestedBeCaptureInLeBlob_RoundTrip()
     {
-        var data = new byte[FileBlobView.SizeInBytes];
+        var data = new byte[FileBlobView.SIZE_IN_BYTES];
         var view = new FileBlobView(data);
 
         // Set LE fields
@@ -176,7 +176,7 @@ public partial class MixedEndianScenarioTests
     {
         // Build a complete mixed-endian packet:
         // BE transport header wrapping LE file blob wrapping BE capture header
-        var data = new byte[TransportHeaderView.SizeInBytes];
+        var data = new byte[TransportHeaderView.SIZE_IN_BYTES];
         var transport = new TransportHeaderView(data);
 
         // Outer transport (BE)
@@ -222,7 +222,7 @@ public partial class MixedEndianScenarioTests
     [Fact]
     public void Transport_FullStack_VerifyWireBytes()
     {
-        var data = new byte[TransportHeaderView.SizeInBytes];
+        var data = new byte[TransportHeaderView.SIZE_IN_BYTES];
         var transport = new TransportHeaderView(data);
 
         transport.MessageType = 0x0102;
@@ -292,7 +292,7 @@ public partial class MixedEndianScenarioTests
     [Fact]
     public void Transport_ZeroCopy_WriteThrough_AllLayers()
     {
-        var data = new byte[TransportHeaderView.SizeInBytes];
+        var data = new byte[TransportHeaderView.SIZE_IN_BYTES];
         var transport = new TransportHeaderView(data);
 
         // Write at the deepest nesting level

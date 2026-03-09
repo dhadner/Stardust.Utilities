@@ -13,6 +13,10 @@ namespace Stardust.Utilities;
 ///     [BitFlag(7)] public partial bool Flag { get; set; }
 /// }
 /// 
+/// // Equivalent: use the StorageType enum for compile-time safety
+/// [BitFields(StorageType.Byte)]
+/// public partial struct MyRegister2 { ... }
+/// 
 /// // Usage with implicit conversions
 /// MyRegister reg = 0xFF;       // From byte
 /// byte raw = reg;              // To byte
@@ -45,7 +49,7 @@ namespace Stardust.Utilities;
 public sealed class BitFieldsAttribute : Attribute
 {
     /// <summary>
-    /// The storage type (byte, ushort, uint, ulong, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).
+    /// The storage type (byte, ushort, uint, ulong, nint, nuint, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).
     /// Null when using the bit-count constructor for arbitrary-size bitfields.
     /// </summary>
     public Type? StorageType { get; }
@@ -81,15 +85,42 @@ public sealed class BitFieldsAttribute : Attribute
     public BitOrder BitOrder { get; }
 
     /// <summary>
+    /// An optional description of the struct, used as a section label in
+    /// <see cref="BitFieldDiagram"/> multi-struct diagrams.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// An optional resource type for the Description property, allowing localization of struct descriptions in BitFieldDiagram.
+    /// </summary>
+    public Type? DescriptionResourceType { get; set; }
+
+    /// <summary>
     /// Creates a BitFields attribute with the specified storage type.
     /// </summary>
-    /// <param name="storageType">The storage type (byte, ushort, uint, ulong, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).</param>
+    /// <param name="storageType">The storage type (byte, ushort, uint, ulong, nint, nuint, Half, float, double, decimal, UInt128, Int128, sbyte, short, int, or long).</param>
     /// <param name="undefinedBits">Specifies how undefined bits are handled. Defaults to <see cref="UndefinedBitsMustBe.Any"/>.</param>
     /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>
     /// <param name="byteOrder">Byte order for serialization. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
     public BitFieldsAttribute(Type storageType, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any, BitOrder bitOrder = BitOrder.BitZeroIsLsb, ByteOrder byteOrder = ByteOrder.LittleEndian)
     {
         StorageType = storageType;
+        UndefinedBits = undefinedBits;
+        BitOrder = bitOrder;
+        ByteOrder = byteOrder;
+    }
+
+    /// <summary>
+    /// Creates a BitFields attribute with the specified storage type using the <see cref="Utilities.StorageType"/> enum.
+    /// This overload provides compile-time safety and discoverability for the supported storage types.
+    /// </summary>
+    /// <param name="storageType">The storage type as an enum value.</param>
+    /// <param name="undefinedBits">Specifies how undefined bits are handled. Defaults to <see cref="UndefinedBitsMustBe.Any"/>.</param>
+    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>
+    /// <param name="byteOrder">Byte order for serialization. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
+    public BitFieldsAttribute(StorageType storageType, UndefinedBitsMustBe undefinedBits = UndefinedBitsMustBe.Any, BitOrder bitOrder = BitOrder.BitZeroIsLsb, ByteOrder byteOrder = ByteOrder.LittleEndian)
+    {
+        StorageType = MapToType(storageType);
         UndefinedBits = undefinedBits;
         BitOrder = bitOrder;
         ByteOrder = byteOrder;
@@ -111,5 +142,29 @@ public sealed class BitFieldsAttribute : Attribute
         BitOrder = bitOrder;
         ByteOrder = byteOrder;
     }
+
+    /// <summary>
+    /// Maps a <see cref="Utilities.StorageType"/> enum value to the corresponding <see cref="System.Type"/>.
+    /// </summary>
+    private static Type? MapToType(StorageType storageType) => storageType switch
+    {
+        Utilities.StorageType.Byte => typeof(byte),
+        Utilities.StorageType.SByte => typeof(sbyte),
+        Utilities.StorageType.Int16 => typeof(short),
+        Utilities.StorageType.UInt16 => typeof(ushort),
+        Utilities.StorageType.Int32 => typeof(int),
+        Utilities.StorageType.UInt32 => typeof(uint),
+        Utilities.StorageType.Int64 => typeof(long),
+        Utilities.StorageType.UInt64 => typeof(ulong),
+        Utilities.StorageType.NInt => typeof(nint),
+        Utilities.StorageType.NUInt => typeof(nuint),
+        Utilities.StorageType.Half => typeof(Half),
+        Utilities.StorageType.Single => typeof(float),
+        Utilities.StorageType.Double => typeof(double),
+        Utilities.StorageType.Decimal => typeof(decimal),
+        Utilities.StorageType.Int128 => typeof(Int128),
+        Utilities.StorageType.UInt128 => typeof(UInt128),
+        _ => null,
+    };
 }
 

@@ -26,15 +26,15 @@ public partial class BitFieldSpecializationTests
         private ulong _w1; // bits 64-127
 
         /// <summary>Number of conceptual words in the backing store.</summary>
-        private const int WordCount = 2;
+        private const int WORD_COUNT = 2;
 
         /// <summary>Total number of defined bits.</summary>
-        private const int TotalBits = 128;
+        private const int TOTAL_BITS = 128;
 
         /// <summary>Size of this struct in bytes.</summary>
-        public const int SizeInBytes = 16;
+        public const int SIZE_IN_BYTES = 16;
 
-        private const ulong LastWordMask = 0xFFFFFFFFFFFFFFFFUL;
+        private const ulong LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
         /// <summary>Returns a DecimalRegister with all bits set to zero.</summary>
         public static DecimalRegister Zero => default;
@@ -110,12 +110,16 @@ public partial class BitFieldSpecializationTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public DecimalRegister WithScale(byte value) { var copy = this; copy.Scale = value; return copy; }
 
+        /// <summary>Optional description (title) for this struct.</summary>
+        public static string? StructDescription => null;
+        /// <summary>Optional resource type for the struct description.</summary>
+        public static Type? StructDescriptionResourceType => null;
         /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
         public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
         {
-            new("Coefficient", 0, 96, "System.UInt128", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Scale", 112, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
-            new("Sign", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: 0, StructUndefinedMustBe: 0),
+            new("Coefficient", 0, 96, "System.UInt128", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Scale", 112, 7, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+            new("Sign", 127, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
         };
 
         /// <summary>Bitwise complement operator.</summary>
@@ -210,11 +214,11 @@ public partial class BitFieldSpecializationTests
         public static DecimalRegister operator <<(DecimalRegister a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TotalBits) return default;
+            if (amount >= TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(DecimalRegister);
-            for (int dst = WordCount - 1; dst >= 0; dst--)
+            for (int dst = WORD_COUNT - 1; dst >= 0; dst--)
             {
                 int src = dst - wordShift;
                 if (src < 0) continue;
@@ -235,21 +239,21 @@ public partial class BitFieldSpecializationTests
         public static DecimalRegister operator >>(DecimalRegister a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TotalBits) return default;
+            if (amount >= TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(DecimalRegister);
-            for (int dst = 0; dst < WordCount; dst++)
+            for (int dst = 0; dst < WORD_COUNT; dst++)
             {
                 int src = dst + wordShift;
-                if (src >= WordCount) break;
+                if (src >= WORD_COUNT) break;
                 ulong val = GetWord(a, src);
                 if (bitShift == 0)
                     SetWord(ref result, dst, val);
                 else
                 {
                     SetWord(ref result, dst, val >> bitShift);
-                    if (src + 1 < WordCount)
+                    if (src + 1 < WORD_COUNT)
                         SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));
                 }
             }
@@ -374,7 +378,7 @@ public partial class BitFieldSpecializationTests
         /// <summary>Creates a DecimalRegister from a BigInteger (truncated to 128 bits).</summary>
         public static DecimalRegister FromBigInteger(BigInteger value)
         {
-            if (value.Sign < 0) value = (BigInteger.One << TotalBits) + value;
+            if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
             ulong w0 = (ulong)(value & ulong.MaxValue);
             value >>= 64;
             ulong w1 = (ulong)(value & ulong.MaxValue);
@@ -382,29 +386,29 @@ public partial class BitFieldSpecializationTests
         }
 
         /// <summary>Creates a new DecimalRegister from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public DecimalRegister(ReadOnlySpan<byte> bytes)
         {
-            if (bytes.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
+            if (bytes.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
             _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
             _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
         }
 
-        /// <summary>Creates a new DecimalRegister by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-        /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <summary>Creates a new DecimalRegister by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+        /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <returns>The deserialized DecimalRegister.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DecimalRegister ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
         /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-        /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+        /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
         /// <exception cref="ArgumentException">The span is too short.</exception>
         public void WriteTo(Span<byte> destination)
         {
-            if (destination.Length < SizeInBytes)
-                throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+            if (destination.Length < SIZE_IN_BYTES)
+                throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
         }
@@ -415,21 +419,21 @@ public partial class BitFieldSpecializationTests
         /// <returns>true if the destination span was large enough; otherwise, false.</returns>
         public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
         {
-            if (destination.Length < SizeInBytes)
+            if (destination.Length < SIZE_IN_BYTES)
             {
                 bytesWritten = 0;
                 return false;
             }
             WriteTo(destination);
-            bytesWritten = SizeInBytes;
+            bytesWritten = SIZE_IN_BYTES;
             return true;
         }
 
         /// <summary>Returns the value as a new little-endian byte array.</summary>
-        /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+        /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
         public byte[] ToByteArray()
         {
-            var bytes = new byte[SizeInBytes];
+            var bytes = new byte[SIZE_IN_BYTES];
             WriteTo(bytes);
             return bytes;
         }

@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Stardust.Utilities
 {
     /// <summary>
@@ -17,13 +15,12 @@ namespace Stardust.Utilities
 
         /// <summary>
         /// Creates a successful result with the specified value.
-        /// If value is null/default and T is a collection type, an empty collection is used instead.
         /// </summary>
-        /// <param name="value">The success value, or null/default for collection types to get an empty collection.</param>
+        /// <param name="value">The success value.</param>
         /// <param name="_">Dummy parameter only needed to resolve call to correct constructor overload.</param>
         private Result(T? value, bool _)
         {
-            _value = IsNull(value) ? GetDefaultValue() : value;
+            _value = value;
             _error = default;
             _isSuccess = true;
         }
@@ -37,23 +34,6 @@ namespace Stardust.Utilities
             _value = default;
             _error = error;
             _isSuccess = false;
-        }
-
-        /// <summary>
-        /// Determines if a value is null.  Returns true if null, false if
-        /// not null.  Specifically designed to return false if the value
-        /// is default for value types.
-        /// </summary>
-        /// <param name="value">The value to check.</param>
-        /// <returns>True if the value is null.</returns>
-        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "Needed to suppress nuisance message")]
-        private static bool IsNull(T? value)
-        {
-            // Do not check for default for value types.
-#pragma warning disable S2955 // Generic type parameter should be constrained to a class or use 'EqualityComparer<T>.Default' or 'object.Equals'
-            if (value == null) return true;
-#pragma warning restore S2955
-            return false;
         }
 
         /// <summary>
@@ -89,88 +69,17 @@ namespace Stardust.Utilities
 
         /// <summary>
         /// Creates a successful result with the specified value.
-        /// If value is null/default and T is a collection type, an empty collection is used instead.
         /// </summary>
-        /// <param name="value">The success value, or default for collection types to get an empty collection.</param>
-        /// <returns>A successful Result containing the value or an appropriate default.</returns>
-        public static Result<T, TError> Ok(T? value = default) => new(value, true);
+        /// <param name="value">The success value.</param>
+        /// <returns>A successful Result containing the value.</returns>
+        public static Result<T, TError> Ok(T? value) => new(value, true);
 
         /// <summary>
         /// Creates a failed result with the specified error.
-        /// To create an error result, use Result&lt;TError&gt;.Err(error) and 
-        /// cast the Result&lt;TError&gt; to Result&lt;T, TError&gt;
         /// </summary>
         /// <param name="error">The error value.</param>
         /// <returns>A failed result containing the error.</returns>
         public static Result<T, TError> Err(TError error) => new(error);
-
-        /// <summary>
-        /// Throw exception if the type is not string or collection type.
-        /// </summary>
-        /// <returns>The default value for type T.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when T is not a string or collection type.</exception>
-        private static T? GetDefaultValueOrThrow()
-        {
-            T? value = GetDefaultValue();
-            if (EqualityComparer<T>.Default.Equals(value, default))
-            {
-                // For all other types, throw an error since this may otherwise cause a subtle application malfunction.
-                throw new InvalidOperationException("Cannot cast Ok() to Result<T, TError>");
-            }
-            return value;
-        }
-
-        /// <summary>
-        /// Gets the default value for type T.
-        /// Returns an empty collection for array types and common collection types
-        /// (List, Dictionary, HashSet, Queue, Stack, etc.), or default(T) for other types.
-        /// </summary>
-        /// <returns>An appropriate default value for type T.</returns>
-        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "Needed to suppress nuisance message")]
-        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "Type T (the array type) must appear in the application in any case.")]
-        [SuppressMessage("Trimming", "IL2090:'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The generic parameter of the source method or type does not have matching annotations.", Justification = "<Pending>")]
-        private static T? GetDefaultValue()
-        {
-            var type = typeof(T);
-
-            // Handle array types - create empty array
-            if (type.IsArray)
-            {
-                var elementType = type.GetElementType()!;
-                return (T)(object)Array.CreateInstance(elementType, 0);
-            }
-
-            // Handle string type - return empty string instead of null
-            if (type == typeof(string))
-            {
-                return (T)(object)string.Empty;
-            }
-
-            // Handle generic collection types that have parameterless constructors
-            // This covers List<>, Dictionary<,>, HashSet<>, Queue<>, Stack<>, 
-            // LinkedList<>, SortedSet<>, SortedList<,>, SortedDictionary<,>, etc.
-            if (type.IsGenericType &&
-                typeof(System.Collections.IEnumerable).IsAssignableFrom(type))
-            {
-                var constructor = type.GetConstructor(Type.EmptyTypes);
-                if (constructor != null)
-                {
-                    return (T)constructor.Invoke(null);
-                }
-            }
-
-            // Handle non-generic collection types (ArrayList, Hashtable, etc.)
-            if (typeof(System.Collections.IEnumerable).IsAssignableFrom(type))
-            {
-                var constructor = type.GetConstructor(Type.EmptyTypes);
-                if (constructor != null)
-                {
-                    return (T)constructor.Invoke(null);
-                }
-            }
-
-            return default;
-        }
 
         /// <summary>
         /// Implicitly converts a void-style Result (Result&lt;TError&gt;) into a value Result (Result&lt;T, TError&gt;).
@@ -179,9 +88,9 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="result">Source Result&lt;TError&gt; to convert.</param>
         /// <returns>Converted Result&lt;T, TError&gt;.</returns>
-        public static implicit operator Result<T, TError>(Result<TError> result) => 
-            result.IsSuccess ? new Result<T, TError>(GetDefaultValueOrThrow(), true) : Err(result.Error);
-        
+        public static implicit operator Result<T, TError>(Result<TError> result) =>
+            result.IsSuccess ? throw new InvalidCastException("No value provided") : Err(result.Error);
+
 
         /// <summary>
         /// Deconstructs the result for pattern matching.
@@ -403,6 +312,15 @@ namespace Stardust.Utilities
         public static Result<TError> Err(TError? error = default) => new(false, error);
 
         /// <summary>
+        /// Creates a failed Result&lt;T, TError&gt; with the specified error.
+        /// Allows Err(error) syntax when 'using static Result&lt;TError&gt;' is present.
+        /// </summary>
+        /// <param name="error">The error value.</param>
+        /// <returns>A failed value result containing the error.</returns>
+        public static Result<T, TError> Err<T>(TError? error = default) =>
+            Result<T, TError>.Err(error!);
+
+        /// <summary>
         /// Deconstructs the result for pattern matching.
         /// Allows for usage like:
         ///   var (isSuccess, error) = result;
@@ -493,7 +411,7 @@ namespace Stardust.Utilities
         /// <param name="value">The value to return on success.</param>
         /// <returns>A value result carrying the provided value on success.</returns>
         public Result<T, TError> WithValue<T>(T value) =>
-            _isSuccess ? Result<T, TError>.Ok(value) : Err(_error!);
+            _isSuccess ? Result<T, TError>.Ok(value) : Result<T, TError>.Err(_error!);
 
         /// <summary>
         /// Combines multiple Results, returning first failure or success if all succeed.

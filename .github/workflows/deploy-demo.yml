@@ -1,0 +1,81 @@
+name: Deploy Demo to GitHub Pages
+
+# Runs on push to main when demo files change, or manually via workflow_dispatch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Demo/BitFields.DemoWeb/**'
+      - 'Demo/BitFields.DemoApp/Models/**'
+      - 'Demo/BitFields.DemoApp/Utilities/**'
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 7, 8, 9, and 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          7.0.x
+          8.0.x
+          9.0.x
+          10.0.x
+
+    # The DemoWeb app references Stardust.Utilities via PackageReference using
+    # the version from Directory.Build.props. During development the version
+    # may not yet be published to NuGet.org. Build and pack the library locally
+    # so the publish restore succeeds. The pack needs all four SDKs because the
+    # library multi-targets net7.0, net8.0, net9.0, and net10.0.
+    - name: Pack library locally
+      run: dotnet pack Stardust.Utilities.csproj -c Release -o ./nupkg
+
+    - name: Register local NuGet source
+      run: dotnet nuget add source "${{ github.workspace }}/nupkg" --name local
+
+    # Set base href for GitHub Pages subdirectory
+    - name: Set base href
+      run: sed -i 's|<base href="/" />|<base href="/Stardust.Utilities/" />|' Demo/BitFields.DemoWeb/wwwroot/index.html
+
+    # Disable WASM SIMD so the published app works even when the browser
+    # disables JIT (e.g. Edge Enhanced Security Mode "Strict").
+    - name: Install wasm-tools workload
+      run: dotnet workload install wasm-tools
+
+    - name: Publish WASM app
+      run: dotnet publish Demo/BitFields.DemoWeb/BitFields.DemoWeb.csproj -c Release -o output
+
+    # GitHub Pages needs .nojekyll to serve _framework directory
+    - name: Prepare for GitHub Pages
+      run: |
+        touch output/wwwroot/.nojekyll
+        cp output/wwwroot/index.html output/wwwroot/404.html
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: output/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

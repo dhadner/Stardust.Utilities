@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,14 +41,22 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             return null;
 
         // Read ByteOrder (arg 0, default LittleEndian = 1)
-        var byteOrder = ByteOrderValue.LittleEndian;
+        var byteOrder = ByteOrder.LittleEndian;
         if (attr.ConstructorArguments.Length >= 1 && attr.ConstructorArguments[0].Value is int bo)
-            byteOrder = (ByteOrderValue)bo;
+            byteOrder = (ByteOrder)bo;
 
         // Read BitOrder (arg 1, default BitZeroIsLsb = 1)
-        var bitOrder = BitOrderValue.BitZeroIsLsb;
+        var bitOrder = BitOrder.BitZeroIsLsb;
         if (attr.ConstructorArguments.Length >= 2 && attr.ConstructorArguments[1].Value is int bi)
-            bitOrder = (BitOrderValue)bi;
+            bitOrder = (BitOrder)bi;
+
+        // Read optional struct-level Description from named argument
+        string? structDescription = null;
+        foreach (var named in attr.NamedArguments)
+        {
+            if (named.Key == "Description" && named.Value.Value is string sd)
+                structDescription = sd;
+        }
 
         // Discover fields, flags, and sub-views (reuses [BitField] and [BitFlag] attributes)
         var fields = new List<BitFieldInfo>();
@@ -91,8 +100,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                             {
                                 // ByteOrder enum: BigEndian = 0, LittleEndian = 1
                                 fieldByteOrder = bfByteOrder == 0
-                                    ? ByteOrderOverride.BigEndian
-                                    : ByteOrderOverride.LittleEndian;
+                                    ? ByteOrder.BigEndian
+                                    : ByteOrder.LittleEndian;
                             }
                         }
 
@@ -154,7 +163,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         return new BitFieldsViewInfo(
             structSymbol.Name, ns, accessibility,
             byteOrder, bitOrder,
-            fields, flags, subViews, containingTypes, minBytes);
+            fields, flags, subViews, containingTypes, minBytes, structDescription);
     }
 
     /// <summary>
@@ -232,20 +241,21 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{mind}private readonly byte _bitOffset;");
         sb.AppendLine();
 
-        // SizeInBytes constant (accounts for read widths, not just field byte spans)
-        int computedMinBytes = ComputeMinBytes(info);
+        // SIZE_IN_BYTES constant (accounts for read widths, not just field byte spans)
+        (int bitWidth, int computedMinBytes) = ComputeMinBytes(info);
         sb.AppendLine($"{mind}/// <summary>Minimum number of bytes required in the backing buffer.</summary>");
-        sb.AppendLine($"{mind}public const int SizeInBytes = {computedMinBytes};");
+        sb.AppendLine($"{mind}public const int SIZE_IN_BYTES = {computedMinBytes};");
+        sb.AppendLine($"{mind}public const int BIT_WIDTH = {bitWidth};");
         sb.AppendLine();
 
         // Constructors
         sb.AppendLine($"{mind}/// <summary>Creates a view over the specified memory buffer.</summary>");
-        sb.AppendLine($"{mind}/// <param name=\"data\">The buffer to view. Must contain at least <see cref=\"SizeInBytes\"/> bytes.</param>");
+        sb.AppendLine($"{mind}/// <param name=\"data\">The buffer to view. Must contain at least <see cref=\"SIZE_IN_BYTES\"/> bytes.</param>");
         sb.AppendLine($"{mind}/// <exception cref=\"ArgumentException\">The buffer is too short.</exception>");
         sb.AppendLine($"{mind}public {t}(Memory<byte> data)");
         sb.AppendLine($"{mind}{{");
-        sb.AppendLine($"{mind}    if (data.Length < SizeInBytes)");
-        sb.AppendLine($"{mind}        throw new ArgumentException($\"Buffer must contain at least {{SizeInBytes}} bytes, but was {{data.Length}}.\", nameof(data));");
+        sb.AppendLine($"{mind}    if (data.Length < SIZE_IN_BYTES)");
+        sb.AppendLine($"{mind}        throw new ArgumentException($\"Buffer must contain at least {{SIZE_IN_BYTES}} bytes, but was {{data.Length}}.\", nameof(data));");
         sb.AppendLine($"{mind}    _data = data;");
         sb.AppendLine($"{mind}    _bitOffset = 0;");
         sb.AppendLine($"{mind}}}");
@@ -309,13 +319,17 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// <summary>
     /// Computes the minimum buffer size needed for all fields considering read widths.
     /// </summary>
-    private static int ComputeMinBytes(BitFieldsViewInfo info)
+    private static (int bitWidth, int minBytes) ComputeMinBytes(BitFieldsViewInfo info)
     {
         int minBytes = 0;
+        int minStartBit = int.MaxValue;
+        int maxEndBit = int.MinValue;
         foreach (var f in info.Fields)
         {
             int startBit = f.Shift;
             int endBit = startBit + f.Width - 1;
+            minStartBit = Math.Min(minStartBit, startBit);
+            maxEndBit = Math.Max(maxEndBit, endBit);
 
             int firstByte = startBit / 8;
             int lastByte = endBit / 8;
@@ -329,14 +343,19 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         {
             int byteIdx = f.Bit / 8;
             if (byteIdx + 1 > minBytes) minBytes = byteIdx + 1;
+            minStartBit = Math.Min(minStartBit, f.Bit);
+            maxEndBit = Math.Max(maxEndBit, f.Bit);
         }
         foreach (var sv in info.SubViews)
         {
             // Sub-view extends to at least (endBit + 1) / 8 bytes, rounded up
             int needed = (sv.EndBit / 8) + 1;
             if (needed > minBytes) minBytes = needed;
+            minStartBit = Math.Min(minStartBit, sv.StartBit);
+            maxEndBit = Math.Max(maxEndBit, sv.EndBit);
         }
-        return minBytes;
+        int bitWidth = maxEndBit - minStartBit + 1;
+        return (bitWidth, minBytes);
     }
 
     /// <summary>
@@ -359,7 +378,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         int readBits = readWidth * 8;
 
         int rightShift;
-        if (info.BitOrder == BitOrderValue.BitZeroIsMsb)
+        if (info.BitOrder == BitOrder.BitZeroIsMsb)
         {
             int fieldEndInWindow = endBit - firstByte * 8;
             rightShift = readBits - 1 - fieldEndInWindow;
@@ -446,7 +465,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string ind, int startBit, int width, int oReadWidth, string oReadType,
         string oReadMethod, string oMaskLiteral)
     {
-        bool isMsb = info.BitOrder == BitOrderValue.BitZeroIsMsb;
+        bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
         int oReadBits = oReadWidth * 8;
         string cast = GetterCast(field);
 
@@ -518,7 +537,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string ind, int startBit, int width, int oReadWidth, string oReadType,
         string oReadMethod, string oWriteMethod, ulong mask, string oMaskLiteral)
     {
-        bool isMsb = info.BitOrder == BitOrderValue.BitZeroIsMsb;
+        bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
         int oReadBits = oReadWidth * 8;
 
         sb.AppendLine($"{ind}int ep = {startBit} + _bitOffset;");
@@ -565,7 +584,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     private static void GenerateFlagProperty(StringBuilder sb, BitFieldsViewInfo info, BitFlagInfo flag, string ind)
     {
         int bitPos = flag.Bit;
-        bool isMsb = info.BitOrder == BitOrderValue.BitZeroIsMsb;
+        bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
 
         int byteIdx = bitPos / 8;
         int bitInByte = isMsb ? 7 - (bitPos % 8) : bitPos % 8;
@@ -639,7 +658,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         if (bitOff == 0)
         {
             // Byte-aligned: straight copy
-            sb.AppendLine($"{ind}    set {{ value.Data.Span.Slice(0, {sv.ViewTypeName}.SizeInBytes).CopyTo(_data.Span.Slice({byteOff})); }}");
+            sb.AppendLine($"{ind}    set {{ value.Data.Span.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(_data.Span.Slice({byteOff})); }}");
         }
         else
         {
@@ -652,7 +671,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             sb.AppendLine($"{ind}        // but for raw byte semantics, copy the source bytes into a temp");
             sb.AppendLine($"{ind}        // buffer, create a view, and read/write through it.");
             sb.AppendLine($"{ind}        // For now, copy the source bytes directly (byte-aligned portion).");
-            sb.AppendLine($"{ind}        src.Slice(0, {sv.ViewTypeName}.SizeInBytes).CopyTo(_data.Span.Slice({byteOff}));");
+            sb.AppendLine($"{ind}        src.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(_data.Span.Slice({byteOff}));");
             sb.AppendLine($"{ind}    }}");
         }
 
@@ -691,22 +710,22 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// the underlying native type and the byte order they imply.
     /// Returns the original type unchanged if it is not an endian-aware type.
     /// </summary>
-    private static (string resolvedType, ByteOrderOverride? byteOrder) ResolveEndianType(string qualifiedType)
+    private static (string resolvedType, ByteOrder? byteOrder) ResolveEndianType(string qualifiedType)
     {
         return qualifiedType switch
         {
-            "global::Stardust.Utilities.UInt16Be" => ("ushort", ByteOrderOverride.BigEndian),
-            "global::Stardust.Utilities.Int16Be"  => ("short",  ByteOrderOverride.BigEndian),
-            "global::Stardust.Utilities.UInt32Be" => ("uint",   ByteOrderOverride.BigEndian),
-            "global::Stardust.Utilities.Int32Be"  => ("int",    ByteOrderOverride.BigEndian),
-            "global::Stardust.Utilities.UInt64Be" => ("ulong",  ByteOrderOverride.BigEndian),
-            "global::Stardust.Utilities.Int64Be"  => ("long",   ByteOrderOverride.BigEndian),
-            "global::Stardust.Utilities.UInt16Le" => ("ushort", ByteOrderOverride.LittleEndian),
-            "global::Stardust.Utilities.Int16Le"  => ("short",  ByteOrderOverride.LittleEndian),
-            "global::Stardust.Utilities.UInt32Le" => ("uint",   ByteOrderOverride.LittleEndian),
-            "global::Stardust.Utilities.Int32Le"  => ("int",    ByteOrderOverride.LittleEndian),
-            "global::Stardust.Utilities.UInt64Le" => ("ulong",  ByteOrderOverride.LittleEndian),
-            "global::Stardust.Utilities.Int64Le"  => ("long",   ByteOrderOverride.LittleEndian),
+            "global::Stardust.Utilities.UInt16Be" => ("ushort", ByteOrder.BigEndian),
+            "global::Stardust.Utilities.Int16Be"  => ("short",  ByteOrder.BigEndian),
+            "global::Stardust.Utilities.UInt32Be" => ("uint",   ByteOrder.BigEndian),
+            "global::Stardust.Utilities.Int32Be"  => ("int",    ByteOrder.BigEndian),
+            "global::Stardust.Utilities.UInt64Be" => ("ulong",  ByteOrder.BigEndian),
+            "global::Stardust.Utilities.Int64Be"  => ("long",   ByteOrder.BigEndian),
+            "global::Stardust.Utilities.UInt16Le" => ("ushort", ByteOrder.LittleEndian),
+            "global::Stardust.Utilities.Int16Le"  => ("short",  ByteOrder.LittleEndian),
+            "global::Stardust.Utilities.UInt32Le" => ("uint",   ByteOrder.LittleEndian),
+            "global::Stardust.Utilities.Int32Le"  => ("int",    ByteOrder.LittleEndian),
+            "global::Stardust.Utilities.UInt64Le" => ("ulong",  ByteOrder.LittleEndian),
+            "global::Stardust.Utilities.Int64Le"  => ("long",   ByteOrder.LittleEndian),
             _ => (qualifiedType, null)
         };
     }
@@ -715,16 +734,16 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// Resolves the effective byte order for a field: per-field override wins,
     /// otherwise falls back to the struct-level default.
     /// </summary>
-    private static bool IsEffectiveBigEndian(BitFieldsViewInfo info, ByteOrderOverride? fieldOverride)
+    private static bool IsEffectiveBigEndian(BitFieldsViewInfo info, ByteOrder? fieldOverride)
     {
         if (fieldOverride.HasValue)
-            return fieldOverride.Value == ByteOrderOverride.BigEndian;
-        return info.ByteOrder == ByteOrderValue.BigEndian;
+            return fieldOverride.Value == ByteOrder.BigEndian;
+        return info.ByteOrder == ByteOrder.BigEndian;
     }
 
     private static void GetReadWriteMethods(BitFieldsViewInfo info, int readWidth,
         out string readType, out string readMethod, out string writeMethod,
-        ByteOrderOverride? fieldOverride = null)
+        ByteOrder? fieldOverride = null)
     {
         bool isBE = IsEffectiveBigEndian(info, fieldOverride);
 
@@ -784,9 +803,13 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static void GenerateFieldMetadata(StringBuilder sb, BitFieldsViewInfo info, string ind)
     {
-        string structBitOrder = info.BitOrder == BitOrderValue.BitZeroIsMsb
+        string structBitOrder = info.BitOrder == BitOrder.BitZeroIsMsb
             ? "BitOrder.BitZeroIsMsb" : "BitOrder.BitZeroIsLsb";
-        int totalBits = ComputeMinBytes(info) * 8;
+        (int _, int totalBytes) = ComputeMinBytes(info);
+        int totalBits = totalBytes * 8;
+        string structDescArg = info.Description != null
+            ? $", StructDescription: \"{GeneratorUtils.EscapeStringLiteral(info.Description)}\""
+            : "";
 
         sb.AppendLine($"{ind}/// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>");
         sb.AppendLine($"{ind}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
@@ -798,15 +821,15 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             string effectiveByteOrder = IsEffectiveBigEndian(info, f.FieldByteOrder)
                 ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {effectiveByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {totalBits}, FieldMustBe: {(int)f.ValueOverride}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Shift}, {f.Width}, \"{qualifiedType}\", false, {effectiveByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {totalBits}, FieldMustBe: {(int)f.ValueOverride}{structDescArg}),");
         }
 
         foreach (var f in info.Flags)
         {
-            string structByteOrder = info.ByteOrder == ByteOrderValue.BigEndian
+            string structByteOrder = info.ByteOrder == ByteOrder.BigEndian
                 ? "ByteOrder.BigEndian" : "ByteOrder.LittleEndian";
             var descArgs = FormatDescriptionArgs(f.Description, f.DescriptionResourceType);
-            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {totalBits}, FieldMustBe: {(int)f.ValueOverride}),");
+            sb.AppendLine($"{ind}    new(\"{f.Name}\", {f.Bit}, 1, \"bool\", true, {structByteOrder}, {structBitOrder}{descArgs}, StructTotalBits: {totalBits}, FieldMustBe: {(int)f.ValueOverride}{structDescArg}),");
         }
 
         sb.AppendLine($"{ind}}};");
@@ -821,7 +844,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         if (description is null)
             return "";
 
-        var escaped = description.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        var escaped = GeneratorUtils.EscapeStringLiteral(description);
         if (descriptionResourceType is null)
             return $", \"{escaped}\"";
 
@@ -834,9 +857,9 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static string StripGlobalPrefix(string qualifiedName)
     {
-        const string globalPrefix = "global::";
-        return qualifiedName.StartsWith(globalPrefix)
-            ? qualifiedName.Substring(globalPrefix.Length)
+        const string GLOBAL_PREFIX = "global::";
+        return qualifiedName.StartsWith(GLOBAL_PREFIX)
+            ? qualifiedName.Substring(GLOBAL_PREFIX.Length)
             : qualifiedName;
     }
 

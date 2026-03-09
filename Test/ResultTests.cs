@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Reflection;
 using Xunit;
 
 namespace Stardust.Utilities.Tests;
@@ -11,13 +12,13 @@ public class ResultTests
     #region Result<T, TError> Tests
 
     /// <summary>
-    /// Tests that Ok() creates a successful result with default value.
+    /// Tests that Ok() with explicit default creates a successful result.
     /// </summary>
     [Fact]
-    public void Ok_WithDefaultValue_CreatesSuccessfulResult()
+    public void Ok_WithExplicitDefaultValue_CreatesSuccessfulResult()
     {
         // Act
-        var result = Result<int, string>.Ok();
+        var result = Result<int, string>.Ok(default);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -41,47 +42,45 @@ public class ResultTests
     }
 
     /// <summary>
-    /// Tests that Ok() with string returns empty string for null.
+    /// Tests that Ok() preserves null for nullable string.
     /// </summary>
     [Fact]
-    public void Ok_WithNullString_ReturnsEmptyString()
+    public void Ok_WithNullString_PreservesNull()
     {
         // Act
-        var result = Result<string, string>.Ok(null);
+        var result = Result<string?, string>.Ok(null);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(string.Empty);
+        result.Value.Should().BeNull();
     }
 
     /// <summary>
-    /// Tests that Ok() with array returns empty array for null.
+    /// Tests that Ok() preserves null for nullable array.
     /// </summary>
     [Fact]
-    public void Ok_WithNullArray_ReturnsEmptyArray()
+    public void Ok_WithNullArray_PreservesNull()
     {
         // Act
-        var result = Result<int[], string>.Ok(null);
+        var result = Result<int[]?, string>.Ok(null);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEmpty();
+        result.Value.Should().BeNull();
     }
 
     /// <summary>
-    /// Tests that Ok() with List returns empty list for null.
+    /// Tests that Ok() preserves null for nullable list.
     /// </summary>
     [Fact]
-    public void Ok_WithNullList_ReturnsEmptyList()
+    public void Ok_WithNullList_PreservesNull()
     {
         // Act
-        var result = Result<List<int>, string>.Ok(null);
+        var result = Result<List<int>?, string>.Ok(null);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEmpty();
+        result.Value.Should().BeNull();
     }
 
     /// <summary>
@@ -262,70 +261,13 @@ public class ResultTests
         result.Error.Should().Be("error message");
     }
 
-    /// <summary>
-    /// Tests implicit conversion from void result to value result on success with collection type.
-    /// </summary>
     [Fact]
-    public void ImplicitConversion_VoidToValueResult_OnSuccessWithCollection_ReturnsEmptyCollection()
+    public void Err_CastToLargerType()
     {
-        // Arrange
-        Result<string> voidResult = Result<string>.Ok();
-
-        // Act
-        Result<List<int>, string> valueResult = voidResult;
-
-        // Assert
-        valueResult.IsSuccess.Should().BeTrue();
-        valueResult.Value.Should().NotBeNull();
-        valueResult.Value.Should().BeEmpty();
-    }
-
-    /// <summary>
-    /// Tests implicit conversion from void result to value result on failure.
-    /// </summary>
-    [Fact]
-    public void ImplicitConversion_VoidToValueResult_OnFailure_PreservesError()
-    {
-        // Arrange
-        Result<string> voidResult = Result<string>.Err("error");
-
-        // Act
-        Result<int, string> valueResult = voidResult;
-
-        // Assert
-        valueResult.IsFailure.Should().BeTrue();
-        valueResult.Error.Should().Be("error");
-    }
-
-    /// <summary>
-    /// Tests implicit conversion from void result to value result on success throws for non-collection types.
-    /// </summary>
-    [Fact]
-    public void ImplicitConversion_VoidToValueResult_OnSuccessWithNonCollection_Throws()
-    {
-        // Arrange
-        Result<string> voidResult = Result<string>.Ok();
-
-        // Act & Assert
-        var act = () => { Result<int, string> valueResult = voidResult; };
-        act.Should().Throw<InvalidOperationException>();
-    }
-
-    /// <summary>
-    /// Tests implicit conversion from void result to string result returns empty string.
-    /// </summary>
-    [Fact]
-    public void ImplicitConversion_VoidToStringResult_OnSuccess_ReturnsEmptyString()
-    {
-        // Arrange
-        Result<string> voidResult = Result<string>.Ok();
-
-        // Act
-        Result<string, string> valueResult = voidResult;
-
-        // Assert
-        valueResult.IsSuccess.Should().BeTrue();
-        valueResult.Value.Should().Be(string.Empty);
+        Result<int, string> result;
+        result = Result<string>.Err("error message");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be("error message");
     }
 
     /// <summary>
@@ -453,11 +395,10 @@ public class ResultTests
         okResult.IsSuccess.Should().BeTrue();
         okResult.Value.Should().Equal(value);
 
-        // Test Ok with null returns empty array
-        Result<byte[], string> nullResult = Result<byte[], string>.Ok(null);
+        // Test Ok with null preserves null
+        Result<byte[]?, string> nullResult = Result<byte[]?, string>.Ok(null);
         nullResult.IsSuccess.Should().BeTrue();
-        nullResult.Value.Should().NotBeNull();
-        nullResult.Value.Should().BeEmpty();
+        nullResult.Value.Should().BeNull();
 
         // Test Err
         Result<byte[], string> errResult = Result<byte[], string>.Err("error");

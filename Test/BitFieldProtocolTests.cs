@@ -18,9 +18,9 @@ public partial class BitFieldProtocolTests
     [BitFields(typeof(byte), UndefinedBitsMustBe.Zeroes)]
     public partial struct IPv4Flags
     {
-        [BitFlag(0)] public partial bool MoreFragments { get; set; } // MF
-        [BitFlag(1)] public partial bool DontFragment { get; set; }  // DF
-        [BitFlag(2)] public partial bool Reserved { get; set; }      // must be 0
+        [BitFlag(0)] public partial bool MoreFragments { get; set; }         // MF
+        [BitFlag(1)] public partial bool DontFragment { get; set; }          // DF
+        [BitFlag(2, MustBe.Zero)] public partial bool Reserved { get; set; } // must be 0 even though defined
     }
 
     /// <summary>TCP control flags (9 bits): FIN, SYN, RST, PSH, ACK, URG, ECE, CWR, NS.</summary>
@@ -106,8 +106,9 @@ public partial class BitFieldProtocolTests
     {
         // IPv4Flags uses byte storage but only defines 3 bits (0-2).
         // UndefinedBitsMustBe.Zeroes ensures bits 3-7 are always zero.
+        // Bit 2 (Reserved) has MustBe.Zero, so it is also cleared.
         var flags = new IPv4Flags(0xFF);
-        ((byte)flags).Should().Be(0x07, "only 3 defined bits should survive");
+        ((byte)flags).Should().Be(0x03, "undefined bits zeroed and MustBe.Zero bit 2 cleared");
     }
 
     [Fact]

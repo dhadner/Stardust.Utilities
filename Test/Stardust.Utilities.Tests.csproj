@@ -18,8 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Stardust.Utilities.csproj" />
     <ProjectReference Include="..\Generators\Stardust.Generators.csproj" 
-                      OutputItemType="Analyzer" 
-                      ReferenceOutputAssembly="false" />
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="true" />
   </ItemGroup>
 	
 	<PropertyGroup>
@@ -46,6 +46,7 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

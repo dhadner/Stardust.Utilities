@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DiagramGen</RootNamespace>
+    <!-- Not a publishable artifact; this is a developer tool for regenerating
+         the RFC-style ASCII diagrams used in README.md and BITFIELDS.md. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stardust.Utilities" Version="$(Version)" />
+  </ItemGroup>
+
+</Project>

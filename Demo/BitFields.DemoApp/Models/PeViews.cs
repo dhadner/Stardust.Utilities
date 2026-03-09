@@ -5,7 +5,7 @@ namespace BitFields.DemoApp;
 /// <summary>
 /// DOS Header (IMAGE_DOS_HEADER) - 64 bytes at offset 0.
 /// </summary>
-[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, Description = "DOS Header")]
 public partial record struct DosHeaderView
 {
     [BitField(0, 15, Description = "Magic number identifying a DOS executable (0x5A4D = 'MZ')")]
@@ -59,13 +59,13 @@ public partial record struct DosHeaderView
 
 public static class PeHeader
 {
-    public const uint Signature = 0x00004550;
+    public const uint SIGNATURE = 0x00004550;
 }
 
 /// <summary>
 /// COFF File Header (IMAGE_FILE_HEADER) - 20 bytes following the PE signature.
 /// </summary>
-[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, Description = "COFF Header")]
 public partial record struct CoffHeaderView
 {
     [BitField(0, 15, Description = "Target CPU architecture (0x8664=AMD64, 0x14C=i386, 0xAA64=ARM64)")]
@@ -93,7 +93,7 @@ public partial record struct CoffHeaderView
 /// <summary>
 /// Optional Header standard + Windows-specific fields (IMAGE_OPTIONAL_HEADER64 / PE32+).
 /// </summary>
-[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+[BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, Description = "Optional Header")]
 public partial record struct OptionalHeaderView
 {
     [BitField(0, 15, Description = "Optional header magic (0x10B=PE32, 0x20B=PE32+)")]

@@ -12,7 +12,7 @@
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for bit manipulation, error handling, and big-endian data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
 		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>Supports .NET 7, .NET 8, .NET 9, and .NET 10. See README.md and CHANGELOG.md for details.</PackageReleaseNotes>
+		<PackageReleaseNotes>v0.9.6: Now fully implements "MustBe" and default bits settings in constructors and operators. Added support for nint, nuint. Improved code readability for generated code by using named constants.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
@@ -42,12 +42,18 @@
 		<Compile Remove="Generators\**" />
 		<Compile Remove="Test\**" />
 		<Compile Remove="Demo\**" />
+		<Compile Remove="DiagramGen\**" />
 		<None Remove="Generators\**" />
 		<None Remove="Test\**" />
 		<None Remove="Demo\**" />
+		<None Remove="DiagramGen\**" />
 		<EmbeddedResource Remove="Generators\**" />
 		<EmbeddedResource Remove="Test\**" />
 		<EmbeddedResource Remove="Demo\**" />
+		<EmbeddedResource Remove="DiagramGen\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Include="Demo\BitFields.DemoApp\Utilities\AssemblyStructDiscovery.cs" />
 	</ItemGroup>
 
 	<!-- Reference SourceLink -->
@@ -69,6 +75,10 @@
 		<None Include=".github\ISSUE_TEMPLATE\question.md" />
 		<None Include=".github\PULL_REQUEST_TEMPLATE.md" />
 		<None Include=".github\workflows\ci.yml" />
+		<None Include=".github\workflows\dependency-submission.yml" />
+		<None Include=".github\workflows\deploy-demo.yml" />
+		<None Include="DiagramGen\DiagramGen.csproj" />
+		<None Include="PRIVACY.md" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>

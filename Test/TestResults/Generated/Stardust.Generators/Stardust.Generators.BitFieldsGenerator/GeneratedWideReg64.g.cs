@@ -20,10 +20,34 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     private ulong Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 8;
+    public const int SIZE_IN_BYTES = 8;
 
     /// <summary>Returns a GeneratedWideReg64 with all bits set to zero.</summary>
     public static GeneratedWideReg64 Zero => default;
+
+    // --- Bit field mask constants ---
+    // Status: bits [0..7], width 8
+    private const int STATUS_START_BIT = 0;
+    private const ulong STATUS_MASK = 0x00000000000000FFUL;
+    private const ulong STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~STATUS_MASK
+    // Data: bits [8..23], width 16
+    private const int DATA_START_BIT = 8;
+    private const ulong DATA_MASK = 0x000000000000FFFFUL;
+    private const ulong DATA_SHIFTED_MASK = 0x0000000000FFFF00UL;  // DATA_MASK << DATA_START_BIT
+    private const ulong DATA_INVERTED_MASK = 0xFFFFFFFFFF0000FFUL;  // ~DATA_SHIFTED_MASK
+    // Address: bits [24..55], width 32
+    private const int ADDRESS_START_BIT = 24;
+    private const ulong ADDRESS_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong ADDRESS_SHIFTED_MASK = 0x00FFFFFFFF000000UL;  // ADDRESS_MASK << ADDRESS_START_BIT
+    private const ulong ADDRESS_INVERTED_MASK = 0xFF00000000FFFFFFUL;  // ~ADDRESS_SHIFTED_MASK
+    // Valid: bit 56
+    private const int VALID_BIT = 56;
+    private const ulong VALID_MASK = 0x0100000000000000UL;  // 1 << VALID_BIT
+    private const ulong VALID_INVERTED_MASK = 0xFEFFFFFFFFFFFFFFUL;  // ~VALID_MASK
+    // Ready: bit 57
+    private const int READY_BIT = 57;
+    private const ulong READY_MASK = 0x0200000000000000UL;  // 1 << READY_BIT
+    private const ulong READY_INVERTED_MASK = 0xFDFFFFFFFFFFFFFFUL;  // ~READY_MASK
 
     /// <summary>Creates a new GeneratedWideReg64 with the specified raw bits value.</summary>
     public GeneratedWideReg64(ulong value) { Value = value; }
@@ -31,87 +55,91 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     public partial byte Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & 0x00000000000000FFUL);
+        get => (byte)(Value & STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFFFFFFFF00UL) | (((ulong)value) & 0x00000000000000FFUL));
+        set => Value = (ulong)((Value & STATUS_INVERTED_MASK) | (((ulong)value) & STATUS_MASK));
     }
 
     public partial ushort Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> 8) & 0x000000000000FFFFUL);
+        get => (ushort)((Value >> DATA_START_BIT) & DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFFFFFFFFFF0000FFUL) | ((((ulong)value) << 8) & 0x0000000000FFFF00UL));
+        set => Value = (ulong)((Value & DATA_INVERTED_MASK) | ((((ulong)value) << DATA_START_BIT) & DATA_SHIFTED_MASK));
     }
 
     public partial uint Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> 24) & 0x00000000FFFFFFFFUL);
+        get => (uint)((Value >> ADDRESS_START_BIT) & ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & 0xFF00000000FFFFFFUL) | ((((ulong)value) << 24) & 0x00FFFFFFFF000000UL));
+        set => Value = (ulong)((Value & ADDRESS_INVERTED_MASK) | ((((ulong)value) << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK));
     }
 
     public partial bool Valid
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0100000000000000UL) != 0;
+        get => (Value & VALID_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ulong)(Value | 0x0100000000000000UL) : (ulong)(Value & 0xFEFFFFFFFFFFFFFFUL);
+        set => Value = value ? (ulong)(Value | VALID_MASK) : (ulong)(Value & VALID_INVERTED_MASK);
     }
 
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x0200000000000000UL) != 0;
+        get => (Value & READY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ulong)(Value | 0x0200000000000000UL) : (ulong)(Value & 0xFDFFFFFFFFFFFFFFUL);
+        set => Value = value ? (ulong)(Value | READY_MASK) : (ulong)(Value & READY_INVERTED_MASK);
     }
 
     /// <summary>Returns a GeneratedWideReg64 with only the Valid bit set.</summary>
-    public static GeneratedWideReg64 ValidBit => new((ulong)0x0100000000000000UL);
+    public static GeneratedWideReg64 ValidBit => new(VALID_MASK);
 
     /// <summary>Returns a GeneratedWideReg64 with only the Ready bit set.</summary>
-    public static GeneratedWideReg64 ReadyBit => new((ulong)0x0200000000000000UL);
+    public static GeneratedWideReg64 ReadyBit => new(READY_MASK);
 
     /// <summary>Returns a GeneratedWideReg64 with the mask for the Status field (bits 0-7).</summary>
-    public static GeneratedWideReg64 StatusMask => new((ulong)0x00000000000000FFUL);
+    public static GeneratedWideReg64 StatusMask => new(STATUS_MASK);
 
     /// <summary>Returns a GeneratedWideReg64 with the mask for the Data field (bits 8-23).</summary>
-    public static GeneratedWideReg64 DataMask => new((ulong)0x0000000000FFFF00UL);
+    public static GeneratedWideReg64 DataMask => new(DATA_SHIFTED_MASK);
 
     /// <summary>Returns a GeneratedWideReg64 with the mask for the Address field (bits 24-55).</summary>
-    public static GeneratedWideReg64 AddressMask => new((ulong)0x00FFFFFFFF000000UL);
+    public static GeneratedWideReg64 AddressMask => new(ADDRESS_SHIFTED_MASK);
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Status", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Data", 8, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Address", 24, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Valid", 56, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Ready", 57, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("Status", 0, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Data", 8, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Address", 24, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Valid", 56, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Ready", 57, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new GeneratedWideReg64 with the Valid flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithValid(bool value) => new(value ? (ulong)(Value | 0x0100000000000000UL) : (ulong)(Value & 0xFEFFFFFFFFFFFFFFUL));
+    public GeneratedWideReg64 WithValid(bool value) => new(value ? (ulong)(Value | VALID_MASK) : (ulong)(Value & VALID_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedWideReg64 with the Ready flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithReady(bool value) => new(value ? (ulong)(Value | 0x0200000000000000UL) : (ulong)(Value & 0xFDFFFFFFFFFFFFFFUL));
+    public GeneratedWideReg64 WithReady(bool value) => new(value ? (ulong)(Value | READY_MASK) : (ulong)(Value & READY_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedWideReg64 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithStatus(byte value) => new((ulong)((Value & 0xFFFFFFFFFFFFFF00UL) | (value & 0x00000000000000FFUL)));
+    public GeneratedWideReg64 WithStatus(byte value) => new((ulong)((Value & STATUS_INVERTED_MASK) | ((ulong)value & STATUS_MASK)));
 
     /// <summary>Returns a new GeneratedWideReg64 with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithData(ushort value) => new((ulong)((Value & 0xFFFFFFFFFF0000FFUL) | (((ulong)value << 8) & 0x0000000000FFFF00UL)));
+    public GeneratedWideReg64 WithData(ushort value) => new((ulong)((Value & DATA_INVERTED_MASK) | (((ulong)value << DATA_START_BIT) & DATA_SHIFTED_MASK)));
 
     /// <summary>Returns a new GeneratedWideReg64 with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideReg64 WithAddress(uint value) => new((ulong)((Value & 0xFF00000000FFFFFFUL) | (((ulong)value << 24) & 0x00FFFFFFFF000000UL)));
+    public GeneratedWideReg64 WithAddress(uint value) => new((ulong)((Value & ADDRESS_INVERTED_MASK) | (((ulong)value << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -297,28 +325,28 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     public static implicit operator GeneratedWideReg64(ulong value) => new(value);
 
     /// <summary>Creates a new GeneratedWideReg64 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public GeneratedWideReg64(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new GeneratedWideReg64(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new GeneratedWideReg64 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new GeneratedWideReg64 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized GeneratedWideReg64.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static GeneratedWideReg64 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
     }
 
@@ -328,21 +356,21 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

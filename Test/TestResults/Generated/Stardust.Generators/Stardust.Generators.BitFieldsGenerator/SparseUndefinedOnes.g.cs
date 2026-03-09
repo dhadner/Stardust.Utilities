@@ -20,50 +20,69 @@ public partial struct SparseUndefinedOnes : IComparable, IComparable<SparseUndef
     private sbyte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
 
     /// <summary>Returns a SparseUndefinedOnes with all bits set to zero.</summary>
     public static SparseUndefinedOnes Zero => default;
 
+    // --- Bit field mask constants ---
+    // LowField: bits [1..2], width 2
+    private const int LOW_FIELD_START_BIT = 1;
+    private const byte LOW_FIELD_MASK = 0x03;
+    private const byte LOW_FIELD_SHIFTED_MASK = 0x06;  // LOW_FIELD_MASK << LOW_FIELD_START_BIT
+    private const byte LOW_FIELD_INVERTED_MASK = 0xF9;  // ~LOW_FIELD_SHIFTED_MASK
+    // HighField: bits [4..6], width 3
+    private const int HIGH_FIELD_START_BIT = 4;
+    private const byte HIGH_FIELD_MASK = 0x07;
+    private const byte HIGH_FIELD_SHIFTED_MASK = 0x70;  // HIGH_FIELD_MASK << HIGH_FIELD_START_BIT
+    private const byte HIGH_FIELD_INVERTED_MASK = 0x8F;  // ~HIGH_FIELD_SHIFTED_MASK
+
+    // --- Constructor normalization masks ---
+    private const byte NORMALIZATION_OR_MASK = 0x89;  // Sets: undefined bits (UndefinedBitsMustBe.Ones)
+
     /// <summary>Creates a new SparseUndefinedOnes with the specified raw bits value.</summary>
-    public SparseUndefinedOnes(sbyte value) { Value = (sbyte)(((byte)value) | 0x89); }
+    public SparseUndefinedOnes(sbyte value) { Value = (sbyte)(((byte)value) | NORMALIZATION_OR_MASK); }
 
     public partial byte LowField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 1) & 0x03);
+        get => (byte)((((byte)Value) >> LOW_FIELD_START_BIT) & LOW_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & 0xF9) | ((((byte)value) << 1) & 0x06));
+        set => Value = (sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK));
     }
 
     public partial byte HighField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> 4) & 0x07);
+        get => (byte)((((byte)Value) >> HIGH_FIELD_START_BIT) & HIGH_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & 0x8F) | ((((byte)value) << 4) & 0x70));
+        set => Value = (sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SparseUndefinedOnes with the mask for the LowField field (bits 1-2).</summary>
-    public static SparseUndefinedOnes LowFieldMask => new(unchecked((sbyte)0x06));
+    public static SparseUndefinedOnes LowFieldMask => new(unchecked((sbyte)LOW_FIELD_SHIFTED_MASK));
 
     /// <summary>Returns a SparseUndefinedOnes with the mask for the HighField field (bits 4-6).</summary>
-    public static SparseUndefinedOnes HighFieldMask => new(unchecked((sbyte)0x70));
+    public static SparseUndefinedOnes HighFieldMask => new(unchecked((sbyte)HIGH_FIELD_SHIFTED_MASK));
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("LowField", 1, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 2),
-        new("HighField", 4, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: 0, StructUndefinedMustBe: 2),
+        new("LowField", 1, 2, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
+        new("HighField", 4, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 8, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Ones),
     };
 
     /// <summary>Returns a new SparseUndefinedOnes with the LowField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SparseUndefinedOnes WithLowField(byte value) => new((sbyte)((((byte)Value) & 0xF9) | ((((byte)value) << 1) & 0x06)));
+    public SparseUndefinedOnes WithLowField(byte value) => new((sbyte)((((byte)Value) & LOW_FIELD_INVERTED_MASK) | ((((byte)value) << LOW_FIELD_START_BIT) & LOW_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SparseUndefinedOnes with the HighField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SparseUndefinedOnes WithHighField(byte value) => new((sbyte)((((byte)Value) & 0x8F) | ((((byte)value) << 4) & 0x70)));
+    public SparseUndefinedOnes WithHighField(byte value) => new((sbyte)((((byte)Value) & HIGH_FIELD_INVERTED_MASK) | ((((byte)value) << HIGH_FIELD_START_BIT) & HIGH_FIELD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -205,28 +224,28 @@ public partial struct SparseUndefinedOnes : IComparable, IComparable<SparseUndef
     public static implicit operator SparseUndefinedOnes(int value) => new(unchecked((sbyte)value));
 
     /// <summary>Creates a new SparseUndefinedOnes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SparseUndefinedOnes(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = unchecked((sbyte)bytes[0]);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new SparseUndefinedOnes(unchecked((sbyte)bytes[0]));
     }
 
-    /// <summary>Creates a new SparseUndefinedOnes by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SparseUndefinedOnes by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SparseUndefinedOnes.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SparseUndefinedOnes ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         destination[0] = unchecked((byte)Value);
     }
 
@@ -236,21 +255,21 @@ public partial struct SparseUndefinedOnes : IComparable, IComparable<SparseUndef
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

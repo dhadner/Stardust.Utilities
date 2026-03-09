@@ -20,10 +20,30 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     private int Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SizeInBytes = 4;
+    public const int SIZE_IN_BYTES = 4;
 
     /// <summary>Returns a SignedReg32 with all bits set to zero.</summary>
     public static SignedReg32 Zero => default;
+
+    // --- Bit field mask constants ---
+    // LowWord: bits [1..15], width 15
+    private const int LOW_WORD_START_BIT = 1;
+    private const uint LOW_WORD_MASK = 0x00007FFFU;
+    private const uint LOW_WORD_SHIFTED_MASK = 0x0000FFFEU;  // LOW_WORD_MASK << LOW_WORD_START_BIT
+    private const uint LOW_WORD_INVERTED_MASK = 0xFFFF0001U;  // ~LOW_WORD_SHIFTED_MASK
+    // HighWord: bits [16..30], width 15
+    private const int HIGH_WORD_START_BIT = 16;
+    private const uint HIGH_WORD_MASK = 0x00007FFFU;
+    private const uint HIGH_WORD_SHIFTED_MASK = 0x7FFF0000U;  // HIGH_WORD_MASK << HIGH_WORD_START_BIT
+    private const uint HIGH_WORD_INVERTED_MASK = 0x8000FFFFU;  // ~HIGH_WORD_SHIFTED_MASK
+    // Flag0: bit 0
+    private const int FLAG0_BIT = 0;
+    private const uint FLAG0_MASK = 0x00000001U;  // 1 << FLAG0_BIT
+    private const uint FLAG0_INVERTED_MASK = 0xFFFFFFFEU;  // ~FLAG0_MASK
+    // Sign: bit 31
+    private const int SIGN_BIT = 31;
+    private const uint SIGN_MASK = 0x80000000U;  // 1 << SIGN_BIT
+    private const uint SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~SIGN_MASK
 
     /// <summary>Creates a new SignedReg32 with the specified raw bits value.</summary>
     public SignedReg32(int value) { Value = value; }
@@ -31,71 +51,75 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     public partial ushort LowWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> 1) & 0x00007FFFU);
+        get => (ushort)((((uint)Value) >> LOW_WORD_START_BIT) & LOW_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & 0xFFFF0001U) | ((((uint)value) << 1) & 0x0000FFFEU));
+        set => Value = (int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << LOW_WORD_START_BIT) & LOW_WORD_SHIFTED_MASK));
     }
 
     public partial ushort HighWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> 16) & 0x00007FFFU);
+        get => (ushort)((((uint)Value) >> HIGH_WORD_START_BIT) & HIGH_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & 0x8000FFFFU) | ((((uint)value) << 16) & 0x7FFF0000U));
+        set => Value = (int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << HIGH_WORD_START_BIT) & HIGH_WORD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((uint)Value) & 0x00000001U) != 0;
+        get => (((uint)Value) & FLAG0_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (int)(((uint)Value) | 0x00000001U) : (int)(((uint)Value) & 0xFFFFFFFEU);
+        set => Value = value ? (int)(((uint)Value) | FLAG0_MASK) : (int)(((uint)Value) & FLAG0_INVERTED_MASK);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((uint)Value) & 0x80000000U) != 0;
+        get => (((uint)Value) & SIGN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (int)(((uint)Value) | 0x80000000U) : (int)(((uint)Value) & 0x7FFFFFFFU);
+        set => Value = value ? (int)(((uint)Value) | SIGN_MASK) : (int)(((uint)Value) & SIGN_INVERTED_MASK);
     }
 
     /// <summary>Returns a SignedReg32 with only the Flag0 bit set.</summary>
-    public static SignedReg32 Flag0Bit => new(unchecked((int)0x00000001U));
+    public static SignedReg32 Flag0Bit => new(unchecked((int)FLAG0_MASK));
 
     /// <summary>Returns a SignedReg32 with only the Sign bit set.</summary>
-    public static SignedReg32 SignBit => new(unchecked((int)0x80000000U));
+    public static SignedReg32 SignBit => new(unchecked((int)SIGN_MASK));
 
     /// <summary>Returns a SignedReg32 with the mask for the LowWord field (bits 1-15).</summary>
-    public static SignedReg32 LowWordMask => new(unchecked((int)0x0000FFFEU));
+    public static SignedReg32 LowWordMask => new(unchecked((int)LOW_WORD_SHIFTED_MASK));
 
     /// <summary>Returns a SignedReg32 with the mask for the HighWord field (bits 16-30).</summary>
-    public static SignedReg32 HighWordMask => new(unchecked((int)0x7FFF0000U));
+    public static SignedReg32 HighWordMask => new(unchecked((int)HIGH_WORD_SHIFTED_MASK));
 
+    /// <summary>Optional description (title) for this struct.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("LowWord", 1, 15, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("HighWord", 16, 15, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
-        new("Sign", 31, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: 0, StructUndefinedMustBe: 0),
+        new("LowWord", 1, 15, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("HighWord", 16, 15, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Flag0", 0, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Sign", 31, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Returns a new SignedReg32 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithFlag0(bool value) => new(value ? (int)(((uint)Value) | 0x00000001U) : (int)(((uint)Value) & 0xFFFFFFFEU));
+    public SignedReg32 WithFlag0(bool value) => new(value ? (int)(((uint)Value) | FLAG0_MASK) : (int)(((uint)Value) & FLAG0_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg32 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithSign(bool value) => new(value ? (int)(((uint)Value) | 0x80000000U) : (int)(((uint)Value) & 0x7FFFFFFFU));
+    public SignedReg32 WithSign(bool value) => new(value ? (int)(((uint)Value) | SIGN_MASK) : (int)(((uint)Value) & SIGN_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg32 with the LowWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithLowWord(ushort value) => new((int)((((uint)Value) & 0xFFFF0001U) | ((((uint)value) << 1) & 0x0000FFFEU)));
+    public SignedReg32 WithLowWord(ushort value) => new((int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << LOW_WORD_START_BIT) & LOW_WORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg32 with the HighWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithHighWord(ushort value) => new((int)((((uint)Value) & 0x8000FFFFU) | ((((uint)value) << 16) & 0x7FFF0000U)));
+    public SignedReg32 WithHighWord(ushort value) => new((int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << HIGH_WORD_START_BIT) & HIGH_WORD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -257,28 +281,28 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     public static implicit operator SignedReg32(int value) => new(value);
 
     /// <summary>Creates a new SignedReg32 from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public SignedReg32(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(bytes));
-        Value = BinaryPrimitives.ReadInt32LittleEndian(bytes);
+        if (bytes.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
+        this = new SignedReg32(BinaryPrimitives.ReadInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new SignedReg32 by reading <see cref="SizeInBytes"/> bytes from a little-endian byte span.</summary>
-    /// <param name="bytes">The source span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <summary>Creates a new SignedReg32 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <returns>The deserialized SignedReg32.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SignedReg32 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
-    /// <param name="destination">The destination span. Must contain at least <see cref="SizeInBytes"/> bytes.</param>
+    /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
     public void WriteTo(Span<byte> destination)
     {
-        if (destination.Length < SizeInBytes)
-            throw new ArgumentException($"Span must contain at least {SizeInBytes} bytes.", nameof(destination));
+        if (destination.Length < SIZE_IN_BYTES)
+            throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteInt32LittleEndian(destination, Value);
     }
 
@@ -288,21 +312,21 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     /// <returns>true if the destination span was large enough; otherwise, false.</returns>
     public bool TryWriteTo(Span<byte> destination, out int bytesWritten)
     {
-        if (destination.Length < SizeInBytes)
+        if (destination.Length < SIZE_IN_BYTES)
         {
             bytesWritten = 0;
             return false;
         }
         WriteTo(destination);
-        bytesWritten = SizeInBytes;
+        bytesWritten = SIZE_IN_BYTES;
         return true;
     }
 
     /// <summary>Returns the value as a new little-endian byte array.</summary>
-    /// <returns>A byte array of length <see cref="SizeInBytes"/>.</returns>
+    /// <returns>A byte array of length <see cref="SIZE_IN_BYTES"/>.</returns>
     public byte[] ToByteArray()
     {
-        var bytes = new byte[SizeInBytes];
+        var bytes = new byte[SIZE_IN_BYTES];
         WriteTo(bytes);
         return bytes;
     }

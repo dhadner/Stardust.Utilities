@@ -11,16 +11,21 @@
 A collection of utility types for .NET applications, focused on bit manipulation, error handling, and endian-aware data types. Includes a source 
 generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFieldsView]` buffer views.  Provides native hand-coded speed for bit access with no boilerplate needed.
 
+NOTE: This is a library of utility types, not a framework or application. It is designed to be used as a building block in your own projects, not run on its own. 
+The included demo app is a showcase of the library's capabilities, not a standalone product.
+
 ## Table of Contents
 
-[![Stardust Utilities](https://github.com/dhadner/Stardust.Utilities/blob/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
+[![Stardust Utilities](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
 
+- [Try It Live](#try-it-live)
 - [Installation](#installation)
 - [Features](#features)
   - [BitFields and BitFieldsView](#bitfields-and-bitfieldsview)
     - [BitFields (Value Types)](#bitfields-value-types)
     - [BitFieldsView (Zero-Copy Views)](#bitfieldsview-zero-copy-views)
     - [Choosing Between BitFields and BitFieldsView](#choosing-between-bitfields-and-bitfieldsview)
+    - [Pre-Defined Numeric Types](#pre-defined-numeric-types)
     - [RFC Diagram Generator](#rfc-diagram-generator)
   - [Result Types](#result-types)
   - [Endian Types](#endian-types)
@@ -28,14 +33,31 @@ generator for zero-heap-allocation `[BitFields]` structs and zero-copy `[BitFiel
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [Security](#security)
+- [Privacy](#privacy)
 - [License](#license)
+
+---
+
+## Try It Live
+
+**[Launch the Interactive Web Demo](https://dhadner.github.io/Stardust.Utilities/)** -- explore BitFields, PE headers, network packets, CPU registers, and RFC diagrams directly in your browser. No install required.
+
+[Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4)
+
+![PE Header Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/PEHeaderViewDemo.png)
+
+![Network Packet Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/NetworkPacketViewDemo.png)
+
+![CPU Register Lab](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/CPURegisterLabDemo.png)
+
+![TCP Header RFC Diagram](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/TCPHeaderDiagram.png)
 
 ---
 
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.4" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.6" />
 ```
 
 That's it, the source generator is included automatically.
@@ -115,7 +137,7 @@ bit manipulation** and comparable performance to optimized C when working with b
 ```csharp
 using Stardust.Utilities;
 
-[BitFields(typeof(byte))]  // Specify storage type
+[BitFields(StorageType.Byte)]  // Specify storage type
 public partial struct StatusRegister
 {
     [BitFlag(0)] public partial bool Ready { get; set; }         // bit 0
@@ -124,6 +146,18 @@ public partial struct StatusRegister
     [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2..=4 (3 bits)
     [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
+```
+
+The `StorageType` enum is the recommended way to specify the backing type. It provides
+IntelliSense discovery of all supported types and produces a clear compiler error (SD0003)
+immediately if an unsupported type is chosen -- catching mistakes at the point of use rather
+than at the end of a build cycle. The `typeof(T)` form is also supported for backward
+compatibility:
+
+```csharp
+// Also valid -- typeof(T) still works
+[BitFields(typeof(byte))]
+public partial struct StatusRegister { ... }
 ```
 
 The source generator automatically creates the property implementations during build.  The
@@ -145,7 +179,7 @@ public enum OpMode : byte
     Mode7 = 7,
 }
 
-[BitFields(typeof(byte))]  // Specify storage type
+[BitFields(StorageType.Byte)]  // Specify storage type
 public partial struct StatusRegister
 {
     [BitFlag(0)] public partial bool Ready { get; set; }        // bit 0
@@ -187,10 +221,11 @@ The `[BitField]` and `[BitFlag]` property attributes are shared by both `[BitFie
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Marks a value-type struct; generator creates private `Value` field |
+| `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Preferred. Marks a value-type struct; enum provides IntelliSense discovery of all supported types |
+| `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Also supported. Equivalent to the enum form; exists for backward compatibility |
 | `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a record struct as a zero-copy view over `Memory<byte>` |
-| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe` | Single-bit boolean flag (used in both) |
-| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (used in both; width = endBit - startBit + 1) |
+| `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe`, optional `Description` | Single-bit boolean flag (used in both) |
+| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe`, optional `Description` | Multi-bit field (used in both; width = endBit - startBit + 1) |
 
 **BitField Examples:**
 - `[BitField(0, 2)]` - 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
@@ -199,20 +234,23 @@ The `[BitField]` and `[BitFlag]` property attributes are shared by both `[BitFie
 
 ##### Supported Storage Types
 
-The following storage types are supported for `[BitFields]` value-type structs:
+The following storage types are supported for `[BitFields]` value-type structs. The
+`StorageType` enum column shows the recommended enum value; the `typeof(T)` column shows
+the equivalent type-based form:
 
-| Storage Type | Size | Notes |
-|--------------|------|-------|
-| `byte` | 8 bits | Signed alternative: `sbyte` |
-| `ushort` | 16 bits | Signed alternative: `short` |
-| `uint` | 32 bits | Signed alternative: `int` |
-| `ulong` | 64 bits | Signed alternative: `long` |
-| `UInt128` | 128 bits | Signed alternative: `Int128` |
-| `Half` | 16 bits | IEEE 754 half-precision |
-| `float` | 32 bits | IEEE 754 single-precision |
-| `double` | 64 bits | IEEE 754 double-precision |
-| `decimal` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
-| `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
+| `StorageType` Enum | `typeof(T)` | Size | Notes |
+|--------------------|-------------|------|-------|
+| `StorageType.Byte` | `typeof(byte)` | 8 bits | Signed: `StorageType.SByte` |
+| `StorageType.UInt16` | `typeof(ushort)` | 16 bits | Signed: `StorageType.Int16` |
+| `StorageType.UInt32` | `typeof(uint)` | 32 bits | Signed: `StorageType.Int32` |
+| `StorageType.UInt64` | `typeof(ulong)` | 64 bits | Signed: `StorageType.Int64` |
+| `StorageType.NUInt` | `typeof(nuint)` | 32 or 64 bits | Platform-dependent; signed: `StorageType.NInt` |
+| `StorageType.UInt128` | `typeof(UInt128)` | 128 bits | Signed: `StorageType.Int128` |
+| `StorageType.Half` | `typeof(Half)` | 16 bits | IEEE 754 half-precision |
+| `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
+| `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
+| `StorageType.Decimal` | `typeof(decimal)` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
+| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
 
 ##### Property Types
 
@@ -235,7 +273,7 @@ configuration), it overrides the enclosing struct's defaults for that field.
 When a property is declared with a signed type (`sbyte`, `short`, `int`, `long`), the generator automatically sign-extends the field value. This is essential for hardware registers with signed quantities like deltas or offsets:
 
 ```csharp
-[BitFields(typeof(ushort))]
+[BitFields(StorageType.UInt16)]
 public partial struct MotionRegister
 {
     // 3-bit signed delta. Values: -4 to +3
@@ -265,7 +303,7 @@ reusable sub-structures, mixed-endian fields, and layered protocol views:
 
 ```csharp
 // Reusable flags structure
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
@@ -274,7 +312,7 @@ public partial struct StatusFlags
 }
 
 // Header that embeds StatusFlags
-[BitFields(typeof(ushort))]
+[BitFields(StorageType.UInt16)]
 public partial struct ProtocolHeader
 {
     [BitField(0, 7)] public partial StatusFlags Status { get; set; }  // Embedded!
@@ -293,7 +331,7 @@ When a struct doesn't define fields covering all bits of its storage type, those
 
 ```csharp
 // Protocol header: undefined bits are always zero (clean serialization)
-[BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
+[BitFields(StorageType.UInt16, UndefinedBitsMustBe.Zeroes)]
 public partial struct SubHeader9
 {
     [BitField(0, 3)] public partial byte TypeCode { get; set; }  // bits 0-3
@@ -316,7 +354,7 @@ This works with **sparse** undefined bits too (gaps between fields, not just hig
 Individual fields and flags can also override their bits with `MustBe`:
 
 ```csharp
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct PacketFlags
 {
     [BitFlag(0)] public partial bool Valid { get; set; }      // Normal flag
@@ -334,7 +372,7 @@ BitFields structs can be nested inside classes or other structs. Containing type
 ```csharp
 public partial class HardwareController
 {
-    [BitFields(typeof(ushort))]
+    [BitFields(StorageType.UInt16)]
     public partial struct StatusRegister
     {
         [BitFlag(0)] public partial bool Ready { get; set; }
@@ -582,7 +620,7 @@ straightforward to model real-world binary formats where different layers use di
 
 ```csharp
 // Small reusable flags struct (value type, operator support)
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
@@ -618,6 +656,151 @@ on the same underlying buffer.
 See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
 full documentation on nesting, mixed-endian scenarios, and write-through semantics.
 
+#### Pre-Defined Numeric Types
+
+The library ships four pre-defined BitFields structs that decompose .NET numeric types into
+their constituent bit fields. Just `using Stardust.Utilities;` and start using them -- no
+struct definitions required.
+
+| Type | Storage | Use case |
+|------|---------|----------|
+| `IEEE754Half` | `Half` (16-bit) | Half-precision analysis |
+| `IEEE754Single` | `float` (32-bit) | Single-precision analysis |
+| `IEEE754Double` | `double` (64-bit) | Double-precision analysis |
+| `DecimalBitFields` | `decimal` (128-bit) | Decimal inspection |
+
+All four types include implicit conversions to/from their storage type, full operator support,
+classification properties (`IsNormal`, `IsNaN`, `IsInfinity`, `IsDenormalized`, `IsZero`),
+both the raw `BiasedExponent` field and a computed `Exponent` property that removes the bias,
+and a `WithExponent(int)` fluent method that sets the exponent from its true mathematical value.
+
+##### IEEE 754 Half-Precision (16-bit)
+
+```
+IEEE 754 Half-Precision (16-bit)
+                           1                                                 0
+  5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|     BiasedExponent     |                    Mantissa                     |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Mantissa: 10-bit significand (fractional part); implicit leading 1 not stored
+  BiasedExponent: 5-bit biased exponent (bias 15); subtract 15 for true power of 2
+  Sign: Sign bit: 1 = negative, 0 = positive
+```
+
+```csharp
+IEEE754Half h = (Half)1.5;
+h.Sign;            // false
+h.BiasedExponent;  // 15 (raw stored value)
+h.Exponent;        // 0  (true power: 1.5 is in [1, 2), so 2^0)
+h.Mantissa;        // 0x200
+```
+
+##### IEEE 754 Single-Precision (32-bit)
+
+```
+IEEE 754 Single-Precision (32-bit)
+       3                                                 2                                                 1                                                 0
+  1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|            BiasedExponent             |                                                     Mantissa                                                     |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Mantissa: 23-bit significand (fractional part); implicit leading 1 not stored
+  BiasedExponent: 8-bit biased exponent (bias 127); subtract 127 for true power of 2
+  Sign: Sign bit: 1 = negative, 0 = positive
+```
+
+```csharp
+IEEE754Single f = 1.5f;
+f.Sign;            // false
+f.BiasedExponent;  // 127 (raw stored value)
+f.Exponent;        // 0   (true power: 1.5 is in [1, 2), so 2^0)
+f.Mantissa;        // 0x400000
+```
+
+##### IEEE 754 Double-Precision (64-bit)
+
+```
+IEEE 754 Double-Precision (64-bit)
+                 6                                                 5                                                 4                                                 3                                                 2                                                 1                                                 0
+  3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|                    BiasedExponent                    |                                                                                                                             Mantissa                                                                                                                              |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Mantissa: 52-bit significand (fractional part); implicit leading 1 not stored
+  BiasedExponent: 11-bit biased exponent (bias 1023); subtract 1023 for true power of 2
+  Sign: Sign bit: 1 = negative, 0 = positive
+```
+
+```csharp
+IEEE754Double pi = Math.PI;
+pi.Sign;              // false
+pi.BiasedExponent;    // 1024 (raw stored value, includes +1023 bias)
+pi.Exponent;          // 1    (true mathematical power: 2^1, since 2 <= pi < 4)
+pi.Mantissa;          // 0x921FB54442D18
+pi.IsNormal;          // true
+```
+
+##### .NET Decimal (128-bit)
+
+```
+.NET Decimal (128-bit)
+       3                                                 2                                                 1                                                 0
+  1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0    9    8    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|                                                                          Coefficient                                                                          |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|                                                                          Coefficient                                                                          |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|                                                                          Coefficient                                                                          |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|Sign|               Undefined               |              Scale               |                                   Undefined                                   |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
+  Coefficient: 96-bit unsigned integer coefficient (value before scaling)
+  Scale: Scale factor (0-28); value = Coefficient / 10^Scale
+  Sign: Sign bit: 1 = negative, 0 = positive
+
+  U/Undefined = bits not defined in the struct
+```
+
+```csharp
+DecimalBitFields price = 19.99m;
+price.Sign;          // false
+price.Scale;         // 2 (divided by 10^2)
+price.Coefficient;   // 1999
+```
+
+##### WithExponent (Fluent True-Exponent Setter)
+
+The IEEE 754 types provide `WithExponent(int)` to set the biased exponent from a true
+mathematical exponent. Out-of-range values are masked by the underlying `WithBiasedExponent`
+method, consistent with all other generated `With...` methods. The `Exponent` property also
+provides a setter that applies the bias automatically (assigning `null` sets `BiasedExponent` to 0).
+
+```csharp
+// Build 2^3 = 8.0 from a true exponent
+var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+double value = d;  // 8.0
+
+// Round-trip: read Exponent, rebuild with WithExponent
+IEEE754Double pi = Math.PI;
+int exp = pi.Exponent!.Value;           // 1
+var rebuilt = IEEE754Double.Zero
+    .WithExponent(exp)
+    .WithMantissa(pi.Mantissa);
+double result = rebuilt;                 // == Math.PI
+
+// Set Exponent directly via the setter
+IEEE754Double d2 = 1.0;
+d2.Exponent = 3;                         // BiasedExponent = 3 + 1023 = 1026
+```
+
+See [Numeric Decomposition Types](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#numeric-decomposition-types) in BITFIELDS.md for full details, constants, and classification property reference.
+
 #### RFC Diagram Generator
 
 `BitFieldDiagram` generates RFC 2360-style ASCII bit field diagrams directly from struct metadata.
@@ -628,9 +811,17 @@ marked.
 // Generate a diagram from any [BitFields] or [BitFieldsView] struct
 string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
 
-// Custom width and descriptions
+// Custom width, descriptions, and byte offset control
 string diagram = BitFieldDiagram.RenderToString(
-    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true);
+    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true, showByteOffset: false);
+
+// Render multiple structs as a unified diagram with consistent scale
+var sections = new DiagramSection[]
+{
+    new("Data Registers", M68020DataRegisters.Fields.ToArray()),
+    new("SR", M68020SR.Fields.ToArray()),
+};
+string multi = BitFieldDiagram.RenderListToString(sections);
 ```
 
 See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
@@ -653,7 +844,7 @@ global using static Stardust.Utilities.Result<int,string>;
 global using static Stardust.Utilities.Result<string>;
 // Add additional global usings as needed for other Result types for clean usage syntax.
 
-// In your source filees
+// In your source files
 // Function that might fail
 Result<int, string> Divide(int a, int b)
 {
@@ -818,8 +1009,8 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-   <PackageReference Include="Stardust.Utilities" Version="0.2.0" />
-   ```
+    <PackageReference Include="Stardust.Utilities" Version="0.9.6" />
+    ```
 2. Clean and rebuild the solution
 3. Restart Visual Studio if needed (sometimes required after first install)
 
@@ -831,6 +1022,48 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 1. Ensure you're using `partial struct` (not `class` or `record`)
 2. Check that attributes are spelled correctly: `[BitFields]`, `[BitField]`, `[BitFlag]`
 3. Clean and rebuild the solution
+
+### DemoWeb shows a welcome page instead of loading automatically in Edge
+
+Edge's *Enhanced Security Mode* (Strict) disables WebAssembly for large modules,
+which crashes the .NET WASM runtime. To prevent this crash from being the first
+thing a visitor sees, Edge users are shown a welcome page with a "Load Interactive
+Demo" button on their first visit. Once the demo loads successfully, subsequent
+visits auto-load normally. If the demo cannot load, the welcome page also links to
+a video walkthrough and screenshots. To fix the underlying issue, add the site to
+Edge's exception list at `edge://settings/privacy/security/secureModeSites`. This
+only affects Edge with Enhanced Security set to *Strict*. The default *Balanced*
+mode and all other browsers are not affected.
+
+### Compiler diagnostics for nint/nuint (SD0001, SD0002)
+
+`nint` and `nuint` are platform-dependent types: 32 bits on a 32-bit process, 64 bits on a 64-bit
+process. The source generator emits diagnostics when a `[BitFields]` struct backed by `nint` or
+`nuint` contains fields or flags that access bits above bit 31:
+
+| Diagnostic | Severity | Condition | Meaning |
+|------------|----------|-----------|---------|
+| **SD0001** | Error | `PlatformTarget` is `x86` | Bits 32+ are unreachable on a 32-bit-only build. The struct is broken and will corrupt data. |
+| **SD0002** | Warning | `PlatformTarget` is `AnyCPU` or unset | Bits 32+ work on 64-bit but are silently unreachable on 32-bit. The binary may run on either. |
+
+No diagnostic is emitted when `PlatformTarget` is `x64` or `ARM64` (always 64-bit).
+
+To resolve these diagnostics:
+- **Move fields to bits 0-31** if you need 32-bit compatibility.
+- **Change the storage type to `ulong`/`long`** for a fixed 64-bit width on all platforms.
+- **Set `<PlatformTarget>x64</PlatformTarget>`** in your `.csproj` if you only target 64-bit.
+- **Suppress SD0002** with `#pragma warning disable SD0002` if you have verified the binary will only run on 64-bit.
+
+### Unsupported storage type (SD0003)
+
+If you use `[BitFields(typeof(T))]` with a type that is not in the supported list (for example,
+`typeof(Guid)` or `typeof(string)`), the source generator emits error **SD0003** identifying
+the unsupported type and listing all valid alternatives. This replaces the confusing `CS9248`
+("partial property must have an implementation part") that previously appeared when the
+generator silently skipped the struct.
+
+The `StorageType` enum constructor avoids this problem entirely -- IntelliSense shows only
+the supported values, so an invalid choice cannot be written in the first place.
 
 ### IntelliSense not working for generated members
 
@@ -913,8 +1146,8 @@ See [LICENSE](https://github.com/dhadner/Stardust.Utilities/blob/main/LICENSE) f
 
 Contributions are welcome! Please read our guidelines before submitting issues or pull requests.
 
-- [Contributing Guidelines](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md)
-- [Code of Conduct](https://github.com/dhadner/Stardust.Utilities/blob/main/CODE_OF_CONDUCT.md)
+- See Contributing guidelines at [CONTRIBUTING.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CONTRIBUTING.md)
+- See Code of Conduct guidelines at [CODE_OF_CONDUCT.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CODE_OF_CONDUCT.md)
 
 ---
 
@@ -923,4 +1156,12 @@ Contributions are welcome! Please read our guidelines before submitting issues o
 To report a security vulnerability, please use GitHub's private vulnerability reporting feature. **Do not report security issues through public GitHub issues.**
 
 See [SECURITY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/SECURITY.md) for details.
+
+---
+
+## Privacy
+
+Stardust.Utilities does not collect, transmit, or store any personal data, telemetry, or usage information.
+
+See [PRIVACY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/PRIVACY.md) for details.
 

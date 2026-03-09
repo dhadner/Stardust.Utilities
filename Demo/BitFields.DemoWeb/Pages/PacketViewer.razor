@@ -77,7 +77,7 @@
             return;
         }
 
-        if (_bytes.Length < IPv4HeaderView.SizeInBytes)
+        if (_bytes.Length < IPv4HeaderView.SIZE_IN_BYTES)
         {
             _payload = "Packet too small.";
             _displayBytes = 0;
@@ -87,7 +87,7 @@
         var ip = new IPv4HeaderView(_bytes);
         int tcpOffset = ip.HeaderLengthBytes;
 
-        if (_bytes.Length < tcpOffset + TcpHeaderView.SizeInBytes)
+        if (_bytes.Length < tcpOffset + TcpHeaderView.SIZE_IN_BYTES)
         {
             _payload = "Packet missing TCP header.";
             _displayBytes = 0;
