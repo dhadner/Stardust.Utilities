@@ -1387,11 +1387,13 @@ where a single struct mixes endianness at the individual field level.
 `[BitFieldsView]` struct. It reads the generated `Fields` metadata property and produces a
 text diagram with bit-position headers, byte offsets, and auto-sized cells.
 
-There are three ways to use it:
+There are three ways to use it. The **instance API is preferred** because it supports
+subclassing, runtime option changes, and reusable diagram objects. The static methods
+still work but cannot be overridden.
 
 | Approach | Best for |
 |----------|----------|
-| **Instance API** (`new BitFieldDiagram(...)`) | Reusable, configurable diagrams -- UI bindings, multi-struct lists, changing options at runtime |
+| **Instance API** (`new BitFieldDiagram(...)`) | **Preferred.** Reusable, configurable, subclass-friendly diagrams -- UI bindings, multi-struct lists, changing options at runtime |
 | **Static type-based API** (`BitFieldDiagram.Render(typeof(...))`) | Quick one-shot rendering from a `Type` |
 | **Static field-based API** (`BitFieldDiagram.Render(fields)`) | Low-level control when you already have `ReadOnlySpan<BitFieldInfo>` |
 
@@ -1464,6 +1466,20 @@ diagram.AddStruct(typeof(TcpHeaderView));
 Result<string> result = diagram.AddStruct(typeof(string)); // not a BitFields type
 if (result.IsFailure)
     Console.WriteLine(result.Error); // "Struct 'String' is not a valid [BitFields] or [BitFieldsView] type."
+```
+
+Use `AddStructs` to add multiple types in a single call. It accepts any `IEnumerable<Type>`
+and stops on the first failure, returning the error:
+
+```csharp
+var diagram = new BitFieldDiagram();
+diagram.AddStructs([typeof(IPv4HeaderView), typeof(TcpHeaderView)]);
+
+// From a dynamic list
+List<Type> headerTypes = GetHeaderTypes();
+Result<string> result = diagram.AddStructs(headerTypes);
+if (result.IsFailure)
+    Console.WriteLine(result.Error);
 ```
 
 The `Structs` property exposes the current list of types:

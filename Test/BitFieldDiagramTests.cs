@@ -1236,4 +1236,109 @@ public class BitFieldDiagramTests
         Assert.Contains("ExtendedCommand", diagram);
         Assert.Contains("Ready", diagram);
     }
+
+    // ── AddStructs tests ─────────────────────────────────────────
+
+    [Fact]
+    public void AddStructs_MultipleValidTypes_AllAdded()
+    {
+        var diagram = new BitFieldDiagram();
+        var result = diagram.AddStructs([typeof(DiagramTestRegister), typeof(DiagramWideRegister)]);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, diagram.Structs.Count);
+    }
+
+    [Fact]
+    public void AddStructs_EmptyCollection_SucceedsWithNoStructs()
+    {
+        var diagram = new BitFieldDiagram();
+        var result = diagram.AddStructs(Array.Empty<Type>());
+        Assert.True(result.IsSuccess);
+        Assert.Empty(diagram.Structs);
+    }
+
+    [Fact]
+    public void AddStructs_NullCollection_ReturnsError()
+    {
+        var diagram = new BitFieldDiagram();
+        var result = diagram.AddStructs((List<Type>)null!);
+        Assert.True(result.IsFailure);
+        Assert.Contains("null", result.Error);
+    }
+
+    [Fact]
+    public void AddStructs_InvalidTypeInMiddle_StopsAndReturnsError()
+    {
+        var diagram = new BitFieldDiagram();
+        var result = diagram.AddStructs([typeof(DiagramTestRegister), typeof(string), typeof(DiagramWideRegister)]);
+        Assert.True(result.IsFailure);
+        Assert.Contains("String", result.Error);
+        // Only the first valid type was added before the failure
+        Assert.Single(diagram.Structs);
+        Assert.Equal(typeof(DiagramTestRegister), diagram.Structs[0]);
+    }
+
+    [Fact]
+    public void AddStructs_ThenRender_ProducesValidDiagram()
+    {
+        var diagram = new BitFieldDiagram();
+        diagram.AddStructs([typeof(DiagramTestRegister), typeof(DiagramWideRegister)]);
+        var result = diagram.RenderToString();
+        Assert.True(result.IsSuccess);
+        Assert.Contains("Ready", result.Value);
+        Assert.Contains("LowHalf", result.Value);
+    }
+
+    [Fact]
+    public void AddStructs_AppendsToExistingStructs()
+    {
+        var diagram = new BitFieldDiagram(typeof(DiagramTestRegister));
+        Assert.Single(diagram.Structs);
+        var result = diagram.AddStructs([typeof(DiagramWideRegister), typeof(DiagramGappyRegister)]);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(3, diagram.Structs.Count);
+    }
+
+    [Fact]
+    public void AddStructs_SingleType_EquivalentToAddStruct()
+    {
+        var diagram1 = new BitFieldDiagram();
+        diagram1.AddStruct(typeof(DiagramTestRegister));
+
+        var diagram2 = new BitFieldDiagram();
+        diagram2.AddStructs([typeof(DiagramTestRegister)]);
+
+        Assert.Equal(diagram1.Structs.Count, diagram2.Structs.Count);
+        Assert.Equal(diagram1.RenderToString().Value, diagram2.RenderToString().Value);
+    }
+
+    [Fact]
+    public void AddStructs_BitFieldsViewType_Accepted()
+    {
+        var diagram = new BitFieldDiagram();
+        var result = diagram.AddStructs([typeof(DiagramMsbView)]);
+        Assert.True(result.IsSuccess);
+        Assert.Single(diagram.Structs);
+    }
+
+    [Fact]
+    public void AddStructs_MixedBitFieldsAndView_SpanAccepted()
+    {
+        var diagram = new BitFieldDiagram();
+        ReadOnlySpan<Type> readOnlySpan = [typeof(DiagramTestRegister), typeof(DiagramMsbView)];
+        var result = diagram.AddStructs(readOnlySpan);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, diagram.Structs.Count);
+    }
+
+    [Fact]
+    public void AddStructs_MixedBitFieldsAndView_ListAccepted()
+    {
+        var diagram = new BitFieldDiagram();
+        var list = new List<Type>([typeof(DiagramTestRegister), typeof(DiagramMsbView)]);
+        var result = diagram.AddStructs(list);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, diagram.Structs.Count);
+    }
+
 }

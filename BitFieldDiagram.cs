@@ -16,21 +16,22 @@ using static Result<string>;
 /// <example>
 /// <code>
 /// // Generate diagram from any BitFields/BitFieldsView struct:
-/// List&lt;string&gt; lines = BitFieldDiagram.Render(IPv4HeaderView.Fields);
+/// var diagram = new BitFieldDiagram(typeof(IPv4HeaderView));
+/// string output = diagram.RenderToString().Value;
 ///
 /// // With descriptions legend:
-/// List&lt;string&gt; lines = BitFieldDiagram.Render(CpuStatusRegister.Fields, includeDescriptions: true);
+/// var diagram = new BitFieldDiagram(typeof(CpuStatusRegister), includeDescriptions: true);
+/// string output = diagram.RenderToString().Value;
 ///
 /// // Custom width (8 or 16 bits per row):
-/// List&lt;string&gt; lines = BitFieldDiagram.Render(CpuStatusRegister.Fields, bitsPerRow: 8);
+/// var diagram = new BitFieldDiagram(typeof(CpuStatusRegister), bitsPerRow: 8);
+/// string output = diagram.RenderToString().Value;
 ///
 /// // Render multiple structs as a unified list with consistent scale:
-/// var sections = new DiagramSection[]
-/// {
-///     new("Data Registers", M68020DataRegisters.Fields.ToArray()),
-///     new("SR", M68020SR.Fields.ToArray()),
-/// };
-/// string diagram = BitFieldDiagram.RenderListToString(sections);
+/// var diagram = new BitFieldDiagram(
+///     [typeof(M68020DataRegisters), typeof(M68020SR)],
+///     description: "Register Set");
+/// string output = diagram.RenderToString().Value;
 /// </code>
 /// </example>
 
@@ -46,7 +47,7 @@ public readonly record struct DiagramSection(string Label, BitFieldInfo[] Fields
 public class BitFieldDiagram
 {
     /// <summary>
-    /// Create a new diagram instance with an empty list of structs (to be added later).
+    /// Create a new diagram instance with an empty list of structs (to be added later using <see cref="AddStruct(Type)"/>).
     /// </summary>
     /// <param name="description">Defaults to null</param>
     /// <param name="commentPrefix">Defaults to null</param>
@@ -76,6 +77,26 @@ public class BitFieldDiagram
     /// <param name="descriptionResourceType"></param>
     /// <exception cref="ArgumentException"></exception>
     public BitFieldDiagram(ReadOnlySpan<Type> structs, string? description = null, string? commentPrefix = null, int bitsPerRow = 32, bool includeDescriptions = true, bool showByteOffset = false, Type? descriptionResourceType = null)
+        : this(description, commentPrefix, bitsPerRow, includeDescriptions, showByteOffset, descriptionResourceType)
+    {
+        foreach (var field in structs)
+        {
+            AddStruct(field).OnFailure(err => throw new ArgumentException($"Failed to add struct type '{field.Name}': {err}"));
+        }
+    }
+
+    /// <summary>
+    /// Create a new diagram with a list of structs to render.
+    /// </summary>
+    /// <param name="structs"></param>
+    /// <param name="description"></param>
+    /// <param name="commentPrefix"></param>
+    /// <param name="bitsPerRow"></param>
+    /// <param name="includeDescriptions"></param>
+    /// <param name="showByteOffset"></param>
+    /// <param name="descriptionResourceType"></param>
+    /// <exception cref="ArgumentException"></exception>
+    public BitFieldDiagram(IEnumerable<Type> structs, string? description = null, string? commentPrefix = null, int bitsPerRow = 32, bool includeDescriptions = true, bool showByteOffset = false, Type? descriptionResourceType = null)
         : this(description, commentPrefix, bitsPerRow, includeDescriptions, showByteOffset, descriptionResourceType)
     {
         foreach (var field in structs)
@@ -161,6 +182,47 @@ public class BitFieldDiagram
     /// </summary>
     public virtual List<Type> Structs { get; } = [];
 
+    /// <summary>
+    /// Add structs to the diagram.  Each type must be decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c> 
+    /// and have a static <c>Fields</c> property.
+    /// </summary>
+    /// <param name="structTypes"></param>
+    /// <returns></returns>
+    public virtual Result<string> AddStructs(ReadOnlySpan<Type> structTypes)
+    {
+        foreach (var structType in structTypes)
+        {
+            var result = AddStruct(structType);
+            if (result.IsFailure) return result;
+        }
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Add structs to the diagram.  Each type must be decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c> 
+    /// and have a static <c>Fields</c> property.
+    /// </summary>
+    /// <param name="structTypes"></param>
+    /// <returns></returns>
+    public virtual Result<string> AddStructs(IEnumerable<Type> structTypes)
+    {
+        if (structTypes == null) return Err("structTypes is null");
+
+        foreach (var structType in structTypes)
+        {
+            var result = AddStruct(structType);
+            if (result.IsFailure) return result;
+        }
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Adds a struct type to the diagram.
+    /// </summary>
+    /// <param name="structType">The struct type to add.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public virtual Result<string> AddStruct(Type structType)
     {
         if (structType == null) return Err("structType is null");

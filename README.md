@@ -113,17 +113,28 @@ bit manipulation** and comparable performance to optimized C when working with b
 *All differences are within measurement noise. The generated code is statistically indistinguishable from raw inline bit manipulation.*
 
 
-**Generated vs Hand-Coded Properties** (n=20 runs, 500M iterations each, .NET 10):
+**Generated vs Hand-Coded Properties** (.NET 10):
 
-| Test | Generated | Hand-coded | Ratio |
-|------|-----------|------------|-------|
-| BitFlag GET | 248 ms | 311 ms | ~1.0 |
-| BitFlag SET | 578 ms | 509 ms | ~1.0 |
-| BitField GET | 372 ms | 300 ms | ~1.0 |
-| BitField SET | 591 ms | 592 ms | ~1.0 |
-| Mixed R/W | 911 ms | 953 ms | ~1.0 |
-| **Overall** | | | **~1.0** (&sigma;=0.07) |
+    ======================================================================
+    BITFIELD PERFORMANCE SUMMARY WITH STATISTICS
+    Runs: 200, Iterations per run: 100,000,000
 
+    STATISTICAL RESULTS (mean with σ = std dev)
+    ======================================================================
+    
+    Test           Generated (ms)     Hand-coded (ms)    Ratio
+    ----------------------------------------------------------------------
+    BitFlag GET        82 (σ=   5)       74 (σ=   3)   1.103 (σ=0.064)
+    BitFlag SET        89 (σ=   9)      101 (σ=   2)   0.880 (σ=0.094)
+    BitField GET       32 (σ=  11)       32 (σ=  11)   0.998 (σ=0.025)
+    BitField SET      129 (σ=   4)      123 (σ=   3)   1.049 (σ=0.038)
+    Mixed R/W         136 (σ=  22)      155 (σ=   4)   0.864 (σ=0.118)
+    ----------------------------------------------------------------------
+    OVERALL                                            0.991 (σ=0.199)
+    
+    ✓ Generated code performance statistically identical to hand-coded (95% CI includes 1.0).
+            σ (std dev) = 0.1994, SE = 0.0158, n = 160
+            95% CI for mean = 0.961 to 1.022
 *Individual run variations are due to system load and CPU scheduling, not code differences.*
 
 **Key Findings:**
@@ -809,19 +820,19 @@ marked.
 
 ```csharp
 // Generate a diagram from any [BitFields] or [BitFieldsView] struct
-string diagram = BitFieldDiagram.RenderToString(IPv4HeaderView.Fields);
+var diagram = new BitFieldDiagram(typeof(IPv4HeaderView));
+string output = diagram.RenderToString().Value;
 
 // Custom width, descriptions, and byte offset control
-string diagram = BitFieldDiagram.RenderToString(
-    StatusRegister.Fields, bitsPerRow: 16, includeDescriptions: true, showByteOffset: false);
+var diagram = new BitFieldDiagram(typeof(StatusRegister),
+    bitsPerRow: 16, includeDescriptions: true, showByteOffset: false);
+string output = diagram.RenderToString().Value;
 
 // Render multiple structs as a unified diagram with consistent scale
-var sections = new DiagramSection[]
-{
-    new("Data Registers", M68020DataRegisters.Fields.ToArray()),
-    new("SR", M68020SR.Fields.ToArray()),
-};
-string multi = BitFieldDiagram.RenderListToString(sections);
+var diagram = new BitFieldDiagram(
+    [typeof(M68020DataRegisters), typeof(M68020SR)],
+    description: "68020 Registers");
+string multi = diagram.RenderToString().Value;
 ```
 
 See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
