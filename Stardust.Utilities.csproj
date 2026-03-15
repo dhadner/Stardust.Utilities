@@ -35,6 +35,9 @@
 
 		<!-- Optional: lock down language version -->
 		<LangVersion>latest</LangVersion>
+
+		<!-- Generate XML documentation so NuGet consumers see IntelliSense comments -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<!-- Exclude subfolders from compilation -->

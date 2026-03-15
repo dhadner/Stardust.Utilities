@@ -53,6 +53,13 @@ public sealed record BitFieldInfo(
     UndefinedBitsMustBe StructUndefinedMustBe = UndefinedBitsMustBe.Any,
     string? StructDescription = null)
 {
+    /// <summary>
+    /// Creates a <see cref="BitFieldInfo"/> by reading attribute metadata from the specified type and optional field.
+    /// </summary>
+    /// <param name="type">The struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+    /// <param name="field">Optional property name to inspect. When null, inspects the type-level attribute.</param>
+    /// <param name="inherit">When true, searches inherited attributes.</param>
+    /// <returns>A successful result containing the <see cref="BitFieldInfo"/>, or an error string on failure.</returns>
     public static Result<BitFieldInfo, string> Create(Type type, string? field = null, bool inherit = true)
     {
         string name;

@@ -400,6 +400,14 @@ namespace Stardust.Utilities
             return Result<(string? description, Type? descriptionResourceType), string>.Err($"Field {type.FullName}.{field} does not have a BitField or BitFlag attribute");
         }
 
+        /// <summary>
+        /// Retrieves the <c>[BitFields]</c>, <c>[BitFieldsView]</c>, <c>[BitField]</c>, or <c>[BitFlag]</c> attribute
+        /// from the specified type or one of its properties.
+        /// </summary>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="field">Optional property name. When null, returns the type-level attribute.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>A successful result containing the attribute, or an error string on failure.</returns>
         public static Result<Attribute,string> GetBitTypeAttribute(this Type type, string? field = null, bool inherit = true)
         {
             if (type == null)

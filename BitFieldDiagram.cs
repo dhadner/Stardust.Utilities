@@ -9,6 +9,15 @@ namespace Stardust.Utilities;
 using static Result<string>;
 
 /// <summary>
+/// Describes a labeled section for multi-struct diagram rendering via
+/// <see cref="BitFieldDiagram.RenderList"/> and <see cref="BitFieldDiagram.RenderListToString"/>.
+/// </summary>
+/// <param name="Label">Section heading displayed above the diagram (empty string for no heading).</param>
+/// <param name="Fields">The field metadata array (from the generated <c>Fields</c> property).</param>
+[Obsolete("Use the Type-based RenderList/RenderListToString overloads instead. Set Description on [BitFields]/[BitFieldsView] attributes to provide section labels.")]
+public readonly record struct DiagramSection(string Label, BitFieldInfo[] Fields);
+
+/// <summary>
 /// Generates RFC 2360-style ASCII diagrams from <see cref="BitFieldInfo"/> metadata.
 /// Works with any <c>[BitFields]</c> or <c>[BitFieldsView]</c> struct that exposes a
 /// static <c>Fields</c> property.
@@ -34,16 +43,6 @@ using static Result<string>;
 /// string output = diagram.RenderToString().Value;
 /// </code>
 /// </example>
-
-/// <summary>
-/// Describes a labeled section for multi-struct diagram rendering via
-/// <see cref="BitFieldDiagram.RenderList"/> and <see cref="BitFieldDiagram.RenderListToString"/>.
-/// </summary>
-/// <param name="Label">Section heading displayed above the diagram (empty string for no heading).</param>
-/// <param name="Fields">The field metadata array (from the generated <c>Fields</c> property).</param>
-[Obsolete("Use the Type-based RenderList/RenderListToString overloads instead. Set Description on [BitFields]/[BitFieldsView] attributes to provide section labels.")]
-public readonly record struct DiagramSection(string Label, BitFieldInfo[] Fields);
-
 public class BitFieldDiagram
 {
     /// <summary>
@@ -237,6 +236,10 @@ public class BitFieldDiagram
         return Ok();
     }
 
+    /// <summary>
+    /// Renders all added structs as a unified diagram and returns the result as a single string with newlines.
+    /// </summary>
+    /// <returns>A successful result containing the rendered diagram string, or an error string on failure.</returns>
     public virtual Result<string, string> RenderToString()
     {
         var result = Render();
@@ -245,6 +248,10 @@ public class BitFieldDiagram
         return Ok(string.Join(Environment.NewLine, result.Value));
     }
 
+    /// <summary>
+    /// Renders all added structs as a unified diagram and returns the result as a list of lines.
+    /// </summary>
+    /// <returns>A successful result containing the list of output lines, or an error string on failure.</returns>
     public virtual Result<List<string>,string> Render()
     {
         if (Structs.Count == 0) return Result<List<string>, string>.Err(FormatLine("(no bitStruct)", CommentPrefix));
