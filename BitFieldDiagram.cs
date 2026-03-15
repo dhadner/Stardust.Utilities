@@ -10,7 +10,8 @@ using static Result<string>;
 
 /// <summary>
 /// Describes a labeled section for multi-struct diagram rendering via
-/// <see cref="BitFieldDiagram.RenderList"/> and <see cref="BitFieldDiagram.RenderListToString"/>.
+/// <see cref="BitFieldDiagram.RenderList(ReadOnlySpan{Type}, string, int, bool, bool, string)"/>
+/// and <see cref="BitFieldDiagram.RenderListToString(ReadOnlySpan{Type}, string, int, bool, bool, string)"/>.
 /// </summary>
 /// <param name="Label">Section heading displayed above the diagram (empty string for no heading).</param>
 /// <param name="Fields">The field metadata array (from the generated <c>Fields</c> property).</param>
@@ -278,7 +279,7 @@ public class BitFieldDiagram
     /// <param name="includeDescriptions">When true, appends a legend with field descriptions below the diagram.</param>
     /// <param name="showByteOffset">When true, shows hex byte offset (e.g., 0x00) at the left of each content row.</param>
     /// <param name="minCellWidth">Minimum cell width (characters per bit column). When 0, computed automatically.
-    /// Used internally by <see cref="RenderList"/> to enforce consistent scale across sections.</param>
+    /// Used internally by <see cref="RenderList(ReadOnlySpan{Type}, string, int, bool, bool, string)"/> to enforce consistent scale across sections.</param>
     /// <param name="commentPrefix">When non-null, prepended to every output line (e.g., <c>"// "</c> or <c>"/// "</c>).</param>
     /// <returns>A list of strings, one per output line.</returns>
     public static List<string> Render(ReadOnlySpan<BitFieldInfo> fields, string? description = null, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, int minCellWidth = 0, string? commentPrefix = null)
@@ -615,7 +616,7 @@ public class BitFieldDiagram
     /// <summary>
     /// Computes the minimum cell width (characters per bit column) needed to fit all field names
     /// for the given fields at the specified bits-per-row. Useful for pre-computing a shared width
-    /// across multiple structs, though <see cref="RenderList"/> handles this automatically.
+    /// across multiple structs, though <see cref="RenderList(ReadOnlySpan{Type}, string, int, bool, bool, string)"/> handles this automatically.
     /// </summary>
     public static int ComputeMinCellWidth(ReadOnlySpan<BitFieldInfo> fields, int bitsPerRow = 32)
     {

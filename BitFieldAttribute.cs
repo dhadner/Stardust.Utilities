@@ -85,7 +85,7 @@ public sealed class BitFieldAttribute : Attribute
     /// <param name="endBit">The ending bit position (0-based, inclusive). Must be >= startBit.</param>
     /// <param name="mustBe">Optional override for how bits are handled for this field. Defaults to <see cref="MustBe.Any"/>.
     /// If set to <see cref="MustBe.Zero"/>, the bits will be masked to zero on write. If set to
-    /// <see cref="MustBe.Ones"/>, the bits will be set to one on write.
+    /// <see cref="MustBe.Ones"/>, the bits will be set to one on write.</param>
     /// <exception cref="ArgumentException">Thrown when endBit is less than startBit.</exception>
     public BitFieldAttribute(int startBit, int endBit, MustBe mustBe = MustBe.Any)
     {

@@ -11,14 +11,15 @@ namespace Stardust.Utilities
     public static class Extensions
     {
         /// <summary>
-        /// Return the first attribute of this type on the Type <see cref="type"/>.
+        /// Returns the first attribute of type <typeparamref name="T"/> on the specified <paramref name="type"/>.
         /// When the type was loaded from a different <see cref="System.Runtime.Loader.AssemblyLoadContext"/>,
         /// standard <see cref="MemberInfo.GetCustomAttributes(Type, bool)"/> returns nothing because
         /// the attribute type identity differs across contexts. In that case we fall back to
         /// <see cref="CustomAttributeData"/> metadata and reconstruct the attribute locally.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns>attribute or null if not found</returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>The attribute instance, or null if not found.</returns>
         public static T? GetAttribute<T>(this Type type, bool inherit = true) where T : Attribute
         {
             Type attrType = typeof(T);
@@ -59,30 +60,33 @@ namespace Stardust.Utilities
         /// <summary>
         /// Return true if this class, or a base class, has the [BitFields] attribute.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>True if the type has a <see cref="BitFieldsAttribute"/>.</returns>
         public static bool IsBitFieldsType(this Type type, bool inherit = true)
         {
-            /// See if this type has the [BitFields] attribute.
+            // See if this type has the [BitFields] attribute.
             return type.GetAttribute<BitFieldsAttribute>(inherit) != null;
         }
 
         /// <summary>
-        /// Return true if this class , or a base class, has the [BitFieldsView] attribute.
+        /// Return true if this class, or a base class, has the [BitFieldsView] attribute.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>True if the type has a <see cref="BitFieldsViewAttribute"/>.</returns>
         public static bool IsBitFieldsViewType(this Type type, bool inherit = true)
         {
-            /// See if this type has the [BitFieldsView] attribute.
+            // See if this type has the [BitFieldsView] attribute.
             return type.GetAttribute<BitFieldsViewAttribute>(inherit) != null;
         }
 
         /// <summary>
         /// True if type is a BitFields struct or a BitFieldsView struct (or derives from one).
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>True if the type has a <see cref="BitFieldsAttribute"/> or <see cref="BitFieldsViewAttribute"/>.</returns>
         public static bool IsBitsType(this Type type, bool inherit = true)
         {
             if (type == null) return false;
@@ -93,9 +97,10 @@ namespace Stardust.Utilities
         /// True if this field has a BitFieldAttribute and it is a member of a [BitFields] or
         /// [BitFieldsView] struct.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name to check.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>True if the property has a <see cref="BitFieldAttribute"/>.</returns>
         public static bool IsBitField(this Type type, string fieldName, bool inherit = true)
         {
             if (type == null || string.IsNullOrEmpty(fieldName)) return false;
@@ -106,9 +111,10 @@ namespace Stardust.Utilities
         /// <summary>
         /// True if this field has a BitFlagAttribute and it is a member of a [BitFields] or [BitFieldsView] struct.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="field"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="field">The property to check.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>True if the property has a <see cref="BitFlagAttribute"/>.</returns>
         public static bool IsBitFlag(this Type type, PropertyInfo field, bool inherit= true)
         {
             if (type == null || field == null) return false;
@@ -119,9 +125,10 @@ namespace Stardust.Utilities
         /// <summary>
         /// True if this field has a BitFlagAttribute.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name to check.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>True if the property has a <see cref="BitFlagAttribute"/>.</returns>
         public static bool IsBitFlag(this Type type, string fieldName, bool inherit = true)
         {
             if (type == null || string.IsNullOrEmpty(fieldName)) return false;
@@ -161,10 +168,10 @@ namespace Stardust.Utilities
         /// <summary>
         /// Get the length of this BitField or BitFlag in bits.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name, or null to get the total struct bit count.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
         /// <returns>Result with length if success or error message if failure.</returns>
-
         public static Result<int,string> GetBitLength(this Type type, string? fieldName = null, bool inherit = true)
         {
             if (fieldName != null)
@@ -199,9 +206,10 @@ namespace Stardust.Utilities
         /// <summary>
         /// Get the start bit.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
-        /// <returns>Result with start bit number if success or error message if failure</returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>Result with start bit number if success or error message if failure.</returns>
         public static Result<int,string> GetStartBit(this Type type, string fieldName, bool inherit = true)
         {
             return type.GetStartAndEndBits(fieldName, inherit).Match(
@@ -213,9 +221,10 @@ namespace Stardust.Utilities
         /// <summary>
         /// Get the end bit.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
-        /// <returns>Result with end bit number if success or error message if failure</returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>Result with end bit number if success or error message if failure.</returns>
         public static Result<int,string> GetEndBit(this Type type, string fieldName, bool inherit = true)
         {
             return type.GetStartAndEndBits(fieldName, inherit).Match(
@@ -227,8 +236,9 @@ namespace Stardust.Utilities
         /// <summary>
         /// Get start and end bits for this BitField.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
         /// <returns>Result with start and end bits if success or error message if failure.</returns>
         public static Result<(int startBit,int endBit),string> GetStartAndEndBits(this Type type, string fieldName, bool inherit = true)
         {
@@ -264,14 +274,14 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// Get the <see cref="ValueOverride"/> for this field if it has a BitField or BitFlag attribute. 
-        /// If the field does not have a BitField or BitFlag attribute, or if the type is not a 
+        /// Get the <see cref="MustBe"/> override for this field if it has a BitField or BitFlag attribute.
+        /// If the field does not have a BitField or BitFlag attribute, or if the type is not a
         /// BitFields struct or BitFieldsView struct, return an error.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="fieldName"></param>
-        /// <param name="inherit"></param>
-        /// <returns></returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="fieldName">The property name.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>A result containing the <see cref="MustBe"/> value, or an error string on failure.</returns>
         public static Result<MustBe, string> GetFieldValueOverride(this Type type, string fieldName, bool inherit = true)
         {
             if (type == null)
@@ -324,10 +334,11 @@ namespace Stardust.Utilities
             }
         }
         /// <summary>
-        /// Get the byte and bit order for this bit struct or bit struct view. 
+        /// Get the byte and bit order for this bit struct or bit struct view.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns>byte order, bit order or error message if failure</returns>
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>Byte order and bit order, or an error message on failure.</returns>
         public static Result<(ByteOrder byteOrder, BitOrder bitOrder),string> GetBitAndByteOrder(this Type type, bool inherit = true)
         {
             if (type == null)
@@ -353,9 +364,10 @@ namespace Stardust.Utilities
         /// <summary>
         /// Get the description of the type or field.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="field"></param>
-        /// <returns>Description (may be null) of the type if field is null, else field description (may be null).  
+        /// <param name="type">The type to inspect.</param>
+        /// <param name="field">Optional property name. When null, returns the type-level description.</param>
+        /// <param name="inherit">When true, searches inherited attributes.</param>
+        /// <returns>Description (may be null) of the type if field is null, else field description (may be null).
         /// Error if BitFields, BitFieldsView, BitField, or BitFlag attribute is not found.
         /// </returns>
         public static Result<(string? description, Type? descriptionResourceType), string> GetBitsDescription(this Type type, string? field = null, bool inherit = true)
@@ -777,7 +789,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Coerces a value from <see cref="CustomAttributeData"/> to the target parameter type.
         /// Enum values in metadata are stored as their underlying integer type and must be
-        /// converted to the local enum type via <see cref="Enum.ToObject"/>.
+        /// converted to the local enum type via <see cref="Enum.ToObject(Type, object)"/>.
         /// </summary>
         private static object? CoerceToParameterType(object? value, Type targetType)
         {

@@ -55,6 +55,7 @@ public sealed class BitFlagAttribute : Attribute
     /// Creates a new bit flag attribute.
     /// </summary>
     /// <param name="bit">The bit position (0-based).</param>
+    /// <param name="mustBe">Optional override for how the bit value is handled. Defaults to <see cref="MustBe.Any"/>.</param>
     public BitFlagAttribute(int bit, MustBe mustBe = MustBe.Any)
     {
         Bit = bit;
