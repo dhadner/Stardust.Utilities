@@ -1,3 +1,7 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace Stardust.Generators;
 
 /// <summary>
@@ -38,5 +42,23 @@ internal static class GeneratorUtils
             }
         }
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if the given property symbol is declared with the <c>partial</c> keyword.
+    /// Used by both <see cref="BitFieldsGenerator"/> and <see cref="BitFieldsViewGenerator"/>
+    /// to detect non-partial properties and emit SD0004 diagnostics.
+    /// </summary>
+    internal static bool IsPartialProperty(IPropertySymbol property)
+    {
+        foreach (var syntaxRef in property.DeclaringSyntaxReferences)
+        {
+            if (syntaxRef.GetSyntax() is PropertyDeclarationSyntax propertySyntax &&
+                propertySyntax.Modifiers.Any(SyntaxKind.PartialKeyword))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

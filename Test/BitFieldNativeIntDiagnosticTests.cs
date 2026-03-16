@@ -672,4 +672,265 @@ public class BitFieldNativeIntDiagnosticTests
     }
 
     #endregion
+
+    #region Non-Partial Properties - Error SD0004
+
+    /// <summary>
+    /// A [BitFlag] property without the 'partial' keyword should produce error SD0004.
+    /// </summary>
+    [Fact]
+    public void NonPartialBitFlag_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct BadReg
+            {
+                [BitFlag(0)] public bool Ready { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0004 = diagnostics.Where(d => d.Id == "SD0004").ToList();
+        sd0004.Should().HaveCount(1);
+        sd0004[0].Severity.Should().Be(DiagnosticSeverity.Error);
+        sd0004[0].GetMessage().Should().Contain("Ready");
+        sd0004[0].GetMessage().Should().Contain("BadReg");
+        sd0004[0].GetMessage().Should().Contain("BitFlag");
+    }
+
+    /// <summary>
+    /// A [BitField] property without the 'partial' keyword should produce error SD0004.
+    /// </summary>
+    [Fact]
+    public void NonPartialBitField_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ushort))]
+            public partial struct BadReg
+            {
+                [BitField(0, 7)] public byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0004 = diagnostics.Where(d => d.Id == "SD0004").ToList();
+        sd0004.Should().HaveCount(1);
+        sd0004[0].Severity.Should().Be(DiagnosticSeverity.Error);
+        sd0004[0].GetMessage().Should().Contain("Status");
+        sd0004[0].GetMessage().Should().Contain("BadReg");
+        sd0004[0].GetMessage().Should().Contain("BitField");
+    }
+
+    /// <summary>
+    /// Multiple non-partial properties should each produce their own SD0004 diagnostic.
+    /// </summary>
+    [Fact]
+    public void MultipleNonPartialProperties_ProduceMultipleErrors()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct BadReg
+            {
+                [BitFlag(0)] public bool Ready { get; set; }
+                [BitField(1, 3)] public byte Mode { get; set; }
+                [BitFlag(7)] public bool Busy { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0004 = diagnostics.Where(d => d.Id == "SD0004").ToList();
+        sd0004.Should().HaveCount(3);
+        sd0004.Should().Contain(d => d.GetMessage().Contains("Ready"));
+        sd0004.Should().Contain(d => d.GetMessage().Contains("Mode"));
+        sd0004.Should().Contain(d => d.GetMessage().Contains("Busy"));
+    }
+
+    /// <summary>
+    /// A mix of partial and non-partial properties: only non-partial ones produce SD0004.
+    /// </summary>
+    [Fact]
+    public void MixedPartialAndNonPartial_OnlyNonPartialProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct MixedReg
+            {
+                [BitFlag(0)] public partial bool Ready { get; set; }
+                [BitField(1, 3)] public byte Mode { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+
+        var sd0004 = diagnostics.Where(d => d.Id == "SD0004").ToList();
+        sd0004.Should().HaveCount(1);
+        sd0004[0].GetMessage().Should().Contain("Mode");
+        sd0004.Should().NotContain(d => d.GetMessage().Contains("Ready"));
+    }
+
+    /// <summary>
+    /// All-partial properties should NOT produce any SD0004 diagnostics.
+    /// </summary>
+    [Fact]
+    public void AllPartialProperties_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct GoodReg
+            {
+                [BitFlag(0)] public partial bool Ready { get; set; }
+                [BitField(1, 3)] public partial byte Mode { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        diagnostics.Where(d => d.Id == "SD0004").Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// SD0004 diagnostic should have a source location pointing to the property.
+    /// </summary>
+    [Fact]
+    public void NonPartialProperty_DiagnosticHasLocation()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct BadReg
+            {
+                [BitFlag(0)] public bool Ready { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        var sd0004 = diagnostics.Where(d => d.Id == "SD0004").ToList();
+        sd0004.Should().HaveCount(1);
+        sd0004[0].Location.Should().NotBe(Location.None);
+    }
+
+    /// <summary>
+    /// The SD0004 message should include the property type for easy copy-paste fix.
+    /// </summary>
+    [Fact]
+    public void NonPartialProperty_MessageContainsPropertyType()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ushort))]
+            public partial struct BadReg
+            {
+                [BitField(0, 7)] public byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE, "");
+        var sd0004 = diagnostics.First(d => d.Id == "SD0004");
+        sd0004.GetMessage().Should().Contain("byte");
+        sd0004.GetMessage().Should().Contain("Status");
+    }
+
+    /// <summary>
+    /// SD0004 for BitFieldsView: a non-partial property on a [BitFieldsView] record struct
+    /// should also produce SD0004.
+    /// </summary>
+    [Fact]
+    public void NonPartialBitFieldsView_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFieldsView]
+            public partial record struct BadView
+            {
+                [BitFlag(0)] public bool Active { get; set; }
+                [BitField(8, 15)] public byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunViewGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0004 = diagnostics.Where(d => d.Id == "SD0004").ToList();
+        sd0004.Should().HaveCount(2);
+        sd0004.Should().Contain(d => d.GetMessage().Contains("Active"));
+        sd0004.Should().Contain(d => d.GetMessage().Contains("Status"));
+    }
+
+    /// <summary>
+    /// A fully-partial [BitFieldsView] record struct should NOT produce SD0004.
+    /// </summary>
+    [Fact]
+    public void AllPartialBitFieldsView_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFieldsView]
+            public partial record struct GoodView
+            {
+                [BitFlag(0)] public partial bool Active { get; set; }
+                [BitField(8, 15)] public partial byte Status { get; set; }
+            }
+            """;
+
+        var diagnostics = RunViewGeneratorAndGetDiagnostics(SOURCE);
+        diagnostics.Where(d => d.Id == "SD0004").Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Runs the BitFieldsViewGenerator against the given source and returns the diagnostics.
+    /// </summary>
+    private static IReadOnlyList<Diagnostic> RunViewGeneratorAndGetDiagnostics(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+
+        var references = new List<MetadataReference>
+        {
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(BitFieldsAttribute).Assembly.Location),
+        };
+
+        var runtimeDir = System.IO.Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+        references.Add(MetadataReference.CreateFromFile(System.IO.Path.Combine(runtimeDir, "System.Runtime.dll")));
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "TestAssembly",
+            syntaxTrees: [syntaxTree],
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var generator = new BitFieldsViewGenerator();
+        var driver = CSharpGeneratorDriver.Create(
+            generators: [generator.AsSourceGenerator()]);
+
+        driver = (CSharpGeneratorDriver)driver.RunGeneratorsAndUpdateCompilation(
+            compilation, out _, out var diagnostics);
+
+        return diagnostics;
+    }
+
+    #endregion
 }

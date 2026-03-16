@@ -114,7 +114,13 @@ internal sealed class BitFieldsInfo
     /// </summary>
     public List<BitFlagInfo> DeclaredFlags { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, UndefinedBitsMustBe undefinedBitsMode = UndefinedBitsMustBe.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrder byteOrder = ByteOrder.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null, Type? descriptionResourceType = null, Location? location = null)
+    /// <summary>
+    /// Properties that have [BitField] or [BitFlag] attributes but are missing the <c>partial</c> keyword.
+    /// These are not added to <see cref="Fields"/> or <see cref="Flags"/> and are reported as SD0004 errors.
+    /// </summary>
+    public List<NonPartialPropertyInfo> NonPartialProperties { get; }
+
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, UndefinedBitsMustBe undefinedBitsMode = UndefinedBitsMustBe.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrder byteOrder = ByteOrder.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null, Type? descriptionResourceType = null, Location? location = null, List<NonPartialPropertyInfo>? nonPartialProperties = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -137,6 +143,7 @@ internal sealed class BitFieldsInfo
         Description = description;
         DescriptionResourceType = descriptionResourceType;
         Location = location;
+        NonPartialProperties = nonPartialProperties ?? new List<NonPartialPropertyInfo>();
     }
 }
 
@@ -213,6 +220,26 @@ internal sealed class BitFlagInfo
         ValueOverride = valueOverride;
         Description = description;
         DescriptionResourceType = descriptionResourceType;
+        Location = location;
+    }
+}
+
+/// <summary>
+/// Records a property that has a [BitField] or [BitFlag] attribute but is missing the
+/// <c>partial</c> keyword. Used to report SD0004 diagnostics pointing at the user's source file.
+/// </summary>
+internal sealed class NonPartialPropertyInfo
+{
+    public string PropertyName { get; }
+    public string PropertyType { get; }
+    public string AttributeName { get; }
+    public Location? Location { get; }
+
+    public NonPartialPropertyInfo(string propertyName, string propertyType, string attributeName, Location? location)
+    {
+        PropertyName = propertyName;
+        PropertyType = propertyType;
+        AttributeName = attributeName;
         Location = location;
     }
 }

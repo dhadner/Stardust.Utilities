@@ -1015,15 +1015,19 @@ uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
 
 **Problem:** Compiler errors like `CS9248: Partial property 'MyStruct.MyProperty' must have an implementation part`.
 
-**Cause:** The source generator isn't running.
+**Cause:** Either the source generator isn't running, or your properties are missing the
+`partial` keyword. If you see error **SD0004** alongside CS9248, the fix is to add `partial`
+to your `[BitField]`/`[BitFlag]` property declarations (see
+[Missing partial keyword on properties (SD0004)](#missing-partial-keyword-on-properties-sd0004)).
 
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
     <PackageReference Include="Stardust.Utilities" Version="0.9.6" />
     ```
-2. Clean and rebuild the solution
-3. Restart Visual Studio if needed (sometimes required after first install)
+2. Add the `partial` keyword to all `[BitField]` and `[BitFlag]` properties
+3. Clean and rebuild the solution
+4. Restart Visual Studio if needed (sometimes required after first install)
 
 ### Generated code not updating
 
@@ -1075,6 +1079,41 @@ generator silently skipped the struct.
 
 The `StorageType` enum constructor avoids this problem entirely -- IntelliSense shows only
 the supported values, so an invalid choice cannot be written in the first place.
+
+### Missing partial keyword on properties (SD0004)
+
+If a property decorated with `[BitField]` or `[BitFlag]` is not declared `partial`, the source
+generator emits error **SD0004** pointing directly at the property in your source file. The
+error message includes the property name, attribute, and the corrected declaration so you can
+fix it immediately.
+
+Without this diagnostic, the compiler would instead produce confusing `CS9248` ("partial property
+must have an implementation part") or `CS0102` ("type already contains a definition") errors
+from the generated `.g.cs` file -- neither of which mentions the missing `partial` keyword or
+points to your source file.
+
+**Example of the problem:**
+
+```csharp
+[BitFields(StorageType.Byte)]
+public partial struct StatusRegister
+{
+    // Missing 'partial' -- produces SD0004 error
+    [BitFlag(0)] public bool Ready { get; set; }
+}
+```
+
+**Fix:** Add the `partial` keyword to every `[BitField]` and `[BitFlag]` property:
+
+```csharp
+[BitFields(StorageType.Byte)]
+public partial struct StatusRegister
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }  // correct
+}
+```
+
+This applies to both `[BitFields]` structs and `[BitFieldsView]` record structs.
 
 ### IntelliSense not working for generated members
 

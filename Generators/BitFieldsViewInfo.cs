@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
 namespace Stardust.Generators;
 
@@ -61,6 +62,12 @@ internal sealed class BitFieldsViewInfo
     /// </summary>
     public Type? DescriptionResourceType { get; set; }
 
+    /// <summary>
+    /// Properties that have [BitField] or [BitFlag] attributes but are missing the <c>partial</c> keyword.
+    /// These are not added to <see cref="Fields"/> or <see cref="Flags"/> and are reported as SD0004 errors.
+    /// </summary>
+    public List<NonPartialPropertyInfo> NonPartialProperties { get; }
+
     public BitFieldsViewInfo(
         string typeName,
         string? ns,
@@ -73,7 +80,8 @@ internal sealed class BitFieldsViewInfo
         List<(string Kind, string Name, string Accessibility)> containingTypes,
         int minBytes,
         string? description = null,
-        Type? descriptionResourceType = null)
+        Type? descriptionResourceType = null,
+        List<NonPartialPropertyInfo>? nonPartialProperties = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -87,5 +95,6 @@ internal sealed class BitFieldsViewInfo
         MinBytes = minBytes;
         Description = description;
         DescriptionResourceType = descriptionResourceType;
+        NonPartialProperties = nonPartialProperties ?? new List<NonPartialPropertyInfo>();
     }
 }

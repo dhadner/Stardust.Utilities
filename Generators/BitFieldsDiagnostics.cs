@@ -47,4 +47,20 @@ internal static class BitFieldsDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "The [BitFields] attribute requires a specific storage type that the generator knows how to manipulate at the bit level. Use one of the supported primitive types, or specify an integer bit count for arbitrary-size bitfields.");
+
+    /// <summary>
+    /// Error: A property with [BitField] or [BitFlag] is not declared as partial.
+    /// The source generator emits a partial property implementation, so the user's
+    /// declaration must also be partial. Without it the compiler produces confusing
+    /// CS9248 and CS0102 errors from the generated code instead of pointing at the
+    /// real problem in the user's source file.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor PropertyMustBePartial = new(
+        id: "SD0004",
+        title: "BitField/BitFlag property must be declared partial",
+        messageFormat: "Property '{0}' in '{1}' has a [{2}] attribute but is not declared 'partial'; add the 'partial' keyword to the declaration: partial {3} {0} {{ get; set; }}",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Properties decorated with [BitField] or [BitFlag] must include the 'partial' keyword so the source generator can provide the implementation. Without 'partial', the compiler produces confusing CS9248 or CS0102 errors from the generated file instead of identifying the actual problem.");
 }

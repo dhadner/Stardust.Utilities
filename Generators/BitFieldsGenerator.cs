@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -230,6 +231,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
 
         var fields = new List<BitFieldInfo>();
         var flags = new List<BitFlagInfo>();
+        var nonPartialProperties = new List<NonPartialPropertyInfo>();
 
 
         foreach (var member in structSymbol.GetMembers().OfType<IPropertySymbol>())
@@ -239,11 +241,19 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 var attrName = attr.AttributeClass?.Name;
                 if (attrName == "BitFieldAttribute" && attr.ConstructorArguments.Length >= 2)
                 {
+                    // Check for missing 'partial' keyword before processing
+                    if (!GeneratorUtils.IsPartialProperty(member))
+                    {
+                        var propType = member.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                        nonPartialProperties.Add(new NonPartialPropertyInfo(member.Name, propType, "BitField", member.Locations.Length > 0 ? member.Locations[0] : null));
+                        continue;
+                    }
+
                     // [BitField(startBit, endBit, mustBe)] - Rust-style inclusive range
                     var startBit = (int)(attr.ConstructorArguments[0].Value ?? 0);
                     var endBit = (int)(attr.ConstructorArguments[1].Value ?? 0);
                     var width = endBit - startBit + 1;
-                    var propType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    var propTypeFull = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
                     // Read optional MustBe parameter (3rd constructor arg)
                     var valueOverride = MustBe.Any;
@@ -255,10 +265,17 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 
-                    fields.Add(new BitFieldInfo(member.Name, propType, startBit, width, valueOverride, description: desc, descriptionResourceType: descResType, location: member.Locations.Length > 0 ? member.Locations[0] : null));
+                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, startBit, width, valueOverride, description: desc, descriptionResourceType: descResType, location: member.Locations.Length > 0 ? member.Locations[0] : null));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
+                    // Check for missing 'partial' keyword before processing
+                    if (!GeneratorUtils.IsPartialProperty(member))
+                    {
+                        nonPartialProperties.Add(new NonPartialPropertyInfo(member.Name, "bool", "BitFlag", member.Locations.Length > 0 ? member.Locations[0] : null));
+                        continue;
+                    }
+
                     var bit = (int)(attr.ConstructorArguments[0].Value ?? 0);
 
                     // Read optional MustBe parameter (2nd constructor arg)
@@ -276,7 +293,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             }
         }
 
-        if (fields.Count == 0 && flags.Count == 0)
+        if (fields.Count == 0 && flags.Count == 0 && nonPartialProperties.Count == 0)
             return null;
 
         var ns = structSymbol.ContainingNamespace.IsGlobalNamespace
@@ -405,7 +422,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             declaredFlags,
             structDescription,
             structDescriptionResourceType,
-            location: structLocation));
+            location: structLocation,
+            nonPartialProperties: nonPartialProperties));
     }
 
     /// <summary>
@@ -469,6 +487,22 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
 
     private static void Execute(SourceProductionContext context, BitFieldsInfo info, string platformTarget)
     {
+        // Report diagnostics for non-partial properties (SD0004)
+        foreach (var np in info.NonPartialProperties)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                BitFieldsDiagnostics.PropertyMustBePartial,
+                np.Location,
+                np.PropertyName,
+                info.TypeName,
+                np.AttributeName,
+                np.PropertyType));
+        }
+
+        // If all properties were non-partial, skip code generation entirely
+        if (info.Fields.Count == 0 && info.Flags.Count == 0)
+            return;
+
         // Report diagnostics for native integer types with fields above bit 31
         if (info.IsNativeIntegerType)
         {
