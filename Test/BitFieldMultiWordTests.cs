@@ -17,26 +17,26 @@ public partial class BitFieldMultiWordTests
     [BitFields(128)]
     public partial struct Bits128
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }     // bits 0-63
-        [BitField(64, 127)] public partial ulong High { get; set; }  // bits 64-127
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }     // bits 0-63
+        [BitField(64, EndBit = 127)] public partial ulong High { get; set; }  // bits 64-127
     }
 
     /// <summary>200-bit struct (4 words, last word partially used).</summary>
     [BitFields(200)]
     public partial struct Bits200
     {
-        [BitField(0, 63)] public partial ulong Word0 { get; set; }    // bits 0-63
-        [BitField(64, 127)] public partial ulong Word1 { get; set; }  // bits 64-127
-        [BitField(128, 191)] public partial ulong Word2 { get; set; } // bits 128-191
+        [BitField(0, EndBit = 63)] public partial ulong Word0 { get; set; }    // bits 0-63
+        [BitField(64, EndBit = 127)] public partial ulong Word1 { get; set; }  // bits 64-127
+        [BitField(128, EndBit = 191)] public partial ulong Word2 { get; set; } // bits 128-191
         [BitFlag(192)] public partial bool Valid { get; set; }         // bit 192
-        [BitField(193, 199)] public partial byte Tag { get; set; }    // bits 193-199 (7 bits)
+        [BitField(193, EndBit = 199)] public partial byte Tag { get; set; }    // bits 193-199 (7 bits)
     }
 
     /// <summary>Struct with cross-word field (spans word boundary).</summary>
     [BitFields(128)]
     public partial struct CrossWord128
     {
-        [BitField(60, 67)] public partial byte CrossField { get; set; }  // bits 60-67 (spans words 0-1)
+        [BitField(60, EndBit = 67)] public partial byte CrossField { get; set; }  // bits 60-67 (spans words 0-1)
         [BitFlag(0)] public partial bool LowBit { get; set; }           // bit 0
         [BitFlag(127)] public partial bool HighBit { get; set; }        // bit 127
     }
@@ -45,7 +45,7 @@ public partial class BitFieldMultiWordTests
     [BitFields(65)]
     public partial struct Bits65
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }  // bits 0-63
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }  // bits 0-63
         [BitFlag(64)] public partial bool ExtraBit { get; set; }   // bit 64
     }
 
@@ -53,19 +53,19 @@ public partial class BitFieldMultiWordTests
     [BitFields(256)]
     public partial struct Bits256
     {
-        [BitField(0, 63)] public partial ulong W0 { get; set; }
-        [BitField(64, 127)] public partial ulong W1 { get; set; }
-        [BitField(128, 191)] public partial ulong W2 { get; set; }
-        [BitField(192, 255)] public partial ulong W3 { get; set; }
+        [BitField(0, EndBit = 63)] public partial ulong W0 { get; set; }
+        [BitField(64, EndBit = 127)] public partial ulong W1 { get; set; }
+        [BitField(128, EndBit = 191)] public partial ulong W2 { get; set; }
+        [BitField(192, EndBit = 255)] public partial ulong W3 { get; set; }
     }
 
     /// <summary>512-bit struct (8 words).</summary>
     [BitFields(512)]
     public partial struct Bits512
     {
-        [BitField(0, 63)] public partial ulong W0 { get; set; }
-        [BitField(64, 127)] public partial ulong W1 { get; set; }
-        [BitField(448, 511)] public partial ulong W7 { get; set; }
+        [BitField(0, EndBit = 63)] public partial ulong W0 { get; set; }
+        [BitField(64, EndBit = 127)] public partial ulong W1 { get; set; }
+        [BitField(448, EndBit = 511)] public partial ulong W7 { get; set; }
         [BitFlag(256)] public partial bool MidFlag { get; set; }
     }
 
@@ -73,7 +73,7 @@ public partial class BitFieldMultiWordTests
     [BitFields(128, UndefinedBitsMustBe.Zeroes)]
     public partial struct Bits128Zeroed
     {
-        [BitField(0, 31)] public partial uint Low { get; set; }   // bits 0-31
+        [BitField(0, EndBit = 31)] public partial uint Low { get; set; }   // bits 0-31
         [BitFlag(64)] public partial bool Flag { get; set; }       // bit 64
         // Bits 32-63, 65-127 undefined ? forced to zero
     }
@@ -82,33 +82,33 @@ public partial class BitFieldMultiWordTests
     [BitFields(72)]
     public partial struct Bits72
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }   // bits 0-63
-        [BitField(64, 71)] public partial byte High { get; set; }   // bits 64-71
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }   // bits 0-63
+        [BitField(64, EndBit = 71)] public partial byte High { get; set; }   // bits 64-71
     }
 
     /// <summary>80-bit struct: 1 ulong + 1 ushort = 10 bytes.</summary>
     [BitFields(80)]
     public partial struct Bits80
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }
-        [BitField(64, 79)] public partial ushort High { get; set; }
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }
+        [BitField(64, EndBit = 79)] public partial ushort High { get; set; }
     }
 
     /// <summary>96-bit struct: 1 ulong + 1 uint = 12 bytes.</summary>
     [BitFields(96)]
     public partial struct Bits96
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }
-        [BitField(64, 95)] public partial uint High { get; set; }
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }
+        [BitField(64, EndBit = 95)] public partial uint High { get; set; }
     }
 
     /// <summary>16384-bit struct (256 words) � maximum supported size.</summary>
     [BitFields(16384)]
     public partial struct Bits16384
     {
-        [BitField(0, 63)] public partial ulong W0 { get; set; }          // first word
-        [BitField(8128, 8191)] public partial ulong WMid { get; set; }   // middle word (word 127)
-        [BitField(16320, 16383)] public partial ulong WLast { get; set; }// last word (word 255)
+        [BitField(0, EndBit = 63)] public partial ulong W0 { get; set; }          // first word
+        [BitField(8128, EndBit = 8191)] public partial ulong WMid { get; set; }   // middle word (word 127)
+        [BitField(16320, EndBit = 16383)] public partial ulong WLast { get; set; }// last word (word 255)
         [BitFlag(0)] public partial bool LowBit { get; set; }            // bit 0
         [BitFlag(16383)] public partial bool HighBit { get; set; }       // bit 16383
     }
@@ -117,8 +117,8 @@ public partial class BitFieldMultiWordTests
     [BitFields(128, Description = "128-bit described register")]
     public partial struct Bits128Described
     {
-        [BitField(0, 63, Description = "Lower half")] public partial ulong Low { get; set; }
-        [BitField(64, 127, Description = "Upper half")] public partial ulong High { get; set; }
+        [BitField(0, EndBit = 63, Description = "Lower half")] public partial ulong Low { get; set; }
+        [BitField(64, EndBit = 127, Description = "Upper half")] public partial ulong High { get; set; }
     }
 
 

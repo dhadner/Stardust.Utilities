@@ -1,4 +1,4 @@
-﻿# Endian Types
+# Endian Types
 
 Type-safe big-endian and little-endian integer types for .NET.
 
@@ -447,8 +447,8 @@ documentation on composition and mixed-endian nesting.
 [BitFields(typeof(UInt32Be))]
 public partial struct StatusRegister
 {
-    [BitField(0, 8)] public partial byte ErrorCode { get; set; }
-    [BitField(8, 16)] public partial ushort DataLength { get; set; }
+    [BitField(0, EndBit = 8)] public partial byte ErrorCode { get; set; }
+    [BitField(8, EndBit = 16)] public partial ushort DataLength { get; set; }
     [BitFlag(24)] public partial bool Ready { get; set; }
     [BitFlag(25)] public partial bool Error { get; set; }
     [BitFlag(31)] public partial bool Valid { get; set; }
@@ -472,8 +472,8 @@ struct. This is useful when a single struct mixes byte orders at the field level
 [BitFieldsView]
 public partial record struct FileBlobView
 {
-    [BitField(0, 31)]  public partial uint Timestamp { get; set; }          // LE (struct default)
-    [BitField(32, 63)] public partial UInt32Be NetworkIp { get; set; }      // BE (per-field override)
+    [BitField(0, EndBit = 31)]  public partial uint Timestamp { get; set; }          // LE (struct default)
+    [BitField(32, EndBit = 63)] public partial UInt32Be NetworkIp { get; set; }      // BE (per-field override)
 }
 ```
 

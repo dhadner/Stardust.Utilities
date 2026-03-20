@@ -26,9 +26,9 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct IPv6HeaderView
     {
-        [BitField(0, 3)] public partial byte Version { get; set; }
-        [BitField(4, 11)] public partial byte TrafficClass { get; set; }
-        [BitField(12, 31)] public partial uint FlowLabel { get; set; }
+        [BitField(0, EndBit = 3)] public partial byte Version { get; set; }
+        [BitField(4, EndBit = 11)] public partial byte TrafficClass { get; set; }
+        [BitField(12, EndBit = 31)] public partial uint FlowLabel { get; set; }
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public partial class BitFieldsViewTests
     {
         [BitFlag(0)] public partial bool MsbFlag { get; set; }
         [BitFlag(7)] public partial bool LsbFlag { get; set; }
-        [BitField(1, 4)] public partial byte Middle { get; set; }
+        [BitField(1, EndBit = 4)] public partial byte Middle { get; set; }
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public partial class BitFieldsViewTests
     {
         [BitFlag(0)] public partial bool LsbFlag { get; set; }
         [BitFlag(7)] public partial bool MsbFlag { get; set; }
-        [BitField(1, 4)] public partial byte Middle { get; set; }
+        [BitField(1, EndBit = 4)] public partial byte Middle { get; set; }
     }
 
     /// <summary>
@@ -61,9 +61,9 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct TwoByteView
     {
-        [BitField(0, 15)] public partial ushort FullWord { get; set; }
-        [BitField(0, 7)] public partial byte HighByte { get; set; }
-        [BitField(8, 15)] public partial byte LowByte { get; set; }
+        [BitField(0, EndBit = 15)] public partial ushort FullWord { get; set; }
+        [BitField(0, EndBit = 7)] public partial byte HighByte { get; set; }
+        [BitField(8, EndBit = 15)] public partial byte LowByte { get; set; }
     }
 
     /// <summary>
@@ -76,14 +76,14 @@ public partial class BitFieldsViewTests
     {
         [BitFlag(0)] public partial bool Active { get; set; }
         [BitFlag(1)] public partial bool Valid { get; set; }
-        [BitField(4, 7)] public partial byte Code { get; set; }
+        [BitField(4, EndBit = 7)] public partial byte Code { get; set; }
     }
 
     [BitFieldsView]
     public partial record struct ViewWithEmbeddedBitFields
     {
-        [BitField(0, 7)] public partial EmbeddedFlags Flags { get; set; }
-        [BitField(8, 15)] public partial byte Payload { get; set; }
+        [BitField(0, EndBit = 7)] public partial EmbeddedFlags Flags { get; set; }
+        [BitField(8, EndBit = 15)] public partial byte Payload { get; set; }
     }
 
     // ---- Composition test views ----
@@ -98,8 +98,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct BeViewWithLeHeader
     {
-        [BitField(0, 15)] public partial ProtocolHeader16 Header { get; set; }
-        [BitField(16, 23)] public partial byte Tag { get; set; }
+        [BitField(0, EndBit = 15)] public partial ProtocolHeader16 Header { get; set; }
+        [BitField(16, EndBit = 23)] public partial byte Tag { get; set; }
     }
 
     /// <summary>
@@ -109,8 +109,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct LeViewWithLeHeader
     {
-        [BitField(0, 15)] public partial ProtocolHeader16 Header { get; set; }
-        [BitField(16, 23)] public partial byte Tag { get; set; }
+        [BitField(0, EndBit = 15)] public partial ProtocolHeader16 Header { get; set; }
+        [BitField(16, EndBit = 23)] public partial byte Tag { get; set; }
     }
 
     /// <summary>
@@ -120,8 +120,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct BeViewWithByteFlags
     {
-        [BitField(0, 7)] public partial StatusFlags Flags { get; set; }
-        [BitField(8, 15)] public partial byte Payload { get; set; }
+        [BitField(0, EndBit = 7)] public partial StatusFlags Flags { get; set; }
+        [BitField(8, EndBit = 15)] public partial byte Payload { get; set; }
     }
 
     /// <summary>
@@ -132,8 +132,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct ViewWithTruncatedHeader
     {
-        [BitField(0, 7)] public partial ProtocolHeader16 TruncatedHeader { get; set; }
-        [BitField(8, 15)] public partial byte Other { get; set; }
+        [BitField(0, EndBit = 7)] public partial ProtocolHeader16 TruncatedHeader { get; set; }
+        [BitField(8, EndBit = 15)] public partial byte Other { get; set; }
     }
 
     /// <summary>
@@ -143,8 +143,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct ViewWithWideFlags
     {
-        [BitField(0, 15)] public partial StatusFlags WideFlags { get; set; }
-        [BitField(16, 23)] public partial byte Payload { get; set; }
+        [BitField(0, EndBit = 15)] public partial StatusFlags WideFlags { get; set; }
+        [BitField(16, EndBit = 23)] public partial byte Payload { get; set; }
     }
 
     /// <summary>
@@ -153,8 +153,8 @@ public partial class BitFieldsViewTests
     [BitFields(typeof(byte), bitOrder: BitOrder.BitZeroIsMsb)]
     public partial struct BitZeroIsMsbRegister
     {
-        [BitField(0, 3)] public partial byte HighNibble { get; set; }
-        [BitField(4, 7)] public partial byte LowNibble { get; set; }
+        [BitField(0, EndBit = 3)] public partial byte HighNibble { get; set; }
+        [BitField(4, EndBit = 7)] public partial byte LowNibble { get; set; }
         [BitFlag(0)] public partial bool MsbFlag { get; set; }
         [BitFlag(7)] public partial bool LsbFlag { get; set; }
     }
@@ -167,7 +167,7 @@ public partial class BitFieldsViewTests
     [BitFieldsView]
     public partial record struct InnerView
     {
-        [BitField(0, 7)] public partial byte FieldA { get; set; }
+        [BitField(0, EndBit = 7)] public partial byte FieldA { get; set; }
         [BitFlag(0)] public partial bool FlagA { get; set; }
     }
 
@@ -178,8 +178,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView]
     public partial record struct OuterByteAligned
     {
-        [BitField(0, 7)] public partial byte Header { get; set; }
-        [BitField(16, 23)] public partial InnerView Inner { get; set; }
+        [BitField(0, EndBit = 7)] public partial byte Header { get; set; }
+        [BitField(16, EndBit = 23)] public partial InnerView Inner { get; set; }
     }
 
     /// <summary>
@@ -189,8 +189,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView]
     public partial record struct OuterBitOffset
     {
-        [BitField(0, 3)] public partial byte LowNibble { get; set; }
-        [BitField(4, 11)] public partial InnerView Inner { get; set; }
+        [BitField(0, EndBit = 3)] public partial byte LowNibble { get; set; }
+        [BitField(4, EndBit = 11)] public partial InnerView Inner { get; set; }
     }
 
     /// <summary>
@@ -200,8 +200,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView]
     public partial record struct OuterBytePlusBit
     {
-        [BitField(0, 7)] public partial byte FirstByte { get; set; }
-        [BitField(12, 19)] public partial InnerView Inner { get; set; }
+        [BitField(0, EndBit = 7)] public partial byte FirstByte { get; set; }
+        [BitField(12, EndBit = 19)] public partial InnerView Inner { get; set; }
     }
 
     /// <summary>
@@ -210,14 +210,14 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct OuterBigEndian
     {
-        [BitField(0, 7)] public partial byte Header { get; set; }
-        [BitField(16, 23)] public partial InnerViewBE Inner { get; set; }
+        [BitField(0, EndBit = 7)] public partial byte Header { get; set; }
+        [BitField(16, EndBit = 23)] public partial InnerViewBE Inner { get; set; }
     }
 
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct InnerViewBE
     {
-        [BitField(0, 7)] public partial byte Value { get; set; }
+        [BitField(0, EndBit = 7)] public partial byte Value { get; set; }
         [BitFlag(0)] public partial bool TopBit { get; set; }
     }
 
@@ -230,9 +230,9 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct MixedEndianView
     {
-        [BitField(0, 15)]  public partial ushort LeField { get; set; }
-        [BitField(16, 47)] public partial UInt32Be BeField { get; set; }
-        [BitField(48, 63)] public partial UInt16Le ExplicitLeField { get; set; }
+        [BitField(0, EndBit = 15)]  public partial ushort LeField { get; set; }
+        [BitField(16, EndBit = 47)] public partial UInt32Be BeField { get; set; }
+        [BitField(48, EndBit = 63)] public partial UInt16Le ExplicitLeField { get; set; }
     }
 
     /// <summary>
@@ -241,8 +241,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct MixedEndianBEView
     {
-        [BitField(0, 15)]  public partial ushort BeField { get; set; }
-        [BitField(16, 47)] public partial UInt32Le LeField { get; set; }
+        [BitField(0, EndBit = 15)]  public partial ushort BeField { get; set; }
+        [BitField(16, EndBit = 47)] public partial UInt32Le LeField { get; set; }
     }
 
     /// <summary>
@@ -253,12 +253,12 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct ExplicitSameEndianLeView
     {
-        [BitField(0, 15)]   public partial UInt16Le U16 { get; set; }
-        [BitField(16, 31)]  public partial Int16Le  S16 { get; set; }
-        [BitField(32, 63)]  public partial UInt32Le U32 { get; set; }
-        [BitField(64, 95)]  public partial Int32Le  S32 { get; set; }
-        [BitField(96, 159)] public partial UInt64Le U64 { get; set; }
-        [BitField(160, 223)] public partial Int64Le S64 { get; set; }
+        [BitField(0, EndBit = 15)]   public partial UInt16Le U16 { get; set; }
+        [BitField(16, EndBit = 31)]  public partial Int16Le  S16 { get; set; }
+        [BitField(32, EndBit = 63)]  public partial UInt32Le U32 { get; set; }
+        [BitField(64, EndBit = 95)]  public partial Int32Le  S32 { get; set; }
+        [BitField(96, EndBit = 159)] public partial UInt64Le U64 { get; set; }
+        [BitField(160, EndBit = 223)] public partial Int64Le S64 { get; set; }
     }
 
     /// <summary>
@@ -269,12 +269,12 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct ExplicitSameEndianBeView
     {
-        [BitField(0, 15)]    public partial UInt16Be U16 { get; set; }
-        [BitField(16, 31)]   public partial Int16Be  S16 { get; set; }
-        [BitField(32, 63)]   public partial UInt32Be U32 { get; set; }
-        [BitField(64, 95)]   public partial Int32Be  S32 { get; set; }
-        [BitField(96, 159)]  public partial UInt64Be U64 { get; set; }
-        [BitField(160, 223)] public partial Int64Be  S64 { get; set; }
+        [BitField(0, EndBit = 15)]    public partial UInt16Be U16 { get; set; }
+        [BitField(16, EndBit = 31)]   public partial Int16Be  S16 { get; set; }
+        [BitField(32, EndBit = 63)]   public partial UInt32Be U32 { get; set; }
+        [BitField(64, EndBit = 95)]   public partial Int32Be  S32 { get; set; }
+        [BitField(96, EndBit = 159)]  public partial UInt64Be U64 { get; set; }
+        [BitField(160, EndBit = 223)] public partial Int64Be  S64 { get; set; }
     }
 
     /// <summary>
@@ -283,12 +283,12 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct AllBeInLeView
     {
-        [BitField(0, 15)]    public partial UInt16Be U16 { get; set; }
-        [BitField(16, 31)]   public partial Int16Be  S16 { get; set; }
-        [BitField(32, 63)]   public partial UInt32Be U32 { get; set; }
-        [BitField(64, 95)]   public partial Int32Be  S32 { get; set; }
-        [BitField(96, 159)]  public partial UInt64Be U64 { get; set; }
-        [BitField(160, 223)] public partial Int64Be  S64 { get; set; }
+        [BitField(0, EndBit = 15)]    public partial UInt16Be U16 { get; set; }
+        [BitField(16, EndBit = 31)]   public partial Int16Be  S16 { get; set; }
+        [BitField(32, EndBit = 63)]   public partial UInt32Be U32 { get; set; }
+        [BitField(64, EndBit = 95)]   public partial Int32Be  S32 { get; set; }
+        [BitField(96, EndBit = 159)]  public partial UInt64Be U64 { get; set; }
+        [BitField(160, EndBit = 223)] public partial Int64Be  S64 { get; set; }
     }
 
     /// <summary>
@@ -299,12 +299,12 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct MultiTypeBigEndianView
     {
-        [BitField(0, 15)]    public partial ushort UShortField { get; set; }
-        [BitField(16, 31)]   public partial short ShortField { get; set; }
-        [BitField(32, 63)]   public partial uint UIntField { get; set; }
-        [BitField(64, 95)]   public partial int IntField { get; set; }
-        [BitField(96, 159)]  public partial ulong ULongField { get; set; }
-        [BitField(160, 223)] public partial long LongField { get; set; }
+        [BitField(0, EndBit = 15)]    public partial ushort UShortField { get; set; }
+        [BitField(16, EndBit = 31)]   public partial short ShortField { get; set; }
+        [BitField(32, EndBit = 63)]   public partial uint UIntField { get; set; }
+        [BitField(64, EndBit = 95)]   public partial int IntField { get; set; }
+        [BitField(96, EndBit = 159)]  public partial ulong ULongField { get; set; }
+        [BitField(160, EndBit = 223)] public partial long LongField { get; set; }
     }
 
     /// <summary>
@@ -314,12 +314,12 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct MultiTypeLittleEndianView
     {
-        [BitField(0, 15)]    public partial ushort UShortField { get; set; }
-        [BitField(16, 31)]   public partial short ShortField { get; set; }
-        [BitField(32, 63)]   public partial uint UIntField { get; set; }
-        [BitField(64, 95)]   public partial int IntField { get; set; }
-        [BitField(96, 159)]  public partial ulong ULongField { get; set; }
-        [BitField(160, 223)] public partial long LongField { get; set; }
+        [BitField(0, EndBit = 15)]    public partial ushort UShortField { get; set; }
+        [BitField(16, EndBit = 31)]   public partial short ShortField { get; set; }
+        [BitField(32, EndBit = 63)]   public partial uint UIntField { get; set; }
+        [BitField(64, EndBit = 95)]   public partial int IntField { get; set; }
+        [BitField(96, EndBit = 159)]  public partial ulong ULongField { get; set; }
+        [BitField(160, EndBit = 223)] public partial long LongField { get; set; }
     }
 
     // ---- Corner-case / abuse test views ----
@@ -331,9 +331,9 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct NarrowFieldsView
     {
-        [BitField(0, 2)]  public partial byte ThreeBit { get; set; }  // max 7
-        [BitField(3, 3)]  public partial byte OneBit { get; set; }    // max 1
-        [BitField(4, 7)]  public partial byte FourBit { get; set; }   // max 15
+        [BitField(0, EndBit = 2)]  public partial byte ThreeBit { get; set; }  // max 7
+        [BitField(3, EndBit = 3)]  public partial byte OneBit { get; set; }    // max 1
+        [BitField(4, EndBit = 7)]  public partial byte FourBit { get; set; }   // max 15
     }
 
     /// <summary>
@@ -343,10 +343,10 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct NibbleView
     {
-        [BitField(0, 3)]   public partial byte N0 { get; set; }
-        [BitField(4, 7)]   public partial byte N1 { get; set; }
-        [BitField(8, 11)]  public partial byte N2 { get; set; }
-        [BitField(12, 15)] public partial byte N3 { get; set; }
+        [BitField(0, EndBit = 3)]   public partial byte N0 { get; set; }
+        [BitField(4, EndBit = 7)]   public partial byte N1 { get; set; }
+        [BitField(8, EndBit = 11)]  public partial byte N2 { get; set; }
+        [BitField(12, EndBit = 15)] public partial byte N3 { get; set; }
     }
 
     /// <summary>
@@ -356,9 +356,9 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct OverlappingFieldsView
     {
-        [BitField(0, 15)] public partial ushort FullWord { get; set; }
-        [BitField(0, 7)]  public partial byte HighByte { get; set; }
-        [BitField(8, 15)] public partial byte LowByte { get; set; }
+        [BitField(0, EndBit = 15)] public partial ushort FullWord { get; set; }
+        [BitField(0, EndBit = 7)]  public partial byte HighByte { get; set; }
+        [BitField(8, EndBit = 15)] public partial byte LowByte { get; set; }
     }
 
     /// <summary>
@@ -367,9 +367,9 @@ public partial class BitFieldsViewTests
     [BitFieldsView]
     public partial record struct SingleBitByteView
     {
-        [BitField(0, 0)] public partial byte Bit0 { get; set; }
-        [BitField(1, 1)] public partial byte Bit1 { get; set; }
-        [BitField(2, 7)] public partial byte Rest { get; set; }
+        [BitField(0, EndBit = 0)] public partial byte Bit0 { get; set; }
+        [BitField(1, EndBit = 1)] public partial byte Bit1 { get; set; }
+        [BitField(2, EndBit = 7)] public partial byte Rest { get; set; }
     }
 
     /// <summary>
@@ -379,8 +379,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct SignedNarrowView
     {
-        [BitField(0, 7)]  public partial short Narrow8 { get; set; }  // 8 bits in a 16-bit type
-        [BitField(8, 23)] public partial short Full16 { get; set; }   // 16 bits -- sign works here
+        [BitField(0, EndBit = 7)]  public partial short Narrow8 { get; set; }  // 8 bits in a 16-bit type
+        [BitField(8, EndBit = 23)] public partial short Full16 { get; set; }   // 16 bits -- sign works here
     }
 
     /// <summary>
@@ -390,8 +390,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct EndianWidthMismatchView
     {
-        [BitField(0, 15)] public partial UInt32Be WideTypeNarrowField { get; set; }
-        [BitField(16, 31)] public partial ushort Neighbor { get; set; }
+        [BitField(0, EndBit = 15)] public partial UInt32Be WideTypeNarrowField { get; set; }
+        [BitField(16, EndBit = 31)] public partial ushort Neighbor { get; set; }
     }
 
     /// <summary>
@@ -400,7 +400,7 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct Full64BitView
     {
-        [BitField(0, 63)] public partial ulong Value { get; set; }
+        [BitField(0, EndBit = 63)] public partial ulong Value { get; set; }
     }
 
     /// <summary>
@@ -410,8 +410,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct DistantFieldView
     {
-        [BitField(0, 7)]     public partial byte First { get; set; }
-        [BitField(800, 815)] public partial ushort Distant { get; set; }
+        [BitField(0, EndBit = 7)]     public partial byte First { get; set; }
+        [BitField(800, EndBit = 815)] public partial ushort Distant { get; set; }
     }
 
     // ---- Protocol nesting view ----
@@ -423,8 +423,8 @@ public partial class BitFieldsViewTests
     [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct IPv4UdpPacketView
     {
-        [BitField(0, 159)]   public partial IPv4HeaderView Ip { get; set; }
-        [BitField(160, 223)] public partial UdpHeaderView Udp { get; set; }
+        [BitField(0, EndBit = 159)]   public partial IPv4HeaderView Ip { get; set; }
+        [BitField(160, EndBit = 223)] public partial UdpHeaderView Udp { get; set; }
     }
 
     #endregion
@@ -739,7 +739,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void BitFields_BitZeroIsMsb_HighNibble()
     {
-        // [BitField(0, 3)] with BitZeroIsMsb means top 4 bits
+        // [BitField(0, EndBit = 3)] with BitZeroIsMsb means top 4 bits
         // Value 0xA0 => HighNibble = 0x0A
         BitZeroIsMsbRegister reg = 0xA0;
         reg.HighNibble.Should().Be(0x0A);
@@ -748,7 +748,7 @@ public partial class BitFieldsViewTests
     [Fact]
     public void BitFields_BitZeroIsMsb_LowNibble()
     {
-        // [BitField(4, 7)] with BitZeroIsMsb means bottom 4 bits
+        // [BitField(4, EndBit = 7)] with BitZeroIsMsb means bottom 4 bits
         BitZeroIsMsbRegister reg = 0x05;
         reg.LowNibble.Should().Be(0x05);
     }

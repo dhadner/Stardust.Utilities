@@ -25,12 +25,12 @@ namespace Stardust.Utilities.Protocols;
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TcpHeaderView
 {
-    [BitField(0, 15)]    public partial ushort SourcePort { get; set; }
-    [BitField(16, 31)]   public partial ushort DestinationPort { get; set; }
-    [BitField(32, 63)]   public partial uint SequenceNumber { get; set; }
-    [BitField(64, 95)]   public partial uint AcknowledgmentNumber { get; set; }
-    [BitField(96, 99)]   public partial byte DataOffset { get; set; }
-    [BitField(100, 102)] public partial byte Reserved { get; set; }
+    [BitField(0, EndBit = 15)]    public partial ushort SourcePort { get; set; }
+    [BitField(16, EndBit = 31)]   public partial ushort DestinationPort { get; set; }
+    [BitField(32, EndBit = 63)]   public partial uint SequenceNumber { get; set; }
+    [BitField(64, EndBit = 95)]   public partial uint AcknowledgmentNumber { get; set; }
+    [BitField(96, EndBit = 99)]   public partial byte DataOffset { get; set; }
+    [BitField(100, EndBit = 102)] public partial byte Reserved { get; set; }
     [BitFlag(103)]       public partial bool NS { get; set; }
     [BitFlag(104)]       public partial bool CWR { get; set; }
     [BitFlag(105)]       public partial bool ECE { get; set; }
@@ -40,9 +40,9 @@ public partial record struct TcpHeaderView
     [BitFlag(109)]       public partial bool RST { get; set; }
     [BitFlag(110)]       public partial bool SYN { get; set; }
     [BitFlag(111)]       public partial bool FIN { get; set; }
-    [BitField(112, 127)] public partial ushort WindowSize { get; set; }
-    [BitField(128, 143)] public partial ushort Checksum { get; set; }
-    [BitField(144, 159)] public partial ushort UrgentPointer { get; set; }
+    [BitField(112, EndBit = 127)] public partial ushort WindowSize { get; set; }
+    [BitField(128, EndBit = 143)] public partial ushort Checksum { get; set; }
+    [BitField(144, EndBit = 159)] public partial ushort UrgentPointer { get; set; }
 
     /// <summary>Header length in bytes (DataOffset * 4).</summary>
     public int HeaderLengthBytes => DataOffset * 4;

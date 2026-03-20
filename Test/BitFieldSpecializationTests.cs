@@ -16,8 +16,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(float))]
     public partial struct FloatRegister
     {
-        [BitField(0, 22)] public partial uint Mantissa { get; set; }    // bits 0-22 (23-bit mantissa)
-        [BitField(23, 30)] public partial byte Exponent { get; set; }   // bits 23-30 (8-bit exponent)
+        [BitField(0, EndBit = 22)] public partial uint Mantissa { get; set; }    // bits 0-22 (23-bit mantissa)
+        [BitField(23, EndBit = 30)] public partial byte Exponent { get; set; }   // bits 23-30 (8-bit exponent)
         [BitFlag(31)] public partial bool Sign { get; set; }             // bit 31 (sign bit)
     }
 
@@ -25,8 +25,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(double))]
     public partial struct DoubleRegister
     {
-        [BitField(0, 51)] public partial ulong Mantissa { get; set; }   // bits 0-51 (52-bit mantissa)
-        [BitField(52, 62)] public partial ushort Exponent { get; set; } // bits 52-62 (11-bit exponent)
+        [BitField(0, EndBit = 51)] public partial ulong Mantissa { get; set; }   // bits 0-51 (52-bit mantissa)
+        [BitField(52, EndBit = 62)] public partial ushort Exponent { get; set; } // bits 52-62 (11-bit exponent)
         [BitFlag(63)] public partial bool Sign { get; set; }             // bit 63 (sign bit)
 
         // ?? User-defined computed properties (not generated) ???????????
@@ -34,7 +34,7 @@ public partial class BitFieldSpecializationTests
         /// <summary>True if the value is NaN (exponent = all 1s, mantissa ? 0).</summary>
         public bool IsNaN => Exponent == 0x7FF && Mantissa != 0;
 
-        /// <summary>True if the value is ±Infinity (exponent = all 1s, mantissa = 0).</summary>
+        /// <summary>True if the value is ï¿½Infinity (exponent = all 1s, mantissa = 0).</summary>
         public bool IsInfinity => Exponent == 0x7FF && Mantissa == 0;
 
         /// <summary>True if the value is a denormalized number (exponent = 0, mantissa ? 0).</summary>
@@ -43,7 +43,7 @@ public partial class BitFieldSpecializationTests
         /// <summary>True if the value is a normalized number (0 &lt; exponent &lt; 0x7FF).</summary>
         public bool IsNormal => Exponent > 0 && Exponent < 0x7FF;
 
-        /// <summary>True if the value is ±0 (exponent = 0, mantissa = 0).</summary>
+        /// <summary>True if the value is ï¿½0 (exponent = 0, mantissa = 0).</summary>
         public bool IsZero => Exponent == 0 && Mantissa == 0;
 
         /// <summary>The unbiased exponent (biased ? 1023), or null for non-normal values (zero, denormalized, infinity, NaN).</summary>
@@ -54,16 +54,16 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(UInt128))]
     public partial struct U128Register
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }    // bits 0-63
-        [BitField(64, 127)] public partial ulong High { get; set; } // bits 64-127
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }    // bits 0-63
+        [BitField(64, EndBit = 127)] public partial ulong High { get; set; } // bits 64-127
     }
 
     /// <summary>128-bit struct backed by Int128 (via multi-word with conversion operators).</summary>
     [BitFields(typeof(Int128))]
     public partial struct I128Register
     {
-        [BitField(0, 63)] public partial ulong Low { get; set; }    // bits 0-63
-        [BitField(64, 127)] public partial ulong High { get; set; } // bits 64-127
+        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }    // bits 0-63
+        [BitField(64, EndBit = 127)] public partial ulong High { get; set; } // bits 64-127
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(decimal))]
     public partial struct DecimalRegister
     {
-        [BitField(0, 95)] public partial UInt128 Coefficient { get; set; }   // 96-bit unsigned integer
-        [BitField(112, 118)] public partial byte Scale { get; set; }         // 0-28 (power of 10 divisor)
+        [BitField(0, EndBit = 95)] public partial UInt128 Coefficient { get; set; }   // 96-bit unsigned integer
+        [BitField(112, EndBit = 118)] public partial byte Scale { get; set; }         // 0-28 (power of 10 divisor)
         [BitFlag(127)] public partial bool Sign { get; set; }                // sign bit
     }
 
@@ -86,8 +86,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(Half))]
     public partial struct HalfRegister
     {
-        [BitField(0, 9)] public partial ushort Mantissa { get; set; }   // bits 0-9 (10-bit mantissa)
-        [BitField(10, 14)] public partial byte Exponent { get; set; }   // bits 10-14 (5-bit exponent)
+        [BitField(0, EndBit = 9)] public partial ushort Mantissa { get; set; }   // bits 0-9 (10-bit mantissa)
+        [BitField(10, EndBit = 14)] public partial byte Exponent { get; set; }   // bits 10-14 (5-bit exponent)
         [BitFlag(15)] public partial bool Sign { get; set; }             // bit 15 (sign bit)
     }
 
@@ -578,14 +578,14 @@ public partial class BitFieldSpecializationTests
     //   Bits 52-62:  Exponent (11-bit, biased by 1023)
     //   Bits 0-51:   Mantissa (52-bit fractional, implicit leading 1 for normal numbers)
     //
-    // Value = (-1)^sign × 2^(exponent - 1023) × (1 + mantissa/2^52)
+    // Value = (-1)^sign ï¿½ 2^(exponent - 1023) ï¿½ (1 + mantissa/2^52)
 
     [Fact]
     public void DoubleRegister_BuildPi_FromBitFields()
     {
         // ? ? 3.14159265358979323846
         // IEEE 754: sign=0, exponent=1024 (biased, 2^1), mantissa=0x921FB54442D18
-        // Verification: (-1)^0 × 2^(1024-1023) × (1 + 0x921FB54442D18/2^52) = ?
+        // Verification: (-1)^0 ï¿½ 2^(1024-1023) ï¿½ (1 + 0x921FB54442D18/2^52) = ?
         DoubleRegister pi = default;
         pi.Sign = false;
         pi.Exponent = 1024;
@@ -644,7 +644,7 @@ public partial class BitFieldSpecializationTests
     public void DoubleRegister_ConstructSmallestDenormalized()
     {
         // Smallest denormalized double: sign=0, exponent=0, mantissa=1
-        // Value = 2^(-1074) ? 5 × 10^(-324)
+        // Value = 2^(-1074) ? 5 ï¿½ 10^(-324)
         DoubleRegister tiny = default;
         tiny.Sign = false;
         tiny.Exponent = 0;
@@ -682,7 +682,7 @@ public partial class BitFieldSpecializationTests
     [Fact]
     public void DoubleRegister_Arithmetic_AreaOfCircle()
     {
-        // A = ? × r²  for r = 3.5
+        // A = ? ï¿½ rï¿½  for r = 3.5
         DoubleRegister pi = System.Math.PI;
         DoubleRegister r = 3.5;
         DoubleRegister area = pi * r * r;
@@ -692,7 +692,7 @@ public partial class BitFieldSpecializationTests
     [Fact]
     public void DoubleRegister_Arithmetic_QuadraticFormula()
     {
-        // Solve x² - 5x + 6 = 0 ? x = (5 ± ?(25-24)) / 2 = 3, 2
+        // Solve xï¿½ - 5x + 6 = 0 ? x = (5 ï¿½ ?(25-24)) / 2 = 3, 2
         DoubleRegister a = 1.0;
         DoubleRegister b = -5.0;
         DoubleRegister c = 6.0;

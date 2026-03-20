@@ -68,6 +68,12 @@ internal sealed class BitFieldsViewInfo
     /// </summary>
     public List<NonPartialPropertyInfo> NonPartialProperties { get; }
 
+    /// <summary>
+    /// Property-level diagnostics (SD0015–SD0019) collected during attribute parsing.
+    /// Reported in the Execute phase via <c>context.ReportDiagnostic</c>.
+    /// </summary>
+    public List<PropertyDiagnosticInfo> PropertyDiagnostics { get; }
+
     public BitFieldsViewInfo(
         string typeName,
         string? ns,
@@ -81,7 +87,8 @@ internal sealed class BitFieldsViewInfo
         int minBytes,
         string? description = null,
         Type? descriptionResourceType = null,
-        List<NonPartialPropertyInfo>? nonPartialProperties = null)
+        List<NonPartialPropertyInfo>? nonPartialProperties = null,
+        List<PropertyDiagnosticInfo>? propertyDiagnostics = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -96,5 +103,6 @@ internal sealed class BitFieldsViewInfo
         Description = description;
         DescriptionResourceType = descriptionResourceType;
         NonPartialProperties = nonPartialProperties ?? new List<NonPartialPropertyInfo>();
+        PropertyDiagnostics = propertyDiagnostics ?? new List<PropertyDiagnosticInfo>();
     }
 }

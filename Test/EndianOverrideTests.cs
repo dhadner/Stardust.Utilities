@@ -33,10 +33,10 @@ public partial class EndianOverrideTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct View_BE_Msb
     {
-        [BitField(0, 15)]   public partial ushort    NativeU16 { get; set; }  // BE (struct default)
-        [BitField(16, 47)]  public partial UInt32Le  LeU32     { get; set; }  // LE override
-        [BitField(48, 63)]  public partial Int16Le   LeS16     { get; set; }  // LE override (signed)
-        [BitField(64, 127)] public partial UInt64Le  LeU64     { get; set; }  // LE override (64-bit)
+        [BitField(0, EndBit = 15)]   public partial ushort    NativeU16 { get; set; }  // BE (struct default)
+        [BitField(16, EndBit = 47)]  public partial UInt32Le  LeU32     { get; set; }  // LE override
+        [BitField(48, EndBit = 63)]  public partial Int16Le   LeS16     { get; set; }  // LE override (signed)
+        [BitField(64, EndBit = 127)] public partial UInt64Le  LeU64     { get; set; }  // LE override (64-bit)
     }
 
     // --- Combo 2: BigEndian / BitZeroIsLsb, with *Le overrides ---
@@ -44,10 +44,10 @@ public partial class EndianOverrideTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct View_BE_Lsb
     {
-        [BitField(0, 15)]   public partial ushort    NativeU16 { get; set; }  // BE (struct default)
-        [BitField(16, 47)]  public partial UInt32Le  LeU32     { get; set; }  // LE override
-        [BitField(48, 63)]  public partial Int16Le   LeS16     { get; set; }  // LE override (signed)
-        [BitField(64, 127)] public partial UInt64Le  LeU64     { get; set; }  // LE override (64-bit)
+        [BitField(0, EndBit = 15)]   public partial ushort    NativeU16 { get; set; }  // BE (struct default)
+        [BitField(16, EndBit = 47)]  public partial UInt32Le  LeU32     { get; set; }  // LE override
+        [BitField(48, EndBit = 63)]  public partial Int16Le   LeS16     { get; set; }  // LE override (signed)
+        [BitField(64, EndBit = 127)] public partial UInt64Le  LeU64     { get; set; }  // LE override (64-bit)
     }
 
     // --- Combo 3: LittleEndian / BitZeroIsLsb, with *Be overrides ---
@@ -55,10 +55,10 @@ public partial class EndianOverrideTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct View_LE_Lsb
     {
-        [BitField(0, 15)]   public partial ushort    NativeU16 { get; set; }  // LE (struct default)
-        [BitField(16, 47)]  public partial UInt32Be  BeU32     { get; set; }  // BE override
-        [BitField(48, 63)]  public partial Int16Be   BeS16     { get; set; }  // BE override (signed)
-        [BitField(64, 127)] public partial UInt64Be  BeU64     { get; set; }  // BE override (64-bit)
+        [BitField(0, EndBit = 15)]   public partial ushort    NativeU16 { get; set; }  // LE (struct default)
+        [BitField(16, EndBit = 47)]  public partial UInt32Be  BeU32     { get; set; }  // BE override
+        [BitField(48, EndBit = 63)]  public partial Int16Be   BeS16     { get; set; }  // BE override (signed)
+        [BitField(64, EndBit = 127)] public partial UInt64Be  BeU64     { get; set; }  // BE override (64-bit)
     }
 
     // --- Combo 4: LittleEndian / BitZeroIsMsb, with *Be overrides ---
@@ -66,10 +66,10 @@ public partial class EndianOverrideTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct View_LE_Msb
     {
-        [BitField(0, 15)]   public partial ushort    NativeU16 { get; set; }  // LE (struct default)
-        [BitField(16, 47)]  public partial UInt32Be  BeU32     { get; set; }  // BE override
-        [BitField(48, 63)]  public partial Int16Be   BeS16     { get; set; }  // BE override (signed)
-        [BitField(64, 127)] public partial UInt64Be  BeU64     { get; set; }  // BE override (64-bit)
+        [BitField(0, EndBit = 15)]   public partial ushort    NativeU16 { get; set; }  // LE (struct default)
+        [BitField(16, EndBit = 47)]  public partial UInt32Be  BeU32     { get; set; }  // BE override
+        [BitField(48, EndBit = 63)]  public partial Int16Be   BeS16     { get; set; }  // BE override (signed)
+        [BitField(64, EndBit = 127)] public partial UInt64Be  BeU64     { get; set; }  // BE override (64-bit)
     }
 
     // ================================================================
@@ -82,9 +82,9 @@ public partial class EndianOverrideTests
     [BitFields(typeof(ulong))]
     public partial struct Reg_Lsb
     {
-        [BitField(0, 15)]  public partial UInt16Be BeU16 { get; set; }
-        [BitField(16, 31)] public partial UInt16Le LeU16 { get; set; }
-        [BitField(32, 63)] public partial UInt32Be BeU32 { get; set; }
+        [BitField(0, EndBit = 15)]  public partial UInt16Be BeU16 { get; set; }
+        [BitField(16, EndBit = 31)] public partial UInt16Le LeU16 { get; set; }
+        [BitField(32, EndBit = 63)] public partial UInt32Be BeU32 { get; set; }
     }
 
     // --- BitFields with BitZeroIsMsb, endian property types ---
@@ -92,9 +92,9 @@ public partial class EndianOverrideTests
     [BitFields(typeof(ulong), bitOrder: BitOrder.BitZeroIsMsb)]
     public partial struct Reg_Msb
     {
-        [BitField(0, 15)]  public partial UInt16Be BeU16 { get; set; }
-        [BitField(16, 31)] public partial UInt16Le LeU16 { get; set; }
-        [BitField(32, 63)] public partial UInt32Be BeU32 { get; set; }
+        [BitField(0, EndBit = 15)]  public partial UInt16Be BeU16 { get; set; }
+        [BitField(16, EndBit = 31)] public partial UInt16Le LeU16 { get; set; }
+        [BitField(32, EndBit = 63)] public partial UInt32Be BeU32 { get; set; }
     }
 
     // ================================================================
@@ -719,29 +719,29 @@ public partial class EndianOverrideTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct SameEndian_BE_Msb
     {
-        [BitField(0, 15)]  public partial ushort    NativeU16 { get; set; }
-        [BitField(16, 31)] public partial UInt16Be  ExplicitU16 { get; set; }
+        [BitField(0, EndBit = 15)]  public partial ushort    NativeU16 { get; set; }
+        [BitField(16, EndBit = 31)] public partial UInt16Be  ExplicitU16 { get; set; }
     }
 
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct SameEndian_BE_Lsb
     {
-        [BitField(0, 15)]  public partial ushort    NativeU16 { get; set; }
-        [BitField(16, 31)] public partial UInt16Be  ExplicitU16 { get; set; }
+        [BitField(0, EndBit = 15)]  public partial ushort    NativeU16 { get; set; }
+        [BitField(16, EndBit = 31)] public partial UInt16Be  ExplicitU16 { get; set; }
     }
 
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct SameEndian_LE_Lsb
     {
-        [BitField(0, 15)]  public partial ushort    NativeU16 { get; set; }
-        [BitField(16, 31)] public partial UInt16Le  ExplicitU16 { get; set; }
+        [BitField(0, EndBit = 15)]  public partial ushort    NativeU16 { get; set; }
+        [BitField(16, EndBit = 31)] public partial UInt16Le  ExplicitU16 { get; set; }
     }
 
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct SameEndian_LE_Msb
     {
-        [BitField(0, 15)]  public partial ushort    NativeU16 { get; set; }
-        [BitField(16, 31)] public partial UInt16Le  ExplicitU16 { get; set; }
+        [BitField(0, EndBit = 15)]  public partial ushort    NativeU16 { get; set; }
+        [BitField(16, EndBit = 31)] public partial UInt16Le  ExplicitU16 { get; set; }
     }
 
     [Fact]

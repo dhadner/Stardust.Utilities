@@ -1122,8 +1122,8 @@ public class BitFieldNativeIntTests
 [BitFields(typeof(nint))]
 public partial struct NintSafe32Reg
 {
-    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
+    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, EndBit = 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
     [BitFlag(28)] public partial bool Enabled { get; set; }
     [BitFlag(29)] public partial bool Active { get; set; }
 }
@@ -1135,8 +1135,8 @@ public partial struct NintSafe32Reg
 [BitFields(typeof(nuint))]
 public partial struct NuintSafe32Reg
 {
-    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
+    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, EndBit = 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
     [BitFlag(28)] public partial bool Enabled { get; set; }
     [BitFlag(29)] public partial bool Active { get; set; }
 }

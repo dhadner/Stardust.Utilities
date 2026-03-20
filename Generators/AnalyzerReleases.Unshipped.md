@@ -3,3 +3,8 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SD0004  | Stardust.BitFields | Error | BitField/BitFlag property must be declared partial
+SD0015  | Stardust.BitFields | Warning | Deprecated two-parameter BitField constructor
+SD0016  | Stardust.BitFields | Warning | Redundant EndBit and Width on BitField
+SD0017  | Stardust.BitFields | Error | Inconsistent EndBit and Width on BitField
+SD0018  | Stardust.BitFields | Error | BitField missing EndBit or Width
+SD0019  | Stardust.BitFields | Error | BitField missing StartBit

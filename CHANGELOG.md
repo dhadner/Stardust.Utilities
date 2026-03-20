@@ -7,15 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.6] - 2026-03-20
 ### Added
 - **`nint`/`nuint` storage type support** for `[BitFields]`. Generates compiler error (SD0001) when fields exceed bit 31 on x86 builds, and compiler warning (SD0002) on AnyCPU builds where 32-bit execution would silently lose data.
-- **`StorageType` enum** -- new constructor overload `[BitFields(StorageType.Byte)]` (etc.) for compile-time validation of storage type. Generates compiler error (SD0003) for unsupported types. The existing `[BitFields(typeof(T))]` and `[BitFields(int)]` constructors remain supported.
+- **`StorageType` enum** -- new constructor overload `[BitFields(StorageType.Byte)]` (etc.) for IDE code-time and compile-time validation of storage type. Generates compiler error (SD0003) for unsupported types. The existing `[BitFields(typeof(T))]` and `[BitFields(int)]` constructors remain supported.
+- **Non-partial property diagnostic (SD0004)** -- the source generator now emits a clear error pointing at the user's source file when a `[BitField]` or `[BitFlag]` property is missing the `partial` keyword. The error message includes the property name, attribute, and corrected declaration. This replaces the confusing `CS9248` and `CS0102` compiler errors that previously appeared from the generated `.g.cs` file.
 - **Pre-defined numeric decomposition types**: `IEEE754Half`, `IEEE754Single`, `IEEE754Double`, and `DecimalBitFields` for inspecting IEEE 754 and .NET decimal bit layouts. Includes implicit conversions to/from their storage type, classification properties (`IsNormal`, `IsNaN`, `IsInfinity`, `IsDenormalized`, `IsZero`), true `Exponent` property (with getter and setter), `WithExponent(int)` fluent setter, and full arithmetic operator support.
 - **Named SCREAMING_SNAKE_CASE mask constants** in generated code (e.g., `MANTISSA_MASK`, `MANTISSA_SHIFTED_MASK`, `MANTISSA_INVERTED_MASK`, `MANTISSA_START_BIT`) replacing inline hex literals for improved readability and reviewability.
+- **`AddStructs` API** on `BitFieldDiagram` for incrementally adding struct types to an existing diagram instance after construction.
+- XML documentation coverage for all public APIs, now included in the NuGet package.
+- **Named property syntax for `[BitField]`** -- new `EndBit` and `Width` named properties plus parameterless and single-parameter constructors. Supports three self-documenting styles: `[BitField(0, Width = 8)]`, `[BitField(0, EndBit = 7)]`, and `[BitField(StartBit = 0, Width = 8)]`. Both `EndBit` and `Width` can be specified together if they are consistent (redundancy warning SD0016; error SD0017 if inconsistent). Missing range produces error SD0018; missing StartBit produces error SD0019.
+
+### Deprecated
+- **Two-parameter `[BitField(startBit, endBit)]` constructor** -- the positional `endBit` parameter is easily confused with a bit count. The source generator now emits warning SD0015 when this form is used. Migrate to `[BitField(startBit, EndBit = N)]` or `[BitField(startBit, Width = N)]`. The two-parameter constructor will be removed before v1.0.
 
 ### Changed
 - **`MustBe`/`UndefinedBitsMustBe` enforcement across all operations** -- `MustBe.Zero` and `MustBe.One` constraints on `[BitField]`/`[BitFlag]` are now enforced in setters, `With...` methods, constructors, parsing, and implicit conversions. Previously these constraints were only masked on read.
 
+### Fixed
+- Fixed constant naming (`MAX_EXPONENT`, `MAX_TRUE_EXPONENT`) to be consistent with existing constant naming convention and property names (`MAX_BIASED_EXPONENT`, `MAX_EXPONENT`) on pre-defined numeric decomposition types.
+- Fixed nuisance build warnings due to missing release tracking files for compiler diagnostics.
+
 ### Backwards Compatibility
-- All existing `[BitFields]` and `[BitFieldsView]` APIs are backwards compatible with 0.9.5. The `StorageType` enum constructor, `nint`/`nuint` support, numeric decomposition types, and named mask constants are entirely new additions.
+- All existing `[BitFields]` and `[BitFieldsView]` APIs are backwards compatible with 0.9.5. The `StorageType` enum constructor, `nint`/`nuint` support, numeric decomposition types, named mask constants, SD0004 diagnostic, and `AddStructs` API are entirely new additions.
 - `MustBe`/`UndefinedBitsMustBe` enforcement is now applied consistently in setters, `With...` methods, constructors, and parsing. Code that previously wrote invalid values to `MustBe.Zero`/`MustBe.One` fields will now have those writes silently corrected. This is a behavioral change but aligns with the documented contract.
 
 ## [0.9.5] - 2026-03-05

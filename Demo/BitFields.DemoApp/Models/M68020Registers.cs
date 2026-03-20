@@ -33,10 +33,10 @@ public partial struct M68020CCR
 [BitFields(typeof(ushort), Description = "Status Register (SR)")]
 public partial struct M68020SR
 {
-    [BitField(0, 7, Description = "Condition Code Register")]
+    [BitField(0, EndBit = 7, Description = "Condition Code Register")]
     public partial M68020CCR CCR { get; set; }
 
-    [BitField(8, 10, Description = "Interrupt priority mask (0-7)")]
+    [BitField(8, EndBit = 10, Description = "Interrupt priority mask (0-7)")]
     public partial byte IPM { get; set; }
 
     [BitFlag(12, Description = "Master/Interrupt state (1=Master Stack)")]
@@ -75,7 +75,7 @@ public partial struct M68020CACR
 [BitFields(typeof(uint), Description = "Source Function Code Register (SFC)")]
 public partial struct M68020SFC
 {
-    [BitField(0, 2, Description = "Source function code")]
+    [BitField(0, EndBit = 2, Description = "Source function code")]
     public partial byte FC { get; set; }
 }
 
@@ -84,7 +84,7 @@ public partial struct M68020SFC
 [BitFields(typeof(uint), Description = "Destination Function Code Register (DFC)")]
 public partial struct M68020DFC
 {
-    [BitField(0, 2, Description = "Destination function code")]
+    [BitField(0, EndBit = 2, Description = "Destination function code")]
     public partial byte FC { get; set; }
 }
 
@@ -93,42 +93,42 @@ public partial struct M68020DFC
 [BitFields(typeof(uint), Description = "Program Counter (PC)")]
 public partial struct M68020PC
 {
-    [BitField(0, 31, Description = "Program Counter")]
+    [BitField(0, EndBit = 31, Description = "Program Counter")]
     public partial uint PC { get; set; }
 }
 
 [BitFields(typeof(uint), Description = "Vector Base Register (VBR)")]
 public partial struct M68020VBR
 {
-    [BitField(0, 31, Description = "Vector Base Register")]
+    [BitField(0, EndBit = 31, Description = "Vector Base Register")]
     public partial uint VBR { get; set; }
 }
 
 [BitFields(typeof(uint), Description = "Cache Address Register (CAAR)")]
 public partial struct M68020CAAR
 {
-    [BitField(0, 31, Description = "Cache Address Register")]
+    [BitField(0, EndBit = 31, Description = "Cache Address Register")]
     public partial uint CAAR { get; set; }
 }
 
 [BitFields(typeof(uint), Description = "Master Stack Pointer (MSP)")]
 public partial struct M68020MSP
 {
-    [BitField(0, 31, Description = "A7* (Master Stack Pointer)")]
+    [BitField(0, EndBit = 31, Description = "A7* (Master Stack Pointer)")]
     public partial uint MSP { get; set; }
 }
 
 [BitFields(typeof(uint), Description = "Interrupt Stack Pointer (ISP)")]
 public partial struct M68020ISP
 {
-    [BitField(0, 31, Description = "A7* (Interrupt Stack Pointer)")]
+    [BitField(0, EndBit = 31, Description = "A7* (Interrupt Stack Pointer)")]
     public partial uint ISP { get; set; }
 }
 
 [BitFields(typeof(uint), Description = "User Stack Pointer (USP)")]
 public partial struct M68020USP
 {
-    [BitField(0, 31, Description = "A7 (User Stack Pointer)")]
+    [BitField(0, EndBit = 31, Description = "A7 (User Stack Pointer)")]
     public partial uint USP { get; set; }
 }
 
@@ -138,25 +138,25 @@ public partial struct M68020USP
 [BitFields(256, Description = "Data Registers")]
 public partial struct M68020DataRegisters
 {
-    [BitField(0, 31, Description = "Data register 0")] public partial uint D0 { get; set; }
-    [BitField(32, 63, Description = "Data register 1")] public partial uint D1 { get; set; }
-    [BitField(64, 95, Description = "Data register 2")] public partial uint D2 { get; set; }
-    [BitField(96, 127, Description = "Data register 3")] public partial uint D3 { get; set; }
-    [BitField(128, 159, Description = "Data register 4")] public partial uint D4 { get; set; }
-    [BitField(160, 191, Description = "Data register 5")] public partial uint D5 { get; set; }
-    [BitField(192, 223, Description = "Data register 6")] public partial uint D6 { get; set; }
-    [BitField(224, 255, Description = "Data register 7")] public partial uint D7 { get; set; }
+    [BitField(0, EndBit = 31, Description = "Data register 0")] public partial uint D0 { get; set; }
+    [BitField(32, EndBit = 63, Description = "Data register 1")] public partial uint D1 { get; set; }
+    [BitField(64, EndBit = 95, Description = "Data register 2")] public partial uint D2 { get; set; }
+    [BitField(96, EndBit = 127, Description = "Data register 3")] public partial uint D3 { get; set; }
+    [BitField(128, EndBit = 159, Description = "Data register 4")] public partial uint D4 { get; set; }
+    [BitField(160, EndBit = 191, Description = "Data register 5")] public partial uint D5 { get; set; }
+    [BitField(192, EndBit = 223, Description = "Data register 6")] public partial uint D6 { get; set; }
+    [BitField(224, EndBit = 255, Description = "Data register 7")] public partial uint D7 { get; set; }
 }
 
 /// <summary>Motorola 68020 Address Registers A0-A6 -- 7 x 32-bit.</summary>
 [BitFields(256-32, Description = "Address Registers")]
 public partial struct M68020AddressRegisters
 {
-    [BitField(0, 31, Description = "Address register 0")] public partial uint A0 { get; set; }
-    [BitField(32, 63, Description = "Address register 1")] public partial uint A1 { get; set; }
-    [BitField(64, 95, Description = "Address register 2")] public partial uint A2 { get; set; }
-    [BitField(96, 127, Description = "Address register 3")] public partial uint A3 { get; set; }
-    [BitField(128, 159, Description = "Address register 4")] public partial uint A4 { get; set; }
-    [BitField(160, 191, Description = "Address register 5")] public partial uint A5 { get; set; }
-    [BitField(192, 223, Description = "Address register 6 (often used as a Frame Pointer)")] public partial uint A6 { get; set; }
+    [BitField(0, EndBit = 31, Description = "Address register 0")] public partial uint A0 { get; set; }
+    [BitField(32, EndBit = 63, Description = "Address register 1")] public partial uint A1 { get; set; }
+    [BitField(64, EndBit = 95, Description = "Address register 2")] public partial uint A2 { get; set; }
+    [BitField(96, EndBit = 127, Description = "Address register 3")] public partial uint A3 { get; set; }
+    [BitField(128, EndBit = 159, Description = "Address register 4")] public partial uint A4 { get; set; }
+    [BitField(160, EndBit = 191, Description = "Address register 5")] public partial uint A5 { get; set; }
+    [BitField(192, EndBit = 223, Description = "Address register 6 (often used as a Frame Pointer)")] public partial uint A6 { get; set; }
 }

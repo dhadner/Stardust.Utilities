@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Tests;
 public partial struct MustBeTestReg
 {
     [BitFlag(0)] public partial bool Active { get; set; }
-    [BitField(1, 2, MustBe.Zero)] public partial byte Reserved { get; set; }
-    [BitField(3, 6)] public partial byte Data { get; set; }
+    [BitField(1, MustBe.Zero, EndBit = 2)] public partial byte Reserved { get; set; }
+    [BitField(3, EndBit = 6)] public partial byte Data { get; set; }
     [BitFlag(7, MustBe.One)] public partial bool Sync { get; set; }
 }
 
@@ -26,7 +26,7 @@ public partial struct MustBeTestReg
 [BitFields(typeof(byte), UndefinedBitsMustBe.Zeroes)]
 public partial struct CombinedMustBeReg
 {
-    [BitField(0, 2)] public partial byte Flags { get; set; }
+    [BitField(0, EndBit = 2)] public partial byte Flags { get; set; }
     [BitFlag(3, MustBe.One)] public partial bool AlwaysHigh { get; set; }
 }
 
@@ -36,9 +36,9 @@ public partial struct CombinedMustBeReg
 [BitFields(typeof(sbyte), UndefinedBitsMustBe.Zeroes)]
 public partial struct SignedMustBeReg
 {
-    [BitField(0, 2)] public partial byte Data { get; set; }
+    [BitField(0, EndBit = 2)] public partial byte Data { get; set; }
     [BitFlag(3, MustBe.One)] public partial bool MustBeSet { get; set; }
-    [BitField(4, 5, MustBe.Zero)] public partial byte Rsvd { get; set; }
+    [BitField(4, MustBe.Zero, EndBit = 5)] public partial byte Rsvd { get; set; }
 }
 
 #endregion

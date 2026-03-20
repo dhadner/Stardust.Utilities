@@ -64,13 +64,14 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         var flags = new List<BitFlagInfo>();
         var subViews = new List<SubViewInfo>();
         var nonPartialProperties = new List<NonPartialPropertyInfo>();
+        var propertyDiagnostics = new List<PropertyDiagnosticInfo>();
 
         foreach (var member in structSymbol.GetMembers().OfType<IPropertySymbol>())
         {
             foreach (var memberAttr in member.GetAttributes())
             {
                 var attrName = memberAttr.AttributeClass?.Name;
-                if (attrName == "BitFieldAttribute" && memberAttr.ConstructorArguments.Length >= 2)
+                if (attrName == "BitFieldAttribute")
                 {
                     // Check for missing 'partial' keyword before processing
                     if (!GeneratorUtils.IsPartialProperty(member))
@@ -80,8 +81,15 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                         continue;
                     }
 
-                    var startBit = (int)(memberAttr.ConstructorArguments[0].Value ?? 0);
-                    var endBit = (int)(memberAttr.ConstructorArguments[1].Value ?? 0);
+                    // Resolve [BitField] parameters across all constructor forms (SD0015–SD0019)
+                    var memberLocation = member.Locations.Length > 0 ? member.Locations[0] : null;
+                    var (resolved, fieldDiags) = GeneratorUtils.ResolveBitFieldAttribute(
+                        memberAttr, member.Name, structSymbol.Name, memberLocation);
+                    propertyDiagnostics.AddRange(fieldDiags);
+                    if (resolved == null) continue;
+
+                    var startBit = resolved.Value.StartBit;
+                    var endBit = resolved.Value.EndBit;
 
                     // Check if the property type is itself a [BitFieldsView] type
                     bool isSubView = member.Type.GetAttributes()
@@ -94,7 +102,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                     }
                     else
                     {
-                        var width = endBit - startBit + 1;
+                        var width = resolved.Value.Width;
                         var qualifiedName = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                         var (nativeType, fieldByteOrder) = ResolveEndianType(qualifiedName);
 
@@ -136,7 +144,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             }
         }
 
-        if (fields.Count == 0 && flags.Count == 0 && subViews.Count == 0 && nonPartialProperties.Count == 0)
+        if (fields.Count == 0 && flags.Count == 0 && subViews.Count == 0 && nonPartialProperties.Count == 0 && propertyDiagnostics.Count == 0)
             return null;
 
         var ns = structSymbol.ContainingNamespace.IsGlobalNamespace
@@ -181,7 +189,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             structSymbol.Name, ns, accessibility,
             byteOrder, bitOrder,
             fields, flags, subViews, containingTypes, minBytes, structDescription,
-            nonPartialProperties: nonPartialProperties);
+            nonPartialProperties: nonPartialProperties,
+            propertyDiagnostics: propertyDiagnostics);
     }
 
     /// <summary>
@@ -220,6 +229,12 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
 
     private static void Execute(SourceProductionContext context, BitFieldsViewInfo info)
     {
+        // Report property-level diagnostics (SD0015–SD0019)
+        foreach (var pd in info.PropertyDiagnostics)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(pd.Descriptor, pd.Location, pd.MessageArgs));
+        }
+
         // Report diagnostics for non-partial properties (SD0004)
         foreach (var np in info.NonPartialProperties)
         {

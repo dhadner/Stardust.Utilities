@@ -30,13 +30,13 @@ namespace Stardust.Utilities;
 public partial struct IEEE754Half
 {
     /// <summary>10-bit significand (mantissa). The implicit leading 1 is not stored.</summary>
-    [BitField(0, 9, Description = "10-bit significand (fractional part); implicit leading 1 not stored")] public partial ushort Mantissa { get; set; }
+    [BitField(0, EndBit = 9, Description = "10-bit significand (fractional part); implicit leading 1 not stored")] public partial ushort Mantissa { get; set; }
 
     /// <summary>
     /// 5-bit biased exponent as stored in the IEEE 754 encoding (bias = 15).
     /// For the true mathematical exponent, use <see cref="Exponent"/> instead.
     /// </summary>
-    [BitField(10, 14, Description = "5-bit biased exponent (bias 15); subtract 15 for true power of 2")] public partial byte BiasedExponent { get; set; }
+    [BitField(10, EndBit = 14, Description = "5-bit biased exponent (bias 15); subtract 15 for true power of 2")] public partial byte BiasedExponent { get; set; }
 
     /// <summary>Sign bit. <c>true</c> = negative, <c>false</c> = positive.</summary>
     [BitFlag(15, Description = "Sign bit: 1 = negative, 0 = positive")] public partial bool Sign { get; set; }
@@ -144,13 +144,13 @@ public partial struct IEEE754Half
 public partial struct IEEE754Single
 {
     /// <summary>23-bit significand (mantissa). The implicit leading 1 is not stored.</summary>
-    [BitField(0, 22, Description = "23-bit significand (fractional part); implicit leading 1 not stored")] public partial uint Mantissa { get; set; }
+    [BitField(0, EndBit = 22, Description = "23-bit significand (fractional part); implicit leading 1 not stored")] public partial uint Mantissa { get; set; }
 
     /// <summary>
     /// 8-bit biased exponent as stored in the IEEE 754 encoding (bias = 127).
     /// For the true mathematical exponent, use <see cref="Exponent"/> instead.
     /// </summary>
-    [BitField(23, 30, Description = "8-bit biased exponent (bias 127); subtract 127 for true power of 2")] public partial byte BiasedExponent { get; set; }
+    [BitField(23, EndBit = 30, Description = "8-bit biased exponent (bias 127); subtract 127 for true power of 2")] public partial byte BiasedExponent { get; set; }
 
     /// <summary>Sign bit. <c>true</c> = negative, <c>false</c> = positive.</summary>
     [BitFlag(31, Description = "Sign bit: 1 = negative, 0 = positive")] public partial bool Sign { get; set; }
@@ -258,13 +258,13 @@ public partial struct IEEE754Single
 public partial struct IEEE754Double
 {
     /// <summary>52-bit significand (mantissa). The implicit leading 1 is not stored.</summary>
-    [BitField(0, 51, Description = "52-bit significand (fractional part); implicit leading 1 not stored")] public partial ulong Mantissa { get; set; }
+    [BitField(0, EndBit = 51, Description = "52-bit significand (fractional part); implicit leading 1 not stored")] public partial ulong Mantissa { get; set; }
 
     /// <summary>
     /// 11-bit biased exponent as stored in the IEEE 754 encoding (bias = 1023).
     /// For the true mathematical exponent, use <see cref="Exponent"/> instead.
     /// </summary>
-    [BitField(52, 62, Description = "11-bit biased exponent (bias 1023); subtract 1023 for true power of 2")] public partial ushort BiasedExponent { get; set; }
+    [BitField(52, EndBit = 62, Description = "11-bit biased exponent (bias 1023); subtract 1023 for true power of 2")] public partial ushort BiasedExponent { get; set; }
 
     /// <summary>Sign bit. <c>true</c> = negative, <c>false</c> = positive.</summary>
     [BitFlag(63, Description = "Sign bit: 1 = negative, 0 = positive")] public partial bool Sign { get; set; }
@@ -369,10 +369,10 @@ public partial struct IEEE754Double
 public partial struct DecimalBitFields
 {
     /// <summary>96-bit unsigned integer coefficient.</summary>
-    [BitField(0, 95, Description = "96-bit unsigned integer coefficient (value before scaling)")] public partial UInt128 Coefficient { get; set; }
+    [BitField(0, EndBit = 95, Description = "96-bit unsigned integer coefficient (value before scaling)")] public partial UInt128 Coefficient { get; set; }
 
     /// <summary>Scale factor (0-28). The value is divided by 10^Scale.</summary>
-    [BitField(112, 118, Description = "Scale factor (0-28); value = Coefficient / 10^Scale")] public partial byte Scale { get; set; }
+    [BitField(112, EndBit = 118, Description = "Scale factor (0-28); value = Coefficient / 10^Scale")] public partial byte Scale { get; set; }
 
     /// <summary>Sign bit. <c>true</c> = negative, <c>false</c> = positive.</summary>
     [BitFlag(127, Description = "Sign bit: 1 = negative, 0 = positive")] public partial bool Sign { get; set; }

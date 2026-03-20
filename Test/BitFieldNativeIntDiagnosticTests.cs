@@ -237,8 +237,8 @@ public class BitFieldNativeIntDiagnosticTests
     {
         var diagnostics = RunGeneratorAndGetDiagnostics(HIGH_BIT_NUINT_SOURCE, "");
 
-        // Status (bits 0-7) should NOT have a warning
-        var statusDiags = diagnostics.Where(d => d.GetMessage().Contains("'Status'")).ToList();
+        // Status (bits 0-7) should NOT have an SD0001 or SD0002 warning
+        var statusDiags = diagnostics.Where(d => d.Id is "SD0001" or "SD0002" && d.GetMessage().Contains("'Status'")).ToList();
         statusDiags.Should().BeEmpty();
     }
 

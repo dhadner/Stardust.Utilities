@@ -120,7 +120,13 @@ internal sealed class BitFieldsInfo
     /// </summary>
     public List<NonPartialPropertyInfo> NonPartialProperties { get; }
 
-    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, UndefinedBitsMustBe undefinedBitsMode = UndefinedBitsMustBe.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrder byteOrder = ByteOrder.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null, Type? descriptionResourceType = null, Location? location = null, List<NonPartialPropertyInfo>? nonPartialProperties = null)
+    /// <summary>
+    /// Property-level diagnostics (SD0015–SD0019) collected during attribute parsing.
+    /// Reported in the Execute phase via <c>context.ReportDiagnostic</c>.
+    /// </summary>
+    public List<PropertyDiagnosticInfo> PropertyDiagnostics { get; }
+
+    public BitFieldsInfo(string typeName, string? ns, string accessibility, string storageType, bool storageTypeIsSigned, string unsignedStorageType, List<BitFieldInfo> fields, List<BitFlagInfo> flags, List<(string Kind, string Name, string Accessibility)> containingTypes, UndefinedBitsMustBe undefinedBitsMode = UndefinedBitsMustBe.Any, StorageMode mode = StorageMode.NativeInteger, int wordCount = 1, int totalBits = 0, string? floatingPointType = null, string? nativeWideType = null, ByteOrder byteOrder = ByteOrder.LittleEndian, List<BitFieldInfo>? declaredFields = null, List<BitFlagInfo>? declaredFlags = null, string? description = null, Type? descriptionResourceType = null, Location? location = null, List<NonPartialPropertyInfo>? nonPartialProperties = null, List<PropertyDiagnosticInfo>? propertyDiagnostics = null)
     {
         TypeName = typeName;
         Namespace = ns;
@@ -144,6 +150,7 @@ internal sealed class BitFieldsInfo
         DescriptionResourceType = descriptionResourceType;
         Location = location;
         NonPartialProperties = nonPartialProperties ?? new List<NonPartialPropertyInfo>();
+        PropertyDiagnostics = propertyDiagnostics ?? new List<PropertyDiagnosticInfo>();
     }
 }
 
@@ -241,5 +248,23 @@ internal sealed class NonPartialPropertyInfo
         PropertyType = propertyType;
         AttributeName = attributeName;
         Location = location;
+    }
+}
+
+/// <summary>
+/// Records a diagnostic to be reported for a [BitField] property during code generation.
+/// Used to pass diagnostic information from parsing to the Execute phase.
+/// </summary>
+internal sealed class PropertyDiagnosticInfo
+{
+    public DiagnosticDescriptor Descriptor { get; }
+    public Location? Location { get; }
+    public object?[] MessageArgs { get; }
+
+    public PropertyDiagnosticInfo(DiagnosticDescriptor descriptor, Location? location, params object?[] messageArgs)
+    {
+        Descriptor = descriptor;
+        Location = location;
+        MessageArgs = messageArgs;
     }
 }

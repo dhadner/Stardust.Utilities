@@ -23,15 +23,15 @@ public partial struct CpuStatusRegister
     [BitFlag(7, Description = "Set when the result of an operation has bit 7 set (negative in signed arithmetic)")]
     public partial bool Negative { get; set; }
 
-    [BitField(8, 10, Description = "Processor operating mode (0-7)")]
+    [BitField(8, EndBit = 10, Description = "Processor operating mode (0-7)")]
     public partial byte Mode { get; set; }
 }
 
 [BitFields(typeof(uint), bitOrder: BitOrder.BitZeroIsMsb, byteOrder: ByteOrder.BigEndian)]
 public partial struct MixedEndianRegister
 {
-    [BitField(0, 15)] public partial UInt16Be BigValue { get; set; }
-    [BitField(16, 31)] public partial UInt16Le LittleValue { get; set; }
+    [BitField(0, EndBit = 15)] public partial UInt16Be BigValue { get; set; }
+    [BitField(16, EndBit = 31)] public partial UInt16Le LittleValue { get; set; }
 }
 
 public static class MixedEndianDemo

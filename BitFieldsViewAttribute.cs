@@ -25,17 +25,17 @@ namespace Stardust.Utilities;
 /// [BitFieldsView]
 /// public partial record struct RegisterView
 /// {
-///     [BitField(0, 7)] public partial byte LowByte { get; set; }
-///     [BitField(8, 15)] public partial byte HighByte { get; set; }
+///     [BitField(0, EndBit = 7)] public partial byte LowByte { get; set; }
+///     [BitField(8, EndBit = 15)] public partial byte HighByte { get; set; }
 /// }
 ///
 /// // Network protocol: big-endian, MSB-first (RFC convention)
 /// [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 /// public partial record struct IPv6Header
 /// {
-///     [BitField(0, 3)]   public partial byte Version { get; set; }
-///     [BitField(4, 11)]  public partial byte TrafficClass { get; set; }
-///     [BitField(12, 31)] public partial uint FlowLabel { get; set; }
+///     [BitField(0, EndBit = 3)]   public partial byte Version { get; set; }
+///     [BitField(4, EndBit = 11)]  public partial byte TrafficClass { get; set; }
+///     [BitField(12, EndBit = 31)] public partial uint FlowLabel { get; set; }
 /// }
 /// </code>
 /// </example>

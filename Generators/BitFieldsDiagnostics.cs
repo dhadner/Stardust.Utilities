@@ -63,4 +63,67 @@ internal static class BitFieldsDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "Properties decorated with [BitField] or [BitFlag] must include the 'partial' keyword so the source generator can provide the implementation. Without 'partial', the compiler produces confusing CS9248 or CS0102 errors from the generated file instead of identifying the actual problem.");
+
+    /// <summary>
+    /// Warning: The two-parameter [BitField(startBit, endBit)] constructor is deprecated
+    /// and will be removed before v1.0. Users should migrate to named property syntax.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor DeprecatedPositionalEndBit = new(
+        id: "SD0015",
+        title: "Deprecated two-parameter BitField constructor",
+        messageFormat: "The two-parameter [BitField({1}, {2})] constructor on property '{0}' is deprecated and will be removed before v1.0. Use [BitField({1}, EndBit = {2})] or [BitField({1}, Width = {3})].",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "The positional 'endBit' parameter is easily confused with a bit count. Use the named 'EndBit' or 'Width' property syntax instead, which is self-documenting and unambiguous.");
+
+    /// <summary>
+    /// Warning: Both EndBit and Width are specified and they are consistent (redundant).
+    /// The field is still valid but the user should remove one.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor RedundantEndBitAndWidth = new(
+        id: "SD0016",
+        title: "Redundant EndBit and Width on BitField",
+        messageFormat: "Property '{0}' specifies both 'EndBit' ({1}) and 'Width' ({2}), which is redundant. Use one or the other.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Specifying both EndBit and Width is redundant when they are consistent. Remove one to keep the declaration concise.");
+
+    /// <summary>
+    /// Error: Both EndBit and Width are specified but they are inconsistent (contradictory).
+    /// The generator cannot determine intent, so the field is skipped.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor InconsistentEndBitAndWidth = new(
+        id: "SD0017",
+        title: "Inconsistent EndBit and Width on BitField",
+        messageFormat: "Property '{0}' specifies 'EndBit' ({1}) and 'Width' ({2}) but they are inconsistent (EndBit - StartBit + 1 = {3}, not {2}). Use one or the other.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "When both EndBit and Width are specified, they must agree. The expected width is EndBit - StartBit + 1. Remove one or correct the values.");
+
+    /// <summary>
+    /// Error: A [BitField] attribute has a StartBit but neither EndBit nor Width is specified.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor MissingEndBitOrWidth = new(
+        id: "SD0018",
+        title: "BitField missing EndBit or Width",
+        messageFormat: "Property '{0}' in '{1}' uses [BitField({2})] without specifying 'EndBit' or 'Width'. Use [BitField({2}, EndBit = N)] or [BitField({2}, Width = N)].",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "A [BitField] attribute requires either an EndBit (inclusive end position) or Width (bit count) to define the field range.");
+
+    /// <summary>
+    /// Error: A [BitField] attribute has EndBit or Width but no StartBit.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor MissingStartBit = new(
+        id: "SD0019",
+        title: "BitField missing StartBit",
+        messageFormat: "Property '{0}' in '{1}' has a [BitField] attribute without a StartBit value. Use [BitField(startBit, EndBit = N)] or [BitField(StartBit = N, Width = N)].",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "A [BitField] attribute requires a StartBit value. Provide it as a positional argument or as a named property.");
 }

@@ -9,7 +9,7 @@ Two attributes, one concept: define bit-level fields with `[BitField]` and `[Bit
 | `[BitFields]` | Value type (`byte`, `ushort`, `uint`, `nuint`, ...) | Hardware registers, opcodes, small bit-packed structs |
 | `[BitFieldsView]` | `Memory<byte>` (zero-copy buffer view) | Network packets, file headers, DMA buffers |
 
-Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Learn one, use both.
+Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one, use both.
 
 ## Table of Contents
 
@@ -73,9 +73,9 @@ Both share the same `[BitField(start, end)]` and `[BitFlag(bit)]` attributes. Le
 [BitFields(StorageType.UInt16)]  // StorageType enum -- preferred
 public partial struct KeyboardReg
 {
-    [BitField(0, 6)]  public partial byte KeyCode { get; set; }   // bits 0..=6 (7 bits)
+    [BitField(0, EndBit = 6)]  public partial byte KeyCode { get; set; }   // bits 0-6 (7 bits)
     [BitFlag(7)]      public partial bool KeyUp { get; set; }
-    [BitField(8, 14)] public partial byte SecondKey { get; set; } // bits 8..=14 (7 bits)
+    [BitField(8, EndBit = 14)] public partial byte SecondKey { get; set; } // bits 8-14 (7 bits)
     [BitFlag(15)]     public partial bool SecondKeyUp { get; set; }
 }
 
@@ -107,11 +107,11 @@ parsing, formatting, and implicit conversions. Zero heap allocations, zero abstr
 [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
-    [BitField(0, 3)]     public partial byte Version { get; set; }
-    [BitField(4, 7)]     public partial byte Ihl { get; set; }
-    [BitField(16, 31)]   public partial ushort TotalLength { get; set; }
-    [BitField(96, 127)]  public partial uint SourceAddress { get; set; }
-    [BitField(128, 159)] public partial uint DestinationAddress { get; set; }
+    [BitField(0, EndBit = 3)]     public partial byte Version { get; set; }
+    [BitField(4, EndBit = 7)]     public partial byte Ihl { get; set; }
+    [BitField(16, EndBit = 31)]   public partial ushort TotalLength { get; set; }
+    [BitField(96, EndBit = 127)]  public partial uint SourceAddress { get; set; }
+    [BitField(128, EndBit = 159)] public partial uint DestinationAddress { get; set; }
 }
 
 byte[] packet = ReceiveFromNetwork();
@@ -156,13 +156,19 @@ Both `[BitFields]` and `[BitFieldsView]` use the same field attributes:
 | `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Preferred. Enum provides IntelliSense discovery of all supported types |
 | `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Also supported. Equivalent to the enum form; exists for backward compatibility |
 | `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a `partial record struct` for buffer-view generation |
-| `[BitField(startBit, endBit)]` | Rust-style inclusive range, optional `MustBe` | Multi-bit field (width = endBit - startBit + 1) |
+| `[BitField(startBit, endBit)]` | Deprecated inclusive range, optional `MustBe` | Will be removed before v1.0 (SD0015 warning). Use named syntax instead |
+| `[BitField(startBit, EndBit = N)]` | Named inclusive end position | Multi-bit field (width = EndBit - startBit + 1) |
+| `[BitField(startBit, Width = N)]` | Named bit count | Multi-bit field (N bits starting at startBit) |
+| `[BitField(StartBit = N, EndBit = M)]` | Fully named inclusive range | Multi-bit field (width = M - N + 1) |
+| `[BitField(StartBit = N, Width = W)]` | Fully named with width | Multi-bit field (W bits starting at N) |
 | `[BitFlag(bit)]` | 0-based bit position, optional `MustBe` | Single-bit boolean flag |
 
-**BitField range examples:**
-- `[BitField(0, 2)]` -- 3-bit field at bits 0, 1, 2 (like Rust's `0..=2`)
-- `[BitField(4, 7)]` -- 4-bit field at bits 4, 5, 6, 7
-- `[BitField(3, 3)]` -- 1-bit field at bit 3 only
+**BitField syntax examples:**
+- `[BitField(0, Width = 3)]` -- 3-bit field at bits 0, 1, 2
+- `[BitField(4, EndBit = 7)]` -- 4-bit field at bits 4, 5, 6, 7
+- `[BitField(3, Width = 1)]` -- 1-bit field at bit 3 only
+- `[BitField(StartBit = 0, Width = 8)]` -- fully named, 8-bit field
+- `[BitField(0, 2)]` -- deprecated positional syntax (still works, emits SD0015 warning)
 
 ## Byte Order and Bit Order
 
@@ -204,10 +210,10 @@ With MSB-first, bit positions in `[BitField]` attributes match RFC diagrams dire
 [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4Word0
 {
-    [BitField(0, 3)]   public partial byte Version { get; set; }      // matches RFC diagram
-    [BitField(4, 7)]   public partial byte Ihl { get; set; }
-    [BitField(8, 15)]  public partial byte TypeOfService { get; set; }
-    [BitField(16, 31)] public partial ushort TotalLength { get; set; }
+    [BitField(0, EndBit = 3)]   public partial byte Version { get; set; }      // matches RFC diagram
+    [BitField(4, EndBit = 7)]   public partial byte Ihl { get; set; }
+    [BitField(8, EndBit = 15)]  public partial byte TypeOfService { get; set; }
+    [BitField(16, EndBit = 31)] public partial ushort TotalLength { get; set; }
 }
 ```
 
@@ -221,8 +227,8 @@ storage type:
 [BitFields(typeof(ushort))]
 public partial struct MotionRegister
 {
-    [BitField(13, 15)] public partial sbyte DeltaX { get; set; }  // 3-bit signed: -4 to +3
-    [BitField(10, 12)] public partial byte Speed { get; set; }    // 3-bit unsigned: 0 to 7
+    [BitField(13, EndBit = 15)] public partial sbyte DeltaX { get; set; }  // 3-bit signed: -4 to +3
+    [BitField(10, EndBit = 12)] public partial byte Speed { get; set; }    // 3-bit unsigned: 0 to 7
 }
 
 MotionRegister reg = 0;
@@ -275,8 +281,8 @@ bit-packed values, and other platform-width-sensitive structures.
 [BitFields(StorageType.NUInt)]
 public partial struct PointerTagReg
 {
-    [BitField(0, 7)]  public partial byte Tag { get; set; }       // bits 0..=7
-    [BitField(8, 11)] public partial byte Command { get; set; }   // bits 8..=11
+    [BitField(0, EndBit = 7)]  public partial byte Tag { get; set; }       // bits 0-7
+    [BitField(8, EndBit = 11)] public partial byte Command { get; set; }   // bits 8-11
     [BitFlag(28)]     public partial bool Enabled { get; set; }   // bit 28
     [BitFlag(31)]     public partial bool Valid { get; set; }     // bit 31
 }
@@ -286,9 +292,9 @@ public partial struct PointerTagReg
 public partial struct WideNativeReg
 {
 #pragma warning disable SD0002 // High bits: only valid on 64-bit
-    [BitField(0, 7)]   public partial byte Status { get; set; }    // bits 0..=7
-    [BitField(8, 23)]  public partial ushort Data { get; set; }    // bits 8..=23
-    [BitField(24, 55)] public partial uint Address { get; set; }   // bits 24..=55
+    [BitField(0, EndBit = 7)]   public partial byte Status { get; set; }    // bits 0-7
+    [BitField(8, EndBit = 23)]  public partial ushort Data { get; set; }    // bits 8-23
+    [BitField(24, EndBit = 55)] public partial uint Address { get; set; }   // bits 24-55
     [BitFlag(56)]      public partial bool Valid { get; set; }     // bit 56
     [BitFlag(57)]      public partial bool Ready { get; set; }     // bit 57
 #pragma warning restore SD0002
@@ -313,7 +319,7 @@ above bit 31, the generator emits a diagnostic whose severity depends on the pro
 | *(none)* | | `PlatformTarget` is `x64` or `ARM64` | The build is restricted to 64-bit. `nint`/`nuint` is always 64 bits, so all bit positions are valid. |
 
 The diagnostic location points to the specific property declaration that exceeds the 32-bit boundary.
-For multi-bit fields, the check uses the highest bit of the field (e.g., `[BitField(24, 55)]` checks
+For multi-bit fields, the check uses the highest bit of the field (e.g., `[BitField(24, EndBit = 55)]` checks
 bit 55, not bit 24).
 
 **Resolving SD0001 (Error):**
@@ -339,7 +345,7 @@ public enum OpMode : byte { Idle = 0, Run = 1, Sleep = 2, Reset = 3 }
 [BitFields(typeof(byte))]
 public partial struct ControlRegister
 {
-    [BitField(0, 1)] public partial OpMode Mode { get; set; }
+    [BitField(0, EndBit = 1)] public partial OpMode Mode { get; set; }
     [BitFlag(2)]     public partial bool Enable { get; set; }
 }
 
@@ -354,9 +360,9 @@ Enum fields work at any bit position, including bit 0, and support fluent `With`
 [BitFields(typeof(byte))]
 public partial struct CommandReg
 {
-    [BitField(0, 2)] public partial OpMode Command { get; set; }  // enum at bit 0
-    [BitField(3, 5)] public partial OpMode Status { get; set; }   // enum at bit 3
-    [BitField(6, 7)] public partial byte Flags { get; set; }
+    [BitField(0, EndBit = 2)] public partial OpMode Command { get; set; }  // enum at bit 0
+    [BitField(3, EndBit = 5)] public partial OpMode Status { get; set; }   // enum at bit 3
+    [BitField(6, EndBit = 7)] public partial byte Flags { get; set; }
 }
 
 var reg = CommandReg.Zero
@@ -437,7 +443,7 @@ use the native numeric formatters instead of integer hex/binary parsing.
 // For [BitFlag(0)] Ready -- a value with only that bit set
 StatusRegister readyBit = StatusRegister.ReadyBit;   // 0x01
 
-// For [BitField(2, 4)] Mode -- the mask covering that field
+// For [BitField(2, EndBit = 4)] Mode -- the mask covering that field
 StatusRegister modeMask = StatusRegister.ModeMask;    // 0x1C
 
 // Use for testing and masking
@@ -469,8 +475,8 @@ Control how bits not covered by any field are handled:
 [BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
 public partial struct CleanHeader
 {
-    [BitField(0, 3)] public partial byte TypeCode { get; set; }
-    [BitField(4, 8)] public partial byte Flags { get; set; }
+    [BitField(0, EndBit = 3)] public partial byte TypeCode { get; set; }
+    [BitField(4, EndBit = 8)] public partial byte Flags { get; set; }
     // Bits 9-15: always forced to zero
 }
 
@@ -488,7 +494,7 @@ Individual fields can also override with `MustBe`:
 
 ```csharp
 [BitFlag(7, MustBe.One)] public partial bool Sync { get; set; }       // always 1
-[BitField(1, 3, MustBe.Zero)] public partial byte Reserved { get; set; } // always 0
+[BitField(1, MustBe.Zero, EndBit = 3)] public partial byte Reserved { get; set; } // always 0
 ```
 
 `MustBe` constraints are enforced at every entry point -- construction, implicit conversion,
@@ -500,8 +506,8 @@ raw value is produced:
 public partial struct SyncedReg
 {
     [BitFlag(0)]              public partial bool Active { get; set; }
-    [BitField(1, 2, MustBe.Zero)] public partial byte Reserved { get; set; }
-    [BitField(3, 6)]         public partial byte Data { get; set; }
+    [BitField(1, MustBe.Zero, EndBit = 2)] public partial byte Reserved { get; set; }
+    [BitField(3, EndBit = 6)]         public partial byte Data { get; set; }
     [BitFlag(7, MustBe.One)] public partial bool Sync { get; set; }
 }
 
@@ -534,7 +540,7 @@ returns `true`. Both can be freely combined with `UndefinedBitsMustBe`:
 [BitFields(typeof(byte), UndefinedBitsMustBe.Zeroes)]
 public partial struct ProtocolByte
 {
-    [BitField(0, 2)]          public partial byte Flags { get; set; }     // normal field
+    [BitField(0, EndBit = 2)]          public partial byte Flags { get; set; }     // normal field
     [BitFlag(3, MustBe.One)]  public partial bool AlwaysHigh { get; set; } // forced to 1
     // Bits 4-7: undefined, forced to 0 by UndefinedBitsMustBe.Zeroes
 }
@@ -553,9 +559,9 @@ Sparse undefined bits (gaps between fields) are handled correctly:
 public partial struct SparseReg
 {
     // bit 0: UNDEFINED
-    [BitField(1, 2)] public partial byte LowField { get; set; }
+    [BitField(1, EndBit = 2)] public partial byte LowField { get; set; }
     // bit 3: UNDEFINED
-    [BitField(4, 6)] public partial byte HighField { get; set; }
+    [BitField(4, EndBit = 6)] public partial byte HighField { get; set; }
     // bit 7: UNDEFINED
 }
 
@@ -574,7 +580,7 @@ public partial class HardwareController
     public partial struct StatusRegister
     {
         [BitFlag(0)] public partial bool Ready { get; set; }
-        [BitField(8, 15)] public partial byte ErrorCode { get; set; }
+        [BitField(8, EndBit = 15)] public partial byte ErrorCode { get; set; }
     }
 
     private StatusRegister _status;
@@ -668,14 +674,14 @@ public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
-    [BitField(4, 7)] public partial byte Priority { get; set; }
+    [BitField(4, EndBit = 7)] public partial byte Priority { get; set; }
 }
 
 [BitFields(StorageType.UInt16)]
 public partial struct ProtocolHeader
 {
-    [BitField(0, 7)]  public partial StatusFlags Status { get; set; }  // embedded!
-    [BitField(8, 15)] public partial byte Length { get; set; }
+    [BitField(0, EndBit = 7)]  public partial StatusFlags Status { get; set; }  // embedded!
+    [BitField(8, EndBit = 15)] public partial byte Length { get; set; }
 }
 
 ProtocolHeader header = 0;
@@ -694,14 +700,14 @@ public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Active { get; set; }
     [BitFlag(1)] public partial bool Valid { get; set; }
-    [BitField(4, 7)] public partial byte Code { get; set; }
+    [BitField(4, EndBit = 7)] public partial byte Code { get; set; }
 }
 
 [BitFieldsView]
 public partial record struct PacketView
 {
-    [BitField(0, 7)]  public partial StatusFlags Flags { get; set; }
-    [BitField(8, 15)] public partial byte Payload { get; set; }
+    [BitField(0, EndBit = 7)]  public partial StatusFlags Flags { get; set; }
+    [BitField(8, EndBit = 15)] public partial byte Payload { get; set; }
 }
 
 byte[] buffer = new byte[2];
@@ -724,14 +730,14 @@ When the start bit is a multiple of 8, the inner view is sliced at a byte bounda
 [BitFieldsView]
 public partial record struct InnerView
 {
-    [BitField(0, 7)] public partial byte Value { get; set; }
+    [BitField(0, EndBit = 7)] public partial byte Value { get; set; }
 }
 
 [BitFieldsView]
 public partial record struct OuterView
 {
-    [BitField(0, 7)]   public partial byte Header { get; set; }
-    [BitField(16, 23)] public partial InnerView Inner { get; set; }  // byte 2
+    [BitField(0, EndBit = 7)]   public partial byte Header { get; set; }
+    [BitField(16, EndBit = 23)] public partial InnerView Inner { get; set; }  // byte 2
 }
 
 byte[] buffer = new byte[4];
@@ -748,15 +754,15 @@ When the start bit is not byte-aligned, the inner view receives a bit offset:
 [BitFieldsView]
 public partial record struct OuterView
 {
-    [BitField(0, 3)]  public partial byte LowNibble { get; set; }
-    [BitField(4, 11)] public partial InnerView Inner { get; set; }  // byte 0, bit 4
+    [BitField(0, EndBit = 3)]  public partial byte LowNibble { get; set; }
+    [BitField(4, EndBit = 11)] public partial InnerView Inner { get; set; }  // byte 0, bit 4
 }
 
 var inner = outer.Inner;   // view at byte 0 with 4-bit offset
 inner.Value = 0xFF;        // writes bits 4-11 of the buffer
 ```
 
-The general case `[BitField(20, 27)]` places the inner view at byte 2, bit 4.
+The general case `[BitField(20, EndBit = 27)]` places the inner view at byte 2, bit 4.
 
 ### Write-Through
 
@@ -783,30 +789,30 @@ For individual fields that differ from the struct default, use endian-aware type
 [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct CaptureHeaderView
 {
-    [BitField(0, 15)]  public partial ushort Protocol { get; set; }
-    [BitField(16, 31)] public partial ushort Length { get; set; }
-    [BitField(32, 63)] public partial uint SequenceNum { get; set; }
+    [BitField(0, EndBit = 15)]  public partial ushort Protocol { get; set; }
+    [BitField(16, EndBit = 31)] public partial ushort Length { get; set; }
+    [BitField(32, EndBit = 63)] public partial uint SequenceNum { get; set; }
 }
 
 // x86 binary file blob -- little-endian, with one BE field and a nested BE sub-view
 [BitFieldsView]
 public partial record struct FileBlobView
 {
-    [BitField(0, 31)]    public partial uint Magic { get; set; }              // LE
-    [BitField(32, 63)]   public partial uint Timestamp { get; set; }          // LE
-    [BitField(64, 95)]   public partial UInt32Be CapturedSrcIp { get; set; }  // per-field BE override
-    [BitField(96, 111)]  public partial ushort RecordCount { get; set; }      // LE
-    [BitField(112, 175)] public partial CaptureHeaderView Capture { get; set; } // nested BE sub-view
+    [BitField(0, EndBit = 31)]    public partial uint Magic { get; set; }              // LE
+    [BitField(32, EndBit = 63)]   public partial uint Timestamp { get; set; }          // LE
+    [BitField(64, EndBit = 95)]   public partial UInt32Be CapturedSrcIp { get; set; }  // per-field BE override
+    [BitField(96, EndBit = 111)]  public partial ushort RecordCount { get; set; }      // LE
+    [BitField(112, EndBit = 175)] public partial CaptureHeaderView Capture { get; set; } // nested BE sub-view
 }
 
 // Outer transport -- big-endian, wrapping the LE blob
 [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TransportView
 {
-    [BitField(0, 15)]   public partial ushort MessageType { get; set; }
-    [BitField(16, 47)]  public partial uint PayloadLength { get; set; }
-    [BitField(48, 63)]  public partial ushort Checksum { get; set; }
-    [BitField(64, 239)] public partial FileBlobView Blob { get; set; }  // nested LE
+    [BitField(0, EndBit = 15)]   public partial ushort MessageType { get; set; }
+    [BitField(16, EndBit = 47)]  public partial uint PayloadLength { get; set; }
+    [BitField(48, EndBit = 63)]  public partial ushort Checksum { get; set; }
+    [BitField(64, EndBit = 239)] public partial FileBlobView Blob { get; set; }  // nested LE
 }
 ```
 
@@ -824,7 +830,7 @@ to the same underlying buffer.
 [BitFields(StorageType.Byte)]
 public partial struct ViaRegB
 {
-    [BitField(0, 2)] public partial byte SoundVolume { get; set; }
+    [BitField(0, EndBit = 2)] public partial byte SoundVolume { get; set; }
     [BitFlag(3)]     public partial bool SoundBuffer { get; set; }
     [BitFlag(4)]     public partial bool OverlayRom { get; set; }
     [BitFlag(5)]     public partial bool HeadSelect { get; set; }
@@ -839,9 +845,9 @@ public partial struct ViaRegB
 [BitFields(StorageType.UInt16)]
 public partial struct KeyboardReg0
 {
-    [BitField(0, 6)]  public partial byte SecondKeyCode { get; set; }
+    [BitField(0, EndBit = 6)]  public partial byte SecondKeyCode { get; set; }
     [BitFlag(7)]      public partial bool SecondKeyUp { get; set; }
-    [BitField(8, 14)] public partial byte FirstKeyCode { get; set; }
+    [BitField(8, EndBit = 14)] public partial byte FirstKeyCode { get; set; }
     [BitFlag(15)]     public partial bool FirstKeyUp { get; set; }
 }
 ```
@@ -852,9 +858,9 @@ public partial struct KeyboardReg0
 [BitFields(StorageType.UInt64)]
 public partial struct StatusReg64
 {
-    [BitField(0, 7)]   public partial byte Status { get; set; }
-    [BitField(8, 23)]  public partial ushort DataWord { get; set; }
-    [BitField(24, 55)] public partial uint Address { get; set; }
+    [BitField(0, EndBit = 7)]   public partial byte Status { get; set; }
+    [BitField(8, EndBit = 23)]  public partial ushort DataWord { get; set; }
+    [BitField(24, EndBit = 55)] public partial uint Address { get; set; }
     [BitFlag(56)]      public partial bool Enable { get; set; }
     [BitFlag(57)]      public partial bool Ready { get; set; }
     [BitFlag(58)]      public partial bool Error { get; set; }
@@ -1131,17 +1137,17 @@ public partial struct TcpFlags
 [BitFields(typeof(uint))]
 public partial struct IPv4FragmentWord
 {
-    [BitField(16, 31)] public partial ushort Identification { get; set; }
-    [BitField(13, 15)] public partial IPv4Flags Flags { get; set; }       // composed!
-    [BitField(0, 12)]  public partial ushort FragmentOffset { get; set; }
+    [BitField(16, EndBit = 31)] public partial ushort Identification { get; set; }
+    [BitField(13, EndBit = 15)] public partial IPv4Flags Flags { get; set; }       // composed!
+    [BitField(0, EndBit = 12)]  public partial ushort FragmentOffset { get; set; }
 }
 
 [BitFields(typeof(uint))]
 public partial struct TcpControlWord
 {
-    [BitField(28, 31)] public partial byte DataOffset { get; set; }
-    [BitField(16, 24)] public partial TcpFlags Flags { get; set; }        // composed!
-    [BitField(0, 15)]  public partial ushort WindowSize { get; set; }
+    [BitField(28, EndBit = 31)] public partial byte DataOffset { get; set; }
+    [BitField(16, EndBit = 24)] public partial TcpFlags Flags { get; set; }        // composed!
+    [BitField(0, EndBit = 15)]  public partial ushort WindowSize { get; set; }
 }
 
 // Fluent construction
@@ -1192,21 +1198,21 @@ See `Test/Protocols/IPv4HeaderView.cs` for a copy-pasteable implementation.
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
-    [BitField(0, 3)]     public partial byte Version { get; set; }
-    [BitField(4, 7)]     public partial byte Ihl { get; set; }
-    [BitField(8, 13)]    public partial byte Dscp { get; set; }
-    [BitField(14, 15)]   public partial byte Ecn { get; set; }
-    [BitField(16, 31)]   public partial ushort TotalLength { get; set; }
-    [BitField(32, 47)]   public partial ushort Identification { get; set; }
+    [BitField(0, EndBit = 3)]     public partial byte Version { get; set; }
+    [BitField(4, EndBit = 7)]     public partial byte Ihl { get; set; }
+    [BitField(8, EndBit = 13)]    public partial byte Dscp { get; set; }
+    [BitField(14, EndBit = 15)]   public partial byte Ecn { get; set; }
+    [BitField(16, EndBit = 31)]   public partial ushort TotalLength { get; set; }
+    [BitField(32, EndBit = 47)]   public partial ushort Identification { get; set; }
     [BitFlag(48)]        public partial bool ReservedFlag { get; set; }
     [BitFlag(49)]        public partial bool DontFragment { get; set; }
     [BitFlag(50)]        public partial bool MoreFragments { get; set; }
-    [BitField(51, 63)]   public partial ushort FragmentOffset { get; set; }
-    [BitField(64, 71)]   public partial byte TimeToLive { get; set; }
-    [BitField(72, 79)]   public partial byte Protocol { get; set; }
-    [BitField(80, 95)]   public partial ushort HeaderChecksum { get; set; }
-    [BitField(96, 127)]  public partial uint SourceAddress { get; set; }
-    [BitField(128, 159)] public partial uint DestinationAddress { get; set; }
+    [BitField(51, EndBit = 63)]   public partial ushort FragmentOffset { get; set; }
+    [BitField(64, EndBit = 71)]   public partial byte TimeToLive { get; set; }
+    [BitField(72, EndBit = 79)]   public partial byte Protocol { get; set; }
+    [BitField(80, EndBit = 95)]   public partial ushort HeaderChecksum { get; set; }
+    [BitField(96, EndBit = 127)]  public partial uint SourceAddress { get; set; }
+    [BitField(128, EndBit = 159)] public partial uint DestinationAddress { get; set; }
 
     public int HeaderLengthBytes => Ihl * 4;
 }
@@ -1237,12 +1243,12 @@ See `Test/Protocols/TcpHeaderView.cs` for a copy-pasteable implementation.
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TcpHeaderView
 {
-    [BitField(0, 15)]    public partial ushort SourcePort { get; set; }
-    [BitField(16, 31)]   public partial ushort DestinationPort { get; set; }
-    [BitField(32, 63)]   public partial uint SequenceNumber { get; set; }
-    [BitField(64, 95)]   public partial uint AcknowledgmentNumber { get; set; }
-    [BitField(96, 99)]   public partial byte DataOffset { get; set; }
-    [BitField(100, 102)] public partial byte Reserved { get; set; }
+    [BitField(0, EndBit = 15)]    public partial ushort SourcePort { get; set; }
+    [BitField(16, EndBit = 31)]   public partial ushort DestinationPort { get; set; }
+    [BitField(32, EndBit = 63)]   public partial uint SequenceNumber { get; set; }
+    [BitField(64, EndBit = 95)]   public partial uint AcknowledgmentNumber { get; set; }
+    [BitField(96, EndBit = 99)]   public partial byte DataOffset { get; set; }
+    [BitField(100, EndBit = 102)] public partial byte Reserved { get; set; }
     [BitFlag(103)]       public partial bool NS { get; set; }
     [BitFlag(104)]       public partial bool CWR { get; set; }
     [BitFlag(105)]       public partial bool ECE { get; set; }
@@ -1252,9 +1258,9 @@ public partial record struct TcpHeaderView
     [BitFlag(109)]       public partial bool RST { get; set; }
     [BitFlag(110)]       public partial bool SYN { get; set; }
     [BitFlag(111)]       public partial bool FIN { get; set; }
-    [BitField(112, 127)] public partial ushort WindowSize { get; set; }
-    [BitField(128, 143)] public partial ushort Checksum { get; set; }
-    [BitField(144, 159)] public partial ushort UrgentPointer { get; set; }
+    [BitField(112, EndBit = 127)] public partial ushort WindowSize { get; set; }
+    [BitField(128, EndBit = 143)] public partial ushort Checksum { get; set; }
+    [BitField(144, EndBit = 159)] public partial ushort UrgentPointer { get; set; }
 
     public int HeaderLengthBytes => DataOffset * 4;
 }
@@ -1268,10 +1274,10 @@ See `Test/Protocols/UdpHeaderView.cs` for a copy-pasteable implementation.
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct UdpHeaderView
 {
-    [BitField(0, 15)]  public partial ushort SourcePort { get; set; }
-    [BitField(16, 31)] public partial ushort DestinationPort { get; set; }
-    [BitField(32, 47)] public partial ushort Length { get; set; }
-    [BitField(48, 63)] public partial ushort Checksum { get; set; }
+    [BitField(0, EndBit = 15)]  public partial ushort SourcePort { get; set; }
+    [BitField(16, EndBit = 31)] public partial ushort DestinationPort { get; set; }
+    [BitField(32, EndBit = 47)] public partial ushort Length { get; set; }
+    [BitField(48, EndBit = 63)] public partial ushort Checksum { get; set; }
 }
 ```
 
@@ -1283,12 +1289,12 @@ See `Test/Protocols/IPv6HeaderView.cs` for a copy-pasteable implementation.
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv6HeaderView
 {
-    [BitField(0, 3)]     public partial byte Version { get; set; }
-    [BitField(4, 11)]    public partial byte TrafficClass { get; set; }
-    [BitField(12, 31)]   public partial uint FlowLabel { get; set; }
-    [BitField(32, 47)]   public partial ushort PayloadLength { get; set; }
-    [BitField(48, 55)]   public partial byte NextHeader { get; set; }
-    [BitField(56, 63)]   public partial byte HopLimit { get; set; }
+    [BitField(0, EndBit = 3)]     public partial byte Version { get; set; }
+    [BitField(4, EndBit = 11)]    public partial byte TrafficClass { get; set; }
+    [BitField(12, EndBit = 31)]   public partial uint FlowLabel { get; set; }
+    [BitField(32, EndBit = 47)]   public partial ushort PayloadLength { get; set; }
+    [BitField(48, EndBit = 55)]   public partial byte NextHeader { get; set; }
+    [BitField(56, EndBit = 63)]   public partial byte HopLimit { get; set; }
 }
 ```
 
@@ -1333,21 +1339,21 @@ A pcap-style capture file on Windows (LE) containing network packets (BE):
 [BitFieldsView]
 public partial record struct PcapGlobalHeader
 {
-    [BitField(0, 31)]   public partial uint MagicNumber { get; set; }    // 0xA1B2C3D4
-    [BitField(32, 47)]  public partial ushort VersionMajor { get; set; }
-    [BitField(48, 63)]  public partial ushort VersionMinor { get; set; }
-    [BitField(128, 159)] public partial uint SnapLen { get; set; }
-    [BitField(160, 191)] public partial uint LinkType { get; set; }      // 1 = Ethernet
+    [BitField(0, EndBit = 31)]   public partial uint MagicNumber { get; set; }    // 0xA1B2C3D4
+    [BitField(32, EndBit = 47)]  public partial ushort VersionMajor { get; set; }
+    [BitField(48, EndBit = 63)]  public partial ushort VersionMinor { get; set; }
+    [BitField(128, EndBit = 159)] public partial uint SnapLen { get; set; }
+    [BitField(160, EndBit = 191)] public partial uint LinkType { get; set; }      // 1 = Ethernet
 }
 
 // Pcap per-packet header -- little-endian
 [BitFieldsView]
 public partial record struct PcapPacketHeader
 {
-    [BitField(0, 31)]   public partial uint TimestampSec { get; set; }
-    [BitField(32, 63)]  public partial uint TimestampUsec { get; set; }
-    [BitField(64, 95)]  public partial uint IncludedLen { get; set; }
-    [BitField(96, 127)] public partial uint OriginalLen { get; set; }
+    [BitField(0, EndBit = 31)]   public partial uint TimestampSec { get; set; }
+    [BitField(32, EndBit = 63)]  public partial uint TimestampUsec { get; set; }
+    [BitField(64, EndBit = 95)]  public partial uint IncludedLen { get; set; }
+    [BitField(96, EndBit = 127)] public partial uint OriginalLen { get; set; }
 }
 
 // Parse a pcap file
@@ -1679,7 +1685,7 @@ public partial struct StatusRegister
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
-    [BitField(2, 4)] public partial byte Mode { get; set; }
+    [BitField(2, EndBit = 4)] public partial byte Mode { get; set; }
 }
 ```
 
@@ -1796,7 +1802,7 @@ public partial record struct ByteFlagsView
 {
     [BitFlag(0)] public partial bool MsbFlag { get; set; }
     [BitFlag(7)] public partial bool LsbFlag { get; set; }
-    [BitField(1, 4)] public partial byte Middle { get; set; }
+    [BitField(1, EndBit = 4)] public partial byte Middle { get; set; }
 }
 ```
 

@@ -15,32 +15,32 @@ public partial struct DiagramTestRegister
 {
     [BitFlag(0, Description = "Ready flag")] public partial bool Ready { get; set; }
     [BitFlag(1, Description = "Error flag")] public partial bool Error { get; set; }
-    [BitField(2, 4, Description = "Operating mode")] public partial byte Mode { get; set; }
-    [BitField(5, 6)] public partial byte Priority { get; set; }
+    [BitField(2, EndBit = 4, Description = "Operating mode")] public partial byte Mode { get; set; }
+    [BitField(5, EndBit = 6)] public partial byte Priority { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
 }
 
 [BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
 public partial struct DiagramGappyRegister
 {
-    [BitField(0, 3, Description = "Type code")] public partial byte TypeCode { get; set; }
+    [BitField(0, EndBit = 3, Description = "Type code")] public partial byte TypeCode { get; set; }
     // bits 4-11 undefined
-    [BitField(12, 15, Description = "Version")] public partial byte Version { get; set; }
+    [BitField(12, EndBit = 15, Description = "Version")] public partial byte Version { get; set; }
 }
 
 [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, Description = "MSB-first test view")]
 public partial record struct DiagramMsbView
 {
-    [BitField(0, 3, Description = "IP version")] public partial byte Version { get; set; }
-    [BitField(4, 7, Description = "Header length")] public partial byte Ihl { get; set; }
-    [BitField(16, 31, Description = "Total length")] public partial ushort TotalLength { get; set; }
+    [BitField(0, EndBit = 3, Description = "IP version")] public partial byte Version { get; set; }
+    [BitField(4, EndBit = 7, Description = "Header length")] public partial byte Ihl { get; set; }
+    [BitField(16, EndBit = 31, Description = "Total length")] public partial ushort TotalLength { get; set; }
 }
 
 [BitFields(typeof(uint))]
 public partial struct DiagramWideRegister
 {
-    [BitField(0, 15, Description = "Low half")] public partial ushort LowHalf { get; set; }
-    [BitField(16, 31, Description = "High half")] public partial ushort HighHalf { get; set; }
+    [BitField(0, EndBit = 15, Description = "Low half")] public partial ushort LowHalf { get; set; }
+    [BitField(16, EndBit = 31, Description = "High half")] public partial ushort HighHalf { get; set; }
 }
 
 /// <summary>
@@ -51,10 +51,10 @@ public partial struct DiagramWideRegister
 [BitFields(typeof(byte))]
 public partial struct DiagramOverlapRegister
 {
-    [BitField(4, 7, Description = "Device address")] public partial byte Address { get; set; }
-    [BitField(2, 3, Description = "Command code")] public partial byte Command { get; set; }
-    [BitField(0, 1, Description = "Register select")] public partial byte Register { get; set; }
-    [BitField(0, 3, Description = "Extended command (when Command=0)")] public partial byte ExtendedCommand { get; set; }
+    [BitField(4, EndBit = 7, Description = "Device address")] public partial byte Address { get; set; }
+    [BitField(2, EndBit = 3, Description = "Command code")] public partial byte Command { get; set; }
+    [BitField(0, EndBit = 1, Description = "Register select")] public partial byte Register { get; set; }
+    [BitField(0, EndBit = 3, Description = "Extended command (when Command=0)")] public partial byte ExtendedCommand { get; set; }
 }
 
 /// <summary>
@@ -63,9 +63,9 @@ public partial struct DiagramOverlapRegister
 [BitFields(typeof(byte))]
 public partial struct DiagramFullOverlapRegister
 {
-    [BitField(0, 3, Description = "Mode A interpretation")] public partial byte ModeA { get; set; }
-    [BitField(0, 3, Description = "Mode B interpretation")] public partial byte ModeB { get; set; }
-    [BitField(4, 7)] public partial byte Upper { get; set; }
+    [BitField(0, EndBit = 3, Description = "Mode A interpretation")] public partial byte ModeA { get; set; }
+    [BitField(0, EndBit = 3, Description = "Mode B interpretation")] public partial byte ModeB { get; set; }
+    [BitField(4, EndBit = 7)] public partial byte Upper { get; set; }
 }
 
 public class BitFieldDiagramTests

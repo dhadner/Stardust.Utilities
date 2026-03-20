@@ -18,7 +18,7 @@ public partial class BitFieldTests
         {
             [BitFlag(0)] public partial bool FlagA { get; set; }
             [BitFlag(1)] public partial bool FlagB { get; set; }
-            [BitField(3, 4)] public partial byte FieldC { get; set; }  // bits 3..=4 (2 bits)
+            [BitField(3, EndBit = 4)] public partial byte FieldC { get; set; }  // bits 3..=4 (2 bits)
         }
 
         public void RunTest()
@@ -1302,8 +1302,8 @@ public partial struct GeneratedStatusReg8
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
-    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
+    [BitField(2, EndBit = 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
+    [BitField(5, EndBit = 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 
 /// <summary>
@@ -1314,9 +1314,9 @@ public partial struct GeneratedStatusReg8
 [BitFields(typeof(byte))]
 public partial struct EnumAtBitZeroReg
 {
-    [BitField(0, 2)] public partial OpMode Command { get; set; }   // bits 0..=2 (3 bits, shift 0)
-    [BitField(3, 5)] public partial OpMode Status { get; set; }    // bits 3..=5 (3 bits, shift 3)
-    [BitField(6, 7)] public partial byte Flags { get; set; }       // bits 6..=7 (2 bits)
+    [BitField(0, EndBit = 2)] public partial OpMode Command { get; set; }   // bits 0..=2 (3 bits, shift 0)
+    [BitField(3, EndBit = 5)] public partial OpMode Status { get; set; }    // bits 3..=5 (3 bits, shift 3)
+    [BitField(6, EndBit = 7)] public partial byte Flags { get; set; }       // bits 6..=7 (2 bits)
 }
 
 /// <summary>
@@ -1325,9 +1325,9 @@ public partial struct EnumAtBitZeroReg
 [BitFields(typeof(ushort))]
 public partial struct GeneratedKeyboardReg16
 {
-    [BitField(0, 6)] public partial byte SecondKeyCode { get; set; }  // bits 0..=6 (7 bits)
+    [BitField(0, EndBit = 6)] public partial byte SecondKeyCode { get; set; }  // bits 0..=6 (7 bits)
     [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
-    [BitField(8, 14)] public partial byte FirstKeyCode { get; set; }  // bits 8..=14 (7 bits)
+    [BitField(8, EndBit = 14)] public partial byte FirstKeyCode { get; set; }  // bits 8..=14 (7 bits)
     [BitFlag(15)] public partial bool FirstKeyUp { get; set; }
 }
 
@@ -1337,8 +1337,8 @@ public partial struct GeneratedKeyboardReg16
 [BitFields(typeof(uint))]
 public partial struct GeneratedControlReg32
 {
-    [BitField(0, 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
-    [BitField(24, 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
+    [BitField(0, EndBit = 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
+    [BitField(24, EndBit = 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
     [BitFlag(28)] public partial bool Enable { get; set; }
     [BitFlag(29)] public partial bool Interrupt { get; set; }
 }
@@ -1349,9 +1349,9 @@ public partial struct GeneratedControlReg32
 [BitFields(typeof(ulong))]
 public partial struct GeneratedWideReg64
 {
-    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
-    [BitField(24, 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
+    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, EndBit = 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, EndBit = 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
     [BitFlag(56)] public partial bool Valid { get; set; }
     [BitFlag(57)] public partial bool Ready { get; set; }
 }
@@ -1364,9 +1364,9 @@ public partial struct GeneratedWideReg64
 public partial struct GeneratedWideRegNint
 {
 #pragma warning disable SD0002 // Intentional: testing 64-bit nint with high-bit fields
-    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
-    [BitField(24, 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
+    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, EndBit = 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, EndBit = 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
     [BitFlag(56)] public partial bool Valid { get; set; }
     [BitFlag(57)] public partial bool Ready { get; set; }
 #pragma warning restore SD0002
@@ -1380,9 +1380,9 @@ public partial struct GeneratedWideRegNint
 public partial struct GeneratedWideRegNuint
 {
 #pragma warning disable SD0002 // Intentional: testing 64-bit nuint with high-bit fields
-    [BitField(0, 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
-    [BitField(24, 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
+    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, EndBit = 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, EndBit = 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
     [BitFlag(56)] public partial bool Valid { get; set; }
     [BitFlag(57)] public partial bool Ready { get; set; }
 #pragma warning restore SD0002
@@ -1398,8 +1398,8 @@ public partial struct EnumReg8
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(7)] public partial bool Busy { get; set; }
-    [BitField(2, 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
-    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
+    [BitField(2, EndBit = 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
+    [BitField(5, EndBit = 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
 }
 
 /// <summary>
@@ -1409,8 +1409,8 @@ public partial struct EnumReg8
 [BitFields(StorageType.UInt32)]
 public partial struct EnumReg32
 {
-    [BitField(0, 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
-    [BitField(24, 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
+    [BitField(0, EndBit = 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
+    [BitField(24, EndBit = 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
     [BitFlag(28)] public partial bool Enable { get; set; }
     [BitFlag(29)] public partial bool Interrupt { get; set; }
 }
@@ -1421,8 +1421,8 @@ public partial struct EnumReg32
 [BitFields(StorageType.UInt64)]
 public partial struct EnumReg64
 {
-    [BitField(0, 7)] public partial byte Status { get; set; }
-    [BitField(8, 23)] public partial ushort Data { get; set; }
+    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }
+    [BitField(8, EndBit = 23)] public partial ushort Data { get; set; }
     [BitFlag(56)] public partial bool Valid { get; set; }
 }
 

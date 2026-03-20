@@ -292,7 +292,7 @@ public partial class ParsingFuzzTests
         { "???", "Circled digits" },
         { "???", "Parenthesized digits" },
         { "???", "Subscript digits" },
-        { "¹²³", "Superscript digits" },
+        { "ï¿½ï¿½ï¿½", "Superscript digits" },
         { "???", "Devanagari digits" },
         { "????", "Arabic-Indic digits" },
         { "????", "Extended Arabic-Indic digits" },
@@ -402,7 +402,7 @@ public partial class ParsingFuzzTests
     public partial struct FuzzTestReg8
     {
         [BitFlag(0)] public partial bool Flag0 { get; set; }
-        [BitField(1, 4)] public partial byte Field1 { get; set; }
+        [BitField(1, EndBit = 4)] public partial byte Field1 { get; set; }
     }
 
     /// <summary>

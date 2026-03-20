@@ -262,7 +262,13 @@ namespace Stardust.Utilities
             BitFieldAttribute? fieldAttr = type.GetAttribute<BitFieldAttribute>(fieldName, inherit);
             if (fieldAttr != null)
             {
-                return Ok((fieldAttr.StartBit, fieldAttr.EndBit));
+                // Resolve EndBit: if EndBit was not set (sentinel -1), compute from Width
+                int endBit = fieldAttr.EndBit >= 0
+                    ? fieldAttr.EndBit
+                    : fieldAttr.Width >= 0
+                        ? fieldAttr.StartBit + fieldAttr.Width - 1
+                        : fieldAttr.StartBit; // fallback for malformed attribute
+                return Ok((fieldAttr.StartBit, endBit));
             }
             BitFlagAttribute? flagAttr = type.GetAttribute<BitFlagAttribute>(fieldName, inherit);
             if (flagAttr != null)
@@ -633,17 +639,68 @@ namespace Stardust.Utilities
                 {
                     string attrName = cad.AttributeType.Name;
 
-                    if (attrName == nameof(BitFieldAttribute) && cad.ConstructorArguments.Count >= 2)
+                    if (attrName == nameof(BitFieldAttribute))
                     {
-                        int startBit = (int)cad.ConstructorArguments[0].Value!;
-                        int endBit = (int)cad.ConstructorArguments[1].Value!;
-                        MustBe mustBe = cad.ConstructorArguments.Count > 2 ? (MustBe)(int)cad.ConstructorArguments[2].Value! : MustBe.Any;
+                        // Resolve across all constructor forms:
+                        //   Parameterless:  [BitField(StartBit = N, EndBit = M)]
+                        //   1-param:        [BitField(startBit, EndBit = M)] or [BitField(startBit, Width = W)]
+                        //   Deprecated 2p:  [BitField(startBit, endBit)]
+                        bool isDeprecated2Param = cad.ConstructorArguments.Count >= 2
+                            && cad.Constructor.GetParameters().Length >= 2
+                            && cad.Constructor.GetParameters()[1].ParameterType == typeof(int);
+
+                        int startBit = -1;
+                        int ctorEndBit = -1;
+                        MustBe mustBe = MustBe.Any;
+
+                        if (isDeprecated2Param)
+                        {
+                            startBit = (int)cad.ConstructorArguments[0].Value!;
+                            ctorEndBit = (int)cad.ConstructorArguments[1].Value!;
+                            if (cad.ConstructorArguments.Count > 2)
+                                mustBe = (MustBe)(int)cad.ConstructorArguments[2].Value!;
+                        }
+                        else if (cad.ConstructorArguments.Count >= 1)
+                        {
+                            startBit = (int)cad.ConstructorArguments[0].Value!;
+                            if (cad.ConstructorArguments.Count >= 2)
+                                mustBe = (MustBe)(int)cad.ConstructorArguments[1].Value!;
+                        }
+
+                        // Read named arguments (override/supplement constructor values)
+                        int namedEndBit = -1;
+                        int namedWidth = -1;
+                        foreach (var na in cad.NamedArguments)
+                        {
+                            if (na.MemberName == nameof(BitFieldAttribute.StartBit) && na.TypedValue.Value is int sb)
+                                startBit = sb;
+                            else if (na.MemberName == nameof(BitFieldAttribute.EndBit) && na.TypedValue.Value is int eb)
+                                namedEndBit = eb;
+                            else if (na.MemberName == nameof(BitFieldAttribute.Width) && na.TypedValue.Value is int w)
+                                namedWidth = w;
+                            else if (na.MemberName == nameof(BitFieldAttribute.ValueOverride) && na.TypedValue.Value is int vo)
+                                mustBe = (MustBe)vo;
+                        }
+
+                        // Resolve EndBit from named args, Width, or deprecated ctor
+                        int resolvedEndBit;
+                        if (isDeprecated2Param)
+                            resolvedEndBit = namedEndBit >= 0 ? namedEndBit : ctorEndBit;
+                        else if (namedEndBit >= 0)
+                            resolvedEndBit = namedEndBit;
+                        else if (namedWidth >= 0 && startBit >= 0)
+                            resolvedEndBit = startBit + namedWidth - 1;
+                        else
+                            continue; // Missing range info -- skip
+
+                        if (startBit < 0) continue; // Missing StartBit -- skip
+
                         string? desc = GetNamedArgString(cad, nameof(BitFieldAttribute.Description));
 
                         fields.Add(new BitFieldInfo(
                             Name: prop.Name,
                             StartBit: startBit,
-                            BitLength: endBit - startBit + 1,
+                            BitLength: resolvedEndBit - startBit + 1,
                             PropertyType: MapPropertyTypeName(prop.PropertyType),
                             IsFlag: false,
                             ByteOrder: structByteOrder,

@@ -16,7 +16,7 @@ public partial struct StatusFlags
     [BitFlag(1)] public partial bool Error { get; set; }
     [BitFlag(2)] public partial bool Busy { get; set; }
     [BitFlag(3)] public partial bool Complete { get; set; }
-    [BitField(4, 7)] public partial byte Priority { get; set; }  // 4-bit priority (0-15)
+    [BitField(4, EndBit = 7)] public partial byte Priority { get; set; }  // 4-bit priority (0-15)
 }
 
 /// <summary>
@@ -25,7 +25,7 @@ public partial struct StatusFlags
 [BitFields(typeof(byte))]
 public partial struct CommandCode
 {
-    [BitField(0, 3)] public partial byte Code { get; set; }  // 4-bit command (0-15)
+    [BitField(0, EndBit = 3)] public partial byte Code { get; set; }  // 4-bit command (0-15)
 }
 
 /// <summary>
@@ -36,10 +36,10 @@ public partial struct CommandCode
 public partial struct ProtocolHeader16
 {
     /// <summary>8-bit status flags at bits 0-7.</summary>
-    [BitField(0, 7)] public partial StatusFlags Status { get; set; }
+    [BitField(0, EndBit = 7)] public partial StatusFlags Status { get; set; }
     
     /// <summary>8-bit payload length at bits 8-15.</summary>
-    [BitField(8, 15)] public partial byte Length { get; set; }
+    [BitField(8, EndBit = 15)] public partial byte Length { get; set; }
 }
 
 /// <summary>
@@ -49,16 +49,16 @@ public partial struct ProtocolHeader16
 public partial struct ProtocolHeader32
 {
     /// <summary>8-bit status flags at bits 0-7.</summary>
-    [BitField(0, 7)] public partial StatusFlags Status { get; set; }
+    [BitField(0, EndBit = 7)] public partial StatusFlags Status { get; set; }
     
     /// <summary>4-bit command code at bits 8-11.</summary>
-    [BitField(8, 11)] public partial CommandCode Command { get; set; }
+    [BitField(8, EndBit = 11)] public partial CommandCode Command { get; set; }
     
     /// <summary>4-bit version at bits 12-15.</summary>
-    [BitField(12, 15)] public partial byte Version { get; set; }
+    [BitField(12, EndBit = 15)] public partial byte Version { get; set; }
     
     /// <summary>16-bit sequence number at bits 16-31.</summary>
-    [BitField(16, 31)] public partial ushort Sequence { get; set; }
+    [BitField(16, EndBit = 31)] public partial ushort Sequence { get; set; }
 }
 
 /// <summary>
@@ -68,19 +68,19 @@ public partial struct ProtocolHeader32
 public partial struct FileHeader
 {
     /// <summary>Magic number (16 bits).</summary>
-    [BitField(0, 15)] public partial ushort Magic { get; set; }
+    [BitField(0, EndBit = 15)] public partial ushort Magic { get; set; }
     
     /// <summary>Embedded status flags (8 bits).</summary>
-    [BitField(16, 23)] public partial StatusFlags Flags { get; set; }
+    [BitField(16, EndBit = 23)] public partial StatusFlags Flags { get; set; }
     
     /// <summary>Version major (8 bits).</summary>
-    [BitField(24, 31)] public partial byte VersionMajor { get; set; }
+    [BitField(24, EndBit = 31)] public partial byte VersionMajor { get; set; }
     
     /// <summary>Version minor (8 bits).</summary>
-    [BitField(32, 39)] public partial byte VersionMinor { get; set; }
+    [BitField(32, EndBit = 39)] public partial byte VersionMinor { get; set; }
     
     /// <summary>Reserved (24 bits).</summary>
-    [BitField(40, 63)] public partial uint Reserved { get; set; }
+    [BitField(40, EndBit = 63)] public partial uint Reserved { get; set; }
 }
 
 #endregion
@@ -95,10 +95,10 @@ public partial struct FileHeader
 public partial struct SubHeader9
 {
     /// <summary>4-bit type code at bits 0-3.</summary>
-    [BitField(0, 3)] public partial byte TypeCode { get; set; }
+    [BitField(0, EndBit = 3)] public partial byte TypeCode { get; set; }
     
     /// <summary>5-bit flags at bits 4-8.</summary>
-    [BitField(4, 8)] public partial byte Flags { get; set; }
+    [BitField(4, EndBit = 8)] public partial byte Flags { get; set; }
     
     // Bits 9-15 are UNDEFINED - masked to zero
 }
@@ -112,13 +112,13 @@ public partial struct SubHeader9
 public partial struct Header27
 {
     /// <summary>9-bit sub-header at bits 0-8.</summary>
-    [BitField(0, 8)] public partial SubHeader9 SubHeader { get; set; }
+    [BitField(0, EndBit = 8)] public partial SubHeader9 SubHeader { get; set; }
     
     /// <summary>10-bit payload size at bits 9-18.</summary>
-    [BitField(9, 18)] public partial ushort PayloadSize { get; set; }
+    [BitField(9, EndBit = 18)] public partial ushort PayloadSize { get; set; }
     
     /// <summary>8-bit sequence at bits 19-26.</summary>
-    [BitField(19, 26)] public partial byte Sequence { get; set; }
+    [BitField(19, EndBit = 26)] public partial byte Sequence { get; set; }
     
     // Bits 27-31 are UNDEFINED - masked to zero
 }
@@ -130,13 +130,13 @@ public partial struct Header27
 public partial struct MainHeader64
 {
     /// <summary>27-bit protocol header at bits 0-26.</summary>
-    [BitField(0, 26)] public partial Header27 Protocol { get; set; }
+    [BitField(0, EndBit = 26)] public partial Header27 Protocol { get; set; }
     
     /// <summary>5-bit priority at bits 27-31.</summary>
-    [BitField(27, 31)] public partial byte Priority { get; set; }
+    [BitField(27, EndBit = 31)] public partial byte Priority { get; set; }
     
     /// <summary>32-bit timestamp at bits 32-63.</summary>
-    [BitField(32, 63)] public partial uint Timestamp { get; set; }
+    [BitField(32, EndBit = 63)] public partial uint Timestamp { get; set; }
 }
 
 /// <summary>
@@ -147,13 +147,13 @@ public partial struct MainHeader64
 public partial struct SignedHeader27
 {
     /// <summary>9-bit sub-header at bits 0-8.</summary>
-    [BitField(0, 8)] public partial SubHeader9 SubHeader { get; set; }
+    [BitField(0, EndBit = 8)] public partial SubHeader9 SubHeader { get; set; }
     
     /// <summary>10-bit payload size at bits 9-18.</summary>
-    [BitField(9, 18)] public partial ushort PayloadSize { get; set; }
+    [BitField(9, EndBit = 18)] public partial ushort PayloadSize { get; set; }
     
     /// <summary>8-bit sequence at bits 19-26.</summary>
-    [BitField(19, 26)] public partial byte Sequence { get; set; }
+    [BitField(19, EndBit = 26)] public partial byte Sequence { get; set; }
     
     // Bits 27-31 are UNDEFINED - masked to zero
 }
@@ -165,10 +165,10 @@ public partial struct SignedHeader27
 public partial struct SubHeader9Native
 {
     /// <summary>4-bit type code at bits 0-3.</summary>
-    [BitField(0, 3)] public partial byte TypeCode { get; set; }
+    [BitField(0, EndBit = 3)] public partial byte TypeCode { get; set; }
     
     /// <summary>5-bit flags at bits 4-8.</summary>
-    [BitField(4, 8)] public partial byte Flags { get; set; }
+    [BitField(4, EndBit = 8)] public partial byte Flags { get; set; }
     
     // Bits 9-15 are UNDEFINED - preserved as raw data
 }
@@ -180,10 +180,10 @@ public partial struct SubHeader9Native
 public partial struct SubHeader9Ones
 {
     /// <summary>4-bit type code at bits 0-3.</summary>
-    [BitField(0, 3)] public partial byte TypeCode { get; set; }
+    [BitField(0, EndBit = 3)] public partial byte TypeCode { get; set; }
     
     /// <summary>5-bit flags at bits 4-8.</summary>
-    [BitField(4, 8)] public partial byte Flags { get; set; }
+    [BitField(4, EndBit = 8)] public partial byte Flags { get; set; }
     
     // Bits 9-15 are UNDEFINED - set to 1
 }
@@ -197,9 +197,9 @@ public partial struct SubHeader9Ones
 public partial struct SparseUndefinedZero
 {
     // bit 0: UNDEFINED
-    [BitField(1, 2)] public partial byte LowField { get; set; }   // bits 1-2 (2 bits)
+    [BitField(1, EndBit = 2)] public partial byte LowField { get; set; }   // bits 1-2 (2 bits)
     // bit 3: UNDEFINED
-    [BitField(4, 6)] public partial byte HighField { get; set; }  // bits 4-6 (3 bits)
+    [BitField(4, EndBit = 6)] public partial byte HighField { get; set; }  // bits 4-6 (3 bits)
     // bit 7: UNDEFINED
 }
 
@@ -210,9 +210,9 @@ public partial struct SparseUndefinedZero
 public partial struct SparseUndefinedOnes
 {
     // bit 0: UNDEFINED
-    [BitField(1, 2)] public partial byte LowField { get; set; }
+    [BitField(1, EndBit = 2)] public partial byte LowField { get; set; }
     // bit 3: UNDEFINED
-    [BitField(4, 6)] public partial byte HighField { get; set; }
+    [BitField(4, EndBit = 6)] public partial byte HighField { get; set; }
     // bit 7: UNDEFINED
 }
 
@@ -223,9 +223,9 @@ public partial struct SparseUndefinedOnes
 public partial struct SparseUndefinedNative
 {
     // bit 0: UNDEFINED
-    [BitField(1, 2)] public partial byte LowField { get; set; }
+    [BitField(1, EndBit = 2)] public partial byte LowField { get; set; }
     // bit 3: UNDEFINED
-    [BitField(4, 6)] public partial byte HighField { get; set; }
+    [BitField(4, EndBit = 6)] public partial byte HighField { get; set; }
     // bit 7: UNDEFINED
 }
 
@@ -719,7 +719,7 @@ public class BitFieldCompositionTests
         main.Timestamp = 0;
         
         // The raw value should NOT have bits 27-31 from the protocol's undefined region
-        // because MainHeader64.Protocol is defined as [BitField(0, 26)]
+        // because MainHeader64.Protocol is defined as [BitField(0, EndBit = 26)]
         ulong raw = main;
         
         // Bits 27-31 in main are the Priority field, which we set to 0

@@ -17,8 +17,8 @@ namespace Stardust.Utilities.Protocols;
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct UdpHeaderView
 {
-    [BitField(0, 15)]  public partial ushort SourcePort { get; set; }
-    [BitField(16, 31)] public partial ushort DestinationPort { get; set; }
-    [BitField(32, 47)] public partial ushort Length { get; set; }
-    [BitField(48, 63)] public partial ushort Checksum { get; set; }
+    [BitField(0, EndBit = 15)]  public partial ushort SourcePort { get; set; }
+    [BitField(16, EndBit = 31)] public partial ushort DestinationPort { get; set; }
+    [BitField(32, EndBit = 47)] public partial ushort Length { get; set; }
+    [BitField(48, EndBit = 63)] public partial ushort Checksum { get; set; }
 }
