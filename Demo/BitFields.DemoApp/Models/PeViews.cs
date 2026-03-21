@@ -8,52 +8,52 @@ namespace BitFields.DemoApp;
 [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, Description = "DOS Header")]
 public partial record struct DosHeaderView
 {
-    [BitField(0, EndBit = 15, Description = "Magic number identifying a DOS executable (0x5A4D = 'MZ')")]
+    [BitField(0, End = 15, Description = "Magic number identifying a DOS executable (0x5A4D = 'MZ')")]
     public partial ushort Magic { get; set; }
 
-    [BitField(16, EndBit = 31, Description = "Bytes on last page of the file")]
+    [BitField(16, End = 31, Description = "Bytes on last page of the file")]
     public partial ushort Cblp { get; set; }
 
-    [BitField(32, EndBit = 47, Description = "Number of pages in the file")]
+    [BitField(32, End = 47, Description = "Number of pages in the file")]
     public partial ushort Cp { get; set; }
 
-    [BitField(48, EndBit = 63, Description = "Number of relocations")]
+    [BitField(48, End = 63, Description = "Number of relocations")]
     public partial ushort Crlc { get; set; }
 
-    [BitField(64, EndBit = 79, Description = "Size of the header in paragraphs (16-byte units)")]
+    [BitField(64, End = 79, Description = "Size of the header in paragraphs (16-byte units)")]
     public partial ushort Cparhdr { get; set; }
 
-    [BitField(80, EndBit = 95, Description = "Minimum extra paragraphs needed")]
+    [BitField(80, End = 95, Description = "Minimum extra paragraphs needed")]
     public partial ushort Minalloc { get; set; }
 
-    [BitField(96, EndBit = 111, Description = "Maximum extra paragraphs needed")]
+    [BitField(96, End = 111, Description = "Maximum extra paragraphs needed")]
     public partial ushort Maxalloc { get; set; }
 
-    [BitField(112, EndBit = 127, Description = "Initial relative SS (stack segment) value")]
+    [BitField(112, End = 127, Description = "Initial relative SS (stack segment) value")]
     public partial ushort Ss { get; set; }
 
-    [BitField(128, EndBit = 143, Description = "Initial SP (stack pointer) value")]
+    [BitField(128, End = 143, Description = "Initial SP (stack pointer) value")]
     public partial ushort Sp { get; set; }
 
-    [BitField(144, EndBit = 159, Description = "Checksum of the DOS header")]
+    [BitField(144, End = 159, Description = "Checksum of the DOS header")]
     public partial ushort Csum { get; set; }
 
-    [BitField(160, EndBit = 175, Description = "Initial IP (instruction pointer) value")]
+    [BitField(160, End = 175, Description = "Initial IP (instruction pointer) value")]
     public partial ushort Ip { get; set; }
 
-    [BitField(176, EndBit = 191, Description = "Initial relative CS (code segment) value")]
+    [BitField(176, End = 191, Description = "Initial relative CS (code segment) value")]
     public partial ushort Cs { get; set; }
 
-    [BitField(192, EndBit = 207, Description = "File offset of the relocation table")]
+    [BitField(192, End = 207, Description = "File offset of the relocation table")]
     public partial ushort Lfarlc { get; set; }
 
-    [BitField(208, EndBit = 223, Description = "Overlay number")]
+    [BitField(208, End = 223, Description = "Overlay number")]
     public partial ushort Ovno { get; set; }
 
     // e_res[4] = 8 bytes at offset 28 (bits 224-287) - reserved
     // e_oemid, e_oeminfo, e_res2[10] = 24 bytes at offset 36 (bits 288-479) - reserved
 
-    [BitField(480, EndBit = 511, Description = "File offset of the PE header (points to 'PE\\0\\0' signature)")]
+    [BitField(480, End = 511, Description = "File offset of the PE header (points to 'PE\\0\\0' signature)")]
     public partial uint Lfanew { get; set; }
 }
 
@@ -68,25 +68,25 @@ public static class PeHeader
 [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, Description = "COFF Header")]
 public partial record struct CoffHeaderView
 {
-    [BitField(0, EndBit = 15, Description = "Target CPU architecture (0x8664=AMD64, 0x14C=i386, 0xAA64=ARM64)")]
+    [BitField(0, End = 15, Description = "Target CPU architecture (0x8664=AMD64, 0x14C=i386, 0xAA64=ARM64)")]
     public partial ushort Machine { get; set; }
 
-    [BitField(16, EndBit = 31, Description = "Number of sections in the PE file")]
+    [BitField(16, End = 31, Description = "Number of sections in the PE file")]
     public partial ushort NumberOfSections { get; set; }
 
-    [BitField(32, EndBit = 63, Description = "Unix timestamp when the file was created by the linker")]
+    [BitField(32, End = 63, Description = "Unix timestamp when the file was created by the linker")]
     public partial uint TimeDateStamp { get; set; }
 
-    [BitField(64, EndBit = 95, Description = "File offset of the COFF symbol table (0 if none)")]
+    [BitField(64, End = 95, Description = "File offset of the COFF symbol table (0 if none)")]
     public partial uint PointerToSymbolTable { get; set; }
 
-    [BitField(96, EndBit = 127, Description = "Number of entries in the symbol table")]
+    [BitField(96, End = 127, Description = "Number of entries in the symbol table")]
     public partial uint NumberOfSymbols { get; set; }
 
-    [BitField(128, EndBit = 143, Description = "Size of the Optional Header in bytes")]
+    [BitField(128, End = 143, Description = "Size of the Optional Header in bytes")]
     public partial ushort SizeOfOptionalHeader { get; set; }
 
-    [BitField(144, EndBit = 159, Description = "Bitmask of file attributes (DLL, executable, large address aware, etc.)")]
+    [BitField(144, End = 159, Description = "Bitmask of file attributes (DLL, executable, large address aware, etc.)")]
     public partial ushort Characteristics { get; set; }
 }
 
@@ -96,72 +96,72 @@ public partial record struct CoffHeaderView
 [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, Description = "Optional Header")]
 public partial record struct OptionalHeaderView
 {
-    [BitField(0, EndBit = 15, Description = "Optional header magic (0x10B=PE32, 0x20B=PE32+)")]
+    [BitField(0, End = 15, Description = "Optional header magic (0x10B=PE32, 0x20B=PE32+)")]
     public partial ushort OptMagic { get; set; }
 
-    [BitField(16, EndBit = 23, Description = "Major version of the linker that produced this file")]
+    [BitField(16, End = 23, Description = "Major version of the linker that produced this file")]
     public partial byte MajorLinkerVersion { get; set; }
 
-    [BitField(24, EndBit = 31, Description = "Minor version of the linker that produced this file")]
+    [BitField(24, End = 31, Description = "Minor version of the linker that produced this file")]
     public partial byte MinorLinkerVersion { get; set; }
 
-    [BitField(32, EndBit = 63, Description = "Total size of all code (text) sections")]
+    [BitField(32, End = 63, Description = "Total size of all code (text) sections")]
     public partial uint SizeOfCode { get; set; }
 
-    [BitField(64, EndBit = 95, Description = "Total size of all initialized data sections")]
+    [BitField(64, End = 95, Description = "Total size of all initialized data sections")]
     public partial uint SizeOfInitializedData { get; set; }
 
-    [BitField(96, EndBit = 127, Description = "Total size of all uninitialized data (BSS) sections")]
+    [BitField(96, End = 127, Description = "Total size of all uninitialized data (BSS) sections")]
     public partial uint SizeOfUninitializedData { get; set; }
 
-    [BitField(128, EndBit = 159, Description = "RVA of the entry point function (e.g., main or DllMain)")]
+    [BitField(128, End = 159, Description = "RVA of the entry point function (e.g., main or DllMain)")]
     public partial uint AddressOfEntryPoint { get; set; }
 
-    [BitField(160, EndBit = 191, Description = "RVA of the beginning of the code section")]
+    [BitField(160, End = 191, Description = "RVA of the beginning of the code section")]
     public partial uint BaseOfCode { get; set; }
 
-    [BitField(192, EndBit = 255, Description = "Preferred virtual address of the first byte of the image when loaded")]
+    [BitField(192, End = 255, Description = "Preferred virtual address of the first byte of the image when loaded")]
     public partial ulong ImageBase { get; set; }
 
-    [BitField(256, EndBit = 287, Description = "Alignment of sections in memory (must be >= FileAlignment)")]
+    [BitField(256, End = 287, Description = "Alignment of sections in memory (must be >= FileAlignment)")]
     public partial uint SectionAlignment { get; set; }
 
-    [BitField(288, EndBit = 319, Description = "Alignment of raw section data in the file (typically 512 or 4096)")]
+    [BitField(288, End = 319, Description = "Alignment of raw section data in the file (typically 512 or 4096)")]
     public partial uint FileAlignment { get; set; }
 
-    [BitField(320, EndBit = 335, Description = "Minimum required OS major version")]
+    [BitField(320, End = 335, Description = "Minimum required OS major version")]
     public partial ushort MajorOSVersion { get; set; }
 
-    [BitField(336, EndBit = 351, Description = "Minimum required OS minor version")]
+    [BitField(336, End = 351, Description = "Minimum required OS minor version")]
     public partial ushort MinorOSVersion { get; set; }
 
-    [BitField(352, EndBit = 367, Description = "Major version number of the image")]
+    [BitField(352, End = 367, Description = "Major version number of the image")]
     public partial ushort MajorImageVersion { get; set; }
 
-    [BitField(368, EndBit = 383, Description = "Minor version number of the image")]
+    [BitField(368, End = 383, Description = "Minor version number of the image")]
     public partial ushort MinorImageVersion { get; set; }
 
-    [BitField(384, EndBit = 399, Description = "Major version of the required subsystem")]
+    [BitField(384, End = 399, Description = "Major version of the required subsystem")]
     public partial ushort MajorSubsystemVersion { get; set; }
 
-    [BitField(400, EndBit = 415, Description = "Minor version of the required subsystem")]
+    [BitField(400, End = 415, Description = "Minor version of the required subsystem")]
     public partial ushort MinorSubsystemVersion { get; set; }
 
-    [BitField(416, EndBit = 447, Description = "Reserved, must be zero")]
+    [BitField(416, End = 447, Description = "Reserved, must be zero")]
     public partial uint Win32VersionValue { get; set; }
 
-    [BitField(448, EndBit = 479, Description = "Total size of the image in memory, rounded up to SectionAlignment")]
+    [BitField(448, End = 479, Description = "Total size of the image in memory, rounded up to SectionAlignment")]
     public partial uint SizeOfImage { get; set; }
 
-    [BitField(480, EndBit = 511, Description = "Combined size of DOS header, PE headers, and section headers, rounded to FileAlignment")]
+    [BitField(480, End = 511, Description = "Combined size of DOS header, PE headers, and section headers, rounded to FileAlignment")]
     public partial uint SizeOfHeaders { get; set; }
 
-    [BitField(512, EndBit = 543, Description = "Image file checksum (validated for drivers and critical system DLLs)")]
+    [BitField(512, End = 543, Description = "Image file checksum (validated for drivers and critical system DLLs)")]
     public partial uint CheckSum { get; set; }
 
-    [BitField(544, EndBit = 559, Description = "Required Windows subsystem (2=GUI, 3=Console, 10=EFI)")]
+    [BitField(544, End = 559, Description = "Required Windows subsystem (2=GUI, 3=Console, 10=EFI)")]
     public partial ushort Subsystem { get; set; }
 
-    [BitField(560, EndBit = 575, Description = "DLL characteristics flags (ASLR, DEP/NX, high-entropy ASLR, etc.)")]
+    [BitField(560, End = 575, Description = "DLL characteristics flags (ASLR, DEP/NX, high-entropy ASLR, etc.)")]
     public partial ushort DllCharacteristics { get; set; }
 }

@@ -25,14 +25,14 @@ namespace Stardust.Utilities.Protocols;
 [BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv6FullHeaderView
 {
-    [BitField(0, EndBit = 3)]     public partial byte Version { get; set; }
-    [BitField(4, EndBit = 11)]    public partial byte TrafficClass { get; set; }
-    [BitField(12, EndBit = 31)]   public partial uint FlowLabel { get; set; }
-    [BitField(32, EndBit = 47)]   public partial ushort PayloadLength { get; set; }
-    [BitField(48, EndBit = 55)]   public partial byte NextHeader { get; set; }
-    [BitField(56, EndBit = 63)]   public partial byte HopLimit { get; set; }
-    [BitField(64, EndBit = 127)]  public partial ulong SourceAddressHigh { get; set; }
-    [BitField(128, EndBit = 191)] public partial ulong SourceAddressLow { get; set; }
-    [BitField(192, EndBit = 255)] public partial ulong DestinationAddressHigh { get; set; }
-    [BitField(256, EndBit = 319)] public partial ulong DestinationAddressLow { get; set; }
+    [BitField(0, End = 3)]     public partial byte Version { get; set; }
+    [BitField(4, End = 11)]    public partial byte TrafficClass { get; set; }
+    [BitField(12, End = 31)]   public partial uint FlowLabel { get; set; }
+    [BitField(32, End = 47)]   public partial ushort PayloadLength { get; set; }
+    [BitField(48, End = 55)]   public partial byte NextHeader { get; set; }
+    [BitField(56, End = 63)]   public partial byte HopLimit { get; set; }
+    [BitField(64, End = 127)]  public partial ulong SourceAddressHigh { get; set; }
+    [BitField(128, End = 191)] public partial ulong SourceAddressLow { get; set; }
+    [BitField(192, End = 255)] public partial ulong DestinationAddressHigh { get; set; }
+    [BitField(256, End = 319)] public partial ulong DestinationAddressLow { get; set; }
 }

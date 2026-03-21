@@ -88,8 +88,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                     propertyDiagnostics.AddRange(fieldDiags);
                     if (resolved == null) continue;
 
-                    var startBit = resolved.Value.StartBit;
-                    var endBit = resolved.Value.EndBit;
+                    var start = resolved.Value.Start;
+                    var end = resolved.Value.End;
 
                     // Check if the property type is itself a [BitFieldsView] type
                     bool isSubView = member.Type.GetAttributes()
@@ -98,7 +98,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                     if (isSubView)
                     {
                         var propType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                        subViews.Add(new SubViewInfo(member.Name, propType, startBit, endBit));
+                        subViews.Add(new SubViewInfo(member.Name, propType, start, end));
                     }
                     else
                     {
@@ -125,7 +125,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
 
                         var (desc, descResType) = ReadDescriptionArgs(memberAttr);
 
-                        fields.Add(new BitFieldInfo(member.Name, qualifiedName, startBit, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType, description: desc, descriptionResourceType: descResType));
+                        fields.Add(new BitFieldInfo(member.Name, qualifiedName, start, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType, description: desc, descriptionResourceType: descResType));
                     }
                 }
                 else if (attrName == "BitFlagAttribute" && memberAttr.ConstructorArguments.Length >= 1)
@@ -170,8 +170,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         int maxBit = 0;
         foreach (var f in fields)
         {
-            int endBit = f.Shift + f.Width - 1;
-            if (endBit > maxBit) maxBit = endBit;
+            int end = f.Shift + f.Width - 1;
+            if (end > maxBit) maxBit = end;
         }
         foreach (var f in flags)
         {
@@ -179,7 +179,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         }
         foreach (var sv in subViews)
         {
-            if (sv.EndBit > maxBit) maxBit = sv.EndBit;
+            if (sv.End > maxBit) maxBit = sv.End;
         }
         int minBytes = (maxBit / 8) + 1;
 
@@ -375,13 +375,13 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         int maxEndBit = int.MinValue;
         foreach (var f in info.Fields)
         {
-            int startBit = f.Shift;
-            int endBit = startBit + f.Width - 1;
-            minStartBit = Math.Min(minStartBit, startBit);
-            maxEndBit = Math.Max(maxEndBit, endBit);
+            int start = f.Shift;
+            int end = start + f.Width - 1;
+            minStartBit = Math.Min(minStartBit, start);
+            maxEndBit = Math.Max(maxEndBit, end);
 
-            int firstByte = startBit / 8;
-            int lastByte = endBit / 8;
+            int firstByte = start / 8;
+            int lastByte = end / 8;
 
             int byteSpan = lastByte - firstByte + 1;
             int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : 8;
@@ -397,11 +397,11 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         }
         foreach (var sv in info.SubViews)
         {
-            // Sub-view extends to at least (endBit + 1) / 8 bytes, rounded up
-            int needed = (sv.EndBit / 8) + 1;
+            // Sub-view extends to at least (end + 1) / 8 bytes, rounded up
+            int needed = (sv.End / 8) + 1;
             if (needed > minBytes) minBytes = needed;
-            minStartBit = Math.Min(minStartBit, sv.StartBit);
-            maxEndBit = Math.Max(maxEndBit, sv.EndBit);
+            minStartBit = Math.Min(minStartBit, sv.Start);
+            maxEndBit = Math.Max(maxEndBit, sv.End);
         }
         int bitWidth = maxEndBit - minStartBit + 1;
         return (bitWidth, minBytes);
@@ -414,14 +414,14 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static void GenerateFieldProperty(StringBuilder sb, BitFieldsViewInfo info, BitFieldInfo field, string ind)
     {
-        int startBit = field.Shift;
+        int start = field.Shift;
         int width = field.Width;
-        int endBit = startBit + width - 1;
+        int end = start + width - 1;
         ulong mask = width == 64 ? ulong.MaxValue : (1UL << width) - 1;
 
         // === Compute values for the fast path (_bitOffset == 0) ===
-        int firstByte = startBit / 8;
-        int lastByte = endBit / 8;
+        int firstByte = start / 8;
+        int lastByte = end / 8;
         int byteSpan = lastByte - firstByte + 1;
         int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : 8;
         int readBits = readWidth * 8;
@@ -429,12 +429,12 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         int rightShift;
         if (info.BitOrder == BitOrder.BitZeroIsMsb)
         {
-            int fieldEndInWindow = endBit - firstByte * 8;
+            int fieldEndInWindow = end - firstByte * 8;
             rightShift = readBits - 1 - fieldEndInWindow;
         }
         else
         {
-            rightShift = startBit % 8;
+            rightShift = start % 8;
         }
 
         string readType, readMethod, writeMethod;
@@ -465,7 +465,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         EmitFastGetter(sb, info, field, ind + "            ", firstByte, rightShift, readWidth, readType, readMethod, maskLiteral, width, byteSpan);
         sb.AppendLine($"{ind}        }}");
         // Offset-aware path
-        EmitOffsetGetter(sb, info, field, ind + "        ", startBit, width, oReadWidth, oReadType, oReadMethod, oMaskLiteral);
+        EmitOffsetGetter(sb, info, field, ind + "        ", start, width, oReadWidth, oReadType, oReadMethod, oMaskLiteral);
         sb.AppendLine($"{ind}    }}");
 
         // ---- Setter ----
@@ -479,7 +479,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}        }}");
         sb.AppendLine($"{ind}        else");
         sb.AppendLine($"{ind}        {{");
-        EmitOffsetSetter(sb, info, field, ind + "            ", startBit, width, oReadWidth, oReadType, oReadMethod, oWriteMethod, mask, oMaskLiteral);
+        EmitOffsetSetter(sb, info, field, ind + "            ", start, width, oReadWidth, oReadType, oReadMethod, oWriteMethod, mask, oMaskLiteral);
         sb.AppendLine($"{ind}        }}");
         sb.AppendLine($"{ind}    }}");
 
@@ -511,14 +511,14 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     }
 
     private static void EmitOffsetGetter(StringBuilder sb, BitFieldsViewInfo info, BitFieldInfo field,
-        string ind, int startBit, int width, int oReadWidth, string oReadType,
+        string ind, int start, int width, int oReadWidth, string oReadType,
         string oReadMethod, string oMaskLiteral)
     {
         bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
         int oReadBits = oReadWidth * 8;
         string cast = GetterCast(field);
 
-        sb.AppendLine($"{ind}int ep = {startBit} + _bitOffset;");
+        sb.AppendLine($"{ind}int ep = {start} + _bitOffset;");
         sb.AppendLine($"{ind}int bi = ep >> 3;");
 
         if (oReadWidth == 1)
@@ -583,13 +583,13 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     }
 
     private static void EmitOffsetSetter(StringBuilder sb, BitFieldsViewInfo info, BitFieldInfo field,
-        string ind, int startBit, int width, int oReadWidth, string oReadType,
+        string ind, int start, int width, int oReadWidth, string oReadType,
         string oReadMethod, string oWriteMethod, ulong mask, string oMaskLiteral)
     {
         bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
         int oReadBits = oReadWidth * 8;
 
-        sb.AppendLine($"{ind}int ep = {startBit} + _bitOffset;");
+        sb.AppendLine($"{ind}int ep = {start} + _bitOffset;");
         sb.AppendLine($"{ind}int bi = ep >> 3;");
 
         if (oReadWidth == 1)

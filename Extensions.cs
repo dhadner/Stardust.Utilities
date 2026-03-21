@@ -177,7 +177,7 @@ namespace Stardust.Utilities
             if (fieldName != null)
             {
                 return type.GetStartAndEndBits(fieldName, inherit).Match(
-                    onSuccess: bits => Result<int, string>.Ok(bits.endBit - bits.startBit + 1),
+                    onSuccess: bits => Result<int, string>.Ok(bits.end - bits.start + 1),
                     onFailure: err => Result<int, string>.Err(err)
                 );
             }
@@ -213,7 +213,7 @@ namespace Stardust.Utilities
         public static Result<int,string> GetStartBit(this Type type, string fieldName, bool inherit = true)
         {
             return type.GetStartAndEndBits(fieldName, inherit).Match(
-                onSuccess: bits => Result<int, string>.Ok(bits.startBit),
+                onSuccess: bits => Result<int, string>.Ok(bits.start),
                 onFailure: err => Result<int, string>.Err(err)
             );
         }
@@ -228,7 +228,7 @@ namespace Stardust.Utilities
         public static Result<int,string> GetEndBit(this Type type, string fieldName, bool inherit = true)
         {
             return type.GetStartAndEndBits(fieldName, inherit).Match(
-                onSuccess: bits => Result<int, string>.Ok(bits.endBit),
+                onSuccess: bits => Result<int, string>.Ok(bits.end),
                 onFailure: err => Result<int, string>.Err(err)
             );
         }
@@ -240,35 +240,35 @@ namespace Stardust.Utilities
         /// <param name="fieldName">The property name.</param>
         /// <param name="inherit">When true, searches inherited attributes.</param>
         /// <returns>Result with start and end bits if success or error message if failure.</returns>
-        public static Result<(int startBit,int endBit),string> GetStartAndEndBits(this Type type, string fieldName, bool inherit = true)
+        public static Result<(int start,int end),string> GetStartAndEndBits(this Type type, string fieldName, bool inherit = true)
         {
             if (type == null)
             {
-                return Result<(int startBit, int endBit), string>.Err("'type' is null");
+                return Result<(int start, int end), string>.Err("'type' is null");
             }               
             if (!type.IsBitsType())
             {
-                return Result<(int startBit, int endBit), string>.Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<(int start, int end), string>.Err("Type is not a BitFields struct or BitFieldsView struct");
             }
             if (string.IsNullOrEmpty(fieldName))
             {
-                return Result<(int startBit, int endBit), string>.Err("No field name");
+                return Result<(int start, int end), string>.Err("No field name");
             }
             var field = type.GetProperty(fieldName);
             if (field == null)
             {
-                return Result<(int startBit, int endBit), string>.Err("Field not found");
+                return Result<(int start, int end), string>.Err("Field not found");
             }
             BitFieldAttribute? fieldAttr = type.GetAttribute<BitFieldAttribute>(fieldName, inherit);
             if (fieldAttr != null)
             {
-                // Resolve EndBit: if EndBit was not set (sentinel -1), compute from Width
-                int endBit = fieldAttr.EndBit >= 0
-                    ? fieldAttr.EndBit
+                // Resolve End: if End was not set (sentinel -1), compute from Width
+                int end = fieldAttr.End >= 0
+                    ? fieldAttr.End
                     : fieldAttr.Width >= 0
-                        ? fieldAttr.StartBit + fieldAttr.Width - 1
-                        : fieldAttr.StartBit; // fallback for malformed attribute
-                return Ok((fieldAttr.StartBit, endBit));
+                        ? fieldAttr.Start + fieldAttr.Width - 1
+                        : fieldAttr.Start; // fallback for malformed attribute
+                return Ok((fieldAttr.Start, end));
             }
             BitFlagAttribute? flagAttr = type.GetAttribute<BitFlagAttribute>(fieldName, inherit);
             if (flagAttr != null)
@@ -276,7 +276,7 @@ namespace Stardust.Utilities
                 return Ok((flagAttr.Bit, flagAttr.Bit));
             }
 
-            return Result<(int startBit, int endBit), string>.Err("Field is not a BitField or a BitFlag");
+            return Result<(int start, int end), string>.Err("Field is not a BitField or a BitFlag");
         }
 
         /// <summary>
@@ -642,27 +642,27 @@ namespace Stardust.Utilities
                     if (attrName == nameof(BitFieldAttribute))
                     {
                         // Resolve across all constructor forms:
-                        //   Parameterless:  [BitField(StartBit = N, EndBit = M)]
-                        //   1-param:        [BitField(startBit, EndBit = M)] or [BitField(startBit, Width = W)]
-                        //   Deprecated 2p:  [BitField(startBit, endBit)]
+                        //   Parameterless:  [BitField(Start = N, End = M)]
+                        //   1-param:        [BitField(start, End = M)] or [BitField(start, Width = W)]
+                        //   Deprecated 2p:  [BitField(start, end)]
                         bool isDeprecated2Param = cad.ConstructorArguments.Count >= 2
                             && cad.Constructor.GetParameters().Length >= 2
                             && cad.Constructor.GetParameters()[1].ParameterType == typeof(int);
 
-                        int startBit = -1;
+                        int start = -1;
                         int ctorEndBit = -1;
                         MustBe mustBe = MustBe.Any;
 
                         if (isDeprecated2Param)
                         {
-                            startBit = (int)cad.ConstructorArguments[0].Value!;
+                            start = (int)cad.ConstructorArguments[0].Value!;
                             ctorEndBit = (int)cad.ConstructorArguments[1].Value!;
                             if (cad.ConstructorArguments.Count > 2)
                                 mustBe = (MustBe)(int)cad.ConstructorArguments[2].Value!;
                         }
                         else if (cad.ConstructorArguments.Count >= 1)
                         {
-                            startBit = (int)cad.ConstructorArguments[0].Value!;
+                            start = (int)cad.ConstructorArguments[0].Value!;
                             if (cad.ConstructorArguments.Count >= 2)
                                 mustBe = (MustBe)(int)cad.ConstructorArguments[1].Value!;
                         }
@@ -672,9 +672,9 @@ namespace Stardust.Utilities
                         int namedWidth = -1;
                         foreach (var na in cad.NamedArguments)
                         {
-                            if (na.MemberName == nameof(BitFieldAttribute.StartBit) && na.TypedValue.Value is int sb)
-                                startBit = sb;
-                            else if (na.MemberName == nameof(BitFieldAttribute.EndBit) && na.TypedValue.Value is int eb)
+                            if (na.MemberName == nameof(BitFieldAttribute.Start) && na.TypedValue.Value is int sb)
+                                start = sb;
+                            else if (na.MemberName == nameof(BitFieldAttribute.End) && na.TypedValue.Value is int eb)
                                 namedEndBit = eb;
                             else if (na.MemberName == nameof(BitFieldAttribute.Width) && na.TypedValue.Value is int w)
                                 namedWidth = w;
@@ -682,25 +682,25 @@ namespace Stardust.Utilities
                                 mustBe = (MustBe)vo;
                         }
 
-                        // Resolve EndBit from named args, Width, or deprecated ctor
+                        // Resolve End from named args, Width, or deprecated ctor
                         int resolvedEndBit;
                         if (isDeprecated2Param)
                             resolvedEndBit = namedEndBit >= 0 ? namedEndBit : ctorEndBit;
                         else if (namedEndBit >= 0)
                             resolvedEndBit = namedEndBit;
-                        else if (namedWidth >= 0 && startBit >= 0)
-                            resolvedEndBit = startBit + namedWidth - 1;
+                        else if (namedWidth >= 0 && start >= 0)
+                            resolvedEndBit = start + namedWidth - 1;
                         else
                             continue; // Missing range info -- skip
 
-                        if (startBit < 0) continue; // Missing StartBit -- skip
+                        if (start < 0) continue; // Missing Start -- skip
 
                         string? desc = GetNamedArgString(cad, nameof(BitFieldAttribute.Description));
 
                         fields.Add(new BitFieldInfo(
                             Name: prop.Name,
-                            StartBit: startBit,
-                            BitLength: resolvedEndBit - startBit + 1,
+                            Start: start,
+                            BitWidth: resolvedEndBit - start + 1,
                             PropertyType: MapPropertyTypeName(prop.PropertyType),
                             IsFlag: false,
                             ByteOrder: structByteOrder,
@@ -720,8 +720,8 @@ namespace Stardust.Utilities
 
                         fields.Add(new BitFieldInfo(
                             Name: prop.Name,
-                            StartBit: bit,
-                            BitLength: 1,
+                            Start: bit,
+                            BitWidth: 1,
                             PropertyType: "bool",
                             IsFlag: true,
                             ByteOrder: structByteOrder,
@@ -738,13 +738,13 @@ namespace Stardust.Utilities
 
             if (structTotalBits == 0 && fields.Count > 0)
             {
-                int maxBit = fields.Max(f => f.EndBit);
+                int maxBit = fields.Max(f => f.End);
                 int inferred = ((maxBit + 8) / 8) * 8;
                 for (int i = 0; i < fields.Count; i++)
                     fields[i] = fields[i] with { StructTotalBits = inferred };
             }
 
-            fields.Sort((a, b) => a.StartBit.CompareTo(b.StartBit));
+            fields.Sort((a, b) => a.Start.CompareTo(b.Start));
             return fields.ToArray();
         }
 

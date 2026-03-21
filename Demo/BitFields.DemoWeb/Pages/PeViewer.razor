@@ -63,7 +63,7 @@
 }
 
 @code {
-    private record FieldDef(string Name, int StartBit, int EndBit, string Color, string Value, string Bits, string? Description);
+    private record FieldDef(string Name, int Start, int End, string Color, string Value, string Bits, string? Description);
     private record ByteInfo(string? Name, string Color);
 
     private byte[] _bytes = [];
@@ -102,7 +102,7 @@
                 int ci = 0;
 
                 foreach (var m in DosHeaderView.Fields)
-                    AddField(ref ci, m.Name, m.StartBit, m.EndBit, Palette.FormatField(pe.Dos, m), m.BitOrder, m.GetDescription());
+                    AddField(ref ci, m.Name, m.Start, m.End, Palette.FormatField(pe.Dos, m), m.BitOrder, m.GetDescription());
 
                 int sigBitBase = pe.PeOffset * 8;
                 _fields.Add(new("PE Sig", sigBitBase, sigBitBase + 31, Palette.Get(ci++),
@@ -112,15 +112,15 @@
 
                 int coffBitBase = pe.CoffByteOffset * 8;
                 foreach (var m in CoffHeaderView.Fields)
-                    AddField(ref ci, m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette.FormatField(pe.Coff, m), m.BitOrder, m.GetDescription());
+                    AddField(ref ci, m.Name, m.Start + coffBitBase, m.End + coffBitBase, Palette.FormatField(pe.Coff, m), m.BitOrder, m.GetDescription());
 
                 if (pe.Optional is { } opt)
                 {
                     int optBitBase = pe.OptByteOffset * 8;
                     foreach (var m in OptionalHeaderView.Fields)
                     {
-                        int gs = m.StartBit + optBitBase;
-                        int ge = m.EndBit + optBitBase;
+                        int gs = m.Start + optBitBase;
+                        int ge = m.End + optBitBase;
                         if (ge / 8 < _displayBytes)
                             AddField(ref ci, m.Name, gs, ge, Palette.FormatField(opt, m), m.BitOrder, m.GetDescription());
                     }
@@ -129,19 +129,19 @@
             .OnFailure(error => _error = error);
     }
 
-    private void AddField(ref int ci, string name, int startBit, int endBit, string value, BitOrder order, string? desc)
+    private void AddField(ref int ci, string name, int start, int end, string value, BitOrder order, string? desc)
     {
-        _fields.Add(new(name, startBit, endBit, Palette.Get(ci++), value, BuildBits(startBit, endBit, order), desc));
+        _fields.Add(new(name, start, end, Palette.Get(ci++), value, BuildBits(start, end, order), desc));
     }
 
-    private string BuildBits(int startBit, int endBit, BitOrder order)
+    private string BuildBits(int start, int end, BitOrder order)
     {
         bool isMsb = order == BitOrder.BitZeroIsMsb;
-        int width = endBit - startBit + 1;
+        int width = end - start + 1;
         var sb = new StringBuilder();
         for (int i = 0; i < width; i++)
         {
-            int bit = isMsb ? startBit + i : endBit - i;
+            int bit = isMsb ? start + i : end - i;
             if (bit / 8 >= _bytes.Length) break;
             int byteIdx = bit / 8;
             int shift = isMsb ? 7 - (bit % 8) : bit % 8;
@@ -153,11 +153,11 @@
 
     private ByteInfo GetByteInfo(int byteIndex)
     {
-        int bitStart = byteIndex * 8;
-        int bitEnd = bitStart + 7;
+        int start = byteIndex * 8;
+        int end = start + 7;
         foreach (var f in _fields)
         {
-            if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+            if (f.Start <= end && f.End >= start)
                 return new(f.Name, f.Color);
         }
         return new(null, "#888");

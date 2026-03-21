@@ -49,7 +49,7 @@
 <div class="diagram-output">@_payload</div>
 
 @code {
-    private record FieldDef(string Name, int StartBit, int EndBit, string Color, string Value, string Bits, string? Description);
+    private record FieldDef(string Name, int Start, int End, string Color, string Value, string Bits, string? Description);
     private record ByteInfo(string? Name, string Color);
 
     private string _hexInput = "";
@@ -103,15 +103,15 @@
         foreach (var m in IPv4HeaderView.Fields)
         {
             string val = Palette.FormatField(ip, m);
-            string bits = BuildBits(m.StartBit, m.EndBit, m.BitOrder);
-            _fields.Add(new(m.Name, m.StartBit, m.EndBit, Palette.Get(ci++), val, bits, m.GetDescription()));
+            string bits = BuildBits(m.Start, m.End, m.BitOrder);
+            _fields.Add(new(m.Name, m.Start, m.End, Palette.Get(ci++), val, bits, m.GetDescription()));
         }
 
         foreach (var m in TcpHeaderView.Fields)
         {
             string val = Palette.FormatField(tcp, m);
-            string bits = BuildBits(m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, m.BitOrder);
-            _fields.Add(new(m.Name, m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, Palette.Get(ci++), val, bits, m.GetDescription()));
+            string bits = BuildBits(m.Start + tcpBitBase, m.End + tcpBitBase, m.BitOrder);
+            _fields.Add(new(m.Name, m.Start + tcpBitBase, m.End + tcpBitBase, Palette.Get(ci++), val, bits, m.GetDescription()));
         }
 
         int payloadOffset = tcpOffset + tcp.HeaderLengthBytes;
@@ -120,14 +120,14 @@
             : "No payload.";
     }
 
-    private string BuildBits(int startBit, int endBit, BitOrder order)
+    private string BuildBits(int start, int end, BitOrder order)
     {
         bool isMsb = order == BitOrder.BitZeroIsMsb;
-        int width = endBit - startBit + 1;
+        int width = end - start + 1;
         var sb = new StringBuilder();
         for (int i = 0; i < width; i++)
         {
-            int bit = isMsb ? startBit + i : endBit - i;
+            int bit = isMsb ? start + i : end - i;
             if (bit / 8 >= _bytes.Length) break;
             int byteIdx = bit / 8;
             int shift = isMsb ? 7 - (bit % 8) : bit % 8;
@@ -143,7 +143,7 @@
         int bitEnd = bitStart + 7;
         foreach (var f in _fields)
         {
-            if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+            if (f.Start <= bitEnd && f.End >= bitStart)
                 return new(f.Name, f.Color);
         }
         return new(null, "#888");

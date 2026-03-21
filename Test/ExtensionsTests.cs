@@ -40,11 +40,11 @@ public partial class ExtensionsTests
     [BitFields(typeof(uint))]
     public partial struct IPv4VersionWord
     {
-        [BitField(28, EndBit = 31)] public partial byte Version { get; set; }       // always 4 for IPv4
-        [BitField(24, EndBit = 27)] public partial byte IHL { get; set; }           // header length in 32-bit words
-        [BitField(18, EndBit = 23)] public partial byte DSCP { get; set; }          // differentiated services
-        [BitField(16, EndBit = 17)] public partial byte ECN { get; set; }           // congestion notification
-        [BitField(0, EndBit = 15)] public partial ushort TotalLength { get; set; } // total packet length in bytes
+        [BitField(28, End = 31)] public partial byte Version { get; set; }       // always 4 for IPv4
+        [BitField(24, End = 27)] public partial byte IHL { get; set; }           // header length in 32-bit words
+        [BitField(18, End = 23)] public partial byte DSCP { get; set; }          // differentiated services
+        [BitField(16, End = 17)] public partial byte ECN { get; set; }           // congestion notification
+        [BitField(0, End = 15)] public partial ushort TotalLength { get; set; } // total packet length in bytes
     }
 
     /// <summary>
@@ -54,9 +54,9 @@ public partial class ExtensionsTests
     [BitFields(typeof(uint))]
     public partial struct IPv4FragmentWord
     {
-        [BitField(16, EndBit = 31)] public partial ushort Identification { get; set; } // packet ID for reassembly
-        [BitField(13, EndBit = 15)] public partial IPv4Flags Flags { get; set; }       // ? composed!
-        [BitField(0, EndBit = 12)] public partial ushort FragmentOffset { get; set; } // offset in 8-byte units
+        [BitField(16, End = 31)] public partial ushort Identification { get; set; } // packet ID for reassembly
+        [BitField(13, End = 15)] public partial IPv4Flags Flags { get; set; }       // ? composed!
+        [BitField(0, End = 12)] public partial ushort FragmentOffset { get; set; } // offset in 8-byte units
     }
 
     /// <summary>
@@ -65,9 +65,9 @@ public partial class ExtensionsTests
     [BitFields(typeof(uint))]
     public partial struct IPv4TtlWord
     {
-        [BitField(24, EndBit = 31)] public partial byte TTL { get; set; }              // time to live (hop limit)
-        [BitField(16, EndBit = 23)] public partial byte Protocol { get; set; }         // 6 = TCP, 17 = UDP
-        [BitField(0, EndBit = 15)] public partial ushort HeaderChecksum { get; set; } // one's complement checksum
+        [BitField(24, End = 31)] public partial byte TTL { get; set; }              // time to live (hop limit)
+        [BitField(16, End = 23)] public partial byte Protocol { get; set; }         // 6 = TCP, 17 = UDP
+        [BitField(0, End = 15)] public partial ushort HeaderChecksum { get; set; } // one's complement checksum
     }
 
     /// <summary>
@@ -77,10 +77,10 @@ public partial class ExtensionsTests
     [BitFields(typeof(uint))]
     public partial struct TcpControlWord
     {
-        [BitField(28, EndBit = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
-        [BitField(25, EndBit = 27)] public partial byte Reserved { get; set; }     // must be 0
-        [BitField(16, EndBit = 24)] public partial TcpFlags Flags { get; set; }    // ? composed!
-        [BitField(0, EndBit = 15)] public partial ushort WindowSize { get; set; } // receive window size
+        [BitField(28, End = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
+        [BitField(25, End = 27)] public partial byte Reserved { get; set; }     // must be 0
+        [BitField(16, End = 24)] public partial TcpFlags Flags { get; set; }    // ? composed!
+        [BitField(0, End = 15)] public partial ushort WindowSize { get; set; } // receive window size
     }
 
     /// <summary>TCP control flags (9 bits): FIN, SYN, RST, PSH, ACK, URG, ECE, CWR, NS.</summary>
@@ -105,10 +105,10 @@ public partial class ExtensionsTests
     [BitFieldsView]
     public partial record struct TcpControlWordView
     {
-        [BitField(28, EndBit = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
-        [BitField(25, EndBit = 27)] public partial byte Reserved { get; set; }     // must be 0
-        [BitField(16, EndBit = 24)] public partial TcpFlags Flags { get; set; }    // ? composed!
-        [BitField(0, EndBit = 15)] public partial ushort WindowSize { get; set; } // receive window size
+        [BitField(28, End = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
+        [BitField(25, End = 27)] public partial byte Reserved { get; set; }     // must be 0
+        [BitField(16, End = 24)] public partial TcpFlags Flags { get; set; }    // ? composed!
+        [BitField(0, End = 15)] public partial ushort WindowSize { get; set; } // receive window size
     }
 
     #endregion
@@ -145,13 +145,13 @@ public partial class ExtensionsTests
     [InlineData(typeof(TcpFlagsView), "FIN", 0, 0, true)]
     [InlineData(typeof(TcpFlags), "PSH", 3, 3, true)]
     [InlineData(typeof(TcpFlagsView), "NS", 8, 8, true)]
-    public void Extension_MetaData_Works_For_Bits(Type bitType, string propName, int startBit, int endBit, bool isFlag)
+    public void Extension_MetaData_Works_For_Bits(Type bitType, string propName, int start, int end, bool isFlag)
     {
         Assert.Equal(isFlag, bitType.IsBitFlag(propName));
         var result = bitType.GetStartAndEndBits(propName);
         Assert.True(result.IsSuccess, $"Expected to find bit field or flag '{propName}' in type '{bitType.Name}'");
-        Assert.Equal(startBit, result.Value.startBit);
-        Assert.Equal(endBit, result.Value.endBit);
+        Assert.Equal(start, result.Value.start);
+        Assert.Equal(end, result.Value.end);
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public partial class ExtensionsTests
     {
         var fields = typeof(TcpControlWord).GetBitFieldInfoFromAttributes();
         for (int i = 1; i < fields.Length; i++)
-            Assert.True(fields[i].StartBit >= fields[i - 1].StartBit);
+            Assert.True(fields[i].Start >= fields[i - 1].Start);
     }
 
     [Fact]
@@ -215,8 +215,8 @@ public partial class ExtensionsTests
     {
         var fields = typeof(TcpControlWord).GetBitFieldInfoFromAttributes();
         var windowSize = fields.First(f => f.Name == "WindowSize");
-        Assert.Equal(0, windowSize.StartBit);
-        Assert.Equal(15, windowSize.EndBit);
+        Assert.Equal(0, windowSize.Start);
+        Assert.Equal(15, windowSize.End);
         Assert.False(windowSize.IsFlag);
     }
 
@@ -226,8 +226,8 @@ public partial class ExtensionsTests
         var fields = typeof(TcpFlags).GetBitFieldInfoFromAttributes();
         Assert.Equal(9, fields.Length);
         var fin = fields.First(f => f.Name == "FIN");
-        Assert.Equal(0, fin.StartBit);
-        Assert.Equal(0, fin.EndBit);
+        Assert.Equal(0, fin.Start);
+        Assert.Equal(0, fin.End);
         Assert.True(fin.IsFlag);
         Assert.Equal("bool", fin.PropertyType);
     }
@@ -300,8 +300,8 @@ public partial class ExtensionsTests
         for (int i = 0; i < fromGenerated.Length; i++)
         {
             Assert.Equal(fromGenerated[i].Name, fromAttrs[i].Name);
-            Assert.Equal(fromGenerated[i].StartBit, fromAttrs[i].StartBit);
-            Assert.Equal(fromGenerated[i].EndBit, fromAttrs[i].EndBit);
+            Assert.Equal(fromGenerated[i].Start, fromAttrs[i].Start);
+            Assert.Equal(fromGenerated[i].End, fromAttrs[i].End);
             Assert.Equal(fromGenerated[i].IsFlag, fromAttrs[i].IsFlag);
             Assert.Equal(fromGenerated[i].BitOrder, fromAttrs[i].BitOrder);
             Assert.Equal(fromGenerated[i].ByteOrder, fromAttrs[i].ByteOrder);
@@ -361,8 +361,8 @@ public partial class ExtensionsTests
         for (int i = 0; i < fromGenerated.Length; i++)
         {
             Assert.Equal(fromGenerated[i].Name, result.Value[i].Name);
-            Assert.Equal(fromGenerated[i].StartBit, result.Value[i].StartBit);
-            Assert.Equal(fromGenerated[i].EndBit, result.Value[i].EndBit);
+            Assert.Equal(fromGenerated[i].Start, result.Value[i].Start);
+            Assert.Equal(fromGenerated[i].End, result.Value[i].End);
         }
     }
 }

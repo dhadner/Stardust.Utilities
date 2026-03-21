@@ -71,7 +71,7 @@
 <div class="diagram-output">@MixedEndianDemo.Summarize()</div>
 
 @code {
-    private record FieldDef(string Name, int StartBit, int EndBit, string Color, string Value, string Bits, string? Description);
+    private record FieldDef(string Name, int Start, int End, string Color, string Value, string Bits, string? Description);
     private record ByteInfo(string? Name, string Color);
 
     private CpuStatusRegister _reg;
@@ -101,19 +101,19 @@
         foreach (var m in CpuStatusRegister.Fields)
         {
             string val = Palette.FormatField(_reg, m);
-            string bits = BuildBits(bytes, m.StartBit, m.EndBit, m.BitOrder);
-            _fields.Add(new(m.Name, m.StartBit, m.EndBit, Palette.Get(ci++), val, bits, m.GetDescription()));
+            string bits = BuildBits(bytes, m.Start, m.End, m.BitOrder);
+            _fields.Add(new(m.Name, m.Start, m.End, Palette.Get(ci++), val, bits, m.GetDescription()));
         }
     }
 
-    private static string BuildBits(byte[] bytes, int startBit, int endBit, BitOrder order)
+    private static string BuildBits(byte[] bytes, int start, int end, BitOrder order)
     {
         bool isMsb = order == BitOrder.BitZeroIsMsb;
-        int width = endBit - startBit + 1;
+        int width = end - start + 1;
         var sb = new StringBuilder();
         for (int i = 0; i < width; i++)
         {
-            int bit = isMsb ? startBit + i : endBit - i;
+            int bit = isMsb ? start + i : end - i;
             if (bit / 8 >= bytes.Length) break;
             int byteIdx = bit / 8;
             int shift = isMsb ? 7 - (bit % 8) : bit % 8;
@@ -125,11 +125,11 @@
 
     private ByteInfo GetByteInfo(int byteIndex)
     {
-        int bitStart = byteIndex * 8;
-        int bitEnd = bitStart + 7;
+        int start = byteIndex * 8;
+        int end = start + 7;
         foreach (var f in _fields)
         {
-            if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+            if (f.Start <= end && f.End >= start)
                 return new(f.Name, f.Color);
         }
         return new(null, "#888");

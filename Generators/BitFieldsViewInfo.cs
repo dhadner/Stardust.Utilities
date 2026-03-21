@@ -11,21 +11,21 @@ internal sealed class SubViewInfo
 {
     public string Name { get; }
     public string ViewTypeName { get; }
-    public int StartBit { get; }
-    public int EndBit { get; }
+    public int Start { get; }
+    public int End { get; }
 
-    /// <summary>Byte offset into the outer buffer (startBit / 8).</summary>
-    public int ByteOffset => StartBit / 8;
+    /// <summary>Byte offset into the outer buffer (start / 8).</summary>
+    public int ByteOffset => Start / 8;
 
-    /// <summary>Bit offset within that byte (startBit % 8). Zero for byte-aligned sub-views.</summary>
-    public int BitOffset => StartBit % 8;
+    /// <summary>Bit offset within that byte (start % 8). Zero for byte-aligned sub-views.</summary>
+    public int BitOffset => Start % 8;
 
-    public SubViewInfo(string name, string viewTypeName, int startBit, int endBit)
+    public SubViewInfo(string name, string viewTypeName, int start, int end)
     {
         Name = name;
         ViewTypeName = viewTypeName;
-        StartBit = startBit;
-        EndBit = endBit;
+        Start = start;
+        End = end;
     }
 }
 

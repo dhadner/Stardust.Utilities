@@ -13,12 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Named SCREAMING_SNAKE_CASE mask constants** in generated code (e.g., `MANTISSA_MASK`, `MANTISSA_SHIFTED_MASK`, `MANTISSA_INVERTED_MASK`, `MANTISSA_START_BIT`) replacing inline hex literals for improved readability and reviewability.
 - **`AddStructs` API** on `BitFieldDiagram` for incrementally adding struct types to an existing diagram instance after construction.
 - XML documentation coverage for all public APIs, now included in the NuGet package.
-- **Named property syntax for `[BitField]`** -- new `EndBit` and `Width` named properties plus parameterless and single-parameter constructors. Supports three self-documenting styles: `[BitField(0, Width = 8)]`, `[BitField(0, EndBit = 7)]`, and `[BitField(StartBit = 0, Width = 8)]`. Both `EndBit` and `Width` can be specified together if they are consistent (redundancy warning SD0016; error SD0017 if inconsistent). Missing range produces error SD0018; missing StartBit produces error SD0019.
-
-### Deprecated
-- **Two-parameter `[BitField(startBit, endBit)]` constructor** -- the positional `endBit` parameter is easily confused with a bit count. The source generator now emits warning SD0015 when this form is used. Migrate to `[BitField(startBit, EndBit = N)]` or `[BitField(startBit, Width = N)]`. The two-parameter constructor will be removed before v1.0.
+- **Named property syntax for `[BitField]`** -- new `End` and `Width` named properties plus parameterless and single-parameter constructors. Supports three self-documenting styles: `[BitField(0, Width = 8)]`, `[BitField(0, End = 7)]`, and `[BitField(Start = 0, Width = 8)]`. Both `End` and `Width` can be specified together if they are consistent (redundancy warning SD0016; error SD0017 if inconsistent). Missing range produces error SD0018; missing Start produces error SD0019.
 
 ### Changed
+- **Two-parameter `[BitField(startBit, endBit)]` constructor** -- parameter names changed to 'start' and 'end' for brevity, so if you have been using named parameters in your constructor calls, those will need to change. This is unsual for constructors however. Because the positional `end` parameter is easily confused with a bit count and can result in incorrect behavior, the source generator now emits warning SD0015 when this form is used. Migrate to `[BitField(start, End = N)]` or `[BitField(start, Width = N)]` or disable the warning if desired.
 - **`MustBe`/`UndefinedBitsMustBe` enforcement across all operations** -- `MustBe.Zero` and `MustBe.One` constraints on `[BitField]`/`[BitFlag]` are now enforced in setters, `With...` methods, constructors, parsing, and implicit conversions. Previously these constraints were only masked on read.
 
 ### Fixed

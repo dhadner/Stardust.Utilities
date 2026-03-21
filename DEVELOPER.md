@@ -554,24 +554,42 @@ If you modify `ci.yml`, verify these invariants:
 
 ### Rust-Style Bit Ranges
 
-The `[BitField]` attribute uses Rust-style inclusive bit ranges:
+The `[BitField]` attribute can use Rust-style inclusive bit ranges:
+
+```csharp
+[BitFields(StorageType.Byte)]
+public partial struct RegisterA
+{
+    // 3-bit field at bits 0, 1, 2 (like Rust's 0..=2)
+    [BitField(0, End = 2)] public partial byte Sound { get; set; }
+    
+    // Single bit at position 3
+    [BitField(3, End = 3)] public partial byte Flag { get; set; }
+    
+    // 4-bit field at bits 4, 5, 6, 7 (like Rust's 4..=7)
+    [BitField(4, End = 7)] public partial byte Mode { get; set; }
+}
+```
+
+Width is calculated as `(end - start + 1)`.
+
+The `[BitField]` attribute can also use start and width specifiers:
 
 ```csharp
 [BitFields(typeof(byte))]
 public partial struct RegisterA
 {
-    // 3-bit field at bits 0, 1, 2 (like Rust's 0..=2)
-    [BitField(0, EndBit = 2)] public partial byte Sound { get; set; }
+    // 3-bit field at bits 0, 1, 2
+    [BitField(0, Width = 3)] public partial byte Sound { get; set; }
     
-    // Single bit at position 3
-    [BitField(3, EndBit = 3)] public partial byte Flag { get; set; }
+    // Single bit at position 3. Could also use [BitFlag(3)] here for an automatic boolean.
+    [BitField(3, Width = 1)] public partial byte Flag { get; set; }
     
-    // 4-bit field at bits 4, 5, 6, 7 (like Rust's 4..=7)
-    [BitField(4, EndBit = 7)] public partial byte Mode { get; set; }
+    // 4-bit field at bits 4, 5, 6, 7
+    [BitField(4, Width = 4)] public partial byte Mode { get; set; }
 }
 ```
 
-Width is calculated as `(endBit - startBit + 1)`.
 
 ### Nested Struct Support
 
@@ -584,7 +602,7 @@ public partial class HardwareController
     public partial struct StatusRegister
     {
         [BitFlag(0)] public partial bool Ready { get; set; }
-        [BitField(4, EndBit = 7)] public partial byte Mode { get; set; }  // bits 4..=7 (4 bits)
+        [BitField(4, End = 7)] public partial byte Mode { get; set; }  // bits 4..=7 (4 bits)
     }
 }
 ```
@@ -808,8 +826,8 @@ public partial struct RegisterWithVisibleValue
 {
     public byte Value; 
 
-    [BitField(0, EndBit = 3)] public byte Field1 { get; set; }
-    [BitField(4, EndBit = 7)] public byte Field2 { get; set; }
+    [BitField(0, End = 3)] public byte Field1 { get; set; }
+    [BitField(4, End = 7)] public byte Field2 { get; set; }
 }
 
 // Attribute determines type, generator creates private Value field
@@ -817,8 +835,8 @@ public partial struct RegisterWithVisibleValue
 [BitFields(typeof(byte))] 
 public partial struct RegisterWithConversion
 {
-    [BitField(0, EndBit = 3)] public byte Field1 { get; set; }
-    [BitField(4, EndBit = 7)] public byte Field2 { get; set; }
+    [BitField(0, End = 3)] public byte Field1 { get; set; }
+    [BitField(4, End = 7)] public byte Field2 { get; set; }
 }
 
 // Compare use of both patterns, same performance either way

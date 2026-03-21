@@ -262,7 +262,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 
-                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, resolved.Value.StartBit, resolved.Value.Width, resolved.Value.ValueOverride, description: desc, descriptionResourceType: descResType, location: memberLocation));
+                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, resolved.Value.Start, resolved.Value.Width, resolved.Value.ValueOverride, description: desc, descriptionResourceType: descResType, location: memberLocation));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
@@ -381,8 +381,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             for (int i = 0; i < fields.Count; i++)
             {
                 var f = fields[i];
-                // User says [BitField(startBit, endBit)] in MSB-first.
-                // Convert: physical startBit = totalBits - 1 - userEndBit, width stays the same.
+                // User says [BitField(start, end)] in MSB-first.
+                // Convert: physical start = totalBits - 1 - userEndBit, width stays the same.
                 int userEndBit = f.Shift + f.Width - 1;
                 int physicalShift = totalBits - 1 - userEndBit;
                 fields[i] = new BitFieldInfo(f.Name, f.PropertyType, physicalShift, f.Width, f.ValueOverride);

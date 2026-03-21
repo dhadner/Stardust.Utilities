@@ -5,9 +5,9 @@ namespace Stardust.Utilities;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Specify the bit range using <see cref="StartBit"/> with either <see cref="EndBit"/>
-/// (inclusive end position) or <see cref="Width"/> (bit count). Both <c>StartBit</c>
-/// and one of <c>EndBit</c>/<c>Width</c> are required.
+/// Specify the bit range using <see cref="Start"/> with either <see cref="End"/>
+/// (inclusive end position) or <see cref="Width"/> (bit count). Both <c>Start</c>
+/// and one of <c>End</c>/<c>Width</c> are required.
 /// </para>
 /// <para>
 /// The property must be declared as <c>public partial {type}</c> where type is
@@ -24,12 +24,12 @@ namespace Stardust.Utilities;
 ///     [BitField(3, Width = 1)] public partial byte Flag { get; set; }
 ///     [BitField(4, Width = 4)] public partial byte Mode { get; set; }
 ///
-///     // EndBit syntax (inclusive):
-///     // [BitField(0, EndBit = 2)] public partial byte Sound { get; set; }
+///     // End syntax (inclusive):
+///     // [BitField(0, End = 2)] public partial byte Sound { get; set; }
 ///
 ///     // Fully named syntax:
-///     // [BitField(StartBit = 0, Width = 3)] public partial byte Sound { get; set; }
-///     // [BitField(StartBit = 0, EndBit = 2)] public partial byte Sound { get; set; }
+///     // [BitField(Start = 0, Width = 3)] public partial byte Sound { get; set; }
+///     // [BitField(Start = 0, End = 2)] public partial byte Sound { get; set; }
 /// }
 /// </code>
 /// </example>
@@ -40,17 +40,17 @@ public sealed class BitFieldAttribute : Attribute
     /// <summary>
     /// The starting bit position (0-based, inclusive).
     /// </summary>
-    public int StartBit { get; set; } = -1;
+    public int Start { get; set; } = -1;
 
     /// <summary>
     /// The ending bit position (0-based, inclusive).
     /// Mutually exclusive with <see cref="Width"/>; specify one or the other.
     /// </summary>
-    public int EndBit { get; set; } = -1;
+    public int End { get; set; } = -1;
 
     /// <summary>
     /// The width of the field in bits. For example, <c>Width = 3</c> defines a 3-bit field.
-    /// Mutually exclusive with <see cref="EndBit"/>; specify one or the other.
+    /// Mutually exclusive with <see cref="End"/>; specify one or the other.
     /// </summary>
     public int Width { get; set; } = -1;
 
@@ -93,47 +93,47 @@ public sealed class BitFieldAttribute : Attribute
     /// </summary>
     /// <example>
     /// <code>
-    /// [BitField(StartBit = 0, Width = 3)]
-    /// [BitField(StartBit = 0, EndBit = 2)]
+    /// [BitField(Start = 0, Width = 3)]
+    /// [BitField(Start = 0, End = 2)]
     /// </code>
     /// </example>
     public BitFieldAttribute() { }
 
     /// <summary>
     /// Creates a new bit field attribute with the starting bit position.
-    /// Specify the field range using <see cref="EndBit"/> or <see cref="Width"/>.
+    /// Specify the field range using <see cref="End"/> or <see cref="Width"/>.
     /// </summary>
-    /// <param name="startBit">The starting bit position (0-based, inclusive).</param>
+    /// <param name="start">The starting bit position (0-based, inclusive).</param>
     /// <param name="mustBe">Optional override for how bits are handled. Defaults to <see cref="MustBe.Any"/>.</param>
     /// <example>
     /// <code>
     /// [BitField(0, Width = 3)]
-    /// [BitField(0, EndBit = 2)]
+    /// [BitField(0, End = 2)]
     /// [BitField(3, MustBe.Zero, Width = 1)]
     /// </code>
     /// </example>
-    public BitFieldAttribute(int startBit, MustBe mustBe = MustBe.Any)
+    public BitFieldAttribute(int start, MustBe mustBe = MustBe.Any)
     {
-        StartBit = startBit;
+        Start = start;
         ValueOverride = mustBe;
     }
 
     /// <summary>
     /// Deprecated: This constructor will be removed before v1.0.
-    /// Use named <see cref="EndBit"/> or <see cref="Width"/> properties instead:
-    /// <c>[BitField(startBit, EndBit = N)]</c> or <c>[BitField(startBit, Width = N)]</c>.
+    /// Use named <see cref="End"/> or <see cref="Width"/> properties instead:
+    /// <c>[BitField(start, End = N)]</c> or <c>[BitField(start, Width = N)]</c>.
     /// </summary>
-    /// <param name="startBit">The starting bit position (0-based, inclusive).</param>
-    /// <param name="endBit">Deprecated: Use named property syntax instead.</param>
+    /// <param name="start">The starting bit position (0-based, inclusive).</param>
+    /// <param name="end">Deprecated: Use named property syntax instead.</param>
     /// <param name="mustBe">Optional override for how bits are handled for this field.</param>
-    /// <exception cref="ArgumentException">Thrown when endBit is less than startBit.</exception>
-    public BitFieldAttribute(int startBit, int endBit, MustBe mustBe = MustBe.Any)
+    /// <exception cref="ArgumentException">Thrown when end is less than start.</exception>
+    public BitFieldAttribute(int start, int end, MustBe mustBe = MustBe.Any)
     {
-        if (endBit < startBit)
-            throw new ArgumentException($"endBit ({endBit}) must be >= startBit ({startBit})", nameof(endBit));
+        if (end < start)
+            throw new ArgumentException($"end ({end}) must be >= start ({start})", nameof(end));
 
-        StartBit = startBit;
-        EndBit = endBit;
+        Start = start;
+        End = end;
         ValueOverride = mustBe;
     }
 }

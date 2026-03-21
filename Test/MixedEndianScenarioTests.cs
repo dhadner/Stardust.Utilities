@@ -37,9 +37,9 @@ public partial class MixedEndianScenarioTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct CaptureHeaderView
     {
-        [BitField(0, EndBit = 15)]  public partial ushort Protocol { get; set; }
-        [BitField(16, EndBit = 31)] public partial ushort Length { get; set; }
-        [BitField(32, EndBit = 63)] public partial uint SequenceNum { get; set; }
+        [BitField(0, End = 15)]  public partial ushort Protocol { get; set; }
+        [BitField(16, End = 31)] public partial ushort Length { get; set; }
+        [BitField(32, End = 63)] public partial uint SequenceNum { get; set; }
     }
 
     /// <summary>
@@ -49,11 +49,11 @@ public partial class MixedEndianScenarioTests
     [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct FileBlobView
     {
-        [BitField(0, EndBit = 31)]    public partial uint Magic { get; set; }
-        [BitField(32, EndBit = 63)]   public partial uint Timestamp { get; set; }
-        [BitField(64, EndBit = 95)]   public partial UInt32Be CapturedSrcIp { get; set; }
-        [BitField(96, EndBit = 111)]  public partial ushort RecordCount { get; set; }
-        [BitField(112, EndBit = 175)] public partial CaptureHeaderView Capture { get; set; }
+        [BitField(0, End = 31)]    public partial uint Magic { get; set; }
+        [BitField(32, End = 63)]   public partial uint Timestamp { get; set; }
+        [BitField(64, End = 95)]   public partial UInt32Be CapturedSrcIp { get; set; }
+        [BitField(96, End = 111)]  public partial ushort RecordCount { get; set; }
+        [BitField(112, End = 175)] public partial CaptureHeaderView Capture { get; set; }
     }
 
     /// <summary>
@@ -63,10 +63,10 @@ public partial class MixedEndianScenarioTests
     [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct TransportHeaderView
     {
-        [BitField(0, EndBit = 15)]   public partial ushort MessageType { get; set; }
-        [BitField(16, EndBit = 47)]  public partial uint PayloadLength { get; set; }
-        [BitField(48, EndBit = 63)]  public partial ushort Checksum { get; set; }
-        [BitField(64, EndBit = 239)] public partial FileBlobView Blob { get; set; }
+        [BitField(0, End = 15)]   public partial ushort MessageType { get; set; }
+        [BitField(16, End = 47)]  public partial uint PayloadLength { get; set; }
+        [BitField(48, End = 63)]  public partial ushort Checksum { get; set; }
+        [BitField(64, End = 239)] public partial FileBlobView Blob { get; set; }
     }
 
     // ---- Tests ----

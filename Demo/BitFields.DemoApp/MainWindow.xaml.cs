@@ -95,7 +95,7 @@ public partial class MainWindow : Window
 
         // DOS header fields
         foreach (var m in DosHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], FormatViewField(pe.Dos, m), m.BitOrder, m.GetDescription()));
+            allFields.Add(new FieldDef(m.Name, m.Start, m.End, Palette[ci++ % Palette.Length], FormatViewField(pe.Dos, m), m.BitOrder, m.GetDescription()));
 
         // PE signature
         int sigBitBase = pe.PeOffset * 8;
@@ -105,7 +105,7 @@ public partial class MainWindow : Window
         // COFF header fields
         int coffBitBase = pe.CoffByteOffset * 8;
         foreach (var m in CoffHeaderView.Fields)
-            allFields.Add(new FieldDef(m.Name, m.StartBit + coffBitBase, m.EndBit + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(pe.Coff, m), m.BitOrder, m.GetDescription()));
+            allFields.Add(new FieldDef(m.Name, m.Start + coffBitBase, m.End + coffBitBase, Palette[ci++ % Palette.Length], FormatViewField(pe.Coff, m), m.BitOrder, m.GetDescription()));
 
         // Optional header fields (if present)
         if (pe.Optional is { } opt)
@@ -113,8 +113,8 @@ public partial class MainWindow : Window
             int optBitBase = pe.OptByteOffset * 8;
             foreach (var m in OptionalHeaderView.Fields)
             {
-                int globalStart = m.StartBit + optBitBase;
-                int globalEnd = m.EndBit + optBitBase;
+                int globalStart = m.Start + optBitBase;
+                int globalEnd = m.End + optBitBase;
                 if (globalEnd / 8 < pe.TotalDisplayBytes)
                     allFields.Add(new FieldDef(m.Name, globalStart, globalEnd, Palette[ci++ % Palette.Length], FormatViewField(opt, m), m.BitOrder, m.GetDescription()));
             }
@@ -174,13 +174,13 @@ public partial class MainWindow : Window
         foreach (var m in IPv4HeaderView.Fields)
         {
             string val = FormatViewField(ip, m);
-            fields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
+            fields.Add(new FieldDef(m.Name, m.Start, m.End, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
         }
 
         foreach (var m in TcpHeaderView.Fields)
         {
             string val = FormatViewField(tcp, m);
-            fields.Add(new FieldDef(m.Name, m.StartBit + tcpBitBase, m.EndBit + tcpBitBase, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
+            fields.Add(new FieldDef(m.Name, m.Start + tcpBitBase, m.End + tcpBitBase, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
         }
 
         _activePacketField = null;
@@ -269,7 +269,7 @@ public partial class MainWindow : Window
         foreach (var m in CpuStatusRegister.Fields)
         {
             string val = FormatViewField(_statusRegister, m);
-            fields.Add(new FieldDef(m.Name, m.StartBit, m.EndBit, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
+            fields.Add(new FieldDef(m.Name, m.Start, m.End, Palette[ci++ % Palette.Length], val, m.BitOrder, m.GetDescription()));
         }
 
         var bytes = BitConverter.GetBytes((ushort)_statusRegister);
@@ -527,7 +527,7 @@ public partial class MainWindow : Window
 
     // ?? Shared Three-Panel Display ?????????????????????????????
 
-    private sealed record FieldDef(string Name, int StartBit, int EndBit, Color Color, string Value, BitOrder BitOrder = BitOrder.BitZeroIsLsb, string? Description = null);
+    private sealed record FieldDef(string Name, int Start, int End, Color Color, string Value, BitOrder BitOrder = BitOrder.BitZeroIsLsb, string? Description = null);
     private sealed record FieldTag(string Name, string Group, Color Color);
     private sealed record HexByteTag(string PrimaryName, string Group, Color PrimaryColor, List<(string Name, Color Color)> OverlappingFields);
 
@@ -587,7 +587,7 @@ public partial class MainWindow : Window
             string? tooltip = null;
             foreach (var f in fields)
             {
-                if (f.StartBit <= bitEnd && f.EndBit >= bitStart)
+                if (f.Start <= bitEnd && f.End >= bitStart)
                 {
                     overlapping.Add((f.Name, f.Color));
                     if (f.Description != null)
@@ -616,16 +616,16 @@ public partial class MainWindow : Window
         panel.Children.Clear();
         foreach (var f in fields)
         {
-            if (f.StartBit / 8 >= count) break;
+            if (f.Start / 8 >= count) break;
             bool isMsb = f.BitOrder == BitOrder.BitZeroIsMsb;
 
             var sb = new StringBuilder();
-            int width = f.EndBit - f.StartBit + 1;
+            int width = f.End - f.Start + 1;
             for (int i = 0; i < width; i++)
             {
-                // MSB-first: iterate StartBit..EndBit (bit 0 is MSB, natural left-to-right)
-                // LSB-first: iterate EndBit..StartBit (put MSB on the left for display)
-                int bit = isMsb ? f.StartBit + i : f.EndBit - i;
+                // MSB-first: iterate Start..End (bit 0 is MSB, natural left-to-right)
+                // LSB-first: iterate End..Start (put MSB on the left for display)
+                int bit = isMsb ? f.Start + i : f.End - i;
                 if (bit / 8 >= count) break;
                 int byteIdx = bit / 8;
                 int shift = isMsb ? 7 - (bit % 8) : bit % 8;

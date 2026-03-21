@@ -9,7 +9,7 @@ namespace Stardust.Utilities;
 /// [BitFields(typeof(byte))]
 /// public partial struct MyRegister
 /// {
-///     [BitField(0, EndBit = 3)] public partial byte LowNibble { get; set; }  // bits 0..=3
+///     [BitField(0, End = 3)] public partial byte LowNibble { get; set; }  // bits 0..=3
 ///     [BitFlag(7)] public partial bool Flag { get; set; }
 /// }
 /// 
@@ -34,7 +34,7 @@ namespace Stardust.Utilities;
 /// [BitFields(typeof(byte), bitOrder: BitOrder.BitZeroIsMsb)]
 /// public partial struct MsbRegister
 /// {
-///     [BitField(0, EndBit = 3)] public partial byte HighNibble { get; set; }  // top 4 bits
+///     [BitField(0, End = 3)] public partial byte HighNibble { get; set; }  // top 4 bits
 /// }
 /// </code>
 /// The generator creates:

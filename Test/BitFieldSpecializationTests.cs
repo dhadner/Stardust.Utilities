@@ -16,8 +16,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(float))]
     public partial struct FloatRegister
     {
-        [BitField(0, EndBit = 22)] public partial uint Mantissa { get; set; }    // bits 0-22 (23-bit mantissa)
-        [BitField(23, EndBit = 30)] public partial byte Exponent { get; set; }   // bits 23-30 (8-bit exponent)
+        [BitField(0, End = 22)] public partial uint Mantissa { get; set; }    // bits 0-22 (23-bit mantissa)
+        [BitField(23, End = 30)] public partial byte Exponent { get; set; }   // bits 23-30 (8-bit exponent)
         [BitFlag(31)] public partial bool Sign { get; set; }             // bit 31 (sign bit)
     }
 
@@ -25,8 +25,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(double))]
     public partial struct DoubleRegister
     {
-        [BitField(0, EndBit = 51)] public partial ulong Mantissa { get; set; }   // bits 0-51 (52-bit mantissa)
-        [BitField(52, EndBit = 62)] public partial ushort Exponent { get; set; } // bits 52-62 (11-bit exponent)
+        [BitField(0, End = 51)] public partial ulong Mantissa { get; set; }   // bits 0-51 (52-bit mantissa)
+        [BitField(52, End = 62)] public partial ushort Exponent { get; set; } // bits 52-62 (11-bit exponent)
         [BitFlag(63)] public partial bool Sign { get; set; }             // bit 63 (sign bit)
 
         // ?? User-defined computed properties (not generated) ???????????
@@ -54,16 +54,16 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(UInt128))]
     public partial struct U128Register
     {
-        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }    // bits 0-63
-        [BitField(64, EndBit = 127)] public partial ulong High { get; set; } // bits 64-127
+        [BitField(0, End = 63)] public partial ulong Low { get; set; }    // bits 0-63
+        [BitField(64, End = 127)] public partial ulong High { get; set; } // bits 64-127
     }
 
     /// <summary>128-bit struct backed by Int128 (via multi-word with conversion operators).</summary>
     [BitFields(typeof(Int128))]
     public partial struct I128Register
     {
-        [BitField(0, EndBit = 63)] public partial ulong Low { get; set; }    // bits 0-63
-        [BitField(64, EndBit = 127)] public partial ulong High { get; set; } // bits 64-127
+        [BitField(0, End = 63)] public partial ulong Low { get; set; }    // bits 0-63
+        [BitField(64, End = 127)] public partial ulong High { get; set; } // bits 64-127
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(decimal))]
     public partial struct DecimalRegister
     {
-        [BitField(0, EndBit = 95)] public partial UInt128 Coefficient { get; set; }   // 96-bit unsigned integer
-        [BitField(112, EndBit = 118)] public partial byte Scale { get; set; }         // 0-28 (power of 10 divisor)
+        [BitField(0, End = 95)] public partial UInt128 Coefficient { get; set; }   // 96-bit unsigned integer
+        [BitField(112, End = 118)] public partial byte Scale { get; set; }         // 0-28 (power of 10 divisor)
         [BitFlag(127)] public partial bool Sign { get; set; }                // sign bit
     }
 
@@ -86,8 +86,8 @@ public partial class BitFieldSpecializationTests
     [BitFields(typeof(Half))]
     public partial struct HalfRegister
     {
-        [BitField(0, EndBit = 9)] public partial ushort Mantissa { get; set; }   // bits 0-9 (10-bit mantissa)
-        [BitField(10, EndBit = 14)] public partial byte Exponent { get; set; }   // bits 10-14 (5-bit exponent)
+        [BitField(0, End = 9)] public partial ushort Mantissa { get; set; }   // bits 0-9 (10-bit mantissa)
+        [BitField(10, End = 14)] public partial byte Exponent { get; set; }   // bits 10-14 (5-bit exponent)
         [BitFlag(15)] public partial bool Sign { get; set; }             // bit 15 (sign bit)
     }
 

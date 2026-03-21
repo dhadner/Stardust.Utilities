@@ -22,7 +22,7 @@ public partial struct DescEscapeRegister
     [BitFlag(4, Description = "CR\rhere")] public partial bool CarriageReturn { get; set; }
     [BitFlag(5, Description = "Null\0char")] public partial bool NullChar { get; set; }
     [BitFlag(6, Description = "Alert\abell\bback\fform\vvert")] public partial bool ControlChars { get; set; }
-    [BitField(7, EndBit = 7, Description = "Mixed: \"\\\n\t\r\0")] public partial byte AllAtOnce { get; set; }
+    [BitField(7, End = 7, Description = "Mixed: \"\\\n\t\r\0")] public partial byte AllAtOnce { get; set; }
 }
 
 /// <summary>
@@ -36,7 +36,7 @@ public partial record struct DescEscapeView
     [BitFlag(1, Description = "Col1\tCol2")] public partial bool Tab { get; set; }
     [BitFlag(2, Description = "Say \"hello\"")] public partial bool Quotes { get; set; }
     [BitFlag(3, Description = "C:\\Users\\test")] public partial bool Backslash { get; set; }
-    [BitField(4, EndBit = 7, Description = "Mixed: \"\\\n\t\r\0")] public partial byte AllAtOnce { get; set; }
+    [BitField(4, End = 7, Description = "Mixed: \"\\\n\t\r\0")] public partial byte AllAtOnce { get; set; }
 }
 
 /// <summary>
@@ -47,8 +47,8 @@ public partial struct DescUnicodeRegister
 {
     [BitFlag(0, Description = "Flag ✓ enabled")] public partial bool Check { get; set; }
     [BitFlag(1, Description = "Emoji 🚀 launch")] public partial bool Rocket { get; set; }
-    [BitField(2, EndBit = 7, Description = "日本語テスト")] public partial byte Japanese { get; set; }
-    [BitField(8, EndBit = 15, Description = "Ünïcödé àccénts")] public partial byte Accented { get; set; }
+    [BitField(2, End = 7, Description = "日本語テスト")] public partial byte Japanese { get; set; }
+    [BitField(8, End = 15, Description = "Ünïcödé àccénts")] public partial byte Accented { get; set; }
 }
 
 public class DescriptionEscapingTests

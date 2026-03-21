@@ -17,8 +17,8 @@ public partial struct SignedReg8
     [BitFlag(0)] public partial bool Flag0 { get; set; }
     [BitFlag(1)] public partial bool Flag1 { get; set; }
     [BitFlag(7)] public partial bool Sign { get; set; }  // Sign bit
-    [BitField(2, EndBit = 4)] public partial byte LowField { get; set; }   // bits 2..=4 (3 bits)
-    [BitField(5, EndBit = 6)] public partial byte HighField { get; set; }  // bits 5..=6 (2 bits)
+    [BitField(2, End = 4)] public partial byte LowField { get; set; }   // bits 2..=4 (3 bits)
+    [BitField(5, End = 6)] public partial byte HighField { get; set; }  // bits 5..=6 (2 bits)
 }
 
 /// <summary>
@@ -29,8 +29,8 @@ public partial struct SignedReg16
 {
     [BitFlag(0)] public partial bool Flag0 { get; set; }
     [BitFlag(15)] public partial bool Sign { get; set; }  // Sign bit
-    [BitField(1, EndBit = 7)] public partial byte LowByte { get; set; }    // bits 1..=7 (7 bits)
-    [BitField(8, EndBit = 14)] public partial byte HighByte { get; set; }  // bits 8..=14 (7 bits)
+    [BitField(1, End = 7)] public partial byte LowByte { get; set; }    // bits 1..=7 (7 bits)
+    [BitField(8, End = 14)] public partial byte HighByte { get; set; }  // bits 8..=14 (7 bits)
 }
 
 /// <summary>
@@ -41,8 +41,8 @@ public partial struct SignedReg32
 {
     [BitFlag(0)] public partial bool Flag0 { get; set; }
     [BitFlag(31)] public partial bool Sign { get; set; }  // Sign bit
-    [BitField(1, EndBit = 15)] public partial ushort LowWord { get; set; }   // bits 1..=15 (15 bits)
-    [BitField(16, EndBit = 30)] public partial ushort HighWord { get; set; } // bits 16..=30 (15 bits)
+    [BitField(1, End = 15)] public partial ushort LowWord { get; set; }   // bits 1..=15 (15 bits)
+    [BitField(16, End = 30)] public partial ushort HighWord { get; set; } // bits 16..=30 (15 bits)
 }
 
 /// <summary>
@@ -53,8 +53,8 @@ public partial struct SignedReg64
 {
     [BitFlag(0)] public partial bool Flag0 { get; set; }
     [BitFlag(63)] public partial bool Sign { get; set; }  // Sign bit
-    [BitField(1, EndBit = 31)] public partial uint LowDword { get; set; }    // bits 1..=31 (31 bits)
-    [BitField(32, EndBit = 62)] public partial uint HighDword { get; set; }  // bits 32..=62 (31 bits)
+    [BitField(1, End = 31)] public partial uint LowDword { get; set; }    // bits 1..=31 (31 bits)
+    [BitField(32, End = 62)] public partial uint HighDword { get; set; }  // bits 32..=62 (31 bits)
 }
 
 /// <summary>
@@ -65,8 +65,8 @@ public partial struct SignedGenReg32
 {
     [BitFlag(0)] public partial bool Flag0 { get; set; }
     [BitFlag(31)] public partial bool Sign { get; set; }
-    [BitField(1, EndBit = 15)] public partial ushort LowWord { get; set; }   // bits 1..=15 (15 bits)
-    [BitField(16, EndBit = 30)] public partial ushort HighWord { get; set; } // bits 16..=30 (15 bits)
+    [BitField(1, End = 15)] public partial ushort LowWord { get; set; }   // bits 1..=15 (15 bits)
+    [BitField(16, End = 30)] public partial ushort HighWord { get; set; } // bits 16..=30 (15 bits)
 }
 
 #endregion
@@ -81,16 +81,16 @@ public partial struct SignedGenReg32
 public partial struct SignedPropertyReg16
 {
     /// <summary>3-bit signed field at bits 13-15. Values: -4 to +3.</summary>
-    [BitField(13, EndBit = 15)] public partial sbyte Delta { get; set; }       // 3 bits, signed property
+    [BitField(13, End = 15)] public partial sbyte Delta { get; set; }       // 3 bits, signed property
     
     /// <summary>3-bit unsigned field at bits 10-12. Values: 0 to 7.</summary>
-    [BitField(10, EndBit = 12)] public partial byte UnsignedField { get; set; } // 3 bits, unsigned property
+    [BitField(10, End = 12)] public partial byte UnsignedField { get; set; } // 3 bits, unsigned property
     
     /// <summary>4-bit signed field at bits 6-9. Values: -8 to +7.</summary>
-    [BitField(6, EndBit = 9)] public partial sbyte SignedNibble { get; set; }  // 4 bits, signed property
+    [BitField(6, End = 9)] public partial sbyte SignedNibble { get; set; }  // 4 bits, signed property
     
     /// <summary>6-bit signed field at bits 0-5. Values: -32 to +31.</summary>
-    [BitField(0, EndBit = 5)] public partial sbyte Offset { get; set; }        // 6 bits, signed property
+    [BitField(0, End = 5)] public partial sbyte Offset { get; set; }        // 6 bits, signed property
 }
 
 /// <summary>
@@ -100,10 +100,10 @@ public partial struct SignedPropertyReg16
 public partial struct SignedPropertyRegSigned16
 {
     /// <summary>3-bit signed field at bits 13-15. Values: -4 to +3.</summary>
-    [BitField(13, EndBit = 15)] public partial sbyte Delta { get; set; }
+    [BitField(13, End = 15)] public partial sbyte Delta { get; set; }
     
     /// <summary>4-bit signed field at bits 9-12. Values: -8 to +7.</summary>
-    [BitField(9, EndBit = 12)] public partial sbyte SignedNibble { get; set; }
+    [BitField(9, End = 12)] public partial sbyte SignedNibble { get; set; }
 }
 
 /// <summary>
@@ -113,13 +113,13 @@ public partial struct SignedPropertyRegSigned16
 public partial struct SignedPropertyReg32
 {
     /// <summary>8-bit signed field at bits 24-31. Values: -128 to +127.</summary>
-    [BitField(24, EndBit = 31)] public partial sbyte HighByte { get; set; }
+    [BitField(24, End = 31)] public partial sbyte HighByte { get; set; }
     
     /// <summary>16-bit signed field at bits 8-23. Values: -32768 to +32767.</summary>
-    [BitField(8, EndBit = 23)] public partial short MiddleWord { get; set; }
+    [BitField(8, End = 23)] public partial short MiddleWord { get; set; }
     
     /// <summary>8-bit unsigned field at bits 0-7. Values: 0 to 255.</summary>
-    [BitField(0, EndBit = 7)] public partial byte LowByte { get; set; }
+    [BitField(0, End = 7)] public partial byte LowByte { get; set; }
 }
 
 /// <summary>
@@ -129,10 +129,10 @@ public partial struct SignedPropertyReg32
 public partial struct SignedPropertyReg64
 {
     /// <summary>32-bit signed field at bits 32-63. Full int range.</summary>
-    [BitField(32, EndBit = 63)] public partial int HighInt { get; set; }
+    [BitField(32, End = 63)] public partial int HighInt { get; set; }
     
     /// <summary>32-bit unsigned field at bits 0-31.</summary>
-    [BitField(0, EndBit = 31)] public partial uint LowUInt { get; set; }
+    [BitField(0, End = 31)] public partial uint LowUInt { get; set; }
 }
 
 #endregion

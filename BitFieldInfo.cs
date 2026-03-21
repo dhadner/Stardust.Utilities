@@ -9,8 +9,8 @@ using static Result<string>;
 /// bit position, width, type, effective endianness, and optional description at runtime.
 /// </summary>
 /// <param name="Name">The property name of the field.</param>
-/// <param name="StartBit">The starting bit position (inclusive, 0-based, as declared by the user).</param>
-/// <param name="BitLength">The number of bits in the field (1 for flags).</param>
+/// <param name="Start">The starting bit position (inclusive, 0-based, as declared by the user).</param>
+/// <param name="BitWidth">The number of bits in the field (1 for flags).</param>
 /// <param name="PropertyType">The fully qualified CLR type name of the property (e.g., "byte", "bool", "ushort").</param>
 /// <param name="IsFlag">True if this is a single-bit <see cref="BitFlagAttribute"/> flag; false for a <see cref="BitFieldAttribute"/> field.</param>
 /// <param name="ByteOrder">The effective byte order for this field (struct-level default or per-field override).</param>
@@ -40,8 +40,8 @@ using static Result<string>;
 /// </param>
 public sealed record BitFieldInfo(
     string Name,
-    int StartBit,
-    int BitLength,
+    int Start,
+    int BitWidth,
     string PropertyType,
     bool IsFlag,
     ByteOrder ByteOrder = ByteOrder.LittleEndian,
@@ -63,8 +63,8 @@ public sealed record BitFieldInfo(
     public static Result<BitFieldInfo, string> Create(Type type, string? field = null, bool inherit = true)
     {
         string name;
-        int startBit;
-        int bitLength;
+        int start;
+        int bitWidth;
         string propertyType;
         bool isFlag;
         ByteOrder byteOrder = ByteOrder.LittleEndian;
@@ -120,7 +120,7 @@ public sealed record BitFieldInfo(
         );
         var bitLengthRes = type.GetBitLength(field, inherit);
         if (bitLengthRes.IsFailure) return Result<BitFieldInfo, string>.Err(bitLengthRes.Error);
-        bitLength = bitLengthRes.Value;
+        bitWidth = bitLengthRes.Value;
 
         if (field != null)
         {
@@ -130,7 +130,7 @@ public sealed record BitFieldInfo(
         }
         else
         {
-            structTotalBits = bitLength;
+            structTotalBits = bitWidth;
         }
 
         if (field != null)
@@ -141,8 +141,8 @@ public sealed record BitFieldInfo(
             var seBitsRes = type.GetStartAndEndBits(field, inherit);
             if (seBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(seBitsRes.Error);
 
-            startBit = seBitsRes.Value.startBit;
-            bitLength = seBitsRes.Value.endBit - startBit + 1;
+            start = seBitsRes.Value.start;
+            bitWidth = seBitsRes.Value.end - start + 1;
             type.GetFieldValueOverride(field, inherit).OnSuccess(mustBe => fieldMustBe = mustBe);
             var fieldAttr = type.GetAttribute<BitFieldAttribute>(field, inherit);
             if (fieldAttr != null)
@@ -168,14 +168,14 @@ public sealed record BitFieldInfo(
             // Dealing with the struct itself
             name = type.Name;
             propertyType = type.FullName ?? type.Name;
-            startBit = 0;
+            start = 0;
             isFlag = false;
         }
 
         return Ok(new BitFieldInfo(
             Name: name,
-            StartBit: startBit,
-            BitLength: bitLength,
+            Start: start,
+            BitWidth: bitWidth,
             PropertyType: propertyType,
             IsFlag: isFlag,
             ByteOrder: byteOrder,
@@ -190,7 +190,7 @@ public sealed record BitFieldInfo(
     }
 
     /// <summary>The ending bit position (inclusive, 0-based, as declared by the user).</summary>
-    public int EndBit => StartBit + BitLength - 1;
+    public int End => Start + BitWidth - 1;
 
     /// <summary>
     /// Returns the resolved description string. When <see cref="DescriptionResourceType"/> is set,

@@ -68,15 +68,15 @@ internal static class GeneratorUtils
     /// </summary>
     internal readonly struct BitFieldResolveResult
     {
-        public int StartBit { get; }
-        public int EndBit { get; }
+        public int Start { get; }
+        public int End { get; }
         public int Width { get; }
         public MustBe ValueOverride { get; }
 
-        public BitFieldResolveResult(int startBit, int endBit, int width, MustBe valueOverride)
+        public BitFieldResolveResult(int start, int end, int width, MustBe valueOverride)
         {
-            StartBit = startBit;
-            EndBit = endBit;
+            Start = start;
+            End = end;
             Width = width;
             ValueOverride = valueOverride;
         }
@@ -98,32 +98,32 @@ internal static class GeneratorUtils
         var diagnostics = new List<PropertyDiagnosticInfo>();
 
         // Determine which constructor was used by checking the second parameter type.
-        // The deprecated 2-param ctor has (int startBit, int endBit, ...) where the 2nd param is System.Int32.
-        // The 1-param ctor has (int startBit, MustBe mustBe = ...) where the 2nd param is MustBe (enum).
+        // The deprecated 2-param ctor has (int start, int end, ...) where the 2nd param is System.Int32.
+        // The 1-param ctor has (int start, MustBe mustBe = ...) where the 2nd param is MustBe (enum).
         var ctor = attr.AttributeConstructor;
         bool isDeprecated2ParamCtor = ctor != null && ctor.Parameters.Length >= 2
             && ctor.Parameters[1].Type.SpecialType == SpecialType.System_Int32;
 
-        int startBit = -1;
+        int start = -1;
         int ctorEndBit = -1;
         var valueOverride = MustBe.Any;
 
         if (isDeprecated2ParamCtor)
         {
-            // Deprecated 2-param constructor: (int startBit, int endBit, MustBe mustBe = MustBe.Any)
-            startBit = (int)(attr.ConstructorArguments[0].Value ?? 0);
+            // Deprecated 2-param constructor: (int start, int end, MustBe mustBe = MustBe.Any)
+            start = (int)(attr.ConstructorArguments[0].Value ?? 0);
             ctorEndBit = (int)(attr.ConstructorArguments[1].Value ?? 0);
             if (attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int mb2)
                 valueOverride = (MustBe)mb2;
         }
         else if (attr.ConstructorArguments.Length >= 1)
         {
-            // 1-param constructor: (int startBit, MustBe mustBe = MustBe.Any)
-            startBit = (int)(attr.ConstructorArguments[0].Value ?? 0);
+            // 1-param constructor: (int start, MustBe mustBe = MustBe.Any)
+            start = (int)(attr.ConstructorArguments[0].Value ?? 0);
             if (attr.ConstructorArguments.Length >= 2 && attr.ConstructorArguments[1].Value is int mb1)
                 valueOverride = (MustBe)mb1;
         }
-        // else: 0-param constructor, startBit remains -1
+        // else: 0-param constructor, start remains -1
 
         // Read named arguments (these override/supplement constructor values)
         int namedEndBit = -1;
@@ -133,10 +133,10 @@ internal static class GeneratorUtils
         {
             switch (named.Key)
             {
-                case "StartBit" when named.Value.Value is int sb:
-                    startBit = sb;
+                case "Start" when named.Value.Value is int sb:
+                    start = sb;
                     break;
-                case "EndBit" when named.Value.Value is int eb:
+                case "End" when named.Value.Value is int eb:
                     namedEndBit = eb;
                     break;
                 case "Width" when named.Value.Value is int w:
@@ -148,28 +148,28 @@ internal static class GeneratorUtils
             }
         }
 
-        // SD0019: No StartBit specified
-        if (startBit < 0)
+        // SD0019: No Start specified
+        if (start < 0)
         {
             diagnostics.Add(new PropertyDiagnosticInfo(
                 BitFieldsDiagnostics.MissingStartBit, location, propertyName, structName));
             return (null, diagnostics);
         }
 
-        // Resolve EndBit/Width
+        // Resolve End/Width
         int resolvedEndBit;
         int resolvedWidth;
 
         if (isDeprecated2ParamCtor)
         {
-            // Named EndBit overrides constructor endBit if present
+            // Named End overrides constructor end if present
             int effectiveEndBit = namedEndBit >= 0 ? namedEndBit : ctorEndBit;
-            int effectiveWidth = effectiveEndBit - startBit + 1;
+            int effectiveWidth = effectiveEndBit - start + 1;
 
             // SD0015: deprecated constructor
             diagnostics.Add(new PropertyDiagnosticInfo(
                 BitFieldsDiagnostics.DeprecatedPositionalEndBit, location,
-                propertyName, startBit, effectiveEndBit, effectiveWidth));
+                propertyName, start, effectiveEndBit, effectiveWidth));
 
             // Check if Width is also specified
             if (namedWidth >= 0)
@@ -194,13 +194,13 @@ internal static class GeneratorUtils
         }
         else
         {
-            // 0-param or 1-param constructor: EndBit/Width come from named arguments
+            // 0-param or 1-param constructor: End/Width come from named arguments
             bool hasEndBit = namedEndBit >= 0;
             bool hasWidth = namedWidth >= 0;
 
             if (hasEndBit && hasWidth)
             {
-                int expectedWidth = namedEndBit - startBit + 1;
+                int expectedWidth = namedEndBit - start + 1;
                 if (expectedWidth == namedWidth)
                 {
                     diagnostics.Add(new PropertyDiagnosticInfo(
@@ -220,22 +220,22 @@ internal static class GeneratorUtils
             else if (hasEndBit)
             {
                 resolvedEndBit = namedEndBit;
-                resolvedWidth = namedEndBit - startBit + 1;
+                resolvedWidth = namedEndBit - start + 1;
             }
             else if (hasWidth)
             {
                 resolvedWidth = namedWidth;
-                resolvedEndBit = startBit + namedWidth - 1;
+                resolvedEndBit = start + namedWidth - 1;
             }
             else
             {
-                // SD0018: Neither EndBit nor Width specified
+                // SD0018: Neither End nor Width specified
                 diagnostics.Add(new PropertyDiagnosticInfo(
-                    BitFieldsDiagnostics.MissingEndBitOrWidth, location, propertyName, structName, startBit));
+                    BitFieldsDiagnostics.MissingEndBitOrWidth, location, propertyName, structName, start));
                 return (null, diagnostics);
             }
         }
 
-        return (new BitFieldResolveResult(startBit, resolvedEndBit, resolvedWidth, valueOverride), diagnostics);
+        return (new BitFieldResolveResult(start, resolvedEndBit, resolvedWidth, valueOverride), diagnostics);
     }
 }

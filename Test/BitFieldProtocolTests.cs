@@ -44,11 +44,11 @@ public partial class BitFieldProtocolTests
     [BitFields(typeof(uint))]
     public partial struct IPv4VersionWord
     {
-        [BitField(28, EndBit = 31)] public partial byte Version { get; set; }       // always 4 for IPv4
-        [BitField(24, EndBit = 27)] public partial byte IHL { get; set; }           // header length in 32-bit words
-        [BitField(18, EndBit = 23)] public partial byte DSCP { get; set; }          // differentiated services
-        [BitField(16, EndBit = 17)] public partial byte ECN { get; set; }           // congestion notification
-        [BitField(0, EndBit = 15)]  public partial ushort TotalLength { get; set; } // total packet length in bytes
+        [BitField(28, End = 31)] public partial byte Version { get; set; }       // always 4 for IPv4
+        [BitField(24, End = 27)] public partial byte IHL { get; set; }           // header length in 32-bit words
+        [BitField(18, End = 23)] public partial byte DSCP { get; set; }          // differentiated services
+        [BitField(16, End = 17)] public partial byte ECN { get; set; }           // congestion notification
+        [BitField(0, End = 15)]  public partial ushort TotalLength { get; set; } // total packet length in bytes
     }
 
     /// <summary>
@@ -58,9 +58,9 @@ public partial class BitFieldProtocolTests
     [BitFields(typeof(uint))]
     public partial struct IPv4FragmentWord
     {
-        [BitField(16, EndBit = 31)] public partial ushort Identification { get; set; } // packet ID for reassembly
-        [BitField(13, EndBit = 15)] public partial IPv4Flags Flags { get; set; }       // ? composed!
-        [BitField(0, EndBit = 12)]  public partial ushort FragmentOffset { get; set; } // offset in 8-byte units
+        [BitField(16, End = 31)] public partial ushort Identification { get; set; } // packet ID for reassembly
+        [BitField(13, End = 15)] public partial IPv4Flags Flags { get; set; }       // ? composed!
+        [BitField(0, End = 12)]  public partial ushort FragmentOffset { get; set; } // offset in 8-byte units
     }
 
     /// <summary>
@@ -69,9 +69,9 @@ public partial class BitFieldProtocolTests
     [BitFields(typeof(uint))]
     public partial struct IPv4TtlWord
     {
-        [BitField(24, EndBit = 31)] public partial byte TTL { get; set; }              // time to live (hop limit)
-        [BitField(16, EndBit = 23)] public partial byte Protocol { get; set; }         // 6 = TCP, 17 = UDP
-        [BitField(0, EndBit = 15)]  public partial ushort HeaderChecksum { get; set; } // one's complement checksum
+        [BitField(24, End = 31)] public partial byte TTL { get; set; }              // time to live (hop limit)
+        [BitField(16, End = 23)] public partial byte Protocol { get; set; }         // 6 = TCP, 17 = UDP
+        [BitField(0, End = 15)]  public partial ushort HeaderChecksum { get; set; } // one's complement checksum
     }
 
     /// <summary>
@@ -81,10 +81,10 @@ public partial class BitFieldProtocolTests
     [BitFields(typeof(uint))]
     public partial struct TcpControlWord
     {
-        [BitField(28, EndBit = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
-        [BitField(25, EndBit = 27)] public partial byte Reserved { get; set; }     // must be 0
-        [BitField(16, EndBit = 24)] public partial TcpFlags Flags { get; set; }    // ? composed!
-        [BitField(0, EndBit = 15)]  public partial ushort WindowSize { get; set; } // receive window size
+        [BitField(28, End = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
+        [BitField(25, End = 27)] public partial byte Reserved { get; set; }     // must be 0
+        [BitField(16, End = 24)] public partial TcpFlags Flags { get; set; }    // ? composed!
+        [BitField(0, End = 15)]  public partial ushort WindowSize { get; set; } // receive window size
     }
 
     #endregion

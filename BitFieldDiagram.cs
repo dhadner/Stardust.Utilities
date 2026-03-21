@@ -299,7 +299,7 @@ public class BitFieldDiagram
         int maxBit = 0;
         foreach (var f in fields)
         {
-            if (f.EndBit > maxBit) maxBit = f.EndBit;
+            if (f.End > maxBit) maxBit = f.End;
         }
 
         // Use the struct's declared total bits when available (so trailing undefined bits are shown)
@@ -334,7 +334,7 @@ public class BitFieldDiagram
                         int bp2 = rowStart + col;
                         if (bp2 > maxBit) break;
                         if (layerMap[bp2] != field) break;
-                        if (field != null && bp2 > field.EndBit) break;
+                        if (field != null && bp2 > field.End) break;
                         col++;
                     }
                     int spanBits = col - spanStart;
@@ -449,7 +449,7 @@ public class BitFieldDiagram
                         ? rowStartBit + rowCols - 1 - col2
                         : rowStartBit + col2;
                     if (cellMap[bp] != field) break;
-                    if (field != null && (reversed ? bp < field.StartBit : bp > field.EndBit)) break;
+                    if (field != null && (reversed ? bp < field.Start : bp > field.End)) break;
                     col2++;
                 }
                 int spanLen = col2 - spanStart;
@@ -516,7 +516,7 @@ public class BitFieldDiagram
                             : rowStartBit + oc;
                         var current = (bp <= maxBit && bp < overlayMap.Length) ? overlayMap[bp] : null;
                         if (current != field) break;
-                        if (field != null && (reversed ? bp < field.StartBit : bp > field.EndBit)) break;
+                        if (field != null && (reversed ? bp < field.Start : bp > field.End)) break;
                         oc++;
                     }
                     int spanLen = oc - spanStart;
@@ -625,7 +625,7 @@ public class BitFieldDiagram
         int maxBit = 0;
         foreach (var f in fields)
         {
-            if (f.EndBit > maxBit) maxBit = f.EndBit;
+            if (f.End > maxBit) maxBit = f.End;
         }
         if (fields[0].StructTotalBits > 0)
             maxBit = Math.Max(maxBit, fields[0].StructTotalBits - 1);
@@ -651,7 +651,7 @@ public class BitFieldDiagram
                         int bp2 = rowStart + col;
                         if (bp2 > maxBit) break;
                         if (layerMap[bp2] != field) break;
-                        if (field != null && bp2 > field.EndBit) break;
+                        if (field != null && bp2 > field.End) break;
                         col++;
                     }
                     int spanBits = col - spanStart;
@@ -910,7 +910,7 @@ public class BitFieldDiagram
             for (int li = 0; li < layers.Count; li++)
             {
                 bool canFit = true;
-                for (int b = f.StartBit; b <= f.EndBit && b < mapSize; b++)
+                for (int b = f.Start; b <= f.End && b < mapSize; b++)
                 {
                     if (layers[li][b] != null)
                     {
@@ -929,7 +929,7 @@ public class BitFieldDiagram
                 targetLayer = layers.Count;
                 layers.Add(new BitFieldInfo?[mapSize]);
             }
-            for (int b = f.StartBit; b <= f.EndBit && b < mapSize; b++)
+            for (int b = f.Start; b <= f.End && b < mapSize; b++)
                 layers[targetLayer][b] = f;
         }
         return layers;

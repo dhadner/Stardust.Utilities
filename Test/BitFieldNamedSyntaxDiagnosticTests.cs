@@ -10,8 +10,8 @@ namespace Stardust.Utilities.Tests;
 
 /// <summary>
 /// Tests that the BitFields generators emit correct diagnostics for the named
-/// BitField syntax (SD0015–SD0019): deprecated positional EndBit, redundant
-/// EndBit+Width, inconsistent EndBit+Width, missing EndBit/Width, missing StartBit.
+/// BitField syntax (SD0015–SD0019): deprecated positional End, redundant
+/// End+Width, inconsistent End+Width, missing End/Width, missing Start.
 /// </summary>
 public class BitFieldNamedSyntaxDiagnosticTests
 {
@@ -71,7 +71,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0015 message should suggest both EndBit and Width alternatives with correct values.
+    /// SD0015 message should suggest both End and Width alternatives with correct values.
     /// </summary>
     [Fact]
     public void DeprecatedTwoParam_MessageSuggestsBothAlternatives()
@@ -90,7 +90,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
         var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
 
         var sd0015 = diagnostics.Single(d => d.Id == "SD0015");
-        sd0015.GetMessage().Should().Contain("EndBit = 4");
+        sd0015.GetMessage().Should().Contain("End = 4");
         sd0015.GetMessage().Should().Contain("Width = 3");
     }
 
@@ -143,10 +143,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
     #endregion
 
-    #region SD0016 - Redundant EndBit and Width
+    #region SD0016 - Redundant End and Width
 
     /// <summary>
-    /// Specifying both EndBit and Width that agree should produce warning SD0016.
+    /// Specifying both End and Width that agree should produce warning SD0016.
     /// </summary>
     [Fact]
     public void RedundantEndBitAndWidth_ProducesWarning()
@@ -158,7 +158,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct RedReg
             {
-                [BitField(0, EndBit = 3, Width = 4)] public partial byte Nibble { get; set; }
+                [BitField(0, End = 3, Width = 4)] public partial byte Nibble { get; set; }
             }
             """;
 
@@ -173,7 +173,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0016 should fire when both EndBit and Width are given via fully named syntax.
+    /// SD0016 should fire when both End and Width are given via fully named syntax.
     /// </summary>
     [Fact]
     public void RedundantEndBitAndWidth_FullyNamed_ProducesWarning()
@@ -185,7 +185,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(ushort))]
             public partial struct FullReg
             {
-                [BitField(StartBit = 4, EndBit = 11, Width = 8)] public partial byte Mid { get; set; }
+                [BitField(Start = 4, End = 11, Width = 8)] public partial byte Mid { get; set; }
             }
             """;
 
@@ -197,7 +197,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Redundant EndBit and Width on the deprecated constructor should still produce SD0016 (plus SD0015).
+    /// Redundant End and Width on the deprecated constructor should still produce SD0016 (plus SD0015).
     /// </summary>
     [Fact]
     public void RedundantEndBitAndWidth_OnDeprecatedCtor_ProducesBothWarnings()
@@ -220,7 +220,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0016 for BitFieldsView: redundant EndBit+Width should also warn.
+    /// SD0016 for BitFieldsView: redundant End+Width should also warn.
     /// </summary>
     [Fact]
     public void RedundantEndBitAndWidth_BitFieldsView_ProducesWarning()
@@ -232,7 +232,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFieldsView]
             public partial record struct RedView
             {
-                [BitField(0, EndBit = 7, Width = 8)] public partial byte Status { get; set; }
+                [BitField(0, End = 7, Width = 8)] public partial byte Status { get; set; }
             }
             """;
 
@@ -243,10 +243,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
     #endregion
 
-    #region SD0017 - Inconsistent EndBit and Width
+    #region SD0017 - Inconsistent End and Width
 
     /// <summary>
-    /// Specifying both EndBit and Width that disagree should produce error SD0017.
+    /// Specifying both End and Width that disagree should produce error SD0017.
     /// </summary>
     [Fact]
     public void InconsistentEndBitAndWidth_ProducesError()
@@ -258,7 +258,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct BadReg
             {
-                [BitField(0, EndBit = 3, Width = 8)] public partial byte Nibble { get; set; }
+                [BitField(0, End = 3, Width = 8)] public partial byte Nibble { get; set; }
             }
             """;
 
@@ -273,7 +273,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Inconsistent EndBit+Width via fully named syntax should also produce SD0017.
+    /// Inconsistent End+Width via fully named syntax should also produce SD0017.
     /// </summary>
     [Fact]
     public void InconsistentEndBitAndWidth_FullyNamed_ProducesError()
@@ -285,7 +285,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(ushort))]
             public partial struct IncReg
             {
-                [BitField(StartBit = 4, EndBit = 7, Width = 2)] public partial byte Field { get; set; }
+                [BitField(Start = 4, End = 7, Width = 2)] public partial byte Field { get; set; }
             }
             """;
 
@@ -320,7 +320,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0017 for BitFieldsView: inconsistent EndBit+Width should produce error.
+    /// SD0017 for BitFieldsView: inconsistent End+Width should produce error.
     /// </summary>
     [Fact]
     public void InconsistentEndBitAndWidth_BitFieldsView_ProducesError()
@@ -332,7 +332,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFieldsView]
             public partial record struct IncView
             {
-                [BitField(0, EndBit = 7, Width = 4)] public partial byte Status { get; set; }
+                [BitField(0, End = 7, Width = 4)] public partial byte Status { get; set; }
             }
             """;
 
@@ -343,10 +343,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
     #endregion
 
-    #region SD0018 - Missing EndBit or Width
+    #region SD0018 - Missing End or Width
 
     /// <summary>
-    /// Single-parameter constructor without EndBit or Width should produce error SD0018.
+    /// Single-parameter constructor without End or Width should produce error SD0018.
     /// </summary>
     [Fact]
     public void MissingEndBitOrWidth_ProducesError()
@@ -373,7 +373,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0018 message should suggest both EndBit and Width syntax.
+    /// SD0018 message should suggest both End and Width syntax.
     /// </summary>
     [Fact]
     public void MissingEndBitOrWidth_MessageSuggestsSyntax()
@@ -392,7 +392,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
         var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
 
         var sd0018 = diagnostics.Single(d => d.Id == "SD0018");
-        sd0018.GetMessage().Should().Contain("EndBit");
+        sd0018.GetMessage().Should().Contain("End");
         sd0018.GetMessage().Should().Contain("Width");
     }
 
@@ -443,10 +443,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
     #endregion
 
-    #region SD0019 - Missing StartBit
+    #region SD0019 - Missing Start
 
     /// <summary>
-    /// Parameterless constructor without StartBit should produce error SD0019.
+    /// Parameterless constructor without Start should produce error SD0019.
     /// </summary>
     [Fact]
     public void MissingStartBit_Parameterless_ProducesError()
@@ -472,7 +472,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Parameterless constructor with only EndBit (no StartBit) should produce SD0019.
+    /// Parameterless constructor with only End (no Start) should produce SD0019.
     /// </summary>
     [Fact]
     public void MissingStartBit_OnlyEndBit_ProducesError()
@@ -484,7 +484,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct EndOnlyReg
             {
-                [BitField(EndBit = 7)] public partial byte Full { get; set; }
+                [BitField(End = 7)] public partial byte Full { get; set; }
             }
             """;
 
@@ -494,7 +494,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Parameterless constructor with both EndBit and Width but no StartBit should produce SD0019.
+    /// Parameterless constructor with both End and Width but no Start should produce SD0019.
     /// </summary>
     [Fact]
     public void MissingStartBit_EndBitAndWidth_ProducesError()
@@ -506,7 +506,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct BothNoStartReg
             {
-                [BitField(EndBit = 3, Width = 4)] public partial byte Nibble { get; set; }
+                [BitField(End = 3, Width = 4)] public partial byte Nibble { get; set; }
             }
             """;
 
@@ -516,7 +516,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0019 for BitFieldsView: missing StartBit should produce error.
+    /// SD0019 for BitFieldsView: missing Start should produce error.
     /// </summary>
     [Fact]
     public void MissingStartBit_BitFieldsView_ProducesError()
@@ -542,7 +542,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     #region Valid named syntax - No diagnostics
 
     /// <summary>
-    /// [BitField(startBit, Width = N)] should NOT produce any SD0015–SD0019 diagnostics.
+    /// [BitField(start, Width = N)] should NOT produce any SD0015–SD0019 diagnostics.
     /// </summary>
     [Fact]
     public void ValidWidthSyntax_NoDiagnostics()
@@ -566,7 +566,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// [BitField(startBit, EndBit = N)] should NOT produce any SD0015–SD0019 diagnostics.
+    /// [BitField(start, End = N)] should NOT produce any SD0015–SD0019 diagnostics.
     /// </summary>
     [Fact]
     public void ValidEndBitSyntax_NoDiagnostics()
@@ -578,8 +578,8 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct GoodReg2
             {
-                [BitField(0, EndBit = 3)] public partial byte Nibble { get; set; }
-                [BitField(4, EndBit = 7)] public partial byte Upper { get; set; }
+                [BitField(0, End = 3)] public partial byte Nibble { get; set; }
+                [BitField(4, End = 7)] public partial byte Upper { get; set; }
             }
             """;
 
@@ -590,7 +590,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// [BitField(StartBit = N, Width = M)] fully named syntax should NOT produce any diagnostics.
+    /// [BitField(Start = N, Width = M)] fully named syntax should NOT produce any diagnostics.
     /// </summary>
     [Fact]
     public void ValidFullyNamedWidthSyntax_NoDiagnostics()
@@ -602,8 +602,8 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(ushort))]
             public partial struct FullGoodReg
             {
-                [BitField(StartBit = 0, Width = 8)] public partial byte Low { get; set; }
-                [BitField(StartBit = 8, Width = 8)] public partial byte High { get; set; }
+                [BitField(Start = 0, Width = 8)] public partial byte Low { get; set; }
+                [BitField(Start = 8, Width = 8)] public partial byte High { get; set; }
             }
             """;
 
@@ -614,7 +614,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// [BitField(StartBit = N, EndBit = M)] fully named syntax should NOT produce any diagnostics.
+    /// [BitField(Start = N, End = M)] fully named syntax should NOT produce any diagnostics.
     /// </summary>
     [Fact]
     public void ValidFullyNamedEndBitSyntax_NoDiagnostics()
@@ -626,8 +626,8 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(ushort))]
             public partial struct FullGoodReg2
             {
-                [BitField(StartBit = 0, EndBit = 7)] public partial byte Low { get; set; }
-                [BitField(StartBit = 8, EndBit = 15)] public partial byte High { get; set; }
+                [BitField(Start = 0, End = 7)] public partial byte Low { get; set; }
+                [BitField(Start = 8, End = 15)] public partial byte High { get; set; }
             }
             """;
 
@@ -651,7 +651,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             public partial record struct GoodView
             {
                 [BitField(0, Width = 8)] public partial byte Status { get; set; }
-                [BitField(8, EndBit = 15)] public partial byte Code { get; set; }
+                [BitField(8, End = 15)] public partial byte Code { get; set; }
             }
             """;
 
@@ -675,7 +675,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             public partial struct SingleBitReg
             {
                 [BitField(0, Width = 1)] public partial byte Bit0 { get; set; }
-                [BitField(7, EndBit = 7)] public partial byte Bit7 { get; set; }
+                [BitField(7, End = 7)] public partial byte Bit7 { get; set; }
             }
             """;
 
@@ -705,7 +705,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             {
                 [BitField(0, Width = 4)] public partial byte Good { get; set; }
                 [BitField(4, 7)] public partial byte Bad { get; set; }
-                [BitField(8, EndBit = 15)] public partial byte AlsoGood { get; set; }
+                [BitField(8, End = 15)] public partial byte AlsoGood { get; set; }
             }
             """;
 
@@ -821,7 +821,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// EndBit equal to StartBit (single-bit field) via named syntax should work cleanly.
+    /// End equal to Start (single-bit field) via named syntax should work cleanly.
     /// </summary>
     [Fact]
     public void EndBitEqualsStartBit_NoDiagnostics()
@@ -833,7 +833,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct EqReg
             {
-                [BitField(3, EndBit = 3)] public partial byte SingleBit { get; set; }
+                [BitField(3, End = 3)] public partial byte SingleBit { get; set; }
             }
             """;
 
@@ -844,7 +844,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Redundant EndBit+Width where both equal 1 should produce SD0016 (not SD0017).
+    /// Redundant End+Width where both equal 1 should produce SD0016 (not SD0017).
     /// </summary>
     [Fact]
     public void RedundantSingleBit_ProducesSD0016()
@@ -856,7 +856,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             [BitFields(typeof(byte))]
             public partial struct R1Reg
             {
-                [BitField(5, EndBit = 5, Width = 1)] public partial byte OneBit { get; set; }
+                [BitField(5, End = 5, Width = 1)] public partial byte OneBit { get; set; }
             }
             """;
 

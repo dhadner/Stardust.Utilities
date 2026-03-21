@@ -218,8 +218,8 @@ public class BitFieldNativeIntTests
         var fields = NintSafe32Reg.Fields;
         fields.Length.Should().Be(4);
         fields[0].Name.Should().Be("Status");
-        fields[0].StartBit.Should().Be(0);
-        fields[0].BitLength.Should().Be(8);
+        fields[0].Start.Should().Be(0);
+        fields[0].BitWidth.Should().Be(8);
     }
 
     [Fact]
@@ -684,11 +684,11 @@ public class BitFieldNativeIntTests
         var fields = GeneratedWideRegNint.Fields;
         fields.Length.Should().Be(5);
         fields[0].Name.Should().Be("Status");
-        fields[0].StartBit.Should().Be(0);
-        fields[0].BitLength.Should().Be(8);
+        fields[0].Start.Should().Be(0);
+        fields[0].BitWidth.Should().Be(8);
         fields[4].Name.Should().Be("Ready");
-        fields[4].StartBit.Should().Be(57);
-        fields[4].BitLength.Should().Be(1);
+        fields[4].Start.Should().Be(57);
+        fields[4].BitWidth.Should().Be(1);
     }
 
     #endregion
@@ -947,11 +947,11 @@ public class BitFieldNativeIntTests
         var fields = GeneratedWideRegNuint.Fields;
         fields.Length.Should().Be(5);
         fields[0].Name.Should().Be("Status");
-        fields[0].StartBit.Should().Be(0);
-        fields[0].BitLength.Should().Be(8);
+        fields[0].Start.Should().Be(0);
+        fields[0].BitWidth.Should().Be(8);
         fields[4].Name.Should().Be("Ready");
-        fields[4].StartBit.Should().Be(57);
-        fields[4].BitLength.Should().Be(1);
+        fields[4].Start.Should().Be(57);
+        fields[4].BitWidth.Should().Be(1);
     }
 
     #endregion
@@ -1122,8 +1122,8 @@ public class BitFieldNativeIntTests
 [BitFields(typeof(nint))]
 public partial struct NintSafe32Reg
 {
-    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, EndBit = 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
+    [BitField(0, End = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, End = 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
     [BitFlag(28)] public partial bool Enabled { get; set; }
     [BitFlag(29)] public partial bool Active { get; set; }
 }
@@ -1135,8 +1135,8 @@ public partial struct NintSafe32Reg
 [BitFields(typeof(nuint))]
 public partial struct NuintSafe32Reg
 {
-    [BitField(0, EndBit = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
-    [BitField(8, EndBit = 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
+    [BitField(0, End = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, End = 11)] public partial byte Command { get; set; }   // bits 8..=11 (4 bits)
     [BitFlag(28)] public partial bool Enabled { get; set; }
     [BitFlag(29)] public partial bool Active { get; set; }
 }

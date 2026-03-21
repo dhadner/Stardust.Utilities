@@ -11,8 +11,8 @@ internal static partial class BitFieldsMultiWordGenerator
         int width = field.Width;
         int startWord = shift / 64;
         int localShift = shift % 64;
-        int endBit = shift + width - 1;
-        int endWord = endBit / 64;
+        int end = shift + width - 1;
+        int endWord = end / 64;
         bool crossWord = startWord != endWord;
 
         sb.AppendLine($"{ind}public partial {field.PropertyType} {field.Name}");
