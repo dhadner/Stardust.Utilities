@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Stardust.Generators;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
@@ -921,7 +922,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     /// <summary>
     /// Runs the BitFieldsGenerator against the given source and returns the diagnostics.
     /// </summary>
-    private static IReadOnlyList<Diagnostic> RunGeneratorAndGetDiagnostics(string source)
+    private static ImmutableArray<Diagnostic> RunGeneratorAndGetDiagnostics(string source)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
 
@@ -944,8 +945,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
         var driver = CSharpGeneratorDriver.Create(
             generators: [generator.AsSourceGenerator()]);
 
-        driver = (CSharpGeneratorDriver)driver.RunGeneratorsAndUpdateCompilation(
-            compilation, out _, out var diagnostics);
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
 
         return diagnostics;
     }
@@ -953,7 +953,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     /// <summary>
     /// Runs the BitFieldsViewGenerator against the given source and returns the diagnostics.
     /// </summary>
-    private static IReadOnlyList<Diagnostic> RunViewGeneratorAndGetDiagnostics(string source)
+    private static ImmutableArray<Diagnostic> RunViewGeneratorAndGetDiagnostics(string source)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
 
@@ -976,8 +976,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
         var driver = CSharpGeneratorDriver.Create(
             generators: [generator.AsSourceGenerator()]);
 
-        driver = (CSharpGeneratorDriver)driver.RunGeneratorsAndUpdateCompilation(
-            compilation, out _, out var diagnostics);
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
 
         return diagnostics;
     }

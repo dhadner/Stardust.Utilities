@@ -56,6 +56,9 @@
 		<EmbeddedResource Remove="DiagramGen\**" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Remove="Stardust.Utilities.csproj.Backup.tmp" />
+	</ItemGroup>
+	<ItemGroup>
 	  <Compile Include="Demo\BitFields.DemoApp\Utilities\AssemblyStructDiscovery.cs" />
 	</ItemGroup>
 
