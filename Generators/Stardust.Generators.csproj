@@ -12,8 +12,8 @@
   <PackageId>Stardust.Generators</PackageId>
   <!-- Version is specified at build time via build script -->
   <Authors>Dave Hadner</Authors>
-  <Description>Source generators for [BitFields] and [EnhancedEnum] attributes in Stardust.Utilities</Description>
-  <PackageTags>source-generator;roslyn;bitfields;enum</PackageTags>
+  <Description>Source generators for [BitFields] and [BitFieldsView] attributes in Stardust.Utilities</Description>
+  <PackageTags>source-generator;roslyn;bitfields;bitfieldsview</PackageTags>
   <IncludeBuildOutput>false</IncludeBuildOutput>
   <DevelopmentDependency>true</DevelopmentDependency>
   <NoPackageAnalysis>true</NoPackageAnalysis>
