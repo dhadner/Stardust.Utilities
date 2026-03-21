@@ -156,7 +156,7 @@ Both `[BitFields]` and `[BitFieldsView]` use the same field attributes:
 | `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Preferred. Enum provides IntelliSense discovery of all supported types |
 | `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Also supported. Equivalent to the enum form; exists for backward compatibility but does not support arbitrary types |
 | `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a `partial record struct` for buffer-view generation |
-| `[BitField(start, end)]` | Deprecated inclusive range, optional `MustBe` | Will be removed before v1.0 (SD0015 warning). Use named syntax instead |
+| `[BitField(start, end)]` | Inclusive range -- second parameter is the end bit position, not bit width | Use named 'End = N' syntax for clarity or disable warning SD0015 if brevity is preferred |
 | `[BitField(start, End = N)]` | Named inclusive end position | Multi-bit field (width = End - start + 1) |
 | `[BitField(start, Width = N)]` | Named bit count | Multi-bit field (N bits starting at start) |
 | `[BitField(Start = N, End = M)]` | Fully named inclusive range | Multi-bit field (width = M - N + 1) |
@@ -168,7 +168,7 @@ Both `[BitFields]` and `[BitFieldsView]` use the same field attributes:
 - `[BitField(4, End = 7)]` -- 4-bit field at bits 4, 5, 6, 7
 - `[BitField(3, Width = 1)]` -- 1-bit field at bit 3 only
 - `[BitField(Start = 0, Width = 8)]` -- fully named, 8-bit field
-- `[BitField(0, 2)]` -- positional syntax (emits SD0015 warning because second parameter is easily confused with a bit count - disable warning if desired).
+- `[BitField(0, 2)]` -- positional syntax; emits SD0015 warning. Suppress globally via `.editorconfig` or `<NoWarn>` (see [BitField Syntax Diagnostics](#bitfield-syntax-diagnostics-sd0015sd0019)).
 
 ## Byte Order and Bit Order
 
@@ -182,7 +182,7 @@ Both attributes support configurable byte order and bit numbering:
 | `BitOrder.BitZeroIsLsb` | Yes | Bit 0 = least significant | Hardware datasheets, x86 convention |
 | `BitOrder.BitZeroIsMsb` | No | Bit 0 = most significant | RFCs, IETF specifications |
 
-For `[BitFields]`, only `BitOrder` applies (the value is stored in a native integer).
+For `[BitFields]`, only `BitOrder` applies (the value is stored in a native data type).
 For `[BitFieldsView]`, both `ByteOrder` and `BitOrder` apply.
 
 **LSB-first bit layout** (default):
@@ -334,6 +334,37 @@ bit 55, not bit 24).
 
 Non-native storage types (`byte`, `uint`, `ulong`, etc.) are never affected by these diagnostics.
 Their bit widths are fixed regardless of platform.
+
+### BitField Syntax Diagnostics (SD0015–SD0019)
+
+The source generator validates `[BitField]` attribute usage and emits diagnostics when the
+syntax is ambiguous, redundant, or incomplete:
+
+| Diagnostic | Severity | Condition | Meaning |
+|------------|----------|-----------|----------|
+| **SD0015** | Info | `[BitField(start, end)]` two-parameter constructor | Positional `end` is easily confused with bit width. Use named `End` or `Width` for clarity. |
+| **SD0016** | Warning | Both `End` and `Width` specified and consistent | Redundant -- remove one. |
+| **SD0017** | Error | Both `End` and `Width` specified but inconsistent | Contradictory values. Remove one or correct them. |
+| **SD0018** | Error | `Start` present but no `End` or `Width` | Field range is incomplete. |
+| **SD0019** | Error | `End` or `Width` present but no `Start` | Start position is missing. |
+
+**SD0015** is a learning aid that reminds developers the second positional parameter is an
+inclusive *end bit*, not a *width*. Once the convention is familiar, suppress it globally:
+
+**Option 1 -- `.editorconfig` (recommended):**
+
+```ini
+[*.cs]
+dotnet_diagnostic.SD0015.severity = none
+```
+
+**Option 2 -- `<NoWarn>` in `.csproj`:**
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);SD0015</NoWarn>
+</PropertyGroup>
+```
 
 ## Enum Property Types
 

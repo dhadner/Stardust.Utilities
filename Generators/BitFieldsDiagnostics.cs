@@ -65,15 +65,16 @@ internal static class BitFieldsDiagnostics
         description: "Properties decorated with [BitField] or [BitFlag] must include the 'partial' keyword so the source generator can provide the implementation. Without 'partial', the compiler produces confusing CS9248 or CS0102 errors from the generated file instead of identifying the actual problem.");
 
     /// <summary>
-    /// Warning: The two-parameter [BitField(start, end)] constructor is deprecated
-    /// and will be removed before v1.0. Users should migrate to named property syntax.
+    /// Info: The two-parameter [BitField(start, end)] constructor is confusing because the second parameter is an end bit position, but can be easily mistaken for a bit width. 
+    /// This can lead to unexpected errors and misunderstandings about the field range. The generator will still process this syntax,
+    /// and if the brevity is desired, disable the SD0015 message via .editorconfig or NoWarn.
     /// </summary>
-    internal static readonly DiagnosticDescriptor DeprecatedPositionalEndBit = new(
+    internal static readonly DiagnosticDescriptor ConfusingPositionalEndBit = new(
         id: "SD0015",
-        title: "Deprecated two-parameter BitField constructor",
-        messageFormat: "The two-parameter [BitField({1}, {2})] constructor on property '{0}' is deprecated and will be removed before v1.0. Use [BitField({1}, End = {2})] or [BitField({1}, Width = {3})].",
+        title: "Potentially misunderstood two-parameter BitField constructor",
+        messageFormat: "The two-parameter [BitField({1}, {2})] constructor on property '{0}' is potentially misunderstood. The second parameter '{2}' is the end bit position, but can be confused with 'Width' in bits.  Use [BitField({1}, End = {2})] or [BitField({1}, Width = {3})] for additional clarity.",
         category: CATEGORY,
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,
         description: "The positional 'end' parameter is easily confused with a bit count. Use the named 'End' or 'Width' property syntax instead, which is self-documenting and unambiguous.");
 

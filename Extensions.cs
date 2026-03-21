@@ -645,7 +645,7 @@ namespace Stardust.Utilities
                         //   Parameterless:  [BitField(Start = N, End = M)]
                         //   1-param:        [BitField(start, End = M)] or [BitField(start, Width = W)]
                         //   Deprecated 2p:  [BitField(start, end)]
-                        bool isDeprecated2Param = cad.ConstructorArguments.Count >= 2
+                        bool isConfusing2Param = cad.ConstructorArguments.Count >= 2
                             && cad.Constructor.GetParameters().Length >= 2
                             && cad.Constructor.GetParameters()[1].ParameterType == typeof(int);
 
@@ -653,7 +653,7 @@ namespace Stardust.Utilities
                         int ctorEndBit = -1;
                         MustBe mustBe = MustBe.Any;
 
-                        if (isDeprecated2Param)
+                        if (isConfusing2Param)
                         {
                             start = (int)cad.ConstructorArguments[0].Value!;
                             ctorEndBit = (int)cad.ConstructorArguments[1].Value!;
@@ -684,7 +684,7 @@ namespace Stardust.Utilities
 
                         // Resolve End from named args, Width, or deprecated ctor
                         int resolvedEndBit;
-                        if (isDeprecated2Param)
+                        if (isConfusing2Param)
                             resolvedEndBit = namedEndBit >= 0 ? namedEndBit : ctorEndBit;
                         else if (namedEndBit >= 0)
                             resolvedEndBit = namedEndBit;

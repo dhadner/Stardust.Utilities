@@ -119,12 +119,13 @@ public sealed class BitFieldAttribute : Attribute
     }
 
     /// <summary>
-    /// Deprecated: This constructor will be removed before v1.0.
+    /// Creates a new bit field attribute with the starting and ending bit positions.
+    /// Second parameter is 'end', not to be confused with 'Width'.
     /// Use named <see cref="End"/> or <see cref="Width"/> properties instead:
     /// <c>[BitField(start, End = N)]</c> or <c>[BitField(start, Width = N)]</c>.
     /// </summary>
     /// <param name="start">The starting bit position (0-based, inclusive).</param>
-    /// <param name="end">Deprecated: Use named property syntax instead.</param>
+    /// <param name="end">The end bit position (0-based, inclusive). Must be greater than 'start'</param>
     /// <param name="mustBe">Optional override for how bits are handled for this field.</param>
     /// <exception cref="ArgumentException">Thrown when end is less than start.</exception>
     public BitFieldAttribute(int start, int end, MustBe mustBe = MustBe.Any)

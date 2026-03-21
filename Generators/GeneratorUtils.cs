@@ -84,7 +84,7 @@ internal static class GeneratorUtils
 
     /// <summary>
     /// Resolves [BitField] attribute parameters across all constructor forms
-    /// (parameterless, single-param, deprecated two-param) and produces any
+    /// (parameterless, single-param, confusing two-param) and produces any
     /// diagnostics for deprecated, redundant, or invalid usage.
     /// </summary>
     /// <returns>
@@ -98,19 +98,19 @@ internal static class GeneratorUtils
         var diagnostics = new List<PropertyDiagnosticInfo>();
 
         // Determine which constructor was used by checking the second parameter type.
-        // The deprecated 2-param ctor has (int start, int end, ...) where the 2nd param is System.Int32.
+        // The confusing 2-param ctor has (int start, int end, ...) where the 2nd param is System.Int32.
         // The 1-param ctor has (int start, MustBe mustBe = ...) where the 2nd param is MustBe (enum).
         var ctor = attr.AttributeConstructor;
-        bool isDeprecated2ParamCtor = ctor != null && ctor.Parameters.Length >= 2
+        bool isConfusing2ParamCtor = ctor != null && ctor.Parameters.Length >= 2
             && ctor.Parameters[1].Type.SpecialType == SpecialType.System_Int32;
 
         int start = -1;
         int ctorEndBit = -1;
         var valueOverride = MustBe.Any;
 
-        if (isDeprecated2ParamCtor)
+        if (isConfusing2ParamCtor)
         {
-            // Deprecated 2-param constructor: (int start, int end, MustBe mustBe = MustBe.Any)
+            // Confusing 2-param constructor: (int start, int end, MustBe mustBe = MustBe.Any)
             start = (int)(attr.ConstructorArguments[0].Value ?? 0);
             ctorEndBit = (int)(attr.ConstructorArguments[1].Value ?? 0);
             if (attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int mb2)
@@ -160,15 +160,15 @@ internal static class GeneratorUtils
         int resolvedEndBit;
         int resolvedWidth;
 
-        if (isDeprecated2ParamCtor)
+        if (isConfusing2ParamCtor)
         {
             // Named End overrides constructor end if present
             int effectiveEndBit = namedEndBit >= 0 ? namedEndBit : ctorEndBit;
             int effectiveWidth = effectiveEndBit - start + 1;
 
-            // SD0015: deprecated constructor
+            // SD0015: confusing 2-param constructor
             diagnostics.Add(new PropertyDiagnosticInfo(
-                BitFieldsDiagnostics.DeprecatedPositionalEndBit, location,
+                BitFieldsDiagnostics.ConfusingPositionalEndBit, location,
                 propertyName, start, effectiveEndBit, effectiveWidth));
 
             // Check if Width is also specified

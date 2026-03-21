@@ -1117,6 +1117,45 @@ public partial struct StatusRegister
 
 This applies to both `[BitFields]` structs and `[BitFieldsView]` record structs.
 
+### BitField syntax diagnostics (SD0015–SD0019)
+
+The source generator validates `[BitField]` attribute usage and emits diagnostics when the
+syntax is ambiguous, redundant, or incomplete:
+
+| Diagnostic | Severity | Condition | Meaning |
+|------------|----------|-----------|----------|
+| **SD0015** | Info | `[BitField(start, end)]` two-parameter constructor used | The positional `end` parameter is easily confused with a bit width. Use `[BitField(start, End = N)]` or `[BitField(start, Width = N)]` for clarity. |
+| **SD0016** | Warning | Both `End` and `Width` are specified and consistent | Redundant -- remove one for conciseness. |
+| **SD0017** | Error | Both `End` and `Width` are specified but inconsistent | The generator cannot determine intent. Remove one or correct the values. |
+| **SD0018** | Error | `Start` is specified but neither `End` nor `Width` | The field range is incomplete. Add `End = N` or `Width = N`. |
+| **SD0019** | Error | `End` or `Width` is specified but `Start` is missing | Provide `Start` as a positional argument or named property. |
+
+**SD0015** is a learning aid: it reminds developers that the second positional parameter is
+an inclusive *end bit*, not a *width*. Once you are comfortable with the convention you can
+suppress it globally without touching `GlobalSuppressions.cs`.
+
+**Option 1 -- `.editorconfig` (recommended):**
+
+Add to a `.editorconfig` file at the project or solution root:
+
+```ini
+[*.cs]
+dotnet_diagnostic.SD0015.severity = none
+```
+
+This is the most idiomatic .NET approach. The setting is version-controlled, scoped to the
+directory tree, and can also be set to `suggestion` (informational) or `silent` instead of `none`.
+
+**Option 2 -- `<NoWarn>` in `.csproj`:**
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);SD0015</NoWarn>
+</PropertyGroup>
+```
+
+This suppresses SD0015 for the entire project in one line.
+
 ### IntelliSense not working for generated members
 
 **Problem:** Visual Studio doesn't show IntelliSense for generated properties or methods.

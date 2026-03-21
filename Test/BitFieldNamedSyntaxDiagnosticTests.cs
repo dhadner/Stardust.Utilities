@@ -10,18 +10,18 @@ namespace Stardust.Utilities.Tests;
 
 /// <summary>
 /// Tests that the BitFields generators emit correct diagnostics for the named
-/// BitField syntax (SD0015–SD0019): deprecated positional End, redundant
+/// BitField syntax (SD0015–SD0019): confusing two-parameter constructor, redundant
 /// End+Width, inconsistent End+Width, missing End/Width, missing Start.
 /// </summary>
 public class BitFieldNamedSyntaxDiagnosticTests
 {
-    #region SD0015 - Deprecated two-parameter constructor
+    #region SD0015 - Confusing two-parameter constructor
 
     /// <summary>
-    /// The deprecated two-parameter constructor [BitField(start, end)] should produce warning SD0015.
+    /// The confusing two-parameter constructor [BitField(start, end)] should produce info-level SD0015.
     /// </summary>
     [Fact]
-    public void DeprecatedTwoParam_ProducesWarning()
+    public void ConfusingTwoParam_ProducesInfo()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -38,17 +38,17 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
         var sd0015 = diagnostics.Where(d => d.Id == "SD0015").ToList();
         sd0015.Should().HaveCount(1);
-        sd0015[0].Severity.Should().Be(DiagnosticSeverity.Warning);
+        sd0015[0].Severity.Should().Be(DiagnosticSeverity.Info);
         sd0015[0].GetMessage().Should().Contain("Nibble");
         sd0015[0].GetMessage().Should().Contain("0");
         sd0015[0].GetMessage().Should().Contain("3");
     }
 
     /// <summary>
-    /// Multiple deprecated two-parameter fields should each produce SD0015.
+    /// Multiple confusing two-parameter fields should each produce SD0015.
     /// </summary>
     [Fact]
-    public void DeprecatedTwoParam_MultipleProduce_MultipleWarnings()
+    public void ConfusingTwoParam_MultipleProduce_MultipleWarnings()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -74,7 +74,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     /// SD0015 message should suggest both End and Width alternatives with correct values.
     /// </summary>
     [Fact]
-    public void DeprecatedTwoParam_MessageSuggestsBothAlternatives()
+    public void ConfusingTwoParam_MessageSuggestsBothAlternatives()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -98,7 +98,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     /// SD0015 should fire for BitFieldsView as well (not just BitFields).
     /// </summary>
     [Fact]
-    public void DeprecatedTwoParam_BitFieldsView_ProducesWarning()
+    public void ConfusingTwoParam_BitFieldsView_ProducesWarning()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -122,7 +122,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     /// SD0015 should have a source location pointing at the property.
     /// </summary>
     [Fact]
-    public void DeprecatedTwoParam_HasSourceLocation()
+    public void ConfusingTwoParam_HasSourceLocation()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -197,10 +197,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Redundant End and Width on the deprecated constructor should still produce SD0016 (plus SD0015).
+    /// Redundant End and Width on the confusing two-parameter constructor should still produce SD0016 (plus SD0015).
     /// </summary>
     [Fact]
-    public void RedundantEndBitAndWidth_OnDeprecatedCtor_ProducesBothWarnings()
+    public void RedundantEndBitAndWidth_OnConfusingCtor_ProducesBothWarnings()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -297,10 +297,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Inconsistent Width on the deprecated constructor should produce SD0017 (plus SD0015).
+    /// Inconsistent Width on the confusing two-parameter constructor should produce SD0017 (plus SD0015).
     /// </summary>
     [Fact]
-    public void InconsistentEndBitAndWidth_OnDeprecatedCtor_ProducesErrorAndWarning()
+    public void InconsistentEndBitAndWidth_OnConfusingCtor_ProducesErrorAndWarning()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -691,10 +691,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
     /// <summary>
     /// A struct with a mix of valid new syntax and deprecated old syntax should
-    /// only warn on the deprecated fields.
+    /// only warn on the confusing fields.
     /// </summary>
     [Fact]
-    public void MixedSyntax_OnlyDeprecatedFieldsWarn()
+    public void MixedSyntax_OnlyConfusingFieldsWarn()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -719,10 +719,10 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Deprecated constructor with MustBe parameter should still produce SD0015.
+    /// Confusing two-parameter constructor with MustBe parameter should still produce SD0015.
     /// </summary>
     [Fact]
-    public void DeprecatedTwoParam_WithMustBe_ProducesWarning()
+    public void ConfusingTwoParam_WithMustBe_ProducesWarning()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -765,7 +765,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
     /// <summary>
     /// Error diagnostics (SD0017, SD0018, SD0019) should cause the field to be skipped
-    /// (no generated code for it), while warning diagnostics (SD0015, SD0016) still
+    /// (no generated code for it), while non-error diagnostics (SD0015, SD0016) still
     /// generate valid code.
     /// </summary>
     [Fact]
