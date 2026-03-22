@@ -6,6 +6,10 @@ namespace Stardust.Utilities;
 /// </summary>
 /// <remarks>
 /// <para>
+/// <b>Deprecated:</b> Use <see cref="BitFieldsAttribute"/> on a <c>partial record struct</c> instead.
+/// The generator detects the <c>record</c> keyword and produces identical view code.
+/// </para>
+/// <para>
 /// Unlike <see cref="BitFieldsAttribute"/> which generates value-type structs with inline storage,
 /// <c>[BitFieldsView]</c> generates a <c>record struct</c> that wraps a <c>Memory&lt;byte&gt;</c> reference.
 /// This enables zero-copy access to protocol headers, file formats, and other binary data of arbitrary size.
@@ -21,16 +25,8 @@ namespace Stardust.Utilities;
 /// </para>
 /// <example>
 /// <code>
-/// // Default: little-endian, LSB-first (matches [BitFields] convention)
-/// [BitFieldsView]
-/// public partial record struct RegisterView
-/// {
-///     [BitField(0, End = 7)] public partial byte LowByte { get; set; }
-///     [BitField(8, End = 15)] public partial byte HighByte { get; set; }
-/// }
-///
-/// // Network protocol: big-endian, MSB-first (RFC convention)
-/// [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+/// // Preferred (1.0+): use [BitFields] on a record struct
+/// [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 /// public partial record struct IPv6Header
 /// {
 ///     [BitField(0, End = 3)]   public partial byte Version { get; set; }
@@ -41,6 +37,7 @@ namespace Stardust.Utilities;
 /// </example>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Struct)]
+[Obsolete("Use [BitFields] on a partial record struct instead. The generator detects the record keyword and produces identical view code. BitFieldsViewAttribute will be removed in a future version.")]
 public sealed class BitFieldsViewAttribute : Attribute
 {
     /// <summary>

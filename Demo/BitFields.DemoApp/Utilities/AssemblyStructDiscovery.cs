@@ -7,7 +7,7 @@ namespace BitFields.DemoApp;
 
 /// <summary>
 /// Loads a .NET assembly into a collectible AssemblyLoadContext, discovers all types
-/// decorated with [BitFields] or [BitFieldsView], reconstructs BitFieldInfo[] from
+/// decorated with [BitFields], reconstructs BitFieldInfo[] from
 /// reflection-only attribute metadata, then unloads the assembly so the file is not locked.
 /// </summary>
 internal static class AssemblyStructDiscovery
@@ -17,7 +17,7 @@ internal static class AssemblyStructDiscovery
     internal sealed record DiscoveryResult(string AssemblyName, List<DiscoveredStruct> Structs, string? Error);
 
     /// <summary>
-    /// Loads the PE file into a collectible ALC, discovers [BitFields]/[BitFieldsView] structs,
+    /// Loads the PE file into a collectible ALC, discovers [BitFields] structs,
     /// then immediately unloads the assembly so the developer can rebuild.
     /// </summary>
     internal static DiscoveryResult Discover(string filePath)
@@ -36,7 +36,7 @@ internal static class AssemblyStructDiscovery
     }
 
     /// <summary>
-    /// Discovers [BitFields]/[BitFieldsView] structs from raw assembly bytes.
+    /// Discovers [BitFields] structs from raw assembly bytes.
     /// Used by Blazor WebAssembly where file paths are not available.
     /// </summary>
     /// <param name="assemblyBytes">The raw bytes of the .NET assembly.</param>
@@ -82,7 +82,7 @@ internal static class AssemblyStructDiscovery
     }
 
     /// <summary>
-    /// Discovers [BitFields]/[BitFieldsView] structs from a loaded assembly.
+    /// Discovers [BitFields] structs from a loaded assembly.
     /// </summary>
     private static DiscoveryResult DiscoverFromAssembly(Assembly asm, string displayName)
     {
@@ -111,7 +111,7 @@ internal static class AssemblyStructDiscovery
 
         structs.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.Ordinal));
 
-        string? error = structs.Count == 0 ? "No [BitFields] or [BitFieldsView] structs found." : null;
+        string? error = structs.Count == 0 ? "No [BitFields] structs found." : null;
         string asmName = asm.GetName().Name ?? displayName;
         return new DiscoveryResult(asmName, structs, error);
     }

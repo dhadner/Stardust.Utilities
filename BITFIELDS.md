@@ -2,28 +2,28 @@
 
 Source-generated, type-safe, zero-overhead bit manipulation for .NET.
 
-Two attributes, one concept: define bit-level fields with `[BitField]` and `[BitFlag]`, then choose your backing strategy.
+One attribute, two struct kinds:
 
-| Attribute | Backing | Best for |
-|-----------|---------|----------|
-| `[BitFields]` | Value type (`byte`, `ushort`, `uint`, `nuint`, ...) | Hardware registers, opcodes, small bit-packed structs |
-| `[BitFieldsView]` | `Memory<byte>` (zero-copy buffer view) | Network packets, file headers, DMA buffers |
+- **`partial struct`** -- value type backed by `byte`, `ushort`, `uint`, `ulong`, etc.
+  Best for hardware registers, opcodes, small bit-packed structs.
+- **`partial record struct`** -- zero-copy view over `Memory<byte>`.
+  Best for network packets, file headers, DMA buffers.
 
 Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one, use both.
 
 ## Table of Contents
 
 **Getting Started**
-- [Quick Start -- BitFields (Value Type)](#quick-start----bitfields-value-type)
-- [Quick Start -- BitFieldsView (Buffer View)](#quick-start----bitfieldsview-buffer-view)
-- [Choosing Between BitFields and BitFieldsView](#choosing-between-bitfields-and-bitfieldsview)
+- [Quick Start -- Value Type (struct)](#quick-start----value-type-struct)
+- [Quick Start -- Zero-Copy View (record struct)](#quick-start----zero-copy-view-record-struct)
+- [Choosing: struct vs record struct](#choosing-struct-vs-record-struct)
 
 **Shared Concepts**
 - [Attributes](#attributes)
 - [Byte Order and Bit Order](#byte-order-and-bit-order)
 - [Signed Property Types (Sign Extension)](#signed-property-types-sign-extension)
 
-**BitFields (Value Type)**
+**Value Types (struct)**
 - [Supported Storage Types](#supported-storage-types)
 - [Native Integer Types (nint / nuint)](#native-integer-types-nint--nuint)
 - [Operators](#operators)
@@ -34,16 +34,16 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 - [Interface Implementations](#interface-implementations)
 - [Span Serialization](#span-serialization)
 
-**BitFieldsView (Buffer View)**
+**Zero-Copy Views (record struct)**
 - [Constructors](#constructors)
 - [Zero-Copy Semantics](#zero-copy-semantics)
 - [Generated Members](#generated-members)
 - [Record Struct Equality](#record-struct-equality)
-- [BitFieldsView JSON Serialization](#bitfieldsview-json-serialization)
+- [View JSON Serialization](#view-json-serialization)
 
 **Composition**
-- [BitFields Inside BitFields](#bitfields-inside-bitfields)
-- [BitFields Inside BitFieldsView](#bitfields-inside-bitfieldsview)
+- [Value Type Inside Value Type](#value-type-inside-value-type)
+- [Value Type Inside View](#value-type-inside-view)
 - [Sub-View Nesting](#sub-view-nesting)
 - [Mixed-Endian Nesting](#mixed-endian-nesting)
 
@@ -69,7 +69,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 
 ---
 
-## Quick Start -- BitFields (Value Type)
+## Quick Start -- Value Type (struct)
 
 ```csharp
 [BitFields(StorageType.UInt16)]  // StorageType enum -- preferred
@@ -103,10 +103,10 @@ public partial struct KeyboardReg { ... }
 `[BitFields]` generates a value type with inline bit manipulation, full operator support,
 parsing, formatting, and implicit conversions. Zero heap allocations, zero abstraction penalty.
 
-## Quick Start -- BitFieldsView (Buffer View)
+## Quick Start -- Zero-Copy View (record struct)
 
 ```csharp
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
     [BitField(0, End = 3)]     public partial byte Version { get; set; }
@@ -122,13 +122,14 @@ byte version = header.Version;     // reads directly from packet buffer
 header.TotalLength = 52;           // writes directly to packet buffer
 ```
 
-`[BitFieldsView]` generates a `record struct` that wraps `Memory<byte>`. All reads and writes go
-directly through the buffer -- no copies, no allocations. The struct-level `ByteOrder` controls
-how multi-byte fields are serialized; plain `ushort` and `uint` properties are all you need.
+When `[BitFields]` is applied to a `partial record struct`, the generator produces a view over
+`Memory<byte>`. All reads and writes go directly through the buffer -- no copies, no allocations.
+The struct-level `ByteOrder` controls how multi-byte fields are serialized; plain `ushort` and
+`uint` properties are all you need.
 
-## Choosing Between BitFields and BitFieldsView
+## Choosing: struct vs record struct
 
-| | `[BitFields]` | `[BitFieldsView]` |
+| | `partial struct` | `partial record struct` |
 |---|---|---|
 | Backing | Private value field | `Memory<byte>` (external buffer) |
 | Copy cost | Copies all data on assignment | Copies only the 24-byte view header |
@@ -137,33 +138,38 @@ how multi-byte fields are serialized; plain `ushort` and `uint` properties are a
 | Conversions | Implicit to/from storage type | Constructor from `byte[]` / `Memory<byte>` |
 | Use case | Registers, opcodes, flags | Network packets, file formats, DMA buffers |
 
-**Use `[BitFields]`** when the data is a small, self-contained value -- hardware registers,
+**Use a `struct`** when the data is a small, self-contained value -- hardware registers,
 instruction opcodes, status flags, or anything that fits in a primitive and benefits from
 operators and implicit conversions.
 
-**Use `[BitFieldsView]`** when the data lives in an external buffer and you want zero-copy
+**Use a `record struct`** when the data lives in an external buffer and you want zero-copy
 access -- network packets, memory-mapped file headers, DMA buffers.
 
 **Use both together** when a protocol has small reusable flag groups embedded in larger
-buffer-backed headers. See [Composition](#bitfields-inside-bitfieldsview).
+buffer-backed headers. See [Composition](#value-type-inside-view).
 
 ---
 
 ## Attributes
 
-Both `[BitFields]` and `[BitFieldsView]` use the same field attributes:
+The `[BitFields]` attribute works on both `struct` and `record struct`. The struct kind
+determines the codegen path; the field attributes are the same either way:
 
 | Attribute | Parameters | Description |
 |-----------|------------|-------------|
-| `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Preferred. Enum provides IntelliSense discovery of all supported types |
-| `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Also supported. Equivalent to the enum form; exists for backward compatibility but does not support arbitrary types |
-| `[BitFieldsView]` | Optional `ByteOrder`, optional `BitOrder` | Marks a `partial record struct` for buffer-view generation |
+| `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Value type. Enum provides IntelliSense discovery of all supported types |
+| `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Value type. Equivalent to the enum form; exists for backward compatibility |
+| `[BitFields]` | Optional `ByteOrder`, optional `BitOrder` | Zero-copy view (on a `partial record struct`) |
+| `[BitFields(ByteOrder.X)]` | `ByteOrder`, optional `BitOrder` | Zero-copy view with explicit byte order |
 | `[BitField(start, end)]` | Inclusive range -- second parameter is the end bit position, not bit width | Use named 'End = N' syntax for clarity or disable warning SD0015 if brevity is preferred |
 | `[BitField(start, End = N)]` | Named inclusive end position | Multi-bit field (width = End - start + 1) |
 | `[BitField(start, Width = N)]` | Named bit count | Multi-bit field (N bits starting at start) |
 | `[BitField(Start = N, End = M)]` | Fully named inclusive range | Multi-bit field (width = M - N + 1) |
 | `[BitField(Start = N, Width = W)]` | Fully named with width | Multi-bit field (W bits starting at N) |
 | `[BitFlag(bit)]` | 0-based bit position, optional `MustBe` | Single-bit boolean flag |
+
+> **Deprecation notice:** The separate `[BitFieldsView]` attribute is deprecated. Use `[BitFields]`
+> on a `partial record struct` instead. `[BitFieldsViewAttribute]` will be removed in a future release.
 
 **BitField syntax examples:**
 - `[BitField(0, Width = 3)]` -- 3-bit field at bits 0, 1, 2
@@ -185,7 +191,7 @@ Both attributes support configurable byte order and bit numbering:
 | `BitOrder.BitZeroIsMsb` | No | Bit 0 = most significant | RFCs, IETF specifications |
 
 For `[BitFields]`, only `BitOrder` applies (the value is stored in a native data type).
-For `[BitFieldsView]`, both `ByteOrder` and `BitOrder` apply.
+For record struct views, both `ByteOrder` and `BitOrder` apply.
 
 **LSB-first bit layout** (default):
 ```
@@ -209,7 +215,7 @@ With MSB-first, bit positions in `[BitField]` attributes match RFC diagrams dire
 // |Version|  IHL  |Type of Service|          Total Length         |
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4Word0
 {
     [BitField(0, End = 3)]   public partial byte Version { get; set; }      // matches RFC diagram
@@ -662,8 +668,8 @@ var restoredDto = JsonSerializer.Deserialize<DeviceStatus>(dtoJson);
 The converter is a private nested class inside the generated struct, so it does not pollute the
 namespace. For multi-word types (arbitrary-size bit fields), the hex string representation
 automatically scales to the struct width (e.g., a 256-bit struct produces a 64-character hex
-string). `[BitFieldsView]` types use the same hex format -- see
-[BitFieldsView JSON Serialization](#bitfieldsview-json-serialization).
+string). Record struct views use the same hex format -- see
+[View JSON Serialization](#view-json-serialization).
 
 ---
 
@@ -709,7 +715,7 @@ All methods validate the span length against `SIZE_IN_BYTES` and throw `Argument
 
 ## Constructors
 
-`[BitFieldsView]` generates three constructors:
+Record struct views generate three constructors:
 
 ```csharp
 var view = new IPv4HeaderView(buffer.AsMemory());  // from Memory<byte>
@@ -745,7 +751,7 @@ Console.WriteLine(v2.Version);   // 4
 
 ## Generated Members
 
-For each `[BitFieldsView]` struct, the generator produces:
+For each record struct view, the generator produces:
 
 | Member | Description |
 |--------|-------------|
@@ -771,11 +777,10 @@ Console.WriteLine(v1 == v3);  // False -- different arrays
 
 ---
 
-## BitFieldsView JSON Serialization
+## View JSON Serialization
 
-Every `[BitFieldsView]` type includes a generated `System.Text.Json` converter that serializes
-the underlying buffer bytes as a `"0x..."` hex string -- the same format used by `[BitFields]`
-types. This means both value types and buffer views produce identical JSON when they represent
+Every record struct view includes a generated `System.Text.Json` converter that serializes
+the underlying buffer bytes as a `"0x..."` hex string -- the same format used by value types.
 the same data:
 
 ```csharp
@@ -801,9 +806,9 @@ The converter handles null JSON values by returning a view over a zeroed buffer 
 
 ---
 
-## BitFields Inside BitFields
+## Value Type Inside Value Type
 
-BitFields types can be used as property types within other BitFields, enabling reusable sub-structures:
+Value-type structs can be used as property types within other value-type structs, enabling reusable sub-structures:
 
 ```csharp
 [BitFields(StorageType.Byte)]
@@ -826,9 +831,9 @@ header.Status = new StatusFlags { Ready = true, Priority = 5 };
 bool ready = header.Status.Ready;  // true
 ```
 
-## BitFields Inside BitFieldsView
+## Value Type Inside View
 
-`[BitFields]` types work as property types inside `[BitFieldsView]`. The implicit conversions
+Value-type structs work as property types inside record struct views. The implicit conversions
 handle packing and unpacking automatically:
 
 ```csharp
@@ -840,7 +845,7 @@ public partial struct StatusFlags
     [BitField(4, End = 7)] public partial byte Code { get; set; }
 }
 
-[BitFieldsView]
+[BitFields]
 public partial record struct PacketView
 {
     [BitField(0, End = 7)]  public partial StatusFlags Flags { get; set; }
@@ -856,7 +861,7 @@ Console.WriteLine(view.Flags.Code);   // 5
 
 ## Sub-View Nesting
 
-`[BitFieldsView]` types can be nested inside other `[BitFieldsView]` types. The inner view
+Record struct views can be nested inside other record struct views. The inner view
 operates on the **same underlying buffer** at the specified offset -- zero-copy all the way down.
 
 ### Byte-Aligned Nesting
@@ -864,13 +869,13 @@ operates on the **same underlying buffer** at the specified offset -- zero-copy 
 When the start bit is a multiple of 8, the inner view is sliced at a byte boundary:
 
 ```csharp
-[BitFieldsView]
+[BitFields]
 public partial record struct InnerView
 {
     [BitField(0, End = 7)] public partial byte Value { get; set; }
 }
 
-[BitFieldsView]
+[BitFields]
 public partial record struct OuterView
 {
     [BitField(0, End = 7)]   public partial byte Header { get; set; }
@@ -888,7 +893,7 @@ inner.Value = 0x42;           // writes directly to buffer[2]
 When the start bit is not byte-aligned, the inner view receives a bit offset:
 
 ```csharp
-[BitFieldsView]
+[BitFields]
 public partial record struct OuterView
 {
     [BitField(0, End = 3)]  public partial byte LowNibble { get; set; }
@@ -917,13 +922,13 @@ outer.Inner.Value;  // 0xAB -- reads the same memory inner wrote to
 
 ## Mixed-Endian Nesting
 
-Each nested `[BitFieldsView]` independently controls its own byte order.
+Each nested record struct view independently controls its own byte order.
 For individual fields that differ from the struct default, use endian-aware types
 (`UInt32Be`, `UInt16Le`, etc.) as a per-field override.
 
 ```csharp
 // Embedded network capture header -- big-endian
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct CaptureHeaderView
 {
     [BitField(0, End = 15)]  public partial ushort Protocol { get; set; }
@@ -932,7 +937,7 @@ public partial record struct CaptureHeaderView
 }
 
 // x86 binary file blob -- little-endian, with one BE field and a nested BE sub-view
-[BitFieldsView]
+[BitFields]
 public partial record struct FileBlobView
 {
     [BitField(0, End = 31)]    public partial uint Magic { get; set; }              // LE
@@ -943,7 +948,7 @@ public partial record struct FileBlobView
 }
 
 // Outer transport -- big-endian, wrapping the LE blob
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TransportView
 {
     [BitField(0, End = 15)]   public partial ushort MessageType { get; set; }
@@ -1302,9 +1307,9 @@ var synAck = TcpFlags.SYNBit | TcpFlags.ACKBit;
 var ack    = TcpFlags.ACKBit;
 ```
 
-### Buffer-View Approach (BitFieldsView)
+### Buffer-View Approach (record struct)
 
-For zero-copy parsing of complete headers over byte buffers, use `[BitFieldsView]` with
+For zero-copy parsing of complete headers over byte buffers, use `[BitFields]` on a `record struct` with
 `ByteOrder.NetworkEndian` and `BitOrder.BitZeroIsMsb` so that bit positions match RFC diagrams directly.
 Plain `ushort` and `uint` properties are all you need -- the struct-level `ByteOrder` handles
 serialization.
@@ -1332,7 +1337,7 @@ See `Test/Protocols/IPv4HeaderView.cs` for a copy-pasteable implementation.
 ```
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv4HeaderView
 {
     [BitField(0, End = 3)]     public partial byte Version { get; set; }
@@ -1377,7 +1382,7 @@ See `Test/Protocols/TcpHeaderView.cs` for a copy-pasteable implementation.
 ```
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct TcpHeaderView
 {
     [BitField(0, End = 15)]    public partial ushort SourcePort { get; set; }
@@ -1408,7 +1413,7 @@ public partial record struct TcpHeaderView
 See `Test/Protocols/UdpHeaderView.cs` for a copy-pasteable implementation.
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct UdpHeaderView
 {
     [BitField(0, End = 15)]  public partial ushort SourcePort { get; set; }
@@ -1423,7 +1428,7 @@ public partial record struct UdpHeaderView
 See `Test/Protocols/IPv6HeaderView.cs` for a copy-pasteable implementation.
 
 ```csharp
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv6HeaderView
 {
     [BitField(0, End = 3)]     public partial byte Version { get; set; }
@@ -1473,7 +1478,7 @@ A pcap-style capture file on Windows (LE) containing network packets (BE):
 
 ```csharp
 // Pcap global header -- little-endian (x86 native)
-[BitFieldsView]
+[BitFields]
 public partial record struct PcapGlobalHeader
 {
     [BitField(0, End = 31)]   public partial uint MagicNumber { get; set; }    // 0xA1B2C3D4
@@ -1484,7 +1489,7 @@ public partial record struct PcapGlobalHeader
 }
 
 // Pcap per-packet header -- little-endian
-[BitFieldsView]
+[BitFields]
 public partial record struct PcapPacketHeader
 {
     [BitField(0, End = 31)]   public partial uint TimestampSec { get; set; }
@@ -1527,7 +1532,7 @@ where a single struct mixes endianness at the individual field level.
 ## RFC Diagram Generator
 
 `BitFieldDiagram` generates RFC 2360-style ASCII bit field diagrams from any `[BitFields]` or
-`[BitFieldsView]` struct. It reads the generated `Fields` metadata property and produces a
+struct. It reads the generated `Fields` metadata property and produces a
 text diagram with bit-position headers, byte offsets, and auto-sized cells.
 
 There are three ways to use it. The **instance API is preferred** because it supports
@@ -1597,7 +1602,7 @@ var diagram = new BitFieldDiagram(
 
 **Adding structs**
 
-Use `AddStruct` to add `[BitFields]` or `[BitFieldsView]` types incrementally. It returns a
+Use `AddStruct` to add `[BitFields]` types (both value types and record struct views) incrementally. It returns a
 `Result<string>` so you can check for errors:
 
 ```csharp
@@ -1608,7 +1613,7 @@ diagram.AddStruct(typeof(TcpHeaderView));
 // Error handling
 Result<string> result = diagram.AddStruct(typeof(string)); // not a BitFields type
 if (result.IsFailure)
-    Console.WriteLine(result.Error); // "Struct 'String' is not a valid [BitFields] or [BitFieldsView] type."
+    Console.WriteLine(result.Error); // "Struct 'String' is not a valid [BitFields] type."
 ```
 
 Use `AddStructs` to add multiple types in a single call. It accepts any `IEnumerable<Type>`
@@ -1929,12 +1934,12 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
 }
 ```
 
-### BitFieldsView Generated Code
+### View Generated Code (record struct)
 
 For this view struct:
 
 ```csharp
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct ByteFlagsView
 {
     [BitFlag(0)] public partial bool MsbFlag { get; set; }

@@ -439,7 +439,7 @@ if (magic != 0x89504E47)  // PNG magic number
 ### Hardware Register (with BitFields)
 
 Big-endian types can be used as storage types in `[BitFields]` structs, and as per-field
-endian overrides in `[BitFieldsView]` structs. See [BITFIELDS.md](BITFIELDS.md) for full
+endian overrides in record struct views. See [BITFIELDS.md](BITFIELDS.md) for full
 documentation on composition and mixed-endian nesting.
 
 ```csharp
@@ -464,12 +464,12 @@ if (status.Ready && !status.Error)
 }
 ```
 
-Big-endian types can also override individual field endianness within a `[BitFieldsView]`
-struct. This is useful when a single struct mixes byte orders at the field level:
+Big-endian types can also override individual field endianness within a record struct view.
+This is useful when a single struct mixes byte orders at the field level:
 
 ```csharp
 // x86 file blob (little-endian default) with one big-endian IP address field
-[BitFieldsView]
+[BitFields]
 public partial record struct FileBlobView
 {
     [BitField(0, End = 31)]  public partial uint Timestamp { get; set; }          // LE (struct default)
@@ -478,7 +478,7 @@ public partial record struct FileBlobView
 ```
 
 For uniform-endian structs, per-field overrides are unnecessary -- just set
-`ByteOrder.BigEndian` on the `[BitFieldsView]` attribute and use plain `uint`, `ushort`, etc.
+`ByteOrder.BigEndian` on the `[BitFields]` attribute and use plain `uint`, `ushort`, etc.
 
 ### Zero-Allocation Network I/O
 
@@ -593,13 +593,13 @@ Both produce identical machine code, but the big-endian type version:
 - Big-endian hardware emulation (68000, PowerPC, SPARC, MIPS32/64 (BE), ARM (BE-8 mode))
 
 **Little-endian types (`*Le`)** are for data that must be stored least-significant-byte first:
-- Per-field endian overrides in a `[BitFields]` or `[BitFieldsView]` struct whose default is big-endian
+- Per-field endian overrides in a `[BitFields]` struct whose default is big-endian
 - Cross-platform binary formats that mandate little-endian storage
 - Big-endian host machines that need to read/write x86-native data
 
 On mainstream platforms (x86, x64, ARM), native types like `uint` are already little-endian
 in memory. In most code you can use plain native types and only reach for `*Le` when you need
-a type-safe marker or a per-field override inside a BE `[BitFields]` or `[BitFieldsView]`.
+a type-safe marker or a per-field override inside a BE `[BitFields]` struct.
 
 ### Historical Context
 1. **Mono Runtime (Cross-Platform .NET Implementation)**<br><br>

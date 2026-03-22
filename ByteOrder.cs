@@ -1,7 +1,7 @@
 namespace Stardust.Utilities;
 
 /// <summary>
-/// Specifies the byte order (endianness) for multi-byte field access in a <see cref="BitFieldsViewAttribute"/>.
+/// Specifies the byte order (endianness) for multi-byte field access in a <see cref="BitFieldsAttribute"/>.
 /// </summary>
 public enum ByteOrder
 {

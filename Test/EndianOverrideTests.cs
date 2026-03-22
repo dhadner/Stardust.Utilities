@@ -7,11 +7,11 @@ namespace Stardust.Utilities.Tests;
 /// <summary>
 /// Exhaustive tests for endian-type overrides (*Be/*Le property types)
 /// across all combinations of ByteOrder and BitOrder in both
-/// [BitFieldsView] and [BitFields] structs.
+/// record struct views (deprecated [BitFieldsView]) and [BitFields] structs.
 ///
 /// Coverage matrix:
 ///
-///   BitFieldsView (4 ByteOrder � BitOrder combos):
+///   Record struct views (4 ByteOrder � BitOrder combos):
 ///     1. (BE, BitZeroIsMsb) with *Le overrides
 ///     2. (BE, BitZeroIsLsb) with *Le overrides
 ///     3. (LE, BitZeroIsLsb) with *Be overrides
@@ -24,7 +24,7 @@ namespace Stardust.Utilities.Tests;
 public partial class EndianOverrideTests
 {
     // ================================================================
-    // BitFieldsView struct definitions � all four ByteOrder � BitOrder
+    // View struct definitions (deprecated [BitFieldsView]) � all four ByteOrder � BitOrder
     // combos, each with opposite-endian overrides + same-endian explicit
     // ================================================================
 
@@ -98,10 +98,10 @@ public partial class EndianOverrideTests
     }
 
     // ================================================================
-    // BitFieldsView Tests � Combo 1: BigEndian / BitZeroIsMsb + *Le
+    // View Tests � Combo 1: BigEndian / BitZeroIsMsb + *Le
     // ================================================================
 
-    #region Combo 1: BitFieldsView (BE, BitZeroIsMsb) with *Le overrides
+    #region Combo 1: View (BE, BitZeroIsMsb) with *Le overrides
 
     [Fact]
     public void View_BE_Msb_NativeField_WritesBigEndian()
@@ -183,10 +183,10 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView Tests � Combo 2: BigEndian / BitZeroIsLsb + *Le
+    // View Tests � Combo 2: BigEndian / BitZeroIsLsb + *Le
     // ================================================================
 
-    #region Combo 2: BitFieldsView (BE, BitZeroIsLsb) with *Le overrides
+    #region Combo 2: View (BE, BitZeroIsLsb) with *Le overrides
 
     [Fact]
     public void View_BE_Lsb_NativeField_WritesBigEndian()
@@ -266,10 +266,10 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView Tests � Combo 3: LittleEndian / BitZeroIsLsb + *Be
+    // View Tests � Combo 3: LittleEndian / BitZeroIsLsb + *Be
     // ================================================================
 
-    #region Combo 3: BitFieldsView (LE, BitZeroIsLsb) with *Be overrides
+    #region Combo 3: View (LE, BitZeroIsLsb) with *Be overrides
 
     [Fact]
     public void View_LE_Lsb_NativeField_WritesLittleEndian()
@@ -351,10 +351,10 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView Tests � Combo 4: LittleEndian / BitZeroIsMsb + *Be
+    // View Tests � Combo 4: LittleEndian / BitZeroIsMsb + *Be
     // ================================================================
 
-    #region Combo 4: BitFieldsView (LE, BitZeroIsMsb) with *Be overrides
+    #region Combo 4: View (LE, BitZeroIsMsb) with *Be overrides
 
     [Fact]
     public void View_LE_Msb_NativeField_WritesLittleEndian()
@@ -706,7 +706,7 @@ public partial class EndianOverrideTests
     #endregion
 
     // ================================================================
-    // BitFieldsView: native field vs same-endian explicit type
+    // View: native field vs same-endian explicit type
     // must produce identical wire bytes for all 4 combos
     // ================================================================
 

@@ -35,7 +35,7 @@ using static Result<string>;
 /// Struct-level UndefinedBitsMustBe: Any = any, Zeroes = zeroes, Ones = ones.
 /// </param>
 /// <param name="StructDescription">
-/// An optional description of the containing struct, from the <c>[BitFields]</c> or <c>[BitFieldsView]</c>
+/// An optional description of the containing struct, from the <c>[BitFields]</c>
 /// attribute's <c>Description</c> property. Used as a section label in multi-struct diagram rendering.
 /// </param>
 public sealed record BitFieldInfo(
@@ -56,7 +56,7 @@ public sealed record BitFieldInfo(
     /// <summary>
     /// Creates a <see cref="BitFieldInfo"/> by reading attribute metadata from the specified type and optional field.
     /// </summary>
-    /// <param name="type">The struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+    /// <param name="type">The struct type decorated with <c>[BitFields]</c>.</param>
     /// <param name="field">Optional property name to inspect. When null, inspects the type-level attribute.</param>
     /// <param name="inherit">When true, searches inherited attributes.</param>
     /// <returns>A successful result containing the <see cref="BitFieldInfo"/>, or an error string on failure.</returns>

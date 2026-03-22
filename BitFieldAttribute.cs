@@ -1,7 +1,7 @@
 namespace Stardust.Utilities;
 
 /// <summary>
-/// Marks a property as a multi-bit field within a [BitFields] or [BitFieldsView] struct.
+/// Marks a property as a multi-bit field within a [BitFields] struct.
 /// </summary>
 /// <remarks>
 /// <para>

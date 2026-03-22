@@ -27,9 +27,9 @@ public partial struct DescEscapeRegister
 
 /// <summary>
 /// View struct with the same special-character Description values.
-/// Verifies the BitFieldsViewGenerator escapes identically.
+/// Verifies the view generator escapes identically.
 /// </summary>
-[BitFieldsView]
+[BitFields]
 public partial record struct DescEscapeView
 {
     [BitFlag(0, Description = "Line1\nLine2")] public partial bool Newline { get; set; }
@@ -113,31 +113,31 @@ public class DescriptionEscapingTests
         Assert.Equal("Mixed: \"\\\n\t\r\0", field.GetDescription());
     }
 
-    // ── BitFieldsView same tests ────────────────────────────────
+    // ── View (record struct) same tests ─────────────────────────
 
     [Fact]
-    public void BitFieldsView_Description_NewlineRoundTrips()
+    public void View_Description_NewlineRoundTrips()
     {
         var field = DescEscapeView.Fields.ToArray().First(f => f.Name == "Newline");
         Assert.Equal("Line1\nLine2", field.GetDescription());
     }
 
     [Fact]
-    public void BitFieldsView_Description_QuotesRoundTrip()
+    public void View_Description_QuotesRoundTrip()
     {
         var field = DescEscapeView.Fields.ToArray().First(f => f.Name == "Quotes");
         Assert.Equal("Say \"hello\"", field.GetDescription());
     }
 
     [Fact]
-    public void BitFieldsView_Description_BackslashRoundTrips()
+    public void View_Description_BackslashRoundTrips()
     {
         var field = DescEscapeView.Fields.ToArray().First(f => f.Name == "Backslash");
         Assert.Equal("C:\\Users\\test", field.GetDescription());
     }
 
     [Fact]
-    public void BitFieldsView_Description_AllSpecialCharsAtOnce()
+    public void View_Description_AllSpecialCharsAtOnce()
     {
         var field = DescEscapeView.Fields.ToArray().First(f => f.Name == "AllAtOnce");
         Assert.Equal("Mixed: \"\\\n\t\r\0", field.GetDescription());

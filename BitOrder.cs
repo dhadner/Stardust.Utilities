@@ -1,8 +1,7 @@
 namespace Stardust.Utilities;
 
 /// <summary>
-/// Specifies how bit positions are numbered within a <see cref="BitFieldsViewAttribute"/>
-/// or a <see cref="BitFieldsAttribute"/>.
+/// Specifies how bit positions are numbered within a <see cref="BitFieldsAttribute"/>.
 /// </summary>
 public enum BitOrder
 {

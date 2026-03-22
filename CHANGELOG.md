@@ -6,25 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.9.7] - 2026-03-28
 ### Removed
-- **`DiagramSection` type** and the `DiagramSection[]`-based overloads of `RenderList`/`RenderListToString` on `BitFieldDiagram`. These were deprecated in 0.9.5 and replaced by the `Description` parameter on `[BitFields]`/`[BitFieldsView]` attributes combined with the Type-based `RenderList`/`RenderListToString` overloads, which remain unchanged.
+- **`DiagramSection` type** and the `DiagramSection[]`-based overloads of `RenderList`/`RenderListToString` on `BitFieldDiagram`. These were deprecated in 0.9.5 and replaced by the `Description` parameter on `[BitFields]` attributes combined with the Type-based `RenderList`/`RenderListToString` overloads, which remain unchanged.
 - **`BitFieldDiagram.GetFieldInfo(Type)`** static method (was an obsolete wrapper around `GetFields`).
 - 12 tests for the removed `DiagramSection` API and `GetFieldInfo` method.
 - Dead `DiagramSection`-related code in the WPF demo app (`MainWindow.xaml.cs`).
 
 ### Added
-- **JSON serialization for `[BitFieldsView]` types** -- the `BitFieldsViewGenerator` now emits a `System.Text.Json` converter (via `[JsonConverter]`) on every generated view struct. The converter serializes the underlying `Memory<byte>` bytes as a `"0x..."` hex string -- the same format used by `[BitFields]` types -- and deserializes by parsing the hex string back into a `byte[]` and constructing a new view. Works in DTOs, REST APIs, and configuration files without setup. Includes 8 tests covering big-endian, little-endian, 64-bit, embedded BitFields composition, null-to-zeroes, and hex deserialization.
+- **Unified `[BitFields]` attribute for both value types and views** -- `[BitFields]` now works on `partial record struct` in addition to `partial struct`. The generator detects the `record` keyword and produces zero-copy `Memory<byte>`-backed view code (the same codegen previously produced by `[BitFieldsView]`). New parameterless and `(ByteOrder, BitOrder)` constructors on `BitFieldsAttribute` support the view use case. Existing value-type constructors (`StorageType`, `typeof(T)`, `int bitCount`) are unchanged.
+- **`[BitFieldsView]` deprecated** -- `BitFieldsViewAttribute` is marked `[Obsolete]`. The generator still recognizes it and produces identical code, but users should migrate to `[BitFields]` on a `partial record struct`. `BitFieldsViewAttribute` will be removed in a future release.
+- **JSON serialization for record struct view types** -- the view generator now emits a `System.Text.Json` converter (via `[JsonConverter]`) on every generated view struct. The converter serializes the underlying `Memory<byte>` bytes as a `"0x..."` hex string -- the same format used by value types -- and deserializes by parsing the hex string back into a `byte[]` and constructing a new view. Works in DTOs, REST APIs, and configuration files without setup. Includes 8 tests covering big-endian, little-endian, 64-bit, embedded BitFields composition, null-to-zeroes, and hex deserialization.
 - **JSON serialization for all `[BitFields]` storage types** -- the generator has emitted a `System.Text.Json` converter on every `[BitFields]` type since 0.9.4, but test coverage was incomplete. Added JSON round-trip tests for every storage type: `byte`, `sbyte`, `ushort`, `short`, `uint`, `int`, `ulong`, `long`, `nint`, `nuint`, `Half`, `float`, `double`, `decimal`, `UInt128`, `Int128`, multi-word (65/128/200/256/512/16384-bit including cross-word fields), and `StorageType` enum-constructor variants (`Byte`, `UInt32`, `UInt64`). All 16 supported storage types plus all multi-word size classes now have verified JSON serialization and deserialization.
 - **JSON serialization documentation** -- added dedicated sections in README.md and BITFIELDS.md explaining the generated `System.Text.Json` converter on every `[BitFields]` type. The converter (applied via `[JsonConverter]`) serializes as a hex string and round-trips via `Parse`. Works in DTOs, REST APIs, and configuration files without setup.
 - **Span serialization documentation** -- added dedicated `Span Serialization` sections in README.md and BITFIELDS.md documenting the generated `ReadFrom`, `WriteTo`, `TryWriteTo`, and `ToByteArray` methods that existed but were previously only visible in the generated code listing.
 - **Additional JSON deserialization tests** -- hex, binary, and decimal format parsing from JSON strings, plus null-to-default behavior.
+- **Unified attribute tests** -- 4 tests verifying that `[BitFields]` on a `record struct` produces identical behavior to the deprecated `[BitFieldsView]`, covering big-endian, little-endian, set/get, and JSON round-trip.
 
 ### Changed
-- **Generator package description** updated from `[EnhancedEnum]` to `[BitFieldsView]` (corrected stale text in `Stardust.Generators.csproj`).
+- **Generator package description** updated to reflect unified `[BitFields]` attribute.
 - **Generator package tags** updated to include `bitfieldsview`.
+- **Documentation consolidated** -- README.md and BITFIELDS.md rewritten to present a single `[BitFields]` attribute with `struct` vs `record struct` as the only differentiator. The `[BitFieldsView]` attribute is mentioned only in a deprecation notice.
 
 ### Backwards Compatibility
-- The `DiagramSection` type and its `RenderList`/`RenderListToString` overloads are removed. Code using them must migrate to the Type-based `RenderList(Type[])` / `RenderListToString(Type[])` overloads (available since 0.9.5) or the instance API (`new BitFieldDiagram(typeof(T), description)`). The struct-level `Description` parameter on `[BitFields]`/`[BitFieldsView]` replaces `DiagramSection` labels.
+- The `DiagramSection` type and its `RenderList`/`RenderListToString` overloads are removed. Code using them must migrate to the Type-based `RenderList(Type[])` / `RenderListToString(Type[])` overloads (available since 0.9.5) or the instance API (`new BitFieldDiagram(typeof(T), description)`). The struct-level `Description` parameter on `[BitFields]` replaces `DiagramSection` labels.
 - The `BitFieldDiagram.GetFieldInfo(Type)` static method is removed. Use `BitFieldDiagram.GetFields(Type)` instead (same behavior, returns `Result<BitFieldInfo[], string>`).
+- `[BitFieldsView]` is deprecated but still fully functional. Existing code using `[BitFieldsView]` will compile with a warning; no code changes are required until the attribute is removed in a future release. Migration is a find-and-replace: `[BitFieldsView]` to `[BitFields]`, `[BitFieldsView(` to `[BitFields(`.
 - All other APIs are backwards compatible with 0.9.6.
 
 ## [0.9.6] - 2026-03-21

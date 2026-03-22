@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Stardust.Generators;
 
 /// <summary>
-/// Source generator for [BitFieldsView]-attributed record structs.
+/// Source generator for [BitFieldsView]-attributed and [BitFields]-attributed record structs.
 /// Generates a Memory&lt;byte&gt;-backed record struct with property accessors
 /// that read/write directly into the underlying buffer.
 /// </summary>
@@ -20,14 +20,25 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var declarations = context.SyntaxProvider
+        // Legacy: [BitFieldsView] on any struct/record struct (deprecated but still supported)
+        var legacyDeclarations = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 "Stardust.Utilities.BitFieldsViewAttribute",
                 predicate: static (node, _) => node is RecordDeclarationSyntax or StructDeclarationSyntax,
                 transform: static (ctx, _) => GetViewInfo(ctx))
             .Where(static info => info is not null);
 
-        context.RegisterSourceOutput(declarations,
+        // New: [BitFields] on a record struct (no storage type = view mode)
+        var unifiedDeclarations = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "Stardust.Utilities.BitFieldsAttribute",
+                predicate: static (node, _) => node is RecordDeclarationSyntax,
+                transform: static (ctx, _) => GetViewInfo(ctx))
+            .Where(static info => info is not null);
+
+        context.RegisterSourceOutput(legacyDeclarations,
+            static (spc, info) => Execute(spc, info!));
+        context.RegisterSourceOutput(unifiedDeclarations,
             static (spc, info) => Execute(spc, info!));
     }
 
@@ -37,9 +48,31 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             return null;
 
         var attr = structSymbol.GetAttributes()
-            .FirstOrDefault(a => a.AttributeClass?.Name == "BitFieldsViewAttribute");
+            .FirstOrDefault(a => a.AttributeClass?.Name is "BitFieldsViewAttribute" or "BitFieldsAttribute");
         if (attr == null)
             return null;
+
+        // For [BitFields] on a record struct, the ByteOrder/BitOrder constructor
+        // has the same parameter layout as [BitFieldsView].
+        // For [BitFields(typeof(T), ...)] or [BitFields(StorageType, ...)] on a record struct,
+        // skip -- the value-type generator should handle it (or error).
+        bool isBitFieldsAttr = attr.AttributeClass?.Name == "BitFieldsAttribute";
+        if (isBitFieldsAttr)
+        {
+            // If a storage type or bit count was provided, this is a value-type usage on a record struct.
+            // Skip it -- the view generator doesn't handle storage types.
+            if (attr.ConstructorArguments.Length >= 1)
+            {
+                var firstArg = attr.ConstructorArguments[0];
+                // ByteOrder is an enum with underlying int; StorageType is also an int enum.
+                // Type arguments come as INamedTypeSymbol. int bit count comes as int.
+                // ByteOrder enum values: LittleEndian=1, BigEndian=0
+                // We need to distinguish ByteOrder from StorageType/Type/int.
+                // The (ByteOrder, BitOrder) constructor has first param of type ByteOrder.
+                if (firstArg.Type?.Name != "ByteOrder")
+                    return null;
+            }
+        }
 
         // Read ByteOrder (arg 0, default LittleEndian = 1)
         var byteOrder = ByteOrder.LittleEndian;
@@ -91,9 +124,11 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                     var start = resolved.Value.Start;
                     var end = resolved.Value.End;
 
-                    // Check if the property type is itself a [BitFieldsView] type
+                    // Check if the property type is itself a [BitFieldsView] or [BitFields] record struct (sub-view)
                     bool isSubView = member.Type.GetAttributes()
-                        .Any(a => a.AttributeClass?.Name == "BitFieldsViewAttribute");
+                        .Any(a => a.AttributeClass?.Name is "BitFieldsViewAttribute" or "BitFieldsAttribute")
+                        && member.Type is INamedTypeSymbol propTypeSymbol
+                        && propTypeSymbol.IsRecord;
 
                     if (isSubView)
                     {

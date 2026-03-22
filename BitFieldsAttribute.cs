@@ -2,15 +2,27 @@ namespace Stardust.Utilities;
 
 /// <summary>
 /// Marks a struct as a bit register, enabling source generation for bitfield properties.
+/// On a <c>partial struct</c>, generates a value type with inline storage.
+/// On a <c>partial record struct</c>, generates a zero-copy view over <c>Memory&lt;byte&gt;</c>.
 /// </summary>
 /// <remarks>
 /// Usage:
 /// <code>
+/// // Value type (private fields, operators, implicit conversions)
 /// [BitFields(typeof(byte))]
 /// public partial struct MyRegister
 /// {
 ///     [BitField(0, End = 3)] public partial byte LowNibble { get; set; }  // bits 0..=3
 ///     [BitFlag(7)] public partial bool Flag { get; set; }
+/// }
+/// 
+/// // Zero-copy buffer view (reads/writes directly in the buffer)
+/// [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+/// public partial record struct IPv6Header
+/// {
+///     [BitField(0, End = 3)]   public partial byte Version { get; set; }
+///     [BitField(4, End = 11)]  public partial byte TrafficClass { get; set; }
+///     [BitField(12, End = 31)] public partial uint FlowLabel { get; set; }
 /// }
 /// 
 /// // Equivalent: use the StorageType enum for compile-time safety
@@ -37,12 +49,19 @@ namespace Stardust.Utilities;
 ///     [BitField(0, End = 3)] public partial byte HighNibble { get; set; }  // top 4 bits
 /// }
 /// </code>
-/// The generator creates:
+/// The generator creates for value types (<c>struct</c>):
 /// <list type="bullet">
 /// <item>A private Value field of the specified storage type (or multiple ulong fields for arbitrary sizes)</item>
 /// <item>A constructor taking the storage type</item>
 /// <item>Property implementations with inline bit manipulation</item>
 /// <item>Implicit conversion operators to/from the storage type</item>
+/// </list>
+/// The generator creates for views (<c>record struct</c>):
+/// <list type="bullet">
+/// <item>A <c>Memory&lt;byte&gt;</c> field referencing the external buffer</item>
+/// <item>Constructors accepting <c>Memory&lt;byte&gt;</c> and <c>byte[]</c></item>
+/// <item>Property implementations that read/write directly through the span</item>
+/// <item>A <c>SizeInBytes</c> constant for the minimum required buffer size</item>
 /// </list>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Struct)]
@@ -73,7 +92,7 @@ public sealed class BitFieldsAttribute : Attribute
     /// </summary>
     /// <remarks>
     /// This controls the byte order of <c>ReadFrom</c>, <c>WriteTo</c>, <c>TryWriteTo</c>, and <c>ToByteArray</c>.
-    /// When a <c>[BitFields]</c> struct is nested inside a <c>[BitFieldsView]</c>, the struct's
+    /// When a <c>[BitFields]</c> struct is nested inside a record struct view, the struct's
     /// <c>ByteOrder</c> overrides the view's default byte order for that field.
     /// </remarks>
     public ByteOrder ByteOrder { get; }
@@ -108,6 +127,19 @@ public sealed class BitFieldsAttribute : Attribute
         UndefinedBits = undefinedBits;
         BitOrder = bitOrder;
         ByteOrder = byteOrder;
+    }
+
+    /// <summary>
+    /// Creates a BitFields attribute for a zero-copy buffer view (<c>partial record struct</c>).
+    /// When applied to a <c>record struct</c>, the generator produces a view over <c>Memory&lt;byte&gt;</c>
+    /// instead of a value type with inline storage. This replaces <see cref="BitFieldsViewAttribute"/>.
+    /// </summary>
+    /// <param name="byteOrder">Byte order for multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
+    /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>
+    public BitFieldsAttribute(ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.BitZeroIsLsb)
+    {
+        ByteOrder = byteOrder;
+        BitOrder = bitOrder;
     }
 
     /// <summary>

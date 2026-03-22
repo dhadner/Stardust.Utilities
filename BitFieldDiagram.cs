@@ -10,12 +10,12 @@ using static Result<string>;
 
 /// <summary>
 /// Generates RFC 2360-style ASCII diagrams from <see cref="BitFieldInfo"/> metadata.
-/// Works with any <c>[BitFields]</c> or <c>[BitFieldsView]</c> struct that exposes a
+/// Works with any <c>[BitFields]</c> struct that exposes a
 /// static <c>Fields</c> property.
 /// </summary>
 /// <example>
 /// <code>
-/// // Generate diagram from any BitFields/BitFieldsView struct:
+/// // Generate diagram from any [BitFields] struct:
 /// var diagram = new BitFieldDiagram(typeof(IPv4HeaderView));
 /// string output = diagram.RenderToString().Value;
 ///
@@ -168,12 +168,12 @@ public class BitFieldDiagram
     }
 
     /// <summary>
-    /// List of [BitFIelds], [BitFieldsView] or a mixture of the two.
+    /// List of [BitFields] types (value types, record struct views, or a mixture).
     /// </summary>
     public virtual List<Type> Structs { get; } = [];
 
     /// <summary>
-    /// Add structs to the diagram.  Each type must be decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c> 
+    /// Add structs to the diagram.  Each type must be decorated with <c>[BitFields]</c>
     /// and have a static <c>Fields</c> property.
     /// </summary>
     /// <param name="structTypes"></param>
@@ -190,7 +190,7 @@ public class BitFieldDiagram
     }
 
     /// <summary>
-    /// Add structs to the diagram.  Each type must be decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c> 
+    /// Add structs to the diagram.  Each type must be decorated with <c>[BitFields]</c>
     /// and have a static <c>Fields</c> property.
     /// </summary>
     /// <param name="structTypes"></param>
@@ -216,7 +216,7 @@ public class BitFieldDiagram
     public virtual Result<string> AddStruct(Type structType)
     {
         if (structType == null) return Err("structType is null");
-        if (!structType.IsBitsType()) return Err($"Struct '{structType.Name}' is not a valid [BitFields] or [BitFieldsView] type.");
+        if (!structType.IsBitsType()) return Err($"Struct '{structType.Name}' is not a valid [BitFields] type.");
 
         var fieldInfoResult = structType.GetFieldInfo();
         if (fieldInfoResult.IsFailure) return Err(fieldInfoResult.Error);
@@ -657,10 +657,10 @@ public class BitFieldDiagram
     }
 
     /// <summary>
-    /// Renders an RFC-style ASCII bit field diagram for the specified <c>[BitFields]</c> or <c>[BitFieldsView]</c> type.
+    /// Renders an RFC-style ASCII bit field diagram for the specified <c>[BitFields]</c> type.
     /// The type must have a static <c>Fields</c> property returning <c>ReadOnlySpan&lt;BitFieldInfo&gt;</c>.
     /// </summary>
-    /// <param name="bitFieldsType">The struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+    /// <param name="bitFieldsType">The struct type decorated with <c>[BitFields]</c>.</param>
     /// <param name="bitsPerRow">Number of bits per diagram row.</param>
     /// <param name="includeDescriptions">When true, appends a legend with field descriptions below the diagram.</param>
     /// <param name="showByteOffset">When true, shows hex byte offset at the left of each content row.</param>
@@ -685,7 +685,7 @@ public class BitFieldDiagram
     }
 
     /// <summary>
-    /// Renders multiple <c>[BitFields]</c> or <c>[BitFieldsView]</c> types as a unified diagram
+    /// Renders multiple <c>[BitFields]</c> types as a unified diagram
     /// with consistent cell widths. Each type's <c>StructDescription</c> (or simple type name when
     /// no description is set) is shown as a section heading.
     /// </summary>

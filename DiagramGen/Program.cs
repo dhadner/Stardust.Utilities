@@ -2,7 +2,7 @@
 // DiagramGen -- Developer tool for regenerating RFC-style ASCII diagrams
 //
 // Generates BitFieldDiagram output for pre-defined numeric types (and any
-// other [BitFields] / [BitFieldsView] structs) for embedding in documentation.
+// other [BitFields] structs) for embedding in documentation.
 //
 // Usage:
 //   dotnet run --project DiagramGen

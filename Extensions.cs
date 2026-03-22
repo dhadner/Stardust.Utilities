@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
+#pragma warning disable CS0618 // BitFieldsViewAttribute is obsolete but still supported during transition
+
 namespace Stardust.Utilities
 {
     using static Result<string>;
@@ -82,11 +84,11 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// True if type is a BitFields struct or a BitFieldsView struct (or derives from one).
+        /// True if type is a [BitFields] struct (value type or record struct view).
         /// </summary>
         /// <param name="type">The type to inspect.</param>
         /// <param name="inherit">When true, searches inherited attributes.</param>
-        /// <returns>True if the type has a <see cref="BitFieldsAttribute"/> or <see cref="BitFieldsViewAttribute"/>.</returns>
+        /// <returns>True if the type has a <see cref="BitFieldsAttribute"/> or <see cref="BitFieldsViewAttribute"/> (deprecated).</returns>
         public static bool IsBitsType(this Type type, bool inherit = true)
         {
             if (type == null) return false;
@@ -94,8 +96,7 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// True if this field has a BitFieldAttribute and it is a member of a [BitFields] or
-        /// [BitFieldsView] struct.
+        /// True if this field has a BitFieldAttribute and it is a member of a [BitFields] struct.
         /// </summary>
         /// <param name="type">The type to inspect.</param>
         /// <param name="fieldName">The property name to check.</param>
@@ -109,7 +110,7 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// True if this field has a BitFlagAttribute and it is a member of a [BitFields] or [BitFieldsView] struct.
+        /// True if this field has a BitFlagAttribute and it is a member of a [BitFields] struct.
         /// </summary>
         /// <param name="type">The type to inspect.</param>
         /// <param name="field">The property to check.</param>
@@ -184,7 +185,7 @@ namespace Stardust.Utilities
             // Bits based on size of struct
             if (!type.IsBitsType(inherit))
             {
-                return Result<int, string>.Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<int, string>.Err("Type is not a [BitFields] struct");
             }
             var structTotalBitsRes = type.GetBitTypeAttribute(inherit: inherit).Match(
                 onSuccess: attr =>
@@ -248,7 +249,7 @@ namespace Stardust.Utilities
             }               
             if (!type.IsBitsType())
             {
-                return Result<(int start, int end), string>.Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<(int start, int end), string>.Err("Type is not a [BitFields] struct");
             }
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -282,7 +283,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Get the <see cref="MustBe"/> override for this field if it has a BitField or BitFlag attribute.
         /// If the field does not have a BitField or BitFlag attribute, or if the type is not a
-        /// BitFields struct or BitFieldsView struct, return an error.
+        /// [BitFields] struct, return an error.
         /// </summary>
         /// <param name="type">The type to inspect.</param>
         /// <param name="fieldName">The property name.</param>
@@ -327,7 +328,7 @@ namespace Stardust.Utilities
             }
             if (!type.IsBitFieldsType() && !type.IsBitFieldsViewType())
             {
-                return Result<UndefinedBitsMustBe, string>.Err("Type is not a BitFields struct or BitFieldsView struct");
+                return Result<UndefinedBitsMustBe, string>.Err("Type is not a [BitFields] struct");
             }
             var fieldsAttr = type.GetAttribute<BitFieldsAttribute>(inherit);
             if (fieldsAttr != null)
@@ -363,7 +364,7 @@ namespace Stardust.Utilities
             }
             else
             {
-                return Result<(ByteOrder byteOrder, BitOrder bitOrder), string>.Err("Type does not have BitFields or BitFieldsView attribute");
+                return Result<(ByteOrder byteOrder, BitOrder bitOrder), string>.Err("Type does not have a [BitFields] attribute");
             }
         }
 
@@ -374,7 +375,7 @@ namespace Stardust.Utilities
         /// <param name="field">Optional property name. When null, returns the type-level description.</param>
         /// <param name="inherit">When true, searches inherited attributes.</param>
         /// <returns>Description (may be null) of the type if field is null, else field description (may be null).
-        /// Error if BitFields, BitFieldsView, BitField, or BitFlag attribute is not found.
+        /// Error if BitFields, BitField, or BitFlag attribute is not found.
         /// </returns>
         public static Result<(string? description, Type? descriptionResourceType), string> GetBitsDescription(this Type type, string? field = null, bool inherit = true)
         {
@@ -402,7 +403,7 @@ namespace Stardust.Utilities
                 {
                     return Ok((fldsViewAttr.Description, fldsViewAttr.DescriptionResourceType));
                 }
-                return Result<(string? description, Type? descriptionResourceType), string>.Err("Type does not have BitFields or BitFieldsView attribute");
+                return Result<(string? description, Type? descriptionResourceType), string>.Err("Type does not have a [BitFields] attribute");
             }
             // We have a field, so get the description of the field.
             var fldAttr = type.GetAttribute<BitFieldAttribute>(field!, inherit);
@@ -419,7 +420,7 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// Retrieves the <c>[BitFields]</c>, <c>[BitFieldsView]</c>, <c>[BitField]</c>, or <c>[BitFlag]</c> attribute
+        /// Retrieves the <c>[BitFields]</c>, <c>[BitField]</c>, or <c>[BitFlag]</c> attribute
         /// from the specified type or one of its properties.
         /// </summary>
         /// <param name="type">The type to inspect.</param>
@@ -447,7 +448,7 @@ namespace Stardust.Utilities
                 {
                     return Ok(attribute);
                 }
-                return Result<Attribute, string>.Err($"Type {type.FullName} does not have a BitFields or BitFieldsView attribute");
+                return Result<Attribute, string>.Err($"Type {type.FullName} does not have a [BitFields] attribute");
             }
 
             // We have a field, so get the attribute of the field.
@@ -460,13 +461,13 @@ namespace Stardust.Utilities
         // ── Attribute-metadata discovery ────────────────────────────────
 
         /// <summary>
-        /// Discovers <see cref="BitFieldInfo"/> metadata for a <c>[BitFields]</c> or <c>[BitFieldsView]</c>
+        /// Discovers <see cref="BitFieldInfo"/> metadata for a <c>[BitFields]</c>
         /// type by reading <see cref="CustomAttributeData"/> directly, without invoking any generated code.
         /// This works reliably across <see cref="System.Runtime.Loader.AssemblyLoadContext"/> boundaries
         /// where the generated <c>Fields</c> property cannot be called via delegates due to type-identity
         /// mismatches.
         /// </summary>
-        /// <param name="type">A struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+        /// <param name="type">A struct type decorated with <c>[BitFields]</c>.</param>
         /// <returns>
         /// An array of <see cref="BitFieldInfo"/> describing each declared field/flag, sorted by start bit.
         /// Returns an empty array if the type has no recognised bit-field attributes.
@@ -488,14 +489,14 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// Retrieves the <c>Fields</c> metadata from a <c>[BitFields]</c> or <c>[BitFieldsView]</c>
+        /// Retrieves the <c>Fields</c> metadata from a <c>[BitFields]</c>
         /// type. First attempts to invoke the generated static <c>Fields</c> property via a typed
         /// delegate (fastest path, works when the type is in the same
         /// <see cref="System.Runtime.Loader.AssemblyLoadContext"/>). Falls back to
         /// <see cref="GetBitFieldInfoFromAttributes"/> when the type was loaded from a different
         /// context (cross-ALC scenario).
         /// </summary>
-        /// <param name="type">A struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
+        /// <param name="type">A struct type decorated with <c>[BitFields]</c>.</param>
         /// <returns>A successful result containing the field metadata array, or an error string on failure.</returns>
         public static Result<BitFieldInfo[], string> GetFieldInfo(this Type type)
         {
@@ -537,7 +538,7 @@ namespace Stardust.Utilities
 
             return Result<BitFieldInfo[], string>.Err(
                 $"Type '{type.Name}' does not expose readable bit-field metadata. " +
-                $"Ensure it is decorated with [BitFields] or [BitFieldsView].");
+                $"Ensure it is decorated with [BitFields].");
         }
 
         private delegate ReadOnlySpan<T> SpanGetter<T>();
@@ -551,7 +552,7 @@ namespace Stardust.Utilities
             bool Found);
 
         /// <summary>
-        /// Reads struct-level <c>[BitFields]</c> or <c>[BitFieldsView]</c> metadata from
+        /// Reads struct-level <c>[BitFields]</c> or <c>[BitFieldsView]</c> (deprecated) metadata from
         /// <see cref="CustomAttributeData"/>, which works across ALC boundaries.
         /// </summary>
         private static StructAttributeMetadata ReadStructAttributeMetadata(Type type)

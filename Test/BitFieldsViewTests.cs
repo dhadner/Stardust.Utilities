@@ -70,7 +70,7 @@ public partial class BitFieldsViewTests
     /// <summary>
     /// Tests nesting a [BitFields] type inside a [BitFieldsView].
     /// The BitFields type has implicit conversion from its storage type,
-    /// so the BitFieldsView generator's cast works.
+    /// so the view generator's cast works.
     /// </summary>
     [BitFields(typeof(byte))]
     public partial struct EmbeddedFlags
@@ -90,7 +90,7 @@ public partial class BitFieldsViewTests
     // ---- Composition test views ----
 
     /// <summary>
-    /// ushort-backed BitFields embedded in a big-endian BitFieldsView.
+    /// ushort-backed BitFields embedded in a big-endian view.
     /// ProtocolHeader16 declares ByteOrder.LittleEndian (the default for [BitFields]),
     /// so the view generator uses LE serialization for this field even though
     /// the struct-level default is BE. This ensures the wire format matches
@@ -801,7 +801,7 @@ public partial class BitFieldsViewTests
 
     #endregion
 
-    #region Nesting: BitFields inside BitFieldsView
+    #region Nesting: BitFields inside view
 
     [Fact]
     public void Nested_BitFields_In_View_Get()
@@ -2405,7 +2405,7 @@ public partial class BitFieldsViewTests
 
     #endregion
 
-    #region Composition: BitFields inside BitFieldsView
+    #region Composition: BitFields inside view
 
     // ---- Correct usage: byte-backed BitFields in any view endianness ----
 
@@ -2755,6 +2755,85 @@ public partial class BitFieldsViewTests
         var json = JsonSerializer.Serialize(view);
         var restored = JsonSerializer.Deserialize<ViewWithEmbeddedBitFields>(json);
         restored.Data.Span[0].Should().Be(0x93);
+    }
+
+    #endregion
+
+    #region Unified [BitFields] on Record Struct
+
+    /// <summary>
+    /// View defined with [BitFields] instead of [BitFieldsView] -- unified attribute.
+    /// Big-endian, MSB-first (same as ByteFlagsView).
+    /// </summary>
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+    public partial record struct UnifiedBeFlagsView
+    {
+        [BitFlag(0)] public partial bool MsbFlag { get; set; }
+        [BitFlag(7)] public partial bool LsbFlag { get; set; }
+        [BitField(1, End = 4)] public partial byte Middle { get; set; }
+    }
+
+    /// <summary>
+    /// View defined with [BitFields] using default LE/LSB convention -- unified attribute.
+    /// </summary>
+    [BitFields]
+    public partial record struct UnifiedLeView
+    {
+        [BitFlag(0)] public partial bool LsbFlag { get; set; }
+        [BitFlag(7)] public partial bool MsbFlag { get; set; }
+        [BitField(1, End = 4)] public partial byte Middle { get; set; }
+    }
+
+    [Fact]
+    public void UnifiedBeFlagsView_MatchesByteFlagsView()
+    {
+        var data1 = new byte[] { 0xFF };
+        var data2 = new byte[] { 0xFF };
+        var legacy = new ByteFlagsView(data1);
+        var unified = new UnifiedBeFlagsView(data2);
+
+        unified.MsbFlag.Should().Be(legacy.MsbFlag);
+        unified.LsbFlag.Should().Be(legacy.LsbFlag);
+        unified.Middle.Should().Be(legacy.Middle);
+    }
+
+    [Fact]
+    public void UnifiedBeFlagsView_SetAndGet()
+    {
+        var data = new byte[1];
+        var view = new UnifiedBeFlagsView(data);
+
+        view.MsbFlag = true;
+        view.Middle = 0x0A;
+
+        view.MsbFlag.Should().BeTrue();
+        view.Middle.Should().Be(0x0A);
+    }
+
+    [Fact]
+    public void UnifiedLeView_MatchesLsbByteView()
+    {
+        var data1 = new byte[] { 0x5A };
+        var data2 = new byte[] { 0x5A };
+        var legacy = new LsbByteView(data1);
+        var unified = new UnifiedLeView(data2);
+
+        unified.LsbFlag.Should().Be(legacy.LsbFlag);
+        unified.MsbFlag.Should().Be(legacy.MsbFlag);
+        unified.Middle.Should().Be(legacy.Middle);
+    }
+
+    [Fact]
+    public void UnifiedBeFlagsView_JsonRoundTrip()
+    {
+        var data = new byte[] { 0xAB };
+        var view = new UnifiedBeFlagsView(data);
+
+        var json = JsonSerializer.Serialize(view);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<UnifiedBeFlagsView>(json);
+        restored.MsbFlag.Should().Be(view.MsbFlag);
+        restored.Middle.Should().Be(view.Middle);
     }
 
     #endregion

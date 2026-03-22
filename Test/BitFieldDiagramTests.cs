@@ -28,7 +28,7 @@ public partial struct DiagramGappyRegister
     [BitField(12, End = 15, Description = "Version")] public partial byte Version { get; set; }
 }
 
-[BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, Description = "MSB-first test view")]
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, Description = "MSB-first test view")]
 public partial record struct DiagramMsbView
 {
     [BitField(0, End = 3, Description = "IP version")] public partial byte Version { get; set; }
@@ -587,7 +587,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void BitFieldsView_Description_EmittedInFieldsMetadata()
+    public void View_Description_EmittedInFieldsMetadata()
     {
         // DiagramMsbView has Description = "MSB-first test view"
         Assert.All(DiagramMsbView.Fields.ToArray(),
@@ -610,7 +610,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void BitFieldsView_NoDescription_StructDescriptionIsNull()
+    public void View_NoDescription_StructDescriptionIsNull()
     {
         // IPv4HeaderView has no Description -- use DiagramWideRegister (no desc)
         Assert.All(DiagramWideRegister.Fields.ToArray(),
@@ -667,7 +667,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void Render_BitFieldsView_StructDescription_ShowsHeader()
+    public void Render_View_StructDescription_ShowsHeader()
     {
         var lines = BitFieldDiagram.Render(DiagramMsbView.Fields, bitsPerRow: 8, includeDescriptions: true);
         Assert.Equal("MSB-first test view", lines[0]);
@@ -690,7 +690,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void Render_Type_BitFieldsView_ShowsStructDescription()
+    public void Render_Type_View_ShowsStructDescription()
     {
         var lines = BitFieldDiagram.Render(typeof(DiagramMsbView), bitsPerRow: 8, includeDescriptions: true);
         Assert.Equal("MSB-first test view", lines[0]);
@@ -741,7 +741,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void GetFields_BitFieldsView_ReturnsStructDescription()
+    public void GetFields_View_ReturnsStructDescription()
     {
         var result = typeof(DiagramMsbView).GetFieldInfo();
         Assert.True(result.IsSuccess);
@@ -817,7 +817,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void GetFields_BitFieldsView_ReturnsCorrectFields()
+    public void GetFields_View_ReturnsCorrectFields()
     {
         var result = typeof(DiagramMsbView).GetFieldInfo();
         Assert.True(result.IsSuccess);
@@ -888,7 +888,7 @@ public class BitFieldDiagramTests
     public void DiagramInstance_DescriptionMatchesStructDescription_NotDuplicated()
     {
         // Reproduces the DemoWeb "TCP Header" scenario: BitFieldDiagram.Description
-        // matches the struct's own StructDescription via [BitFieldsView(Description = ...)].
+        // matches the struct's own StructDescription via [BitFields(Description = ...)].
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "8-bit test status register");
         diagram.Render().Match(
             onSuccess: lines =>
@@ -1153,7 +1153,7 @@ public class BitFieldDiagramTests
     }
 
     [Fact]
-    public void AddStructs_BitFieldsViewType_Accepted()
+    public void AddStructs_ViewType_Accepted()
     {
         var diagram = new BitFieldDiagram();
         var result = diagram.AddStructs([typeof(DiagramMsbView)]);

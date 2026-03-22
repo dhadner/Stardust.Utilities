@@ -14,7 +14,7 @@ namespace Stardust.Utilities.Protocols;
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /// </code>
 /// </summary>
-[BitFieldsView(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
+[BitFields(ByteOrder.NetworkEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct UdpHeaderView
 {
     [BitField(0, End = 15)]  public partial ushort SourcePort { get; set; }
