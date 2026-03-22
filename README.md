@@ -548,7 +548,8 @@ Every BitFields type automatically implements:
 
 Every BitFields type includes a generated `System.Text.Json` converter (via `[JsonConverter]`)
 that serializes the value as a hex string (e.g., `"0xAB"`) and deserializes it using the
-generated `Parse` method. This means BitFields types work correctly in DTOs, REST APIs, and
+generated `Parse` method. BitFieldsView types generate the same converter, serializing the
+underlying buffer bytes as an identical hex string. Both work in DTOs, REST APIs, and
 configuration files without any additional setup:
 
 ```csharp
@@ -560,10 +561,14 @@ string json = JsonSerializer.Serialize(reg);
 // Round-trips correctly
 var restored = JsonSerializer.Deserialize<StatusRegister>(json);
 
+// BitFieldsView types serialize identically
+var view = new IPv4HeaderView(packetBytes);
+string viewJson = JsonSerializer.Serialize(view);  // "0x3C000045"
+
 // Works inside container objects
-var dto = new { Status = reg, Name = "device1" };
+var dto = new { Status = reg, Header = view, Name = "device1" };
 string dtoJson = JsonSerializer.Serialize(dto);
-// {"Status":"0xAB","Name":"device1"}
+// {"Status":"0xAB","Header":"0x3C000045","Name":"device1"}
 ```
 
 ##### Span Serialization
@@ -638,6 +643,7 @@ byte version = header.Version;   // reads from packet[0]
 - **Nestable** -- `[BitFields]` types work as property types inside `[BitFieldsView]`
 - **Sub-view nesting** -- nest `[BitFieldsView]` types inside each other for layered protocols
 - **Mixed-endian nesting** -- each nested type independently controls its own byte/bit order
+- **JSON serialization** -- every view type includes a generated `System.Text.Json` converter that serializes the underlying bytes as a `"0x..."` hex string, matching the `[BitFields]` format
 - **Record struct equality** -- two views are equal if they reference the same buffer segment
 - **Same property system** -- uses the same `[BitField]`/`[BitFlag]` attributes and property types as `[BitFields]`
 
@@ -654,6 +660,7 @@ byte version = header.Version;   // reads from packet[0]
 | Property attributes | `[BitField]`, `[BitFlag]` | `[BitField]`, `[BitFlag]` (same) |
 | Property types | .NET types, enums, endian types, nested structs | .NET types, enums, endian types, nested structs (same) |
 | Operators | Full arithmetic, bitwise, comparison | None (it is a view, not a value) |
+| JSON | Hex string via `ToString()`/`Parse()` | Hex string of underlying bytes |
 | Conversions | Implicit to/from storage type | Constructor from `byte[]` / `Memory<byte>` |
 | Use case | Registers, opcodes, flags | Network packets, file formats, DMA buffers |
 

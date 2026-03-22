@@ -1399,6 +1399,55 @@ public partial class BitFieldMultiWordTests
     }
 
     [Fact]
+    public void Bits65_JsonRoundTrip()
+    {
+        Bits65 original = 0xDEADBEEFCAFEBABE;
+        original.ExtraBit = true;
+
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<Bits65>(json);
+        restored.Low.Should().Be(original.Low);
+        restored.ExtraBit.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CrossWord128_JsonRoundTrip()
+    {
+        CrossWord128 original = default;
+        original.LowBit = true;
+        original.CrossField = 0xAB;
+        original.HighBit = true;
+
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<CrossWord128>(json);
+        restored.LowBit.Should().BeTrue();
+        restored.CrossField.Should().Be(0xAB);
+        restored.HighBit.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Bits200_JsonRoundTrip()
+    {
+        Bits200 original = 0xDEADBEEF;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<Bits200>(json);
+        restored.Word0.Should().Be(original.Word0);
+    }
+
+    [Fact]
+    public void Bits512_JsonRoundTrip()
+    {
+        Bits512 original = 0xCAFEBABE;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<Bits512>(json);
+        restored.W0.Should().Be(original.W0);
+    }
+
+    [Fact]
     public void Bits16384_LeftShift_ToLastWord()
     {
         Bits16384 a = 1UL;

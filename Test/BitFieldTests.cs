@@ -1129,6 +1129,15 @@ public partial class BitFieldTests
         ((byte)restored).Should().Be(0);
     }
 
+    [Fact]
+    public void Reg16_JsonRoundTrip()
+    {
+        GeneratedKeyboardReg16 original = 0xABCD;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<GeneratedKeyboardReg16>(json);
+        ((ushort)restored).Should().Be(0xABCD);
+    }
+
     #endregion
 
     #region StorageType Enum Constructor Tests
@@ -1270,6 +1279,30 @@ public partial class BitFieldTests
         var json = JsonSerializer.Serialize(original);
         var restored = JsonSerializer.Deserialize<EnumReg8>(json);
         ((byte)restored).Should().Be(0xAB);
+    }
+
+    /// <summary>
+    /// Tests JSON round-trip on a 32-bit enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg32_JsonRoundTrip()
+    {
+        EnumReg32 original = 0xDEADBEEF;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<EnumReg32>(json);
+        ((uint)restored).Should().Be(0xDEADBEEF);
+    }
+
+    /// <summary>
+    /// Tests JSON round-trip on a 64-bit enum-constructed struct.
+    /// </summary>
+    [Fact]
+    public void EnumReg64_JsonRoundTrip()
+    {
+        EnumReg64 original = 0x0100_0000_0000_00AB;
+        var json = JsonSerializer.Serialize(original);
+        var restored = JsonSerializer.Deserialize<EnumReg64>(json);
+        ((ulong)restored).Should().Be(0x0100_0000_0000_00AB);
     }
 
     /// <summary>

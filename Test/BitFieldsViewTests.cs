@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using FluentAssertions;
 using Stardust.Utilities.Protocols;
 using Xunit;
@@ -2657,6 +2658,103 @@ public partial class BitFieldsViewTests
         f.Complete = complete;
         f.Priority = priority;
         return f;
+    }
+
+    #endregion
+
+    #region JSON Serialization Tests
+
+    [Fact]
+    public void TwoByteView_JsonRoundTrip()
+    {
+        var data = new byte[] { 0xAB, 0xCD };
+        var view = new TwoByteView(data);
+
+        var json = JsonSerializer.Serialize(view);
+        json.Should().StartWith("\"");
+
+        // Deserialize creates a new view over a fresh buffer
+        var restored = JsonSerializer.Deserialize<TwoByteView>(json);
+        restored.FullWord.Should().Be(view.FullWord);
+        restored.HighByte.Should().Be(view.HighByte);
+        restored.LowByte.Should().Be(view.LowByte);
+    }
+
+    [Fact]
+    public void TwoByteView_JsonSerializesAsHexString()
+    {
+        var data = new byte[] { 0xAB, 0xCD };
+        var view = new TwoByteView(data);
+
+        var json = JsonSerializer.Serialize(view);
+        json.Should().Contain("0x");
+    }
+
+    [Fact]
+    public void ByteFlagsView_JsonRoundTrip()
+    {
+        var data = new byte[] { 0xFF };
+        var view = new ByteFlagsView(data);
+
+        var json = JsonSerializer.Serialize(view);
+        var restored = JsonSerializer.Deserialize<ByteFlagsView>(json);
+        restored.MsbFlag.Should().Be(view.MsbFlag);
+        restored.LsbFlag.Should().Be(view.LsbFlag);
+        restored.Middle.Should().Be(view.Middle);
+    }
+
+    [Fact]
+    public void LsbByteView_JsonRoundTrip()
+    {
+        var data = new byte[] { 0x5A };
+        var view = new LsbByteView(data);
+
+        var json = JsonSerializer.Serialize(view);
+        var restored = JsonSerializer.Deserialize<LsbByteView>(json);
+        restored.LsbFlag.Should().Be(view.LsbFlag);
+        restored.MsbFlag.Should().Be(view.MsbFlag);
+        restored.Middle.Should().Be(view.Middle);
+    }
+
+    [Fact]
+    public void View_JsonNullDeserializesToZeroes()
+    {
+        var json = "null";
+        var restored = JsonSerializer.Deserialize<TwoByteView>(json);
+        restored.FullWord.Should().Be(0);
+    }
+
+    [Fact]
+    public void View_JsonDeserializesFromHex()
+    {
+        var json = "\"0xCDAB\"";
+        var restored = JsonSerializer.Deserialize<TwoByteView>(json);
+        // 0xCDAB little-endian: bytes[0]=0xAB, bytes[1]=0xCD
+        restored.Data.Span[0].Should().Be(0xAB);
+        restored.Data.Span[1].Should().Be(0xCD);
+    }
+
+    [Fact]
+    public void Full64BitView_JsonRoundTrip()
+    {
+        var data = new byte[] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
+        var view = new Full64BitView(data);
+
+        var json = JsonSerializer.Serialize(view);
+        json.Should().Contain("0x");
+        var restored = JsonSerializer.Deserialize<Full64BitView>(json);
+        restored.Value.Should().Be(view.Value);
+    }
+
+    [Fact]
+    public void ViewWithEmbeddedBitFields_JsonRoundTrip()
+    {
+        var data = new byte[] { 0x93, 0x00 };
+        var view = new ViewWithEmbeddedBitFields(data);
+
+        var json = JsonSerializer.Serialize(view);
+        var restored = JsonSerializer.Deserialize<ViewWithEmbeddedBitFields>(json);
+        restored.Data.Span[0].Should().Be(0x93);
     }
 
     #endregion

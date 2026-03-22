@@ -5,12 +5,15 @@
 using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
 public partial class BitFieldsViewTests
 {
+    [JsonConverter(typeof(DistantFieldViewJsonConverter))]
     public partial record struct DistantFieldView
     {
         private readonly Memory<byte> _data;
@@ -136,6 +139,55 @@ public partial class BitFieldsViewTests
             new("First", 0, 8, "byte", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 816, FieldMustBe: 0),
             new("Distant", 800, 16, "ushort", false, ByteOrder.BigEndian, BitOrder.BitZeroIsMsb, StructTotalBits: 816, FieldMustBe: 0),
         };
+
+        private sealed class DistantFieldViewJsonConverter : JsonConverter<DistantFieldView>
+        {
+            /// <summary>Reads a DistantFieldView from a JSON hex string.</summary>
+            public override DistantFieldView Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                var s = reader.GetString();
+                if (s is null) return new DistantFieldView(new byte[SIZE_IN_BYTES]);
+                ReadOnlySpan<char> hex = s.AsSpan();
+                if (hex.Length >= 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
+                    hex = hex.Slice(2);
+                var bytes = new byte[SIZE_IN_BYTES];
+                int hexLen = hex.Length;
+                for (int i = 0; i < SIZE_IN_BYTES && (hexLen - i * 2) > 0; i++)
+                {
+                    int hi = hexLen - (i + 1) * 2;
+                    if (hi >= 0)
+                        bytes[i] = (byte)((HexVal(hex[hi]) << 4) | HexVal(hex[hi + 1]));
+                    else if (hi == -1)
+                        bytes[i] = (byte)HexVal(hex[0]);
+                }
+                return new DistantFieldView(bytes);
+            }
+
+            /// <summary>Writes a DistantFieldView to JSON as a hex string.</summary>
+            public override void Write(Utf8JsonWriter writer, DistantFieldView value, JsonSerializerOptions options)
+            {
+                var s = value._data.Span;
+                // Find highest non-zero byte for minimal hex output
+                int top = SIZE_IN_BYTES - 1;
+                while (top > 0 && s[top] == 0) top--;
+                // Build hex string from most-significant to least-significant byte
+                var chars = new char[2 + (top + 1) * 2];
+                chars[0] = '0';
+                chars[1] = 'x';
+                const string HEX_CHARS = "0123456789ABCDEF";
+                // First byte (top) may have leading zero nibble -- include both for simplicity
+                for (int i = top; i >= 0; i--)
+                {
+                    int pos = 2 + (top - i) * 2;
+                    chars[pos] = HEX_CHARS[s[i] >> 4];
+                    chars[pos + 1] = HEX_CHARS[s[i] & 0xF];
+                }
+                writer.WriteStringValue(new string(chars));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static int HexVal(char c) => c <= '9' ? c - '0' : (c <= 'F' ? c - 'A' + 10 : c - 'a' + 10);
+        }
 
     }
 }

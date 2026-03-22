@@ -39,6 +39,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 - [Zero-Copy Semantics](#zero-copy-semantics)
 - [Generated Members](#generated-members)
 - [Record Struct Equality](#record-struct-equality)
+- [BitFieldsView JSON Serialization](#bitfieldsview-json-serialization)
 
 **Composition**
 - [BitFields Inside BitFields](#bitfields-inside-bitfields)
@@ -661,7 +662,8 @@ var restoredDto = JsonSerializer.Deserialize<DeviceStatus>(dtoJson);
 The converter is a private nested class inside the generated struct, so it does not pollute the
 namespace. For multi-word types (arbitrary-size bit fields), the hex string representation
 automatically scales to the struct width (e.g., a 256-bit struct produces a 64-character hex
-string).
+string). `[BitFieldsView]` types use the same hex format -- see
+[BitFieldsView JSON Serialization](#bitfieldsview-json-serialization).
 
 ---
 
@@ -752,6 +754,7 @@ For each `[BitFieldsView]` struct, the generator produces:
 | `Data` property | Exposes the underlying `Memory<byte>` |
 | `SizeInBytes` constant | Minimum buffer size required |
 | Property accessors | Inline `BinaryPrimitives` reads/writes with `AggressiveInlining` |
+| JSON converter | Private nested `JsonConverter<T>` serializing bytes as `"0x..."` hex string |
 
 ## Record Struct Equality
 
@@ -765,6 +768,36 @@ Console.WriteLine(v1 == v2);  // True
 var v3 = new IPv4HeaderView(new byte[20]);
 Console.WriteLine(v1 == v3);  // False -- different arrays
 ```
+
+---
+
+## BitFieldsView JSON Serialization
+
+Every `[BitFieldsView]` type includes a generated `System.Text.Json` converter that serializes
+the underlying buffer bytes as a `"0x..."` hex string -- the same format used by `[BitFields]`
+types. This means both value types and buffer views produce identical JSON when they represent
+the same data:
+
+```csharp
+// Serialize a view to JSON
+byte[] packet = new byte[] { 0x45, 0x00, 0x00, 0x3C };
+var view = new IPv4HeaderView(packet);
+string json = JsonSerializer.Serialize(view);
+// json == "\"0x3C000045\""
+
+// Deserialize creates a new view over a fresh byte array
+var restored = JsonSerializer.Deserialize<IPv4HeaderView>(json);
+restored.Version.Should().Be(4);
+
+// Works in DTOs alongside BitFields types
+public record PacketInfo(IPv4HeaderView Header, StatusFlags Flags);
+var dto = new PacketInfo(view, myFlags);
+string dtoJson = JsonSerializer.Serialize(dto);
+```
+
+The converter handles null JSON values by returning a view over a zeroed buffer of
+`SIZE_IN_BYTES` length. Deserialization accepts any valid hex string with or without the
+`0x` prefix, matching the `[BitFields]` parsing convention.
 
 ---
 
@@ -1998,5 +2031,23 @@ public partial record struct ByteFlagsView
 
     // ── Metadata ────────────────────────────────────────────────
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[] { /* ... */ };
+
+    // ── JSON converter (reads/writes as hex string) ─────────────
+    // Same format as [BitFields]: serializes underlying bytes as "0xABCD..."
+    private sealed class ByteFlagsViewJsonConverter : JsonConverter<ByteFlagsView>
+    {
+        public override ByteFlagsView Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var s = reader.GetString();
+            if (s is null) return new ByteFlagsView(new byte[SIZE_IN_BYTES]);
+            // Parse hex string → byte[] → new view
+            /* ... */
+        }
+        public override void Write(Utf8JsonWriter writer, ByteFlagsView value, JsonSerializerOptions options)
+        {
+            // Encode _data.Span bytes as "0x..." hex string
+            /* ... */
+        }
+    }
 }
 ```

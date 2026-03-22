@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using FluentAssertions;
 using Xunit;
 
@@ -1304,6 +1305,72 @@ public partial class BitFieldSpecializationTests
             .WithExponent(15)
             .WithMantissa(0x200);
         ((Half)reg).Should().Be((Half)1.5);
+    }
+
+    #endregion
+
+    #region JSON Serialization Tests
+
+    [Fact]
+    public void FloatRegister_JsonRoundTrip()
+    {
+        FloatRegister original = 3.14f;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<FloatRegister>(json);
+        ((float)restored).Should().Be(3.14f);
+    }
+
+    [Fact]
+    public void DoubleRegister_JsonRoundTrip()
+    {
+        DoubleRegister original = 2.718281828459045;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<DoubleRegister>(json);
+        ((double)restored).Should().Be(2.718281828459045);
+    }
+
+    [Fact]
+    public void HalfRegister_JsonRoundTrip()
+    {
+        HalfRegister original = (Half)1.5;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<HalfRegister>(json);
+        ((Half)restored).Should().Be((Half)1.5);
+    }
+
+    [Fact]
+    public void DecimalRegister_JsonRoundTrip()
+    {
+        DecimalRegister original = 123.456m;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<DecimalRegister>(json);
+        ((decimal)restored).Should().Be(123.456m);
+    }
+
+    [Fact]
+    public void U128Register_JsonRoundTrip()
+    {
+        UInt128 value = ((UInt128)0xDEADBEEF << 64) | 0xCAFEBABE;
+        U128Register original = value;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<U128Register>(json);
+        ((UInt128)restored).Should().Be(value);
+    }
+
+    [Fact]
+    public void I128Register_JsonRoundTrip()
+    {
+        Int128 value = (Int128)(((UInt128)0x12345678 << 64) | 0x9ABCDEF0);
+        I128Register original = value;
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<I128Register>(json);
+        ((Int128)restored).Should().Be(value);
     }
 
     #endregion

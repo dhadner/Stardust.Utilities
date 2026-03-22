@@ -260,6 +260,8 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Buffers.Binary;");
         sb.AppendLine("using System.Runtime.CompilerServices;");
+        sb.AppendLine("using System.Text.Json;");
+        sb.AppendLine("using System.Text.Json.Serialization;");
         sb.AppendLine("using Stardust.Utilities;");
         sb.AppendLine();
 
@@ -282,6 +284,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string t = info.TypeName;
         string mind = ind + "    ";
 
+        sb.AppendLine($"{ind}[JsonConverter(typeof({t}JsonConverter))]");
         sb.AppendLine($"{ind}{info.Accessibility} partial record struct {t}");
         sb.AppendLine($"{ind}{{");
 
@@ -346,6 +349,9 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
 
         // Generate field metadata
         GenerateFieldMetadata(sb, info, mind);
+
+        // Generate JSON converter
+        GenerateJsonConverter(sb, info, mind);
 
         sb.AppendLine($"{ind}}}");
 
@@ -882,6 +888,66 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         }
 
         sb.AppendLine($"{ind}}};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates a private nested <c>JsonConverter&lt;T&gt;</c> that serializes the view
+    /// as a <c>"0x..."</c> hex string of the underlying bytes, matching the format
+    /// used by <c>[BitFields]</c> types.
+    /// </summary>
+    private static void GenerateJsonConverter(StringBuilder sb, BitFieldsViewInfo info, string ind)
+    {
+        string t = info.TypeName;
+
+        sb.AppendLine($"{ind}private sealed class {t}JsonConverter : JsonConverter<{t}>");
+        sb.AppendLine($"{ind}{{");
+        sb.AppendLine($"{ind}    /// <summary>Reads a {t} from a JSON hex string.</summary>");
+        sb.AppendLine($"{ind}    public override {t} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)");
+        sb.AppendLine($"{ind}    {{");
+        sb.AppendLine($"{ind}        var s = reader.GetString();");
+        sb.AppendLine($"{ind}        if (s is null) return new {t}(new byte[SIZE_IN_BYTES]);");
+        sb.AppendLine($"{ind}        ReadOnlySpan<char> hex = s.AsSpan();");
+        sb.AppendLine($"{ind}        if (hex.Length >= 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))");
+        sb.AppendLine($"{ind}            hex = hex.Slice(2);");
+        sb.AppendLine($"{ind}        var bytes = new byte[SIZE_IN_BYTES];");
+        sb.AppendLine($"{ind}        int hexLen = hex.Length;");
+        sb.AppendLine($"{ind}        for (int i = 0; i < SIZE_IN_BYTES && (hexLen - i * 2) > 0; i++)");
+        sb.AppendLine($"{ind}        {{");
+        sb.AppendLine($"{ind}            int hi = hexLen - (i + 1) * 2;");
+        sb.AppendLine($"{ind}            if (hi >= 0)");
+        sb.AppendLine($"{ind}                bytes[i] = (byte)((HexVal(hex[hi]) << 4) | HexVal(hex[hi + 1]));");
+        sb.AppendLine($"{ind}            else if (hi == -1)");
+        sb.AppendLine($"{ind}                bytes[i] = (byte)HexVal(hex[0]);");
+        sb.AppendLine($"{ind}        }}");
+        sb.AppendLine($"{ind}        return new {t}(bytes);");
+        sb.AppendLine($"{ind}    }}");
+        sb.AppendLine();
+        sb.AppendLine($"{ind}    /// <summary>Writes a {t} to JSON as a hex string.</summary>");
+        sb.AppendLine($"{ind}    public override void Write(Utf8JsonWriter writer, {t} value, JsonSerializerOptions options)");
+        sb.AppendLine($"{ind}    {{");
+        sb.AppendLine($"{ind}        var s = value._data.Span;");
+        sb.AppendLine($"{ind}        // Find highest non-zero byte for minimal hex output");
+        sb.AppendLine($"{ind}        int top = SIZE_IN_BYTES - 1;");
+        sb.AppendLine($"{ind}        while (top > 0 && s[top] == 0) top--;");
+        sb.AppendLine($"{ind}        // Build hex string from most-significant to least-significant byte");
+        sb.AppendLine($"{ind}        var chars = new char[2 + (top + 1) * 2];");
+        sb.AppendLine($"{ind}        chars[0] = '0';");
+        sb.AppendLine($"{ind}        chars[1] = 'x';");
+        sb.AppendLine($"{ind}        const string HEX_CHARS = \"0123456789ABCDEF\";");
+        sb.AppendLine($"{ind}        // First byte (top) may have leading zero nibble -- include both for simplicity");
+        sb.AppendLine($"{ind}        for (int i = top; i >= 0; i--)");
+        sb.AppendLine($"{ind}        {{");
+        sb.AppendLine($"{ind}            int pos = 2 + (top - i) * 2;");
+        sb.AppendLine($"{ind}            chars[pos] = HEX_CHARS[s[i] >> 4];");
+        sb.AppendLine($"{ind}            chars[pos + 1] = HEX_CHARS[s[i] & 0xF];");
+        sb.AppendLine($"{ind}        }}");
+        sb.AppendLine($"{ind}        writer.WriteStringValue(new string(chars));");
+        sb.AppendLine($"{ind}    }}");
+        sb.AppendLine();
+        sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{ind}    private static int HexVal(char c) => c <= '9' ? c - '0' : (c <= 'F' ? c - 'A' + 10 : c - 'a' + 10);");
+        sb.AppendLine($"{ind}}}");
         sb.AppendLine();
     }
 
