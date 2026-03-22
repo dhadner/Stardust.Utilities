@@ -544,6 +544,28 @@ Every BitFields type automatically implements:
 | `IParsable<T>` | String parsing |
 | `ISpanParsable<T>` | Span-based parsing |
 
+##### JSON Serialization
+
+Every BitFields type includes a generated `System.Text.Json` converter (via `[JsonConverter]`)
+that serializes the value as a hex string (e.g., `"0xAB"`) and deserializes it using the
+generated `Parse` method. This means BitFields types work correctly in DTOs, REST APIs, and
+configuration files without any additional setup:
+
+```csharp
+StatusRegister reg = 0xAB;
+
+// Serializes as: "0xAB"
+string json = JsonSerializer.Serialize(reg);
+
+// Round-trips correctly
+var restored = JsonSerializer.Deserialize<StatusRegister>(json);
+
+// Works inside container objects
+var dto = new { Status = reg, Name = "device1" };
+string dtoJson = JsonSerializer.Serialize(dto);
+// {"Status":"0xAB","Name":"device1"}
+```
+
 ---
 
 #### BitFieldsView (Zero-Copy Views)

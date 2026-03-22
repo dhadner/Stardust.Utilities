@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using FluentAssertions;
 using Stardust.Utilities;
 using Xunit;
@@ -726,6 +727,50 @@ public class BitFieldSignedAndAccessTests
         _output.WriteLine(ratio > 1.2 ? "*** Signed is SLOWER ***" :
                           ratio < 0.8 ? "*** Signed is FASTER ***" :
                           "Performance is similar - signed types are viable");
+    }
+
+    #endregion
+
+    #region JSON Serialization (Signed Types)
+
+    [Fact]
+    public void SignedReg8_JsonRoundTrip()
+    {
+        SignedReg8 original = unchecked((sbyte)0xAB);
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<SignedReg8>(json);
+        ((sbyte)restored).Should().Be(unchecked((sbyte)0xAB));
+    }
+
+    [Fact]
+    public void SignedReg16_JsonRoundTrip()
+    {
+        SignedReg16 original = unchecked((short)0xBEEF);
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<SignedReg16>(json);
+        ((short)restored).Should().Be(unchecked((short)0xBEEF));
+    }
+
+    [Fact]
+    public void SignedReg32_JsonRoundTrip()
+    {
+        SignedReg32 original = unchecked((int)0xDEADBEEF);
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<SignedReg32>(json);
+        ((int)restored).Should().Be(unchecked((int)0xDEADBEEF));
+    }
+
+    [Fact]
+    public void SignedReg64_JsonRoundTrip()
+    {
+        SignedReg64 original = unchecked((long)0xCAFEBABE_DEADBEEF);
+        var json = JsonSerializer.Serialize(original);
+        json.Should().StartWith("\"");
+        var restored = JsonSerializer.Deserialize<SignedReg64>(json);
+        ((long)restored).Should().Be(unchecked((long)0xCAFEBABE_DEADBEEF));
     }
 
     #endregion

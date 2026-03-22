@@ -630,6 +630,38 @@ Every `[BitFields]` type implements:
 | `IFormattable`, `ISpanFormattable` | Format string support |
 | `IParsable<T>`, `ISpanParsable<T>` | String and span parsing |
 
+### JSON Serialization
+
+Every `[BitFields]` type (including multi-word types) includes a generated `System.Text.Json`
+converter applied via `[JsonConverter]`. The converter serializes the value as a hex string
+using `ToString()` (e.g., `"0xAB"`) and deserializes using the generated `Parse` method.
+No configuration or custom converters are needed:
+
+```csharp
+StatusRegister reg = 0xAB;
+
+// Serializes as a JSON string: "0xAB"
+string json = JsonSerializer.Serialize(reg);
+
+// Deserializes back to the original value
+var restored = JsonSerializer.Deserialize<StatusRegister>(json);
+// (byte)restored == 0xAB
+
+// Works inside container types (DTOs, records, etc.)
+public record DeviceStatus(StatusRegister Flags, string Name);
+
+var dto = new DeviceStatus(reg, "sensor1");
+string dtoJson = JsonSerializer.Serialize(dto);
+// {"Flags":"0xAB","Name":"sensor1"}
+
+var restoredDto = JsonSerializer.Deserialize<DeviceStatus>(dtoJson);
+```
+
+The converter is a private nested class inside the generated struct, so it does not pollute the
+namespace. For multi-word types (arbitrary-size bit fields), the hex string representation
+automatically scales to the struct width (e.g., a 256-bit struct produces a 64-character hex
+string).
+
 ---
 
 ## Constructors

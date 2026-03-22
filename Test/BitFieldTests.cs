@@ -1097,6 +1097,38 @@ public partial class BitFieldTests
         ((byte)restored!.Status).Should().Be(0xAB);
     }
 
+    [Fact]
+    public void Reg8_JsonDeserializesFromHex()
+    {
+        var json = "\"0xFF\"";
+        var restored = JsonSerializer.Deserialize<GeneratedStatusReg8>(json);
+        ((byte)restored).Should().Be(0xFF);
+    }
+
+    [Fact]
+    public void Reg8_JsonDeserializesFromBinary()
+    {
+        var json = "\"0b10101010\"";
+        var restored = JsonSerializer.Deserialize<GeneratedStatusReg8>(json);
+        ((byte)restored).Should().Be(0xAA);
+    }
+
+    [Fact]
+    public void Reg8_JsonDeserializesFromDecimal()
+    {
+        var json = "\"42\"";
+        var restored = JsonSerializer.Deserialize<GeneratedStatusReg8>(json);
+        ((byte)restored).Should().Be(42);
+    }
+
+    [Fact]
+    public void Reg8_JsonNullDeserializesToDefault()
+    {
+        var json = "null";
+        var restored = JsonSerializer.Deserialize<GeneratedStatusReg8>(json);
+        ((byte)restored).Should().Be(0);
+    }
+
     #endregion
 
     #region StorageType Enum Constructor Tests
