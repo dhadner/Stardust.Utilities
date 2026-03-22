@@ -32,6 +32,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 - [Fluent With Methods](#fluent-with-methods)
 - [Undefined and Reserved Bits](#undefined-and-reserved-bits)
 - [Interface Implementations](#interface-implementations)
+- [Span Serialization](#span-serialization)
 
 **BitFieldsView (Buffer View)**
 - [Constructors](#constructors)
@@ -661,6 +662,46 @@ The converter is a private nested class inside the generated struct, so it does 
 namespace. For multi-word types (arbitrary-size bit fields), the hex string representation
 automatically scales to the struct width (e.g., a 256-bit struct produces a 64-character hex
 string).
+
+---
+
+## Span Serialization
+
+Every `[BitFields]` type generates methods for constructing from and writing to byte spans,
+using `BinaryPrimitives` for correct endianness. These complement the implicit conversion
+operators and provide explicit, validated byte-level round-tripping:
+
+| Method | Kind | Purpose |
+|--------|------|---------|
+| `new T(ReadOnlySpan<byte>)` | Constructor | Create from bytes (validates length) |
+| `T.ReadFrom(ReadOnlySpan<byte>)` | Static factory | Same as constructor, fluent call style |
+| `.WriteTo(Span<byte>)` | Instance | Write bytes (validates length, throws if too short) |
+| `.TryWriteTo(Span<byte>, out int)` | Instance | Write bytes (returns false if too short) |
+| `.ToByteArray()` | Instance | Allocate and return a new byte array |
+
+```csharp
+// Construct from raw bytes
+StatusRegister reg = StatusRegister.ReadFrom(packetBytes);
+// -- or equivalently --
+var reg2 = new StatusRegister(packetBytes.AsSpan());
+
+// Write to a pre-allocated buffer
+Span<byte> buffer = stackalloc byte[StatusRegister.SIZE_IN_BYTES];
+reg.WriteTo(buffer);
+
+// Try-pattern for best-effort writes
+if (reg.TryWriteTo(buffer, out int written))
+    Send(buffer[..written]);
+
+// Allocating convenience
+byte[] bytes = reg.ToByteArray();
+```
+
+The byte order used by these methods matches the struct's declared byte order (little-endian
+by default). Multi-word types serialize all words in order using the same endianness.
+
+All methods validate the span length against `SIZE_IN_BYTES` and throw `ArgumentException`
+(or return `false` for `TryWriteTo`) if the span is too short.
 
 ---
 

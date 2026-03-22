@@ -566,6 +566,26 @@ string dtoJson = JsonSerializer.Serialize(dto);
 // {"Status":"0xAB","Name":"device1"}
 ```
 
+##### Span Serialization
+
+Every BitFields type generates byte-span construction and serialization methods:
+
+```csharp
+// Construct from raw bytes
+StatusRegister reg = StatusRegister.ReadFrom(packetBytes);
+
+// Write to a pre-allocated buffer
+Span<byte> buffer = stackalloc byte[StatusRegister.SIZE_IN_BYTES];
+reg.WriteTo(buffer);
+
+// Try-pattern for best-effort writes
+if (reg.TryWriteTo(buffer, out int written))
+    Send(buffer[..written]);
+
+// Allocating convenience
+byte[] bytes = reg.ToByteArray();
+```
+
 ---
 
 #### BitFieldsView (Zero-Copy Views)
