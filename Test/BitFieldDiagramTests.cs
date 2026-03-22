@@ -256,88 +256,6 @@ public class BitFieldDiagramTests
         Assert.True(testWidth >= 2);
     }
 
-    // ── RenderList / RenderListToString (legacy DiagramSection API) ──
-
-#pragma warning disable CS0618 // Obsolete DiagramSection API -- tests retained for backward compatibility
-
-    [Fact]
-    public void RenderList_EmptySections_ReturnsNoSectionsMessage()
-    {
-        var lines = BitFieldDiagram.RenderList(ReadOnlySpan<DiagramSection>.Empty);
-        Assert.Single(lines);
-        Assert.Equal("(no sections)", lines[0]);
-    }
-
-    [Fact]
-    public void RenderList_SingleSection_IncludesSectionLabel()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Test Section", DiagramTestRegister.Fields.ToArray())
-        };
-        var lines = BitFieldDiagram.RenderList(sections);
-        Assert.Contains("Test Section", lines);
-    }
-
-    [Fact]
-    public void RenderList_EmptyLabel_OmitsLabelLine()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("", DiagramTestRegister.Fields.ToArray())
-        };
-        var lines = BitFieldDiagram.RenderList(sections);
-        // First line should be diagram content (bit header), not an empty label
-        Assert.True(lines[0].Trim().Length > 0);
-    }
-
-    [Fact]
-    public void RenderList_MultipleSections_ContainsAllLabels()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Section Alpha", DiagramTestRegister.Fields.ToArray()),
-            new("Section Beta", DiagramWideRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections);
-        string diagram = string.Join("\n", lines);
-        Assert.Contains("Section Alpha", diagram);
-        Assert.Contains("Section Beta", diagram);
-    }
-
-    [Fact]
-    public void RenderList_UsesConsistentCellWidth()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Short", DiagramTestRegister.Fields.ToArray()),
-            new("Wide", DiagramWideRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8);
-
-        // All separator lines for the same bitsPerRow should have the same width
-        var separators = lines.Where(l => l.TrimStart().StartsWith("+")).ToList();
-        Assert.True(separators.Count >= 2, "Expected at least 2 separator lines");
-        int firstLen = separators[0].TrimStart().Length;
-        foreach (var sep in separators)
-            Assert.Equal(firstLen, sep.TrimStart().Length);
-    }
-
-    [Fact]
-    public void RenderListToString_MatchesJoinedRenderList()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Section A", DiagramTestRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections);
-        string fromList = string.Join(Environment.NewLine, lines);
-        string fromToString = BitFieldDiagram.RenderListToString(sections);
-        Assert.Equal(fromList, fromToString);
-    }
-
-#pragma warning restore CS0618
-
     // ── minCellWidth parameter ──────────────────────────────────
 
     [Fact]
@@ -428,32 +346,6 @@ public class BitFieldDiagramTests
         Assert.All(lines, line => Assert.StartsWith("// ", line));
     }
 
-#pragma warning disable CS0618
-    [Fact]
-    public void RenderList_CommentPrefix_AllLinesPrefixed()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Test Section", DiagramTestRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, commentPrefix: "/// ");
-        Assert.All(lines, line => Assert.StartsWith("/// ", line));
-        // Section label should also be prefixed
-        Assert.Contains(lines, line => line.Contains("Test Section"));
-    }
-
-    [Fact]
-    public void RenderListToString_CommentPrefix_EveryLineHasPrefix()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Section A", DiagramTestRegister.Fields.ToArray()),
-        };
-        string diagram = BitFieldDiagram.RenderListToString(sections, bitsPerRow: 8, commentPrefix: "// ");
-        var lines = diagram.Split(Environment.NewLine);
-        Assert.All(lines, line => Assert.StartsWith("// ", line));
-    }
-
     [Fact]
     public void Render_CommentPrefix_EmptyFields_Prefixed()
     {
@@ -502,20 +394,6 @@ public class BitFieldDiagramTests
         var visualLines = diagram.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         Assert.All(visualLines, line => Assert.StartsWith("// ", line));
     }
-
-    [Fact]
-    public void RenderList_CommentPrefix_NewlineInDescription_AllLinesPrefixed()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Escape Test", DescEscapeRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: true, commentPrefix: "// ");
-        Assert.All(lines, line => Assert.StartsWith("// ", line));
-        // No raw newlines embedded in any entry
-        Assert.All(lines, line => Assert.DoesNotContain("\n", line));
-    }
-#pragma warning restore CS0618
 
     // ── Diagram object API ───────────────────────────────────
 
@@ -794,44 +672,6 @@ public class BitFieldDiagramTests
         var lines = BitFieldDiagram.Render(DiagramMsbView.Fields, bitsPerRow: 8, includeDescriptions: true);
         Assert.Equal("MSB-first test view", lines[0]);
     }
-
-    // ── StructDescription in RenderList (DiagramSection API) ────
-
-#pragma warning disable CS0618
-    [Fact]
-    public void RenderList_DiagramSection_StructDescription_ShownWhenEnabled()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("", DiagramTestRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: true);
-        Assert.Contains(lines, l => l == "8-bit test status register");
-    }
-
-    [Fact]
-    public void RenderList_DiagramSection_StructDescription_HiddenWhenDisabled()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("", DiagramTestRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: false);
-        Assert.DoesNotContain(lines, l => l == "8-bit test status register");
-    }
-
-    [Fact]
-    public void RenderList_DiagramSection_SectionLabelAndStructDescription_BothShown()
-    {
-        var sections = new DiagramSection[]
-        {
-            new("Custom Label", DiagramTestRegister.Fields.ToArray()),
-        };
-        var lines = BitFieldDiagram.RenderList(sections, bitsPerRow: 8, includeDescriptions: true);
-        Assert.Contains(lines, l => l == "Custom Label");
-        Assert.Contains(lines, l => l == "8-bit test status register");
-    }
-#pragma warning restore CS0618
 
     // ── Type-based API: StructDescription behavior ──────────────
 

@@ -9,16 +9,6 @@ namespace Stardust.Utilities;
 using static Result<string>;
 
 /// <summary>
-/// Describes a labeled section for multi-struct diagram rendering via
-/// <see cref="BitFieldDiagram.RenderList(ReadOnlySpan{Type}, string, int, bool, bool, string)"/>
-/// and <see cref="BitFieldDiagram.RenderListToString(ReadOnlySpan{Type}, string, int, bool, bool, string)"/>.
-/// </summary>
-/// <param name="Label">Section heading displayed above the diagram (empty string for no heading).</param>
-/// <param name="Fields">The field metadata array (from the generated <c>Fields</c> property).</param>
-[Obsolete("Use the Type-based RenderList/RenderListToString overloads instead. Set Description on [BitFields]/[BitFieldsView] attributes to provide section labels.")]
-public readonly record struct DiagramSection(string Label, BitFieldInfo[] Fields);
-
-/// <summary>
 /// Generates RFC 2360-style ASCII diagrams from <see cref="BitFieldInfo"/> metadata.
 /// Works with any <c>[BitFields]</c> or <c>[BitFieldsView]</c> struct that exposes a
 /// static <c>Fields</c> property.
@@ -770,63 +760,7 @@ public class BitFieldDiagram
     }
 
     /// <summary>
-    /// Renders multiple struct sections as a unified diagram list with consistent cell widths.
-    /// The widest field name across all sections determines the scale for the entire output.
-    /// </summary>
-    /// <param name="sections">The labeled sections to render sequentially.</param>
-    /// <param name="bitsPerRow">Number of bits per diagram row.</param>
-    /// <param name="includeDescriptions">When true, appends field description legends.</param>
-    /// <param name="showByteOffset">When true, shows hex byte offsets at the left.</param>
-    /// <param name="commentPrefix">When non-null, prepended to every output line (e.g., <c>"// "</c> or <c>"/// "</c>).</param>
-    /// <returns>A list of strings, one per output line.</returns>
-    [Obsolete("Use RenderList(bitsPerRow, includeDescriptions, showByteOffset, commentPrefix, params Type[]) instead. Set Description on [BitFields]/[BitFieldsView] attributes to provide section labels.")]
-    public static List<string> RenderList(ReadOnlySpan<DiagramSection> sections, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
-    {
-        if (sections.Length == 0) return [FormatLine("(no sections)", commentPrefix)];
-        if (bitsPerRow < 1) bitsPerRow = 32;
-
-        // Compute shared cell width across all sections
-        int sharedCellWidth = 2;
-        foreach (var section in sections)
-        {
-            int w = ComputeMinCellWidth(section.Fields, bitsPerRow);
-            sharedCellWidth = Math.Max(sharedCellWidth, w);
-        }
-
-        var lines = new List<string>();
-        foreach (var section in sections)
-        {
-            if (section.Label.Length > 0)
-            {
-                if (lines.Count > 0) lines.Add(FormatLine("", commentPrefix));
-                lines.Add(FormatLine(section.Label, commentPrefix));
-            }
-            lines.AddRange(Render(section.Fields, null, bitsPerRow, includeDescriptions, showByteOffset, sharedCellWidth, commentPrefix));
-        }
-        return lines;
-    }
-
-    /// <summary>
-    /// Renders multiple struct sections as a single string with consistent cell widths.
-    /// </summary>
-    [Obsolete("Use RenderListToString(bitsPerRow, includeDescriptions, showByteOffset, commentPrefix, params Type[]) instead.")]
-    public static string RenderListToString(ReadOnlySpan<DiagramSection> sections, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
-    {
-        var lines = RenderList(sections, bitsPerRow, includeDescriptions, showByteOffset, commentPrefix);
-        return string.Join(Environment.NewLine, lines);
-    }
-
-    /// <summary>
-    /// Retrieves the <c>Fields</c> metadata from a <c>[BitFields]</c> or <c>[BitFieldsView]</c> type.
-    /// </summary>
-    /// <param name="bitFieldsType">A struct type decorated with <c>[BitFields]</c> or <c>[BitFieldsView]</c>.</param>
-    /// <returns>A successful result containing the field metadata array, or an error string on failure.</returns>
-    [Obsolete("Use the extension method type.GetFieldInfo() from Stardust.Utilities.Extensions instead.")]
-    public static Result<BitFieldInfo[], string> GetFieldInfo(Type bitFieldsType) =>
-        bitFieldsType.GetFieldInfo();
-
-    /// <summary>
-    /// Formats the specified string by prepending an optional prefix to each line.
+    /// Formats the specified string
     /// </summary>
     /// <remarks>Each line in the input string is processed individually. If the prefix parameter is null,
     /// lines are returned without any prefix.</remarks>

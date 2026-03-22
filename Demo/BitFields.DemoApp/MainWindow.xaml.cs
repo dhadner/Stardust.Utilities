@@ -289,10 +289,6 @@ public partial class MainWindow : Window
 
     // ── RFC Diagram ──────────────────────────────────────────────
 
-#pragma warning disable CS0618 // DiagramSection: retained until DemoApp migrates to Type-based API
-
-    private readonly record struct DiagramSource(string Label, DiagramSection[] Sections);
-
     private BitFieldDiagram[] _diagramSources = [];
     private BitFieldDiagram[] _builtInDiagramSources = [];
 
@@ -377,9 +373,7 @@ public partial class MainWindow : Window
         RfcDiagramOutput.Text = source.RenderToString().Value;
     }
 
-#pragma warning restore CS0618
-
-    private void OnCopyRfcDiagram(object sender, RoutedEventArgs e)
+private void OnCopyRfcDiagram(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrEmpty(RfcDiagramOutput.Text))
         {
