@@ -10,6 +10,7 @@ and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2
 - **Generator package description** updated to reflect unified `[BitFields]` attribute.
 - **Generator package tags** updated to include `bitfieldsview`.
 - **Documentation consolidated** -- README.md and BITFIELDS.md rewritten to present a single `[BitFields]` attribute with `struct` vs `record struct` as the only differentiator. The `[BitFieldsView]` attribute is mentioned only in a deprecation notice.
+- **CHANGELOG.md format changed** to use standard ordering of sections and standard colorized emojis for easier visual scanning.
 
 ### 🟢 Added
 - **Unified `[BitFields]` attribute for both value types and views** -- `[BitFields]` now works on `partial record struct` in addition to `partial struct`. The generator detects the `record` keyword and produces zero-copy `Memory<byte>`-backed view code (the same codegen previously produced by `[BitFieldsView]`). New parameterless and `(ByteOrder, BitOrder)` constructors on `BitFieldsAttribute` support the view use case. Existing value-type constructors (`StorageType`, `typeof(T)`, `int bitCount`) are unchanged.
