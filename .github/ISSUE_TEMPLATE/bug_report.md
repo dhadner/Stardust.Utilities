@@ -48,7 +48,7 @@ If the issue is with generated code, please include the relevant portion:
 
 ## Environment
 
-- **Stardust.Utilities version**: [e.g., 0.9.6]
+- **Stardust.Utilities version**: [e.g., 0.9.7]
 - **.NET version**: [e.g., .NET 10.0]
 - **OS**: [e.g., Windows 11, macOS 14, Ubuntu 24.04]
 - **IDE**: [e.g., Visual Studio 2026, VS Code, Rider]

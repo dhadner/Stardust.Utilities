@@ -42,17 +42,17 @@ This guide explains how to modify the source generators and update consuming pro
 
 ## Quick Reference: Build Workflow
 
-**To build a new version (e.g., 0.9.6):**
+**To build a new version (e.g., 0.9.7):**
 
 ```powershell
 # Navigate to the Stardust.Utilities directory
 cd Stardust.Utilities
 
 # Build both NuGet packages (automatically publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.6
+.\Build-Combined-NuGetPackages.ps1 0.9.7
 
 # Or skip tests for faster iteration during development
-.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.7 -SkipTests
 ```
 
 **What happens automatically:**
@@ -226,21 +226,21 @@ git pull origin main
 # Show help
 .\Build-Combined-NuGetPackages.ps1 -Help
 
-# Build version 0.9.6 (runs tests, publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.6
+# Build version 0.9.7 (runs tests, publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1 0.9.7
 
 # Skip tests for faster iteration
-.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.7 -SkipTests
 
 # Use Debug configuration
-.\Build-Combined-NuGetPackages.ps1 0.9.6 -Configuration Debug
+.\Build-Combined-NuGetPackages.ps1 0.9.7 -Configuration Debug
 ```
 
 **Parameters:**
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `<version>` | Yes | Version number (e.g., `0.9.6`, `1.0.0-beta1`) |
+| `<version>` | Yes | Version number (e.g., `0.9.7`, `1.0.0-beta1`) |
 | `-SkipTests` | No | Skip running unit tests |
 | `-Configuration` | No | `Debug` or `Release` (default: Release) |
 | `-Help` | No | Show help message |
@@ -279,7 +279,7 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 ```powershell
 # Specify a version
-.\Build-Generator-NuGetPackage.ps1 -Version "0.9.6"
+.\Build-Generator-NuGetPackage.ps1 -Version "0.9.7"
 ```
 
 ### Package Reference Scenarios
@@ -307,10 +307,10 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 ```powershell
 # Rebuild both packages (recommended)
-.\Build-Combined-NuGetPackages.ps1 0.9.6 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 0.9.7 -SkipTests
 ```
 
-**Step 3:** Test locally with a consuming project:
+**Step 3:**
 1. Update the `PackageReference` version in the consuming project
 2. Clear NuGet cache: `dotnet nuget locals global-packages --clear`
 3. Restore and rebuild
@@ -882,10 +882,10 @@ bitwise operations. For most use cases, this overhead is acceptable.
 4. Verify `README.md` installation snippet references the new version
 5. Build and test: `.\Build-Combined-NuGetPackages.ps1`
 6. Commit all changes and push to `main`
-7. Create a Git tag with the `v` prefix: `git tag v0.9.6 && git push origin v0.9.6`
+7. Create a Git tag with the `v` prefix: `git tag v0.9.7 && git push origin v0.9.7`
 8. Publish to NuGet.org using the command shown by the build script
 
 ### Tag Naming Convention
 
-All release tags use the `v` prefix (e.g., `v0.9.6`, `v1.0.0`). The initial `0.9.2` tag
+All release tags use the `v` prefix (e.g., `v0.9.7`, `v1.0.0`). The initial `0.9.2` tag
 predates this convention. New releases must use the `v` prefix for consistency.

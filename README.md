@@ -57,10 +57,10 @@ The included demo app is a showcase of the library's capabilities, not a standal
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.6" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.7" />
 ```
 
-That's it, the source generator is included automatically.
+That's it
 
 ---
 
@@ -1072,7 +1072,7 @@ to your `[BitField]`/`[BitFlag]` property declarations (see
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-    <PackageReference Include="Stardust.Utilities" Version="0.9.6" />
+    <PackageReference Include="Stardust.Utilities" Version="0.9.7" />
     ```
 2. Add the `partial` keyword to all `[BitField]` and `[BitFlag]` properties
 3. Clean and rebuild the solution

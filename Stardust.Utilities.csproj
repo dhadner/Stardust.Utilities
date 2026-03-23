@@ -12,7 +12,7 @@
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for bit manipulation, error handling, and big-endian data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
 		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>v0.9.6: Now fully implements "MustBe" and default bits settings in constructors and operators. Added support for nint, nuint. Improved code readability for generated code by using named constants.</PackageReleaseNotes>
+		<PackageReleaseNotes>v0.9.7: Unified [BitFields] attribute for struct and record struct. JSON serialization for all types. Floating-point/decimal property types. Deprecated [BitFieldsView]. Removed DiagramSection. Fixed 64-bit field mask overflow and view 64-bit read bug.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
