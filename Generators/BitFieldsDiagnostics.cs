@@ -127,4 +127,19 @@ internal static class BitFieldsDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "A [BitField] attribute requires a Start value. Provide it as a positional argument or as a named property.");
+
+    /// <summary>
+    /// Error: A floating-point or opaque property type (Half, float, double, decimal) is
+    /// used with a field width that does not match the type's exact bit size.  Because
+    /// these types are stored as opaque bit patterns, any width mismatch silently corrupts
+    /// the value.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor FloatPropertyWidthMismatch = new(
+        id: "SD0020",
+        title: "BitField width does not match floating-point/decimal property type size",
+        messageFormat: "Property '{0}' in '{1}' has type '{2}' ({3} bits) but the field width is {4} bits. Floating-point and decimal types require an exact bit-width match because they are stored as opaque bit patterns.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Half requires exactly 16 bits, float requires 32 bits, double requires 64 bits, and decimal requires 128 bits. A mismatched width could silently corrupt the value.");
 }

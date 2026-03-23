@@ -259,6 +259,15 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
 
                     var propTypeFull = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+                    // SD0020: Floating-point / opaque property type width mismatch
+                    var fpDiag = GeneratorUtils.ValidateFloatPropertyWidth(
+                        propTypeFull, resolved.Value.Width, member.Name, structSymbol.Name, memberLocation);
+                    if (fpDiag != null)
+                    {
+                        propertyDiagnostics.Add(fpDiag);
+                        continue;
+                    }
+
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 

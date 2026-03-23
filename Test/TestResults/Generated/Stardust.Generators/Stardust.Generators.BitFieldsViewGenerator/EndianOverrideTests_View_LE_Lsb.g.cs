@@ -60,7 +60,7 @@ public partial class EndianOverrideTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0)) & 0xFFFF);
+                    return (ushort)BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0));
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
@@ -74,9 +74,7 @@ public partial class EndianOverrideTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(0);
-                    ushort raw = BinaryPrimitives.ReadUInt16LittleEndian(slice);
-                    raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                    BinaryPrimitives.WriteUInt16LittleEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt16LittleEndian(slice, (ushort)value);
                 }
                 else
                 {
@@ -100,7 +98,7 @@ public partial class EndianOverrideTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (global::Stardust.Utilities.UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(2)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.UInt32Be)(uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(2));
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
@@ -114,9 +112,7 @@ public partial class EndianOverrideTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(2);
-                    uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                    raw = (uint)((raw & 0x0U) | ((uint)(uint)value & 0xFFFFFFFFU));
-                    BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)(uint)value);
                 }
                 else
                 {
@@ -140,7 +136,7 @@ public partial class EndianOverrideTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (global::Stardust.Utilities.Int16Be)(short)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6)) & 0xFFFF);
+                    return (global::Stardust.Utilities.Int16Be)(short)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6));
                 }
                 int ep = 48 + _bitOffset;
                 int bi = ep >> 3;
@@ -154,9 +150,7 @@ public partial class EndianOverrideTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(6);
-                    ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                    raw = (ushort)((raw & 0x0000) | ((ushort)(short)value & 0xFFFF));
-                    BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)(short)value);
                 }
                 else
                 {
@@ -180,12 +174,12 @@ public partial class EndianOverrideTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (global::Stardust.Utilities.UInt64Be)(ulong)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(8)) & 0xFFFFFFFFFFFFFFFFUL);
+                    return (global::Stardust.Utilities.UInt64Be)(ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(8));
                 }
                 int ep = 64 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (global::Stardust.Utilities.UInt64Be)(ulong)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
+                return (global::Stardust.Utilities.UInt64Be)(ulong)((BinaryPrimitives.ReadUInt128BigEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -194,9 +188,7 @@ public partial class EndianOverrideTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(8);
-                    ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
-                    raw = (ulong)((raw & 0x0UL) | ((ulong)(ulong)value & 0xFFFFFFFFFFFFFFFFUL));
-                    BinaryPrimitives.WriteUInt64BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)(ulong)value);
                 }
                 else
                 {
@@ -204,10 +196,10 @@ public partial class EndianOverrideTests
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
-                    ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
-                    ulong m = (ulong)(0xFFFFFFFFFFFFFFFFUL << sh);
-                    raw = (ulong)((raw & (ulong)~m) | (((ulong)(ulong)value << sh) & m));
-                    BinaryPrimitives.WriteUInt64BigEndian(slice, raw);
+                    UInt128 raw = BinaryPrimitives.ReadUInt128BigEndian(slice);
+                    UInt128 m = (UInt128)((UInt128)0xFFFFFFFFFFFFFFFFUL << sh);
+                    raw = (UInt128)((raw & (UInt128)~m) | (((UInt128)(ulong)value << sh) & m));
+                    BinaryPrimitives.WriteUInt128BigEndian(slice, raw);
                 }
             }
         }

@@ -82,6 +82,37 @@ public partial class BitFieldsGenerator
     }
 
     /// <summary>
+    /// Determines if a property type name represents a floating-point type that
+    /// requires <c>BitConverter.*BitsTo*</c> / <c>*To*Bits</c> wrapping when used
+    /// as a property type (not a storage type).
+    /// Handles both keyword forms ("float", "double") and fully qualified forms
+    /// ("global::System.Half", "Half").
+    /// </summary>
+    private static bool IsFloatingPointPropertyType(string typeName)
+        => GeneratorUtils.IsFloatingPointPropertyType(typeName);
+
+    /// <summary>
+    /// Returns the unsigned integer type that holds the raw bits for the given
+    /// floating-point property type.
+    /// </summary>
+    private static string FloatPropertyUnsignedType(string typeName)
+        => GeneratorUtils.FloatPropertyUnsignedType(typeName);
+
+    /// <summary>
+    /// Returns the <c>BitConverter</c> call that converts raw unsigned bits to
+    /// the floating-point property type. E.g., "BitConverter.UInt16BitsToHalf".
+    /// </summary>
+    private static string FloatPropertyFromBits(string typeName)
+        => GeneratorUtils.FloatPropertyFromBits(typeName);
+
+    /// <summary>
+    /// Returns the <c>BitConverter</c> call that converts a floating-point value
+    /// to raw unsigned bits. E.g., "BitConverter.HalfToUInt16Bits".
+    /// </summary>
+    private static string FloatPropertyToBits(string typeName)
+        => GeneratorUtils.FloatPropertyToBits(typeName);
+
+    /// <summary>
     /// Gets the bit width of a numeric type.
     /// </summary>
     private static int GetTypeBitWidth(string typeName)
@@ -89,9 +120,10 @@ public partial class BitFieldsGenerator
         return typeName switch
         {
             "sbyte" or "byte" => 8,
-            "short" or "ushort" => 16,
-            "int" or "uint" => 32,
-            "long" or "ulong" or "nint" or "nuint" => 64,
+            "short" or "ushort" or "Half" or "global::System.Half" or "System.Half" => 16,
+            "int" or "uint" or "float" => 32,
+            "long" or "ulong" or "nint" or "nuint" or "double" => 64,
+            "decimal" => 128,
             _ => 32 // Default to int size for unknown types
         };
     }

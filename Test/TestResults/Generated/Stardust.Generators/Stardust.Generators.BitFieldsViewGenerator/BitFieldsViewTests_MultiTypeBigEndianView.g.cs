@@ -60,7 +60,7 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
+                    return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0));
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
@@ -75,9 +75,7 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(0);
-                    ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                    raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                    BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
                 }
                 else
                 {
@@ -102,7 +100,7 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (short)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
+                    return (short)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
@@ -117,9 +115,7 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(2);
-                    ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                    raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                    BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
                 }
                 else
                 {
@@ -144,7 +140,7 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4)) & 0xFFFFFFFFU);
+                    return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4));
                 }
                 int ep = 32 + _bitOffset;
                 int bi = ep >> 3;
@@ -159,9 +155,7 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(4);
-                    uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                    raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                    BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
                 }
                 else
                 {
@@ -186,7 +180,7 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (int)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
+                    return (int)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8));
                 }
                 int ep = 64 + _bitOffset;
                 int bi = ep >> 3;
@@ -201,9 +195,7 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(8);
-                    uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                    raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                    BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
                 }
                 else
                 {
@@ -228,13 +220,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (ulong)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(12)) & 0xFFFFFFFFFFFFFFFFUL);
+                    return (ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(12));
                 }
                 int ep = 96 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
-                int sh = 64 - 1 - endInWindow;
-                return (ulong)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
+                int sh = 128 - 1 - endInWindow;
+                return (ulong)((BinaryPrimitives.ReadUInt128BigEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -243,21 +235,19 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(12);
-                    ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
-                    raw = (ulong)((raw & 0x0UL) | ((ulong)value & 0xFFFFFFFFFFFFFFFFUL));
-                    BinaryPrimitives.WriteUInt64BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
                 }
                 else
                 {
                     int ep = 96 + _bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 63) - bi * 8;
-                    int sh = 64 - 1 - endInWindow;
+                    int sh = 128 - 1 - endInWindow;
                     var slice = s.Slice(bi);
-                    ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
-                    ulong m = (ulong)(0xFFFFFFFFFFFFFFFFUL << sh);
-                    raw = (ulong)((raw & (ulong)~m) | (((ulong)value << sh) & m));
-                    BinaryPrimitives.WriteUInt64BigEndian(slice, raw);
+                    UInt128 raw = BinaryPrimitives.ReadUInt128BigEndian(slice);
+                    UInt128 m = (UInt128)((UInt128)0xFFFFFFFFFFFFFFFFUL << sh);
+                    raw = (UInt128)((raw & (UInt128)~m) | (((UInt128)value << sh) & m));
+                    BinaryPrimitives.WriteUInt128BigEndian(slice, raw);
                 }
             }
         }
@@ -270,13 +260,13 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (long)(BinaryPrimitives.ReadUInt64BigEndian(s.Slice(20)) & 0xFFFFFFFFFFFFFFFFUL);
+                    return (long)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(20));
                 }
                 int ep = 160 + _bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
-                int sh = 64 - 1 - endInWindow;
-                return (long)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFFFFFFFFFUL);
+                int sh = 128 - 1 - endInWindow;
+                return (long)((BinaryPrimitives.ReadUInt128BigEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -285,21 +275,19 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(20);
-                    ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
-                    raw = (ulong)((raw & 0x0UL) | ((ulong)value & 0xFFFFFFFFFFFFFFFFUL));
-                    BinaryPrimitives.WriteUInt64BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
                 }
                 else
                 {
                     int ep = 160 + _bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 63) - bi * 8;
-                    int sh = 64 - 1 - endInWindow;
+                    int sh = 128 - 1 - endInWindow;
                     var slice = s.Slice(bi);
-                    ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
-                    ulong m = (ulong)(0xFFFFFFFFFFFFFFFFUL << sh);
-                    raw = (ulong)((raw & (ulong)~m) | (((ulong)value << sh) & m));
-                    BinaryPrimitives.WriteUInt64BigEndian(slice, raw);
+                    UInt128 raw = BinaryPrimitives.ReadUInt128BigEndian(slice);
+                    UInt128 m = (UInt128)((UInt128)0xFFFFFFFFFFFFFFFFUL << sh);
+                    raw = (UInt128)((raw & (UInt128)~m) | (((UInt128)value << sh) & m));
+                    BinaryPrimitives.WriteUInt128BigEndian(slice, raw);
                 }
             }
         }

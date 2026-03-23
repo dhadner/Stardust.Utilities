@@ -99,7 +99,7 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (short)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(1)) & 0xFFFF);
+                    return (short)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(1));
                 }
                 int ep = 8 + _bitOffset;
                 int bi = ep >> 3;
@@ -114,9 +114,7 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(1);
-                    ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                    raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                    BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
                 }
                 else
                 {

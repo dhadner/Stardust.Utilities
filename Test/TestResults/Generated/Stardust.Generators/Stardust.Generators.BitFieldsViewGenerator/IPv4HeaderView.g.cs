@@ -214,7 +214,7 @@ public partial record struct IPv4HeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
             int ep = 16 + _bitOffset;
             int bi = ep >> 3;
@@ -229,9 +229,7 @@ public partial record struct IPv4HeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(2);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -256,7 +254,7 @@ public partial record struct IPv4HeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4));
             }
             int ep = 32 + _bitOffset;
             int bi = ep >> 3;
@@ -271,9 +269,7 @@ public partial record struct IPv4HeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(4);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -418,7 +414,7 @@ public partial record struct IPv4HeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(10)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(10));
             }
             int ep = 80 + _bitOffset;
             int bi = ep >> 3;
@@ -433,9 +429,7 @@ public partial record struct IPv4HeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(10);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -460,7 +454,7 @@ public partial record struct IPv4HeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(12)) & 0xFFFFFFFFU);
+                return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(12));
             }
             int ep = 96 + _bitOffset;
             int bi = ep >> 3;
@@ -475,9 +469,7 @@ public partial record struct IPv4HeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(12);
-                uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
@@ -502,7 +494,7 @@ public partial record struct IPv4HeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(16)) & 0xFFFFFFFFU);
+                return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(16));
             }
             int ep = 128 + _bitOffset;
             int bi = ep >> 3;
@@ -517,9 +509,7 @@ public partial record struct IPv4HeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(16);
-                uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {

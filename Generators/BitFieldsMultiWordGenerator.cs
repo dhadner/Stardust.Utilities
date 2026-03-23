@@ -126,6 +126,10 @@ internal static partial class BitFieldsMultiWordGenerator
         GenerateComparisonMethods(sb, info, layout, mind);
         GenerateJsonConverter(sb, info, mind);
 
+        // Emit opaque bit-reinterpretation helpers for decimal property types
+        if (info.Fields.Any(f => f.PropertyType == "decimal"))
+            EmitDecimalHelpers(sb, mind);
+
         sb.AppendLine($"{ind}}}");
 
         for (int i = info.ContainingTypes.Count - 1; i >= 0; i--)
@@ -142,6 +146,20 @@ internal static partial class BitFieldsMultiWordGenerator
     }
 
     private static string Ind(int level) => new string(' ', level * 4);
+
+    /// <summary>
+    /// Emits private static helper methods for opaque decimal ↔ UInt128 bit reinterpretation.
+    /// Uses <c>Unsafe.As</c> which is a zero-cost JIT intrinsic on .NET 7+.
+    /// </summary>
+    private static void EmitDecimalHelpers(StringBuilder sb, string ind)
+    {
+        sb.AppendLine();
+        sb.AppendLine($"{ind}// ── Opaque decimal ↔ UInt128 bit reinterpretation ──");
+        sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{ind}private static decimal UInt128BitsToDecimal(UInt128 bits) => Unsafe.As<UInt128, decimal>(ref bits);");
+        sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{ind}private static UInt128 DecimalToUInt128Bits(decimal value) => Unsafe.As<decimal, UInt128>(ref value);");
+    }
 
     /// <summary>
     /// Generates a static <c>Fields</c> property for multi-word structs,

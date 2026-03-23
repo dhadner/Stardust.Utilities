@@ -271,6 +271,7 @@ Both value types and views support the same property types:
 |---------------|----------|-------|
 | Standard .NET value types | `byte`, `ushort`, `uint`, `ulong`, `bool` | Direct bit manipulation |
 | Signed types | `sbyte`, `short`, `int`, `long` | Automatic sign extension |
+| Floating-point / decimal | `Half`, `float`, `double`, `decimal` | Opaque bit reinterpretation; field width must match type size exactly (16/32/64/128 bits) |
 | Enums | `OpMode`, `StatusCode` | Zero-cost enum properties |
 | Endian types | `UInt16Be`, `UInt32Le`, `Int64Be` | Explicit byte ordering per field |
 | Nested value types | `StatusFlags`, `ProtocolHeader` | Composition; reusable sub-structures |
@@ -650,6 +651,7 @@ byte version = header.Version;   // reads from packet[0]
 |---|---|---|
 | Backing | Private value field(s) | `Memory<byte>` (external buffer) |
 | Copy cost | Copies all data | Copies only the view header (24 bytes) |
+| Performance | Identical to hand-coded bit ops (inline shift/mask) | One level of indirection through `Memory<byte>.Span`; still very fast but not zero-cost |
 | Max size | ~16 KB | Unlimited |
 | Byte order | Per-field via endian property types | Struct-level `ByteOrder` + per-field override |
 | Bit order | Configurable `BitOrder` | Configurable `BitOrder` (same) |
@@ -1162,7 +1164,7 @@ public partial struct StatusRegister
 
 This applies to both value-type structs and record struct views.
 
-### BitField syntax diagnostics (SD0015–SD0019)
+### BitField syntax diagnostics (SD0015–SD0020)
 
 The source generator validates `[BitField]` attribute usage and emits diagnostics when the
 syntax is ambiguous, redundant, or incomplete:
@@ -1172,8 +1174,9 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0015** | Info | `[BitField(start, end)]` two-parameter constructor used | The positional `end` parameter is easily confused with a bit width. Use `[BitField(start, End = N)]` or `[BitField(start, Width = N)]` for clarity. |
 | **SD0016** | Warning | Both `End` and `Width` are specified and consistent | Redundant -- remove one for conciseness. |
 | **SD0017** | Error | Both `End` and `Width` are specified but inconsistent | The generator cannot determine intent. Remove one or correct the values. |
-| **SD0018** | Error | `Start` is specified but neither `End` nor `Width` | The field range is incomplete. Add `End = N` or `Width = N`. |
-| **SD0019** | Error | `End` or `Width` is specified but `Start` is missing | Provide `Start` as a positional argument or named property. |
+| **SD0018** | Error | `Start` is specified but neither `End` nor `Width` | The field range is incomplete. Add `End = N` or `Width = N` or use the positional argument `end:`. |
+| **SD0019** | Error | `End` or `Width` is specified but `Start` is missing | Provide `Start` as a positional argument (`start:`) or as the named property `Start`. |
+| **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width could silently corrupt the value. |
 
 **SD0015** is a learning aid: it reminds developers that the second positional parameter is
 an inclusive *end bit*, not a *width*. Once you are comfortable with the convention you can

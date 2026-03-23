@@ -58,7 +58,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0));
             }
             int ep = 0 + _bitOffset;
             int bi = ep >> 3;
@@ -73,9 +73,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(0);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -100,7 +98,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
             int ep = 16 + _bitOffset;
             int bi = ep >> 3;
@@ -115,9 +113,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(2);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -142,7 +138,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4)) & 0xFFFFFFFFU);
+                return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4));
             }
             int ep = 32 + _bitOffset;
             int bi = ep >> 3;
@@ -157,9 +153,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(4);
-                uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
@@ -184,7 +178,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
+                return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8));
             }
             int ep = 64 + _bitOffset;
             int bi = ep >> 3;
@@ -199,9 +193,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(8);
-                uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
@@ -304,7 +296,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(14)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(14));
             }
             int ep = 112 + _bitOffset;
             int bi = ep >> 3;
@@ -319,9 +311,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(14);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -346,7 +336,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(16)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(16));
             }
             int ep = 128 + _bitOffset;
             int bi = ep >> 3;
@@ -361,9 +351,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(16);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -388,7 +376,7 @@ public partial record struct TcpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(18)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(18));
             }
             int ep = 144 + _bitOffset;
             int bi = ep >> 3;
@@ -403,9 +391,7 @@ public partial record struct TcpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(18);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {

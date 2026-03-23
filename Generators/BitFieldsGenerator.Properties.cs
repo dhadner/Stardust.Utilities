@@ -9,6 +9,9 @@ public partial class BitFieldsGenerator
     /// Generates a BitField property referencing named mask constants for maximum performance.
     /// For signed property types (sbyte, short, int, long), sign extension is performed
     /// when the field width is smaller than the property type width.
+    /// For floating-point property types (Half, float, double), the getter wraps the
+    /// extracted bits with <c>BitConverter.*BitsTo*</c> and the setter converts with
+    /// <c>BitConverter.*To*Bits</c> before inserting into the storage word.
     /// </summary>
     private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, BitFieldInfo field, string indent)
     {
@@ -28,10 +31,13 @@ public partial class BitFieldsGenerator
         int propertyTypeBitWidth = GetTypeBitWidth(field.PropertyType);
         bool needsSignExtension = propertyTypeIsSigned && width < propertyTypeBitWidth;
 
+        // Check if the property type is a floating-point type that needs BitConverter wrapping
+        bool isFloatProp = IsFloatingPointPropertyType(field.PropertyType);
+
         sb.AppendLine($"{indent}public partial {field.PropertyType} {field.Name}");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        
+
         // Getter: For signed property types with field width < type width, perform sign extension
         if (needsSignExtension)
         {
@@ -44,7 +50,7 @@ public partial class BitFieldsGenerator
             int intermediateTypeBitWidth = signExtendType == "long" ? 64 : 32;
             int leftShift = intermediateTypeBitWidth - 1 - end;  // Put field MSB at bit 31 (or 63)
             int rightShift = intermediateTypeBitWidth - width;       // Propagate sign to result width
-            
+
             if (info.NeedsUnsignedCast)
             {
                 // For signed storage or nint/nuint, cast to unsigned first to avoid unwanted sign extension
@@ -53,6 +59,28 @@ public partial class BitFieldsGenerator
             else
             {
                 sb.AppendLine($"{indent}    get => ({field.PropertyType})((({signExtendType})(Value & {shiftedMaskHex}) << {leftShift}) >> {rightShift});");
+            }
+        }
+        else if (isFloatProp)
+        {
+            // Floating-point property: extract raw bits as unsigned integer, then convert via BitConverter.
+            // E.g., BitConverter.UInt16BitsToHalf((ushort)((Value >> START_BIT) & MASK))
+            string fromBits = FloatPropertyFromBits(field.PropertyType);
+            string unsignedType = FloatPropertyUnsignedType(field.PropertyType);
+
+            if (info.NeedsUnsignedCast)
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}    get => {fromBits}(({unsignedType})((({info.UnsignedStorageType})Value) & {maskHex}));");
+                else
+                    sb.AppendLine($"{indent}    get => {fromBits}(({unsignedType})(((({info.UnsignedStorageType})Value) >> {startBitConst}) & {maskHex}));");
+            }
+            else
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}    get => {fromBits}(({unsignedType})(Value & {maskHex}));");
+                else
+                    sb.AppendLine($"{indent}    get => {fromBits}(({unsignedType})((Value >> {startBitConst}) & {maskHex}));");
             }
         }
         else
@@ -84,6 +112,15 @@ public partial class BitFieldsGenerator
 
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
 
+        // For floating-point property types in the setter, convert value to raw bits first.
+        // E.g., "var bits = BitConverter.HalfToUInt16Bits(value);" then use bits instead of value.
+        // For MustBe overrides, the floating-point value is ignored so no conversion is needed.
+        string setterValueExpr = "value";
+        if (isFloatProp && field.ValueOverride == MustBe.Any)
+        {
+            setterValueExpr = "__bits";
+        }
+
         // Setter: enforce MustBe constraints, or do normal read-modify-write
         if (field.ValueOverride == MustBe.Zero)
         {
@@ -100,6 +137,27 @@ public partial class BitFieldsGenerator
                 sb.AppendLine($"{indent}    set => Value = ({info.StorageType})((({info.UnsignedStorageType})Value) | {shiftedMaskHex});");
             else
                 sb.AppendLine($"{indent}    set => Value = ({info.StorageType})(Value | {shiftedMaskHex});");
+        }
+        else if (isFloatProp)
+        {
+            // Floating-point setter: convert to raw bits, then insert into storage word.
+            string toBits = FloatPropertyToBits(field.PropertyType);
+            sb.AppendLine($"{indent}    set {{ var {setterValueExpr} = {toBits}(value);");
+            if (info.NeedsUnsignedCast)
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | ((({info.UnsignedStorageType}){setterValueExpr}) & {shiftedMaskHex}));");
+                else
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType}){setterValueExpr}) << {startBitConst}) & {shiftedMaskHex}));");
+            }
+            else
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType}){setterValueExpr}) & {shiftedMaskHex}));");
+                else
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType}){setterValueExpr}) << {startBitConst}) & {shiftedMaskHex}));");
+            }
+            sb.AppendLine($"{indent}    }}");
         }
         else if (info.NeedsUnsignedCast)
         {
@@ -253,6 +311,10 @@ public partial class BitFieldsGenerator
         string shiftedMaskHex = shift > 0 ? $"{snakeName}_SHIFTED_MASK" : $"{snakeName}_MASK";
         string invertedMaskHex = $"{snakeName}_INVERTED_MASK";
 
+        // For floating-point property types, wrap `value` with BitConverter.*To*Bits(value)
+        bool isFloatProp = IsFloatingPointPropertyType(field.PropertyType);
+        string valueExpr = isFloatProp ? $"{FloatPropertyToBits(field.PropertyType)}(value)" : "value";
+
         sb.AppendLine($"{indent}/// <summary>Returns a new {info.TypeName} with the {field.Name} field set to the specified value.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
 
@@ -260,22 +322,22 @@ public partial class BitFieldsGenerator
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType})value & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType}){valueExpr} & {shiftedMaskHex})));");
             }
             else
             {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})value) << {startBitConst}) & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType}){valueExpr}) << {startBitConst}) & {shiftedMaskHex})));");
             }
         }
         else
         {
             if (shift == 0)
             {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (({info.StorageType})value & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | (({info.StorageType}){valueExpr} & {shiftedMaskHex})));");
             }
             else
             {
-                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})value << {startBitConst}) & {shiftedMaskHex})));");
+                sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value) => new(({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType}){valueExpr} << {startBitConst}) & {shiftedMaskHex})));");
             }
         }
         sb.AppendLine();
@@ -296,7 +358,7 @@ public partial class BitFieldsGenerator
         {
             int shift = field.Shift;
             int width = field.Width;
-            ulong mask = (1UL << width) - 1;
+            ulong mask = (width >= 64) ? ulong.MaxValue : (1UL << width) - 1;
             ulong shiftedMask = mask << shift;
             ulong invertedShiftedMask = ~shiftedMask;
             string snakeName = ToUpperSnakeCase(field.Name);

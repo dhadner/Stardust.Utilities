@@ -238,4 +238,84 @@ internal static class GeneratorUtils
 
         return (new BitFieldResolveResult(start, resolvedEndBit, resolvedWidth, valueOverride), diagnostics);
     }
+
+    // ── Floating-point property type helpers ─────────────────────────────
+
+    /// <summary>
+    /// Returns the required bit width for a floating-point / opaque property type,
+    /// or -1 if the type is not a floating-point / opaque type.
+    /// </summary>
+    internal static int GetRequiredFloatBitWidth(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => 16,
+        "float" => 32,
+        "double" => 64,
+        "decimal" => 128,
+        _ => -1
+    };
+
+    /// <summary>
+    /// If <paramref name="propertyType"/> is a floating-point or opaque type (Half,
+    /// float, double, decimal) and the field <paramref name="width"/> does not match
+    /// the type's required bit size, returns an SD0020 diagnostic.  Otherwise null.
+    /// </summary>
+    internal static PropertyDiagnosticInfo? ValidateFloatPropertyWidth(
+        string propertyType, int width, string propertyName, string structName, Location? location)
+    {
+        int required = GetRequiredFloatBitWidth(propertyType);
+        if (required < 0 || width == required) return null;
+        return new PropertyDiagnosticInfo(
+            BitFieldsDiagnostics.FloatPropertyWidthMismatch,
+            location, propertyName, structName, propertyType, required, width);
+    }
+
+    /// <summary>
+    /// Determines if a property type name represents a floating-point type that
+    /// requires <c>BitConverter.*BitsTo*</c> / <c>*To*Bits</c> wrapping when used
+    /// as a property type (not a storage type).
+    /// </summary>
+    internal static bool IsFloatingPointPropertyType(string typeName)
+    {
+        return typeName is "float" or "double" or "decimal"
+            or "Half" or "global::System.Half" or "System.Half";
+    }
+
+    /// <summary>
+    /// Returns the unsigned integer type that holds the raw bits for the given
+    /// floating-point property type.
+    /// </summary>
+    internal static string FloatPropertyUnsignedType(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => "ushort",
+        "float" => "uint",
+        "double" => "ulong",
+        "decimal" => "UInt128",
+        _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
+    };
+
+    /// <summary>
+    /// Returns the <c>BitConverter</c> call that converts raw unsigned bits to
+    /// the floating-point property type.
+    /// </summary>
+    internal static string FloatPropertyFromBits(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => "BitConverter.UInt16BitsToHalf",
+        "float" => "BitConverter.UInt32BitsToSingle",
+        "double" => "BitConverter.UInt64BitsToDouble",
+        "decimal" => "UInt128BitsToDecimal",
+        _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
+    };
+
+    /// <summary>
+    /// Returns the <c>BitConverter</c> call that converts a floating-point value
+    /// to raw unsigned bits.
+    /// </summary>
+    internal static string FloatPropertyToBits(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => "BitConverter.HalfToUInt16Bits",
+        "float" => "BitConverter.SingleToUInt32Bits",
+        "double" => "BitConverter.DoubleToUInt64Bits",
+        "decimal" => "DecimalToUInt128Bits",
+        _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
+    };
 }

@@ -136,7 +136,7 @@ public partial record struct DiagramMsbView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
             int ep = 16 + _bitOffset;
             int bi = ep >> 3;
@@ -151,9 +151,7 @@ public partial record struct DiagramMsbView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(2);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {

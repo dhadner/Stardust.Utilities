@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text;
+using static Stardust.Generators.GeneratorUtils;
 
 namespace Stardust.Generators;
 
@@ -15,6 +16,18 @@ internal static partial class BitFieldsMultiWordGenerator
         int endWord = end / 64;
         bool crossWord = startWord != endWord;
 
+        // Floating-point property types need BitConverter wrapping
+        bool isFloatProp = IsFloatingPointPropertyType(field.PropertyType);
+        bool isWideFloat = isFloatProp && width > 64; // decimal (128-bit) needs UInt128 arithmetic
+
+        string getterPrefix = isFloatProp ? $"{FloatPropertyFromBits(field.PropertyType)}(({FloatPropertyUnsignedType(field.PropertyType)})" : $"({field.PropertyType})";
+        string getterSuffix = isFloatProp ? ")" : "";
+        // For the setter, convert float value to raw bits before inserting.
+        // For wide float types (decimal→UInt128), the local variable __bits is used instead.
+        string setterOpen = isWideFloat ? "__bits"
+            : isFloatProp ? $"(ulong){FloatPropertyToBits(field.PropertyType)}(value)"
+            : "(ulong)value";
+
         sb.AppendLine($"{ind}public partial {field.PropertyType} {field.Name}");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -24,11 +37,11 @@ internal static partial class BitFieldsMultiWordGenerator
             ulong mask = (width == 64) ? ulong.MaxValue : (1UL << width) - 1;
             string rd = layout.Read("", startWord);
             if (localShift == 0 && width == 64)
-                sb.AppendLine($"{ind}    get => ({field.PropertyType}){rd};");
+                sb.AppendLine($"{ind}    get => {getterPrefix}{rd}{getterSuffix};");
             else if (localShift == 0)
-                sb.AppendLine($"{ind}    get => ({field.PropertyType})({rd} & 0x{mask:X}UL);");
+                sb.AppendLine($"{ind}    get => {getterPrefix}({rd} & 0x{mask:X}UL){getterSuffix};");
             else
-                sb.AppendLine($"{ind}    get => ({field.PropertyType})(({rd} >> {localShift}) & 0x{mask:X}UL);");
+                sb.AppendLine($"{ind}    get => {getterPrefix}(({rd} >> {localShift}) & 0x{mask:X}UL){getterSuffix};");
 
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
 
@@ -43,11 +56,104 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} | 0x{shiftedMask:X16}UL)")};" );
             }
             else if (localShift == 0 && width == 64)
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, "(ulong)value")};");
+                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, setterOpen)};");
             else if (localShift == 0)
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ((ulong)value & 0x{shiftedMask:X16}UL)")};");
+                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ({setterOpen} & 0x{shiftedMask:X16}UL)")};");
             else
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (((ulong)value << {localShift}) & 0x{shiftedMask:X16}UL)")};");
+                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (({setterOpen} << {localShift}) & 0x{shiftedMask:X16}UL)")};");
+        }
+        else if (isWideFloat)
+        {
+            // Wide float property (decimal → 128 bits): uses UInt128 arithmetic to
+            // combine / split words.  Only decimal triggers this path; Half/float/double
+            // continue to use the fast ulong path below.
+            string rdS = layout.Read("", startWord);
+            string rdE = layout.Read("", endWord);
+            string toBits = FloatPropertyToBits(field.PropertyType);
+
+            if (localShift == 0)
+            {
+                // Word-aligned: low 64 bits in startWord, high 64 bits in endWord
+                sb.AppendLine($"{ind}    get => {getterPrefix}(((UInt128){rdE} << 64) | (UInt128){rdS}){getterSuffix};");
+            }
+            else
+            {
+                // Non-aligned: field spans 3 words.
+                // startWord has (64 - localShift) bits, middleWord has 64 bits,
+                // endWord has the remaining bits.
+                int midWord = startWord + 1;
+                string rdM = layout.Read("", midWord);
+                int bitsHigh = width - (64 - localShift) - 64; // bits in endWord
+                ulong maskHigh = (bitsHigh >= 64) ? ulong.MaxValue : (1UL << bitsHigh) - 1;
+                sb.AppendLine($"{ind}    get => {getterPrefix}(((UInt128)({rdE} & 0x{maskHigh:X}UL) << {128 - bitsHigh}) | ((UInt128){rdM} << {64 - localShift}) | (UInt128)({rdS} >> {localShift})){getterSuffix};");
+            }
+
+            sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+
+            if (field.ValueOverride == MustBe.Zero)
+            {
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                if (localShift == 0)
+                {
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, "0UL")};");
+                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, "0UL")};");
+                }
+                else
+                {
+                    int midWord = startWord + 1;
+                    ulong clearS = (1UL << localShift) - 1;
+                    int bitsHigh = width - (64 - localShift) - 64;
+                    ulong clearE = (bitsHigh >= 64) ? 0UL : ~((1UL << bitsHigh) - 1);
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{clearS:X16}UL)")};");
+                    sb.AppendLine($"{ind}        _w{midWord} = {layout.Store(midWord, "0UL")};");
+                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{clearE:X16}UL)")};");
+                }
+                sb.AppendLine($"{ind}    }}");
+            }
+            else if (field.ValueOverride == MustBe.One)
+            {
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                if (localShift == 0)
+                {
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, "0xFFFFFFFFFFFFFFFFUL")};");
+                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, "0xFFFFFFFFFFFFFFFFUL")};");
+                }
+                else
+                {
+                    int midWord = startWord + 1;
+                    ulong setS = ~((1UL << localShift) - 1);
+                    int bitsHigh = width - (64 - localShift) - 64;
+                    ulong setE = (bitsHigh >= 64) ? ulong.MaxValue : (1UL << bitsHigh) - 1;
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{setS:X16}UL)")};");
+                    sb.AppendLine($"{ind}        _w{midWord} = {layout.Store(midWord, "0xFFFFFFFFFFFFFFFFUL")};");
+                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{setE:X16}UL)")};");
+                }
+                sb.AppendLine($"{ind}    }}");
+            }
+            else
+            {
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                sb.AppendLine($"{ind}        UInt128 __bits = {toBits}(value);");
+                if (localShift == 0)
+                {
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, "(ulong)__bits")};");
+                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, "(ulong)(__bits >> 64)")};");
+                }
+                else
+                {
+                    int midWord = startWord + 1;
+                    int bitsHigh = width - (64 - localShift) - 64;
+                    ulong keepLow = (1UL << localShift) - 1;
+                    ulong clearHigh = (bitsHigh >= 64) ? 0UL : ~((1UL << bitsHigh) - 1);
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{keepLow:X16}UL) | ((ulong)__bits << {localShift})")};");
+                    sb.AppendLine($"{ind}        _w{midWord} = {layout.Store(midWord, $"(ulong)(__bits >> {64 - localShift})")};");
+                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{clearHigh:X16}UL) | (ulong)(__bits >> {128 - bitsHigh})")};");
+                }
+                sb.AppendLine($"{ind}    }}");
+            }
         }
         else
         {
@@ -57,7 +163,7 @@ internal static partial class BitFieldsMultiWordGenerator
             string rdS = layout.Read("", startWord);
             string rdE = layout.Read("", endWord);
 
-            sb.AppendLine($"{ind}    get => ({field.PropertyType})(({rdS} >> {localShift}) | (({rdE} & 0x{maskEnd:X}UL) << {bitsInStart}));");
+            sb.AppendLine($"{ind}    get => {getterPrefix}(({rdS} >> {localShift}) | (({rdE} & 0x{maskEnd:X}UL) << {bitsInStart})){getterSuffix};");
 
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             ulong maskStartShifted = ((1UL << bitsInStart) - 1) << localShift;
@@ -82,8 +188,8 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}    set");
                 sb.AppendLine($"{ind}    {{");
                 ulong maskStart = (1UL << bitsInStart) - 1;
-                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (((ulong)value & 0x{maskStart:X}UL) << {localShift})")};");
-                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (((ulong)value >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
+                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (({setterOpen} & 0x{maskStart:X}UL) << {localShift})")};");
+                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (({setterOpen} >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
                 sb.AppendLine($"{ind}    }}");
             }
         }

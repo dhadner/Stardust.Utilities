@@ -14,3 +14,4 @@
 - Don't let a human or downstream user find an error that unit testing could have caught.
 - Don't run the Performance test category when initially checking for regressions. Only run it when you have a specific reason to check for performance regressions, as it takes a long time to run and times out the terminal.
 - All constants (const fields and const locals) must use SCREAMING_SNAKE_CASE (e.g., SIZE_IN_BYTES, LAST_WORD_MASK, NORMALIZATION_AND_MASK). This applies to both generator source code and the code the generators emit.
+- When creating Issues in GitHub, use the "bug" label for bugs and the "enhancement" label for new features or improvements. This helps with tracking and prioritization.  Use the project issue template when creating new issues to ensure all necessary information is included.

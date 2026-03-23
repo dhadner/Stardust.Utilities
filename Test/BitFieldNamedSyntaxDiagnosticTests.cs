@@ -11,8 +11,9 @@ namespace Stardust.Utilities.Tests;
 
 /// <summary>
 /// Tests that the BitFields generators emit correct diagnostics for the named
-/// BitField syntax (SD0015–SD0019): confusing two-parameter constructor, redundant
-/// End+Width, inconsistent End+Width, missing End/Width, missing Start.
+/// BitField syntax (SD0015–SD0020): confusing two-parameter constructor, redundant
+/// End+Width, inconsistent End+Width, missing End/Width, missing Start,
+/// and floating-point property type width mismatch.
 /// </summary>
 public class BitFieldNamedSyntaxDiagnosticTests
 {
@@ -913,6 +914,251 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
         diagnostics.Where(d => d.Id is "SD0015" or "SD0016" or "SD0017" or "SD0018" or "SD0019")
             .Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region SD0020 - Floating-point / opaque property type width mismatch
+
+    [Fact]
+    public void FloatWidthMismatch_Half_TooNarrow_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(uint))]
+            public partial struct BadHalf
+            {
+                [BitField(0, End = 7)] public partial Half HalfVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0020 = diagnostics.Where(d => d.Id == "SD0020").ToList();
+        sd0020.Should().HaveCount(1);
+        sd0020[0].Severity.Should().Be(DiagnosticSeverity.Error);
+        sd0020[0].GetMessage().Should().Contain("HalfVal");
+        sd0020[0].GetMessage().Should().Contain("16 bits");
+        sd0020[0].GetMessage().Should().Contain("8 bits");
+    }
+
+    [Fact]
+    public void FloatWidthMismatch_Float_TooWide_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ulong))]
+            public partial struct BadFloat
+            {
+                [BitField(0, End = 63)] public partial float FloatVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0020 = diagnostics.Where(d => d.Id == "SD0020").ToList();
+        sd0020.Should().HaveCount(1);
+        sd0020[0].GetMessage().Should().Contain("FloatVal");
+        sd0020[0].GetMessage().Should().Contain("32 bits");
+        sd0020[0].GetMessage().Should().Contain("64 bits");
+    }
+
+    [Fact]
+    public void FloatWidthMismatch_Double_TooNarrow_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ulong))]
+            public partial struct BadDouble
+            {
+                [BitField(0, End = 31)] public partial double DoubleVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0020 = diagnostics.Where(d => d.Id == "SD0020").ToList();
+        sd0020.Should().HaveCount(1);
+        sd0020[0].GetMessage().Should().Contain("DoubleVal");
+        sd0020[0].GetMessage().Should().Contain("64 bits");
+        sd0020[0].GetMessage().Should().Contain("32 bits");
+    }
+
+    [Fact]
+    public void FloatWidthMismatch_Decimal_TooNarrow_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            using System;
+            namespace TestDiag;
+
+            [BitFields(typeof(UInt128))]
+            public partial struct BadDecimal
+            {
+                [BitField(0, End = 63)] public partial decimal DecimalVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0020 = diagnostics.Where(d => d.Id == "SD0020").ToList();
+        sd0020.Should().HaveCount(1);
+        sd0020[0].GetMessage().Should().Contain("DecimalVal");
+        sd0020[0].GetMessage().Should().Contain("128 bits");
+        sd0020[0].GetMessage().Should().Contain("64 bits");
+    }
+
+    [Fact]
+    public void FloatWidthMismatch_MultiWord_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(128)]
+            public partial struct BadMW
+            {
+                [BitField(0, End = 47)] public partial double DoubleVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0020 = diagnostics.Where(d => d.Id == "SD0020").ToList();
+        sd0020.Should().HaveCount(1);
+        sd0020[0].GetMessage().Should().Contain("DoubleVal");
+        sd0020[0].GetMessage().Should().Contain("64 bits");
+        sd0020[0].GetMessage().Should().Contain("48 bits");
+    }
+
+    [Fact]
+    public void FloatWidthMismatch_View_ProducesError()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields]
+            public partial record struct BadView
+            {
+                [BitField(0, End = 15)] public partial float FloatVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunViewGeneratorAndGetDiagnostics(SOURCE);
+
+        var sd0020 = diagnostics.Where(d => d.Id == "SD0020").ToList();
+        sd0020.Should().HaveCount(1);
+        sd0020[0].GetMessage().Should().Contain("FloatVal");
+        sd0020[0].GetMessage().Should().Contain("32 bits");
+        sd0020[0].GetMessage().Should().Contain("16 bits");
+    }
+
+    [Fact]
+    public void FloatWidthCorrect_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ulong))]
+            public partial struct GoodFloats
+            {
+                [BitField(0, End = 15)] public partial Half HalfVal { get; set; }
+                [BitField(16, End = 47)] public partial float FloatVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0020").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FloatWidthCorrect_Double_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ulong))]
+            public partial struct GoodDouble
+            {
+                [BitField(0, End = 63)] public partial double DoubleVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0020").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FloatWidthCorrect_Decimal_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            using System;
+            namespace TestDiag;
+
+            [BitFields(typeof(UInt128))]
+            public partial struct GoodDecimal
+            {
+                [BitField(0, End = 127)] public partial decimal DecimalVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0020").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FloatWidthCorrect_View_NoDiagnostic()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields]
+            public partial record struct GoodView
+            {
+                [BitField(0, End = 15)] public partial Half HalfVal { get; set; }
+                [BitField(16, End = 47)] public partial float FloatVal { get; set; }
+                [BitField(48, End = 111)] public partial double DoubleVal { get; set; }
+                [BitField(112, End = 239)] public partial decimal DecimalVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunViewGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0020").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void IntegerWidth_NeverProducesSD0020()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(uint))]
+            public partial struct IntWidths
+            {
+                [BitField(0, End = 7)] public partial byte ByteVal { get; set; }
+                [BitField(8, End = 19)] public partial ushort ShortVal { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0020").Should().BeEmpty();
     }
 
     #endregion

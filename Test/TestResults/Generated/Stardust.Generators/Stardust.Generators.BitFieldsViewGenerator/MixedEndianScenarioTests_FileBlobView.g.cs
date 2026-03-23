@@ -60,7 +60,7 @@ public partial class MixedEndianScenarioTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (uint)(BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(0)) & 0xFFFFFFFFU);
+                    return (uint)BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(0));
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
@@ -74,9 +74,7 @@ public partial class MixedEndianScenarioTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(0);
-                    uint raw = BinaryPrimitives.ReadUInt32LittleEndian(slice);
-                    raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                    BinaryPrimitives.WriteUInt32LittleEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt32LittleEndian(slice, (uint)value);
                 }
                 else
                 {
@@ -100,7 +98,7 @@ public partial class MixedEndianScenarioTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (uint)(BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(4)) & 0xFFFFFFFFU);
+                    return (uint)BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(4));
                 }
                 int ep = 32 + _bitOffset;
                 int bi = ep >> 3;
@@ -114,9 +112,7 @@ public partial class MixedEndianScenarioTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(4);
-                    uint raw = BinaryPrimitives.ReadUInt32LittleEndian(slice);
-                    raw = (uint)((raw & 0x0U) | ((uint)value & 0xFFFFFFFFU));
-                    BinaryPrimitives.WriteUInt32LittleEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt32LittleEndian(slice, (uint)value);
                 }
                 else
                 {
@@ -140,7 +136,7 @@ public partial class MixedEndianScenarioTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (global::Stardust.Utilities.UInt32Be)(uint)(BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8)) & 0xFFFFFFFFU);
+                    return (global::Stardust.Utilities.UInt32Be)(uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8));
                 }
                 int ep = 64 + _bitOffset;
                 int bi = ep >> 3;
@@ -154,9 +150,7 @@ public partial class MixedEndianScenarioTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(8);
-                    uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
-                    raw = (uint)((raw & 0x0U) | ((uint)(uint)value & 0xFFFFFFFFU));
-                    BinaryPrimitives.WriteUInt32BigEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)(uint)value);
                 }
                 else
                 {
@@ -180,7 +174,7 @@ public partial class MixedEndianScenarioTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(12)) & 0xFFFF);
+                    return (ushort)BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(12));
                 }
                 int ep = 96 + _bitOffset;
                 int bi = ep >> 3;
@@ -194,9 +188,7 @@ public partial class MixedEndianScenarioTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(12);
-                    ushort raw = BinaryPrimitives.ReadUInt16LittleEndian(slice);
-                    raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                    BinaryPrimitives.WriteUInt16LittleEndian(slice, raw);
+                    BinaryPrimitives.WriteUInt16LittleEndian(slice, (ushort)value);
                 }
                 else
                 {

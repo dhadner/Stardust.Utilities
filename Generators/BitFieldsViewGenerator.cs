@@ -139,6 +139,17 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                     {
                         var width = resolved.Value.Width;
                         var qualifiedName = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                        // SD0020: Floating-point / opaque property type width mismatch
+                        var fpDiag = GeneratorUtils.ValidateFloatPropertyWidth(
+                            qualifiedName, width, member.Name, structSymbol.Name,
+                            member.Locations.Length > 0 ? member.Locations[0] : null);
+                        if (fpDiag != null)
+                        {
+                            propertyDiagnostics.Add(fpDiag);
+                            continue;
+                        }
+
                         var (nativeType, fieldByteOrder) = ResolveEndianType(qualifiedName);
 
                         // If no endian-type override, check if the property type is a [BitFields]
@@ -388,6 +399,10 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         // Generate JSON converter
         GenerateJsonConverter(sb, info, mind);
 
+        // Emit opaque bit-reinterpretation helpers for decimal property types
+        if (info.Fields.Any(f => f.PropertyType == "decimal"))
+            EmitDecimalHelpers(sb, mind);
+
         sb.AppendLine($"{ind}}}");
 
 
@@ -425,7 +440,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             int lastByte = end / 8;
 
             int byteSpan = lastByte - firstByte + 1;
-            int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : 8;
+            int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : byteSpan <= 8 ? 8 : 16;
             int needed = firstByte + readWidth;
             if (needed > minBytes) minBytes = needed;
         }
@@ -458,13 +473,13 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         int start = field.Shift;
         int width = field.Width;
         int end = start + width - 1;
-        ulong mask = width == 64 ? ulong.MaxValue : (1UL << width) - 1;
+        ulong mask = (width >= 64) ? ulong.MaxValue : (1UL << width) - 1;
 
         // === Compute values for the fast path (_bitOffset == 0) ===
         int firstByte = start / 8;
         int lastByte = end / 8;
         int byteSpan = lastByte - firstByte + 1;
-        int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : 8;
+        int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : byteSpan <= 8 ? 8 : 16;
         int readBits = readWidth * 8;
 
         int rightShift;
@@ -487,7 +502,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         // Worst-case byte span with any bit offset 0-7
         int maxSpan = (width + 6) / 8 + 1;
         if (width <= 1) maxSpan = 1; // single bit never spans two bytes
-        int oReadWidth = maxSpan <= 1 ? 1 : maxSpan <= 2 ? 2 : maxSpan <= 4 ? 4 : 8;
+        int oReadWidth = maxSpan <= 1 ? 1 : maxSpan <= 2 ? 2 : maxSpan <= 4 ? 4 : maxSpan <= 8 ? 8 : 16;
         string oReadType, oReadMethod, oWriteMethod;
         GetReadWriteMethods(info, oReadWidth, out oReadType, out oReadMethod, out oWriteMethod, field.FieldByteOrder);
         string oMaskLiteral = FormatMask(mask, oReadType);
@@ -533,21 +548,25 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string readMethod, string maskLiteral, int width, int byteSpan)
     {
         string cast = GetterCast(field);
+        string gSuffix = GetterSuffix(field);
         if (byteSpan == 1)
         {
             if (rightShift == 0 && width == 8)
-                sb.AppendLine($"{ind}return {cast}s[{firstByte}];");
+                sb.AppendLine($"{ind}return {cast}s[{firstByte}]{gSuffix};");
             else if (rightShift == 0)
-                sb.AppendLine($"{ind}return {cast}(s[{firstByte}] & {maskLiteral});");
+                sb.AppendLine($"{ind}return {cast}(s[{firstByte}] & {maskLiteral}){gSuffix};");
             else
-                sb.AppendLine($"{ind}return {cast}((s[{firstByte}] >> {rightShift}) & {maskLiteral});");
+                sb.AppendLine($"{ind}return {cast}((s[{firstByte}] >> {rightShift}) & {maskLiteral}){gSuffix};");
         }
         else
         {
-            if (rightShift == 0)
-                sb.AppendLine($"{ind}return {cast}({readMethod}(s.Slice({firstByte})) & {maskLiteral});");
+            int readBits = readWidth * 8;
+            if (rightShift == 0 && width == readBits)
+                sb.AppendLine($"{ind}return {cast}{readMethod}(s.Slice({firstByte})){gSuffix};");
+            else if (rightShift == 0)
+                sb.AppendLine($"{ind}return {cast}({readMethod}(s.Slice({firstByte})) & {maskLiteral}){gSuffix};");
             else
-                sb.AppendLine($"{ind}return {cast}(({readMethod}(s.Slice({firstByte})) >> {rightShift}) & {maskLiteral});");
+                sb.AppendLine($"{ind}return {cast}(({readMethod}(s.Slice({firstByte})) >> {rightShift}) & {maskLiteral}){gSuffix};");
         }
     }
 
@@ -558,6 +577,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
         int oReadBits = oReadWidth * 8;
         string cast = GetterCast(field);
+        string gSuffix = GetterSuffix(field);
 
         sb.AppendLine($"{ind}int ep = {start} + _bitOffset;");
         sb.AppendLine($"{ind}int bi = ep >> 3;");
@@ -567,12 +587,12 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             if (isMsb)
             {
                 sb.AppendLine($"{ind}int sh = 7 - (ep & 7);");
-                sb.AppendLine($"{ind}return {cast}((s[bi] >> sh) & {oMaskLiteral});");
+                sb.AppendLine($"{ind}return {cast}((s[bi] >> sh) & {oMaskLiteral}){gSuffix};");
             }
             else
             {
                 sb.AppendLine($"{ind}int sh = ep & 7;");
-                sb.AppendLine($"{ind}return {cast}((s[bi] >> sh) & {oMaskLiteral});");
+                sb.AppendLine($"{ind}return {cast}((s[bi] >> sh) & {oMaskLiteral}){gSuffix};");
             }
         }
         else
@@ -586,7 +606,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             {
                 sb.AppendLine($"{ind}int sh = ep & 7;");
             }
-            sb.AppendLine($"{ind}return {cast}(({oReadMethod}(s.Slice(bi)) >> sh) & {oMaskLiteral});");
+            sb.AppendLine($"{ind}return {cast}(({oReadMethod}(s.Slice(bi)) >> sh) & {oMaskLiteral}){gSuffix};");
         }
     }
 
@@ -595,31 +615,51 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         string readMethod, string writeMethod, ulong mask, string maskLiteral, int width, int byteSpan)
     {
         string sCast = SetterCast(field, "byte");
+        string vSuffix = SetterValueSuffix(field);
         if (byteSpan == 1)
         {
             ulong shiftedMask = mask << rightShift;
             string invMask = $"0x{(byte)~shiftedMask & 0xFF:X2}";
             string smask = $"0x{(byte)shiftedMask:X2}";
             if (rightShift == 0 && width == 8)
-                sb.AppendLine($"{ind}s[{firstByte}] = {sCast}value;");
+                sb.AppendLine($"{ind}s[{firstByte}] = {sCast}value{vSuffix};");
             else if (rightShift == 0)
-                sb.AppendLine($"{ind}s[{firstByte}] = (byte)((s[{firstByte}] & {invMask}) | ({sCast}value & {smask}));");
+                sb.AppendLine($"{ind}s[{firstByte}] = (byte)((s[{firstByte}] & {invMask}) | ({sCast}value{vSuffix} & {smask}));");
             else
-                sb.AppendLine($"{ind}s[{firstByte}] = (byte)((s[{firstByte}] & {invMask}) | (({sCast}value << {rightShift}) & {smask}));");
+                sb.AppendLine($"{ind}s[{firstByte}] = (byte)((s[{firstByte}] & {invMask}) | (({sCast}value{vSuffix} << {rightShift}) & {smask}));");
         }
         else
         {
+            int readBits = readWidth * 8;
             string sCastR = SetterCast(field, readType);
-            ulong shiftedMask = mask << rightShift;
-            string invMaskLit, smaskLit;
-            FormatShiftedMasks(readType, shiftedMask, out invMaskLit, out smaskLit);
-            sb.AppendLine($"{ind}var slice = s.Slice({firstByte});");
-            sb.AppendLine($"{ind}{readType} raw = {readMethod}(slice);");
-            if (rightShift == 0)
-                sb.AppendLine($"{ind}raw = ({readType})((raw & {invMaskLit}) | ({sCastR}value & {smaskLit}));");
+            if (rightShift == 0 && width == readBits)
+            {
+                // Full-width write: no masking needed
+                sb.AppendLine($"{ind}var slice = s.Slice({firstByte});");
+                sb.AppendLine($"{ind}{writeMethod}(slice, {sCastR}value{vSuffix});");
+            }
             else
-                sb.AppendLine($"{ind}raw = ({readType})((raw & {invMaskLit}) | (({sCastR}value << {rightShift}) & {smaskLit}));");
-            sb.AppendLine($"{ind}{writeMethod}(slice, raw);");
+            {
+                string invMaskLit, smaskLit;
+                if (readType == "UInt128")
+                {
+                    // For UInt128, the shifted mask can exceed 64 bits, so emit
+                    // the shift as a runtime expression instead of a precomputed literal.
+                    FormatShiftedMasks128(maskLiteral, rightShift, out invMaskLit, out smaskLit);
+                }
+                else
+                {
+                    ulong shiftedMask = mask << rightShift;
+                    FormatShiftedMasks(readType, shiftedMask, out invMaskLit, out smaskLit);
+                }
+                sb.AppendLine($"{ind}var slice = s.Slice({firstByte});");
+                sb.AppendLine($"{ind}{readType} raw = {readMethod}(slice);");
+                if (rightShift == 0)
+                    sb.AppendLine($"{ind}raw = ({readType})((raw & {invMaskLit}) | ({sCastR}value{vSuffix} & {smaskLit}));");
+                else
+                    sb.AppendLine($"{ind}raw = ({readType})((raw & {invMaskLit}) | (({sCastR}value{vSuffix} << {rightShift}) & {smaskLit}));");
+                sb.AppendLine($"{ind}{writeMethod}(slice, raw);");
+            }
         }
     }
 
@@ -629,6 +669,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     {
         bool isMsb = info.BitOrder == BitOrder.BitZeroIsMsb;
         int oReadBits = oReadWidth * 8;
+        string vSuffix = SetterValueSuffix(field);
 
         sb.AppendLine($"{ind}int ep = {start} + _bitOffset;");
         sb.AppendLine($"{ind}int bi = ep >> 3;");
@@ -645,7 +686,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                 sb.AppendLine($"{ind}int sh = ep & 7;");
             }
             sb.AppendLine($"{ind}int m = {FormatMask(mask, "byte")} << sh;");
-            sb.AppendLine($"{ind}s[bi] = (byte)((s[bi] & ~m) | (({sCast}value << sh) & m));");
+            sb.AppendLine($"{ind}s[bi] = (byte)((s[bi] & ~m) | (({sCast}value{vSuffix} << sh) & m));");
         }
         else
         {
@@ -662,7 +703,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             sb.AppendLine($"{ind}var slice = s.Slice(bi);");
             sb.AppendLine($"{ind}{oReadType} raw = {oReadMethod}(slice);");
             sb.AppendLine($"{ind}{oReadType} m = ({oReadType})({oMaskLiteral} << sh);");
-            sb.AppendLine($"{ind}raw = ({oReadType})((raw & ({oReadType})~m) | (({sCast}value << sh) & m));");
+            sb.AppendLine($"{ind}raw = ({oReadType})((raw & ({oReadType})~m) | (({sCast}value{vSuffix} << sh) & m));");
             sb.AppendLine($"{ind}{oWriteMethod}(slice, raw);");
         }
     }
@@ -775,9 +816,18 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// Produces the cast prefix for converting a raw read result to the property type.
     /// For endian-aware types where PropertyType != NativeType (e.g., Int32Be with native int),
     /// emits a two-step cast: (Int32Be)(int)(...). For plain types, emits a single cast: (int)(...).
+    /// For floating-point property types (Half, float, double), wraps with BitConverter.*BitsTo*
+    /// so the raw unsigned bits are reinterpreted as the float type.
     /// </summary>
     private static string GetterCast(BitFieldInfo field)
     {
+        // Floating-point property types need BitConverter wrapping instead of a C-style cast.
+        if (IsFloatingPointPropertyType(field.PropertyType))
+        {
+            string fromBits = FloatPropertyFromBits(field.PropertyType);
+            string unsignedType = FloatPropertyUnsignedType(field.PropertyType);
+            return $"{fromBits}(({unsignedType})";
+        }
         if (field.PropertyType != field.NativeType)
             return $"({field.PropertyType})({field.NativeType})";
         return $"({field.PropertyType})";
@@ -787,12 +837,92 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// Produces the cast for converting a property value to the unsigned read type for setter logic.
     /// For endian-aware types, chains through the native type: (uint)(int)value.
     /// For plain types, casts directly: (uint)value.
+    /// For floating-point property types, converts via BitConverter first:
+    /// (uint)BitConverter.SingleToUInt32Bits(value) instead of (uint)value.
     /// </summary>
     private static string SetterCast(BitFieldInfo field, string readType)
     {
+        // Floating-point property types: convert to raw bits, then cast to the read type.
+        if (IsFloatingPointPropertyType(field.PropertyType))
+        {
+            string toBits = FloatPropertyToBits(field.PropertyType);
+            return $"({readType}){toBits}(";
+        }
         if (field.PropertyType != field.NativeType)
             return $"({readType})({field.NativeType})";
         return $"({readType})";
+    }
+
+    /// <summary>
+    /// Returns the suffix to append after <c>value</c> in setter expressions.
+    /// For floating-point property types the <see cref="SetterCast"/> opens a
+    /// <c>BitConverter.*To*Bits(</c> call that needs a closing <c>)</c>.
+    /// For all other types, returns an empty string.
+    /// </summary>
+    private static string SetterValueSuffix(BitFieldInfo field)
+    {
+        return IsFloatingPointPropertyType(field.PropertyType) ? ")" : "";
+    }
+
+    /// <summary>
+    /// Returns the suffix to append after the getter expression.
+    /// For floating-point property types the <see cref="GetterCast"/> opens a
+    /// <c>BitConverter.*BitsTo*(</c> call that needs a closing <c>)</c>.
+    /// For all other types, returns an empty string.
+    /// </summary>
+    private static string GetterSuffix(BitFieldInfo field)
+    {
+        return IsFloatingPointPropertyType(field.PropertyType) ? ")" : "";
+    }
+
+    /// <summary>
+    /// Determines if a property type name represents a floating-point type.
+    /// </summary>
+    private static bool IsFloatingPointPropertyType(string typeName)
+    {
+        return typeName is "float" or "double" or "decimal"
+            or "Half" or "global::System.Half" or "System.Half";
+    }
+
+    private static string FloatPropertyUnsignedType(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => "ushort",
+        "float" => "uint",
+        "double" => "ulong",
+        "decimal" => "UInt128",
+        _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
+    };
+
+    private static string FloatPropertyFromBits(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => "BitConverter.UInt16BitsToHalf",
+        "float" => "BitConverter.UInt32BitsToSingle",
+        "double" => "BitConverter.UInt64BitsToDouble",
+        "decimal" => "UInt128BitsToDecimal",
+        _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
+    };
+
+    private static string FloatPropertyToBits(string typeName) => typeName switch
+    {
+        "Half" or "global::System.Half" or "System.Half" => "BitConverter.HalfToUInt16Bits",
+        "float" => "BitConverter.SingleToUInt32Bits",
+        "double" => "BitConverter.DoubleToUInt64Bits",
+        "decimal" => "DecimalToUInt128Bits",
+        _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
+    };
+
+    /// <summary>
+    /// Emits private static helper methods for opaque decimal ? UInt128 bit reinterpretation.
+    /// Uses <c>Unsafe.As</c> which is a zero-cost JIT intrinsic on .NET 7+.
+    /// </summary>
+    private static void EmitDecimalHelpers(StringBuilder sb, string ind)
+    {
+        sb.AppendLine();
+        sb.AppendLine($"{ind}// ?? Opaque decimal ? UInt128 bit reinterpretation ??");
+        sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{ind}private static decimal UInt128BitsToDecimal(UInt128 bits) => Unsafe.As<UInt128, decimal>(ref bits);");
+        sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        sb.AppendLine($"{ind}private static UInt128 DecimalToUInt128Bits(decimal value) => Unsafe.As<decimal, UInt128>(ref value);");
     }
 
     /// <summary>
@@ -863,7 +993,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                 ? "BinaryPrimitives.WriteUInt32BigEndian"
                 : "BinaryPrimitives.WriteUInt32LittleEndian";
         }
-        else
+        else if (readWidth == 8)
         {
             readType = "ulong";
             readMethod = isBE
@@ -872,6 +1002,16 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             writeMethod = isBE
                 ? "BinaryPrimitives.WriteUInt64BigEndian"
                 : "BinaryPrimitives.WriteUInt64LittleEndian";
+        }
+        else
+        {
+            readType = "UInt128";
+            readMethod = isBE
+                ? "BinaryPrimitives.ReadUInt128BigEndian"
+                : "BinaryPrimitives.ReadUInt128LittleEndian";
+            writeMethod = isBE
+                ? "BinaryPrimitives.WriteUInt128BigEndian"
+                : "BinaryPrimitives.WriteUInt128LittleEndian";
         }
     }
 
@@ -882,6 +1022,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             "byte" => $"0x{(byte)mask:X2}",
             "ushort" => $"0x{(ushort)mask:X4}",
             "uint" => $"0x{(uint)mask:X}U",
+            "UInt128" => $"(UInt128)0x{mask:X}UL",
             _ => $"0x{mask:X}UL"
         };
     }
@@ -1032,5 +1173,16 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                 smaskLit = $"0x{shiftedMask:X}UL";
                 break;
         }
+    }
+
+    /// <summary>
+    /// Overload for UInt128 shifted masks where the shift can push a 64-bit mask
+    /// beyond 64 bits.  Emits the mask and inverted mask as runtime expressions.
+    /// </summary>
+    private static void FormatShiftedMasks128(string maskLiteral, int rightShift,
+        out string invMaskLit, out string smaskLit)
+    {
+        smaskLit = $"({maskLiteral} << {rightShift})";
+        invMaskLit = $"~({maskLiteral} << {rightShift})";
     }
 }

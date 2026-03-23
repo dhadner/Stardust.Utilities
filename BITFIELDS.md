@@ -22,6 +22,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 - [Attributes](#attributes)
 - [Byte Order and Bit Order](#byte-order-and-bit-order)
 - [Signed Property Types (Sign Extension)](#signed-property-types-sign-extension)
+- [Floating-Point and Decimal Property Types](#floating-point-and-decimal-property-types)
 
 **Value Types (struct)**
 - [Supported Storage Types](#supported-storage-types)
@@ -133,6 +134,7 @@ The struct-level `ByteOrder` controls how multi-byte fields are serialized; plai
 |---|---|---|
 | Backing | Private value field | `Memory<byte>` (external buffer) |
 | Copy cost | Copies all data on assignment | Copies only the 24-byte view header |
+| Performance | Identical to hand-coded bit ops (inline shift/mask) | One level of indirection through `Memory<byte>.Span`; still very fast but not zero-cost |
 | Max size | ~16 KB | Unlimited |
 | Operators | Full arithmetic, bitwise, comparison | None (it is a view, not a value) |
 | Conversions | Implicit to/from storage type | Constructor from `byte[]` / `Memory<byte>` |
@@ -254,6 +256,50 @@ Console.WriteLine(reg.Speed);   // 5 (unsigned, stays positive)
 
 ---
 
+## Floating-Point and Decimal Property Types
+
+`Half`, `float`, `double`, and `decimal` can be used as property types inside `[BitFields]`
+structs and record struct views. These types are treated as opaque bit patterns -- the raw bits
+are reinterpreted without inspecting sign, scale, or mantissa. This means the field width must
+match the type's exact bit size:
+
+| Property Type | Required Width | Notes |
+|---------------|---------------|-------|
+| `Half` | 16 bits | IEEE 754 half-precision |
+| `float` | 32 bits | IEEE 754 single-precision |
+| `double` | 64 bits | IEEE 754 double-precision |
+| `decimal` | 128 bits | .NET decimal (opaque 128-bit blob) |
+
+Using a mismatched width produces compiler error **SD0020**. For example,
+`[BitField(0, End = 31)] public partial double Val { get; set; }` is an error because `double`
+requires 64 bits but only 32 are declared.
+
+```csharp
+// Value type: decimal inside a 256-bit multi-word struct
+[BitFields(256)]
+public partial struct SensorReading
+{
+    [BitField(0, End = 127)]   public partial decimal Measurement { get; set; }
+    [BitField(128, End = 191)] public partial ulong Timestamp { get; set; }
+    [BitField(192, End = 255)] public partial ulong SensorId { get; set; }
+}
+
+// View: float and double at arbitrary bit positions in a byte buffer
+[BitFields]
+public partial record struct MixedFloatView
+{
+    [BitField(0, End = 31)]    public partial float Temperature { get; set; }
+    [BitField(32, End = 95)]   public partial double Pressure { get; set; }
+    [BitField(96, End = 223)]  public partial decimal Altitude { get; set; }
+}
+```
+
+The generator uses `BitConverter.*BitsTo*` / `*To*Bits` for `Half`, `float`, and `double`, and
+`Unsafe.As<UInt128, decimal>` / `Unsafe.As<decimal, UInt128>` for `decimal` (zero-cost JIT
+intrinsics on .NET 7+). No intermediate allocations or copies are involved.
+
+---
+
 ## Supported Storage Types
 
 `[BitFields]` supports these storage types. The `StorageType` enum is the preferred way to
@@ -343,7 +389,7 @@ bit 55, not bit 24).
 Non-native storage types (`byte`, `uint`, `ulong`, etc.) are never affected by these diagnostics.
 Their bit widths are fixed regardless of platform.
 
-### BitField Syntax Diagnostics (SD0015–SD0019)
+### BitField Syntax Diagnostics (SD0015–SD0020)
 
 The source generator validates `[BitField]` attribute usage and emits diagnostics when the
 syntax is ambiguous, redundant, or incomplete:
@@ -355,6 +401,7 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0017** | Error | Both `End` and `Width` specified but inconsistent | Contradictory values. Remove one or correct them. |
 | **SD0018** | Error | `Start` present but no `End` or `Width` | Field range is incomplete. |
 | **SD0019** | Error | `End` or `Width` present but no `Start` | Start position is missing. |
+| **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width silently corrupts the value. |
 
 **SD0015** is a learning aid that reminds developers the second positional parameter is an
 inclusive *end bit*, not a *width*. Once the convention is familiar, suppress it globally:

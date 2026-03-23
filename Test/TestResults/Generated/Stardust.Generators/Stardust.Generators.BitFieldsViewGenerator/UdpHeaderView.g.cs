@@ -58,7 +58,7 @@ public partial record struct UdpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0));
             }
             int ep = 0 + _bitOffset;
             int bi = ep >> 3;
@@ -73,9 +73,7 @@ public partial record struct UdpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(0);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -100,7 +98,7 @@ public partial record struct UdpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
             int ep = 16 + _bitOffset;
             int bi = ep >> 3;
@@ -115,9 +113,7 @@ public partial record struct UdpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(2);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -142,7 +138,7 @@ public partial record struct UdpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4));
             }
             int ep = 32 + _bitOffset;
             int bi = ep >> 3;
@@ -157,9 +153,7 @@ public partial record struct UdpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(4);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
@@ -184,7 +178,7 @@ public partial record struct UdpHeaderView
             var s = _data.Span;
             if (_bitOffset == 0)
             {
-                return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6)) & 0xFFFF);
+                return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6));
             }
             int ep = 48 + _bitOffset;
             int bi = ep >> 3;
@@ -199,9 +193,7 @@ public partial record struct UdpHeaderView
             if (_bitOffset == 0)
             {
                 var slice = s.Slice(6);
-                ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
-                raw = (ushort)((raw & 0x0000) | ((ushort)value & 0xFFFF));
-                BinaryPrimitives.WriteUInt16BigEndian(slice, raw);
+                BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
