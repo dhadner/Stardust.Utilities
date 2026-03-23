@@ -12,7 +12,7 @@ and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2
 - **Documentation consolidated** -- README.md and BITFIELDS.md rewritten to present a single `[BitFields]` attribute with `struct` vs `record struct` as the only differentiator. The `[BitFieldsView]` attribute is mentioned only in a deprecation notice.
 
 ### 🟢 Added
-- **Unified `[BitFields]` attribute
+- **Unified `[BitFields]` attribute**
 - **JSON serialization for all `[BitFields]` types** -- every generated `[BitFields]` type (both value types and record struct views) now includes a `System.Text.Json` converter applied via `[JsonConverter]`. The converter serializes the underlying storage as a `"0x..."` hex string and round-trips through `Parse`. For record struct views, the converter serializes the `Memory<byte>` bytes in the same hex format and deserializes by parsing the hex string back into a `byte[]`. Works in DTOs (Data Transfer Objects), REST APIs, and configuration files without setup. Comprehensive test coverage for all 16 supported storage types (`byte`, `sbyte`, `ushort`, `short`, `uint`, `int`, `ulong`, `long`, `nint`, `nuint`, `Half`, `float`, `double`, `decimal`, `UInt128`, `Int128`), all multi-word size classes (65/128/200/256/512/16384-bit including cross-word fields), `StorageType` enum-constructor variants, big-endian and little-endian views, embedded BitFields composition, hex/binary/decimal format deserialization, and null-to-default behavior. Added dedicated JSON serialization sections in README.md and BITFIELDS.md.
 - **Span serialization documentation** -- added dedicated `Span Serialization` sections in README.md and BITFIELDS.md documenting the generated `ReadFrom`, `WriteTo`, `TryWriteTo`, and `ToByteArray` methods.
 - **Unified attribute tests** -- 4 tests verifying that `[BitFields]` on a `record struct` produces identical behavior to the deprecated `[BitFieldsView]`, covering big-endian, little-endian, set/get, and JSON round-trip.
@@ -41,7 +41,7 @@ and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## [0.9.6] - 2026-03-21
 ### 🟣 Changed
-- **Two-parameter `[BitField(startBit, endBit)]`
+- **Two-parameter `[BitField(startBit, endBit)]`**
 - **`MustBe`/`UndefinedBitsMustBe` enforcement across all operations** -- `MustBe.Zero` and `MustBe.One` constraints on `[BitField]`/`[BitFlag]` are now enforced in setters, `With...` methods, constructors, parsing, and implicit conversions. Previously these constraints were only masked on read.
 
 ### 🟢 Added
