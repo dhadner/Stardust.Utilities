@@ -24,7 +24,7 @@ Provide context about what you're trying to accomplish:
 // Share relevant code if it helps explain your question
 ```
 
-## Documentation Checked
+## Documentation Hints
 
 - [ ] I have read the [README](https://github.com/dhadner/Stardust.Utilities/blob/main/README.md)
 - [ ] I have read the relevant detailed docs:

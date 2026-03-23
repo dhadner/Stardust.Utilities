@@ -22,7 +22,7 @@ Describe the solution you'd like. How would this feature work?
 
 ```csharp
 // Example of how you'd like to use the feature
-[BitFields(typeof(byte))]
+[BitFields(StorageType.<type>)]
 public partial struct MyRegister
 {
     // Proposed new attribute or syntax

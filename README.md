@@ -153,8 +153,8 @@ public partial struct StatusRegister
     [BitFlag(0)] public partial bool Ready { get; set; }         // bit 0
     [BitFlag(1)] public partial bool Error { get; set; }         // bit 1
     [BitFlag(7)] public partial bool Busy { get; set; }          // bit 7
-    [BitField(2, End = 4)] public partial byte Mode { get; set; }      // bits 2-4 (3 bits)
-    [BitField(5, End = 6)] public partial byte Priority { get; set; }  // bits 5-6 (2 bits)
+    [BitField(2, 4)] public partial byte Mode { get; set; }      // bits 2-4 (3 bits)
+    [BitField(5, 6)] public partial byte Priority { get; set; }  // bits 5-6 (2 bits)
 }
 ```
 
@@ -289,10 +289,10 @@ When a property is declared with a signed type (`sbyte`, `short`, `int`, `long`)
 public partial struct MotionRegister
 {
     // 3-bit signed delta. Values: -4 to +3
-    [BitField(13, End = 15)] public partial sbyte DeltaX { get; set; }
+    [BitField(13, 15)] public partial sbyte DeltaX { get; set; }
     
     // 3-bit unsigned field. Values: 0 to 7 (no sign extension)
-    [BitField(10, End = 12)] public partial byte Speed { get; set; }
+    [BitField(10, 12)] public partial byte Speed { get; set; }
 }
 
 // Usage
@@ -320,15 +320,15 @@ public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
-    [BitField(4, End = 7)] public partial byte Priority { get; set; }
+    [BitField(4, 7)] public partial byte Priority { get; set; }
 }
 
 // Header that embeds StatusFlags
 [BitFields(StorageType.UInt16)]
 public partial struct ProtocolHeader
 {
-    [BitField(0, End = 7)] public partial StatusFlags Status { get; set; }  // Embedded!
-    [BitField(8, End = 15)] public partial byte Length { get; set; }
+    [BitField(0, 7)] public partial StatusFlags Status { get; set; }  // Embedded!
+    [BitField(8, 15)] public partial byte Length { get; set; }
 }
 
 // Usage - chained property access works
@@ -346,8 +346,8 @@ When a struct doesn't define fields covering all bits of its storage type, those
 [BitFields(StorageType.UInt16, UndefinedBitsMustBe.Zeroes)]
 public partial struct SubHeader9
 {
-    [BitField(0, End = 3)] public partial byte TypeCode { get; set; }  // bits 0-3
-    [BitField(4, End = 8)] public partial byte Flags { get; set; }     // bits 4-8
+    [BitField(0, 3)] public partial byte TypeCode { get; set; }  // bits 0-3
+    [BitField(4, 8)] public partial byte Flags { get; set; }     // bits 4-8
     // Bits 9-15: UNDEFINED — always forced to zero
 }
 
@@ -371,7 +371,7 @@ public partial struct PacketFlags
 {
     [BitFlag(0)] public partial bool Valid { get; set; }      // Normal flag
     [BitFlag(7, MustBe.One)] public partial bool Sync { get; set; }  // Always 1
-    [BitField(1, MustBe.Zero, End = 3)] public partial byte Reserved { get; set; }  // Always 0
+    [BitField(1, MustBe.Zero, 3)] public partial byte Reserved { get; set; }  // Always 0
 }
 ```
 
@@ -389,7 +389,7 @@ public partial class HardwareController
     {
         [BitFlag(0)] public partial bool Ready { get; set; }
         [BitFlag(1)] public partial bool Error { get; set; }
-        [BitField(8, End = 15)] public partial byte ErrorCode { get; set; }  // bits 8-15 (8 bits)
+        [BitField(8, 15)] public partial byte ErrorCode { get; set; }  // bits 8-15 (8 bits)
     }
     
     private StatusRegister _status;
@@ -517,7 +517,7 @@ For each flag and field, static properties provide the corresponding bit pattern
 // For [BitFlag(0)] Ready - get a value with only that bit set
 StatusRegister readyBit = StatusRegister.ReadyBit;   // 0x01
 
-// For [BitField(2, End = 4)] Mode - get the mask for that field
+// For [BitField(2, 4)] Mode - get the mask for that field
 StatusRegister modeMask = StatusRegister.ModeMask;   // 0x1C (bits 2-4)
 
 // Useful for testing and masking
@@ -614,16 +614,16 @@ using Stardust.Utilities;
 public partial record struct RegisterView
 {
     [BitFlag(0)]       public partial bool Active { get; set; }
-    [BitField(8, End = 15)]  public partial byte Status { get; set; }
+    [BitField(8, 15)]  public partial byte Status { get; set; }
 }
 
 // For network protocols: big-endian, MSB-first (RFC convention)
 [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct IPv6Header
 {
-    [BitField(0, End = 3)]   public partial byte Version { get; set; }
-    [BitField(4, End = 11)]  public partial byte TrafficClass { get; set; }
-    [BitField(12, End = 31)] public partial uint FlowLabel { get; set; }
+    [BitField(0, 3)]   public partial byte Version { get; set; }
+    [BitField(4, 11)]  public partial byte TrafficClass { get; set; }
+    [BitField(12, 31)] public partial uint FlowLabel { get; set; }
 }
 
 // Zero-copy: reads/writes directly in the packet buffer
@@ -683,25 +683,25 @@ public partial struct StatusFlags
 {
     [BitFlag(0)] public partial bool Ready { get; set; }
     [BitFlag(1)] public partial bool Error { get; set; }
-    [BitField(4, End = 7)] public partial byte Priority { get; set; }
+    [BitField(4, 7)] public partial byte Priority { get; set; }
 }
 
 // Network capture header (big-endian, MSB-first view)
 [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
 public partial record struct CaptureHeaderView
 {
-    [BitField(0, End = 15)]  public partial ushort Protocol { get; set; }
-    [BitField(16, End = 47)] public partial uint SequenceNum { get; set; }
+    [BitField(0, 15)]  public partial ushort Protocol { get; set; }
+    [BitField(16, 47)] public partial uint SequenceNum { get; set; }
 }
 
 // x86 file blob (little-endian view), embedding both
 [BitFields(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
 public partial record struct FileBlobView
 {
-    [BitField(0, End = 7)]     public partial StatusFlags Flags { get; set; }  // value type inside
-    [BitField(8, End = 39)]    public partial uint Timestamp { get; set; }     // LE native
-    [BitField(40, End = 71)]   public partial UInt32Be SrcIp { get; set; }     // per-field BE override
-    [BitField(72, End = 119)]  public partial CaptureHeaderView Cap { get; set; } // nested BE sub-view
+    [BitField(0, 7)]     public partial StatusFlags Flags { get; set; }  // value type inside
+    [BitField(8, 39)]    public partial uint Timestamp { get; set; }     // LE native
+    [BitField(40, 71)]   public partial UInt32Be SrcIp { get; set; }     // per-field BE override
+    [BitField(72, 119)]  public partial CaptureHeaderView Cap { get; set; } // nested BE sub-view
 }
 ```
 
@@ -817,7 +817,7 @@ pi.IsNormal;          // true
 +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
 |                                                                          Coefficient                                                                          |
 +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
-|Sign|               Undefined               |              Scale               |                                   Undefined                                   |
+|Sign|            Undefined             |                 Scale                 |                                   Undefined                                   |
 +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
 
   Coefficient: 96-bit unsigned integer coefficient (value before scaling)

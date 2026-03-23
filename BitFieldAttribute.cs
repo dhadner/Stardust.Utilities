@@ -26,6 +26,10 @@ namespace Stardust.Utilities;
 ///
 ///     // End syntax (inclusive):
 ///     // [BitField(0, End = 2)] public partial byte Sound { get; set; }
+///     
+///     // Second parameter is 'end' (inclusive).
+///     // A warning message is generated to clarify that this syntax is potentially confusing and can be mistaken for 'Width':
+///     // [BitField(0, 2)] public partial byte Sound { get; set; }
 ///
 ///     // Fully named syntax:
 ///     // [BitField(Start = 0, Width = 3)] public partial byte Sound { get; set; }

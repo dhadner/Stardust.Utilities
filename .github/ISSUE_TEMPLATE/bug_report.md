@@ -13,9 +13,9 @@ A clear and concise description of the bug.
 ## To Reproduce
 
 Steps to reproduce the behavior:
-
-1. Define a struct with `[BitFields(typeof(...))]`
-2. Add properties with `[BitField(...)]` or `[BitFlag(...)]`
+  
+1. Define a <`struct` or `record struct`> with <`[BitFields(<...>)]`>
+2. Add properties with <`[BitField(<...>)]` or `[BitFlag(<...>)]`>
 3. Call method '...'
 4. See error
 
@@ -31,7 +31,7 @@ What actually happened, including any error messages or stack traces.
 
 ```csharp
 // Minimal code to reproduce the issue
-[BitFields(typeof(byte))]
+[BitFields(StorageType.Byte)]
 public partial struct MyRegister
 {
     [BitFlag(0)] public partial bool Flag { get; set; }
@@ -48,7 +48,7 @@ If the issue is with generated code, please include the relevant portion:
 
 ## Environment
 
-- **Stardust.Utilities version**: [e.g., 0.9.2]
+- **Stardust.Utilities version**: [e.g., 0.9.6]
 - **.NET version**: [e.g., .NET 10.0]
 - **OS**: [e.g., Windows 11, macOS 14, Ubuntu 24.04]
 - **IDE**: [e.g., Visual Studio 2026, VS Code, Rider]

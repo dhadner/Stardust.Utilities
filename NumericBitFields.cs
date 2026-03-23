@@ -345,7 +345,7 @@ public partial struct IEEE754Double
 /// <summary>
 /// .NET <see cref="decimal"/> (128-bit) decomposition into coefficient, scale, and sign.
 /// <code>
-/// Bits:  127 | 126-119 | 118-112 | 111-96   | 95-0
+/// Bits:  127 | 126-120 | 119-112 | 111-96   | 95-0
 ///        Sign| Reserved| Scale   | Reserved | 96-bit unsigned coefficient
 /// </code>
 /// </summary>
@@ -365,14 +365,14 @@ public partial struct IEEE754Double
 /// </code>
 /// </para>
 /// </remarks>
-[BitFields(StorageType.Decimal, Description = ".NET Decimal (128-bit)")]
+[BitFields(StorageType.Decimal, UndefinedBitsMustBe.Zeroes, Description = ".NET Decimal (128-bit)")]
 public partial struct DecimalBitFields
 {
     /// <summary>96-bit unsigned integer coefficient.</summary>
     [BitField(0, End = 95, Description = "96-bit unsigned integer coefficient (value before scaling)")] public partial UInt128 Coefficient { get; set; }
 
-    /// <summary>Scale factor (0-28). The value is divided by 10^Scale.</summary>
-    [BitField(112, End = 118, Description = "Scale factor (0-28); value = Coefficient / 10^Scale")] public partial byte Scale { get; set; }
+    /// <summary>Scale factor (0-28). The value is divided by 10^Scale. The .NET format allocates 8 bits (bits 16-23 of the flags word) but only values 0-28 are valid.</summary>
+    [BitField(112, End = 119, Description = "Scale factor (0-28); value = Coefficient / 10^Scale")] public partial byte Scale { get; set; }
 
     /// <summary>Sign bit. <c>true</c> = negative, <c>false</c> = positive.</summary>
     [BitFlag(127, Description = "Sign bit: 1 = negative, 0 = positive")] public partial bool Sign { get; set; }
