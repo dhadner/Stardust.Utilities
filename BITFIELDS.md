@@ -45,6 +45,8 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 **Composition**
 - [Value Type Inside Value Type](#value-type-inside-value-type)
 - [Value Type Inside View](#value-type-inside-view)
+- [Composing `[BitFields(N)]` Structs](#composing-bitfieldsn-structs)
+- [Composing Multi-Word Structs (128-bit, 256-bit, etc.)](#composing-multi-word-structs-128-bit-256-bit-etc)
 - [Sub-View Nesting](#sub-view-nesting)
 - [Mixed-Endian Nesting](#mixed-endian-nesting)
 
@@ -318,7 +320,20 @@ mistakes before they happen. The `typeof(T)` form is also supported for backward
 | `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
 | `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
 | `StorageType.Decimal` | `typeof(decimal)` | 128 bits | .NET decimal |
-| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
+| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits. N <= 64 uses smallest backing type; N > 64 uses multi-word storage |
+
+When N is 1--64, the generator selects the smallest unsigned primitive that can hold N bits:
+
+| Bit Count | Backing Type | Struct Size |
+|-----------|-------------|-------------|
+| 1--8 | `byte` | 1 byte |
+| 9--16 | `ushort` | 2 bytes |
+| 17--32 | `uint` | 4 bytes |
+| 33--64 | `ulong` | 8 bytes |
+
+This right-sized backing makes `[BitFields(N)]` structs efficient for composition -- a
+`[BitFields(5)]` struct occupies just 1 byte and can be embedded at its exact 5-bit width
+inside a larger struct or view.
 
 Using `typeof(T)` with a type not in this table (for example, `typeof(Guid)`) produces
 compiler error **SD0003**, which names the unsupported type and lists all valid alternatives.
@@ -389,7 +404,7 @@ bit 55, not bit 24).
 Non-native storage types (`byte`, `uint`, `ulong`, etc.) are never affected by these diagnostics.
 Their bit widths are fixed regardless of platform.
 
-### BitField Syntax Diagnostics (SD0015–SD0020)
+### BitField Syntax Diagnostics (SD0015--SD0023)
 
 The source generator validates `[BitField]` attribute usage and emits diagnostics when the
 syntax is ambiguous, redundant, or incomplete:
@@ -402,6 +417,9 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0018** | Error | `Start` present but no `End` or `Width` | Field range is incomplete. |
 | **SD0019** | Error | `End` or `Width` present but no `Start` | Start position is missing. |
 | **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width silently corrupts the value. |
+| **SD0021** | Error | Embedded `[BitFields(N)]` struct width mismatch | The field width must exactly match the embedded type's declared N bits to avoid silent truncation. |
+| **SD0022** | Error | Record struct (view) used as property in value-type struct | Views are backed by `Memory<byte>` and cannot be stored in an integer field. Use a value-type struct. |
+| **SD0023** | Error | Multi-word type embedded in a single-word parent | A multi-word type (UInt128, Int128, decimal, `[BitFields(N)]` N > 64) cannot fit in a single-word (<=64-bit) parent. Use a multi-word parent or a view. |
 
 **SD0015** is a learning aid that reminds developers the second positional parameter is an
 inclusive *end bit*, not a *width*. Once the convention is familiar, suppress it globally:
@@ -905,6 +923,144 @@ view.Flags = new StatusFlags { Active = true, Code = 5 };
 Console.WriteLine(view.Flags.Active); // True
 Console.WriteLine(view.Flags.Code);   // 5
 ```
+
+## Composing `[BitFields(N)]` Structs
+
+`[BitFields(N)]` structs (N <= 64) are first-class composable types. Because the generator
+selects the smallest backing primitive (`byte` for N <= 8, `ushort` for N <= 16, etc.),
+these structs are compact and embed efficiently.
+
+### N-bit Struct Inside a Value Type
+
+```csharp
+[BitFields(5)]
+public partial struct StatusCode5
+{
+    [BitField(0, End = 2)] public partial byte Category { get; set; }  // 3 bits
+    [BitFlag(3)]           public partial bool Urgent { get; set; }
+    [BitFlag(4)]           public partial bool Ack { get; set; }
+}
+
+[BitFields(12)]
+public partial struct SensorReading12
+{
+    [BitField(0, End = 9)]  public partial ushort AdcValue { get; set; }  // 10-bit ADC
+    [BitField(10, End = 11)] public partial byte Channel { get; set; }    // 2-bit channel
+}
+
+[BitFields(typeof(uint))]
+public partial struct PacketHeader
+{
+    [BitField(0, End = 4)]   public partial StatusCode5 Status { get; set; }
+    [BitField(5, End = 16)]  public partial SensorReading12 Sensor { get; set; }
+    [BitField(17, End = 31)] public partial ushort Sequence { get; set; }
+}
+
+PacketHeader pkt = 0;
+pkt.Status = new StatusCode5 { Category = 3, Urgent = true };
+pkt.Sensor = new SensorReading12 { AdcValue = 512, Channel = 2 };
+pkt.Sequence = 42;
+pkt.Status.Urgent;         // true
+pkt.Sensor.AdcValue;       // 512
+```
+
+### N-bit Struct Inside an N-bit Struct
+
+```csharp
+[BitFields(32, UndefinedBitsMustBe.Zeroes)]
+public partial struct Packet32
+{
+    [BitField(0, End = 4)]   public partial StatusCode5 Status { get; set; }
+    [BitField(5, End = 15)]  public partial ushort Data { get; set; }
+    [BitField(16, End = 31)] public partial ushort Checksum { get; set; }
+}
+```
+
+### N-bit Struct Inside a View
+
+```csharp
+[BitFields]
+public partial record struct SensorView
+{
+    [BitField(0, End = 4)]   public partial StatusCode5 Status { get; set; }
+    [BitField(8, End = 19)]  public partial SensorReading12 Sensor { get; set; }
+    [BitField(24, End = 47)] public partial RgbColor24 Color { get; set; }
+    [BitField(48, End = 55)] public partial byte Tag { get; set; }
+}
+
+byte[] buffer = new byte[8];
+var view = new SensorView(buffer);
+view.Status = new StatusCode5 { Category = 6, Urgent = true };
+view.Sensor = new SensorReading12 { AdcValue = 768, Channel = 2 };
+view.Status.Category;     // 6
+view.Sensor.AdcValue;     // 768
+```
+
+All composition contexts -- value-type in value-type, N-bit in N-bit, N-bit in view --
+use the same implicit conversion operators generated for the backing type. No special
+syntax or configuration is needed.
+
+## Composing Multi-Word Structs (128-bit, 256-bit, etc.)
+
+Multi-word `[BitFields]` types (`UInt128`, `Int128`, `decimal`, or `[BitFields(N)]` with
+N > 64) can be embedded in multi-word value-type parents and record struct views. The
+generator uses span-based `ReadFrom`/`WriteTo` calls for multi-word embedding. Embedded
+multi-word fields can start at **any bit position** -- byte-alignment is not required.
+
+### Multi-Word Inside Multi-Word Value Type
+
+```csharp
+[BitFields(typeof(UInt128))]
+public partial struct GuidBits128
+{
+    [BitField(0, End = 63)]   public partial ulong Low { get; set; }
+    [BitField(64, End = 127)] public partial ulong High { get; set; }
+}
+
+[BitFields(typeof(decimal))]
+public partial struct DecimalPayload128
+{
+    [BitField(0, End = 95)]    public partial ulong Coefficient { get; set; }
+    [BitField(112, End = 118)] public partial byte Scale { get; set; }
+    [BitFlag(127)]             public partial bool Sign { get; set; }
+}
+
+[BitFields(512)]
+public partial struct TelemetryFrame
+{
+    [BitField(0, End = 127)]   public partial GuidBits128 Id { get; set; }
+    [BitField(128, End = 383)] public partial WidePayload256 Payload { get; set; }
+    [BitField(384, End = 511)] public partial DecimalPayload128 Footer { get; set; }
+}
+
+TelemetryFrame frame = default;
+frame.Id = new GuidBits128 { Low = 0xCAFE, High = 0xBEEF };
+frame.Footer = new DecimalPayload128 { Coefficient = 42, Scale = 2 };
+frame.Id.Low;              // 0xCAFE
+frame.Footer.Coefficient;  // 42
+```
+
+### Multi-Word Inside View
+
+```csharp
+[BitFields]
+public partial record struct FrameView
+{
+    [BitField(0, End = 31)]    public partial uint Header { get; set; }
+    [BitField(32, End = 159)]  public partial GuidBits128 Id { get; set; }
+    [BitField(160, End = 191)] public partial uint Checksum { get; set; }
+}
+
+byte[] buffer = new byte[FrameView.SIZE_IN_BYTES];
+var view = new FrameView(buffer);
+view.Header = 0xDEAD;
+view.Id = new GuidBits128 { Low = 0x1234, High = 0x5678 };
+view.Checksum = 0xBEEF;
+view.Id.High;  // 0x5678
+```
+
+Multi-word types cannot be embedded in single-word parents (the parent is too narrow).
+Attempting this produces compile error **SD0023**.
 
 ## Sub-View Nesting
 

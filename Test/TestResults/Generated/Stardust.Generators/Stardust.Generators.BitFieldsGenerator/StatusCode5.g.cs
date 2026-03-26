@@ -13,55 +13,67 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(ProtocolHeader16JsonConverter))]
-public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader16>, IEquatable<ProtocolHeader16>,
-                             IFormattable, ISpanFormattable, IParsable<ProtocolHeader16>, ISpanParsable<ProtocolHeader16>
+[JsonConverter(typeof(StatusCode5JsonConverter))]
+public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEquatable<StatusCode5>,
+                             IFormattable, ISpanFormattable, IParsable<StatusCode5>, ISpanParsable<StatusCode5>
 {
-    private ushort Value;
+    private byte Value;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SIZE_IN_BYTES = 2;
+    public const int SIZE_IN_BYTES = 1;
 
-    /// <summary>Returns a ProtocolHeader16 with all bits set to zero.</summary>
-    public static ProtocolHeader16 Zero => default;
+    /// <summary>Returns a StatusCode5 with all bits set to zero.</summary>
+    public static StatusCode5 Zero => default;
 
     // --- Bit field mask constants ---
-    // Status: bits [0..7], width 8
-    private const int STATUS_START_BIT = 0;
-    private const ushort STATUS_MASK = 0x00FF;
-    private const ushort STATUS_INVERTED_MASK = 0xFF00;  // ~STATUS_MASK
-    // Length: bits [8..15], width 8
-    private const int LENGTH_START_BIT = 8;
-    private const ushort LENGTH_MASK = 0x00FF;
-    private const ushort LENGTH_SHIFTED_MASK = 0xFF00;  // LENGTH_MASK << LENGTH_START_BIT
-    private const ushort LENGTH_INVERTED_MASK = 0x00FF;  // ~LENGTH_SHIFTED_MASK
+    // Category: bits [0..2], width 3
+    private const int CATEGORY_START_BIT = 0;
+    private const byte CATEGORY_MASK = 0x07;
+    private const byte CATEGORY_INVERTED_MASK = 0xF8;  // ~CATEGORY_MASK
+    // Urgent: bit 3
+    private const int URGENT_BIT = 3;
+    private const byte URGENT_MASK = 0x08;  // 1 << URGENT_BIT
+    private const byte URGENT_INVERTED_MASK = 0xF7;  // ~URGENT_MASK
+    // Acknowledged: bit 4
+    private const int ACKNOWLEDGED_BIT = 4;
+    private const byte ACKNOWLEDGED_MASK = 0x10;  // 1 << ACKNOWLEDGED_BIT
+    private const byte ACKNOWLEDGED_INVERTED_MASK = 0xEF;  // ~ACKNOWLEDGED_MASK
 
-    /// <summary>Creates a new ProtocolHeader16 with the specified raw bits value.</summary>
-    public ProtocolHeader16(ushort value) { Value = value; }
+    /// <summary>Creates a new StatusCode5 with the specified raw bits value.</summary>
+    public StatusCode5(byte value) { Value = value; }
 
-    public partial global::Stardust.Utilities.Tests.StatusFlags Status
+    public partial byte Category
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)((byte)(Value & STATUS_MASK));
+        get => (byte)(Value & CATEGORY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set { var __ev = (byte)value;
-            Value = (ushort)((Value & STATUS_INVERTED_MASK) | (((ushort)__ev) & STATUS_MASK));
-        }
+        set => Value = (byte)((Value & CATEGORY_INVERTED_MASK) | (((byte)value) & CATEGORY_MASK));
     }
 
-    public partial byte Length
+    public partial bool Urgent
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> LENGTH_START_BIT) & LENGTH_MASK);
+        get => (Value & URGENT_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & LENGTH_INVERTED_MASK) | ((((ushort)value) << LENGTH_START_BIT) & LENGTH_SHIFTED_MASK));
+        set => Value = value ? (byte)(Value | URGENT_MASK) : (byte)(Value & URGENT_INVERTED_MASK);
     }
 
-    /// <summary>Returns a ProtocolHeader16 with the mask for the Status field (bits 0-7).</summary>
-    public static ProtocolHeader16 StatusMask => new(STATUS_MASK);
+    public partial bool Acknowledged
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => (Value & ACKNOWLEDGED_MASK) != 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Value = value ? (byte)(Value | ACKNOWLEDGED_MASK) : (byte)(Value & ACKNOWLEDGED_INVERTED_MASK);
+    }
 
-    /// <summary>Returns a ProtocolHeader16 with the mask for the Length field (bits 8-15).</summary>
-    public static ProtocolHeader16 LengthMask => new(LENGTH_SHIFTED_MASK);
+    /// <summary>Returns a StatusCode5 with only the Urgent bit set.</summary>
+    public static StatusCode5 UrgentBit => new(URGENT_MASK);
+
+    /// <summary>Returns a StatusCode5 with only the Acknowledged bit set.</summary>
+    public static StatusCode5 AcknowledgedBit => new(ACKNOWLEDGED_MASK);
+
+    /// <summary>Returns a StatusCode5 with the mask for the Category field (bits 0-2).</summary>
+    public static StatusCode5 CategoryMask => new(CATEGORY_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -70,140 +82,145 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Status", 0, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Length", 8, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 16, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Category", 0, 3, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 5, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Urgent", 3, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 5, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Acknowledged", 4, 1, "bool", true, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 5, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
-    /// <summary>Returns a new ProtocolHeader16 with the Status field set to the specified value.</summary>
+    /// <summary>Returns a new StatusCode5 with the Urgent flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithStatus(global::Stardust.Utilities.Tests.StatusFlags value) => new((ushort)((Value & STATUS_INVERTED_MASK) | ((ushort)value & STATUS_MASK)));
+    public StatusCode5 WithUrgent(bool value) => new(value ? (byte)(Value | URGENT_MASK) : (byte)(Value & URGENT_INVERTED_MASK));
 
-    /// <summary>Returns a new ProtocolHeader16 with the Length field set to the specified value.</summary>
+    /// <summary>Returns a new StatusCode5 with the Acknowledged flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ProtocolHeader16 WithLength(byte value) => new((ushort)((Value & LENGTH_INVERTED_MASK) | (((ushort)value << LENGTH_START_BIT) & LENGTH_SHIFTED_MASK)));
+    public StatusCode5 WithAcknowledged(bool value) => new(value ? (byte)(Value | ACKNOWLEDGED_MASK) : (byte)(Value & ACKNOWLEDGED_INVERTED_MASK));
+
+    /// <summary>Returns a new StatusCode5 with the Category field set to the specified value.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public StatusCode5 WithCategory(byte value) => new((byte)((Value & CATEGORY_INVERTED_MASK) | ((byte)value & CATEGORY_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator ~(ProtocolHeader16 a) => new((ushort)~a.Value);
+    public static StatusCode5 operator ~(StatusCode5 a) => new((byte)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator |(ProtocolHeader16 a, ProtocolHeader16 b) => new((ushort)(a.Value | b.Value));
+    public static StatusCode5 operator |(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator &(ProtocolHeader16 a, ProtocolHeader16 b) => new((ushort)(a.Value & b.Value));
+    public static StatusCode5 operator &(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator ^(ProtocolHeader16 a, ProtocolHeader16 b) => new((ushort)(a.Value ^ b.Value));
+    public static StatusCode5 operator ^(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value ^ b.Value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator +(ProtocolHeader16 a) => a;
+    public static StatusCode5 operator +(StatusCode5 a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator -(ProtocolHeader16 a) => new(unchecked((ushort)(0 - a.Value)));
+    public static StatusCode5 operator -(StatusCode5 a) => new(unchecked((byte)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator +(ProtocolHeader16 a, ProtocolHeader16 b) => new(unchecked((ushort)(a.Value + b.Value)));
+    public static StatusCode5 operator +(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator +(ProtocolHeader16 a, ushort b) => new(unchecked((ushort)(a.Value + b)));
+    public static StatusCode5 operator +(StatusCode5 a, byte b) => new(unchecked((byte)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator +(ushort a, ProtocolHeader16 b) => new(unchecked((ushort)(a + b.Value)));
+    public static StatusCode5 operator +(byte a, StatusCode5 b) => new(unchecked((byte)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator -(ProtocolHeader16 a, ProtocolHeader16 b) => new(unchecked((ushort)(a.Value - b.Value)));
+    public static StatusCode5 operator -(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator -(ProtocolHeader16 a, ushort b) => new(unchecked((ushort)(a.Value - b)));
+    public static StatusCode5 operator -(StatusCode5 a, byte b) => new(unchecked((byte)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator -(ushort a, ProtocolHeader16 b) => new(unchecked((ushort)(a - b.Value)));
+    public static StatusCode5 operator -(byte a, StatusCode5 b) => new(unchecked((byte)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator *(ProtocolHeader16 a, ProtocolHeader16 b) => new(unchecked((ushort)(a.Value * b.Value)));
+    public static StatusCode5 operator *(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator *(ProtocolHeader16 a, ushort b) => new(unchecked((ushort)(a.Value * b)));
+    public static StatusCode5 operator *(StatusCode5 a, byte b) => new(unchecked((byte)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator *(ushort a, ProtocolHeader16 b) => new(unchecked((ushort)(a * b.Value)));
+    public static StatusCode5 operator *(byte a, StatusCode5 b) => new(unchecked((byte)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator /(ProtocolHeader16 a, ProtocolHeader16 b) => new((ushort)(a.Value / b.Value));
+    public static StatusCode5 operator /(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator /(ProtocolHeader16 a, ushort b) => new((ushort)(a.Value / b));
+    public static StatusCode5 operator /(StatusCode5 a, byte b) => new((byte)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator /(ushort a, ProtocolHeader16 b) => new((ushort)(a / b.Value));
+    public static StatusCode5 operator /(byte a, StatusCode5 b) => new((byte)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator %(ProtocolHeader16 a, ProtocolHeader16 b) => new((ushort)(a.Value % b.Value));
+    public static StatusCode5 operator %(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator %(ProtocolHeader16 a, ushort b) => new((ushort)(a.Value % b));
+    public static StatusCode5 operator %(StatusCode5 a, byte b) => new((byte)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 operator %(ushort a, ProtocolHeader16 b) => new((ushort)(a % b.Value));
+    public static StatusCode5 operator %(byte a, StatusCode5 b) => new((byte)(a % b.Value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(ProtocolHeader16 a, int b) => a.Value << b;
+    public static int operator <<(StatusCode5 a, int b) => a.Value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(ProtocolHeader16 a, int b) => a.Value >> b;
+    public static int operator >>(StatusCode5 a, int b) => a.Value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(ProtocolHeader16 a, int b) => a.Value >>> b;
+    public static int operator >>>(StatusCode5 a, int b) => a.Value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(ProtocolHeader16 a, ProtocolHeader16 b) => a.Value < b.Value;
+    public static bool operator <(StatusCode5 a, StatusCode5 b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(ProtocolHeader16 a, ProtocolHeader16 b) => a.Value > b.Value;
+    public static bool operator >(StatusCode5 a, StatusCode5 b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(ProtocolHeader16 a, ProtocolHeader16 b) => a.Value <= b.Value;
+    public static bool operator <=(StatusCode5 a, StatusCode5 b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(ProtocolHeader16 a, ProtocolHeader16 b) => a.Value >= b.Value;
+    public static bool operator >=(StatusCode5 a, StatusCode5 b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(ProtocolHeader16 a, ProtocolHeader16 b) => a.Value == b.Value;
+    public static bool operator ==(StatusCode5 a, StatusCode5 b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(ProtocolHeader16 a, ProtocolHeader16 b) => a.Value != b.Value;
+    public static bool operator !=(StatusCode5 a, StatusCode5 b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is ProtocolHeader16 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is StatusCode5 other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -212,30 +229,30 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(ProtocolHeader16 value) => value.Value;
+    public static implicit operator byte(StatusCode5 value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ProtocolHeader16(ushort value) => new(value);
+    public static implicit operator StatusCode5(byte value) => new(value);
 
     /// <summary>Implicit conversion from int. Truncates to storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ProtocolHeader16(int value) => new(unchecked((ushort)value));
+    public static implicit operator StatusCode5(int value) => new(unchecked((byte)value));
 
-    /// <summary>Creates a new ProtocolHeader16 from a little-endian byte span.</summary>
+    /// <summary>Creates a new StatusCode5 from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public ProtocolHeader16(ReadOnlySpan<byte> bytes)
+    public StatusCode5(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-        this = new ProtocolHeader16(BinaryPrimitives.ReadUInt16LittleEndian(bytes));
+        this = new StatusCode5(bytes[0]);
     }
 
-    /// <summary>Creates a new ProtocolHeader16 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new StatusCode5 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
-    /// <returns>The deserialized ProtocolHeader16.</returns>
+    /// <returns>The deserialized StatusCode5.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static StatusCode5 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
@@ -244,7 +261,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+        destination[0] = unchecked((byte)Value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -288,13 +305,13 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
         return sb.ToString();
     }
 
-    private static ushort ParseBinary(ReadOnlySpan<char> s)
+    private static byte ParseBinary(ReadOnlySpan<char> s)
     {
         var clean = RemoveUnderscores(s);
-        return Convert.ToUInt16(clean, 2);
+        return Convert.ToByte(clean, 2);
     }
 
-    private static bool TryParseBinary(ReadOnlySpan<char> s, out ushort result)
+    private static bool TryParseBinary(ReadOnlySpan<char> s, out byte result)
     {
         try
         {
@@ -308,28 +325,28 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
         }
     }
 
-    /// <summary>Parses a string into a ProtocolHeader16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a StatusCode5. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed ProtocolHeader16 value.</returns>
+    /// <returns>The parsed StatusCode5 value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static ProtocolHeader16 Parse(string s, IFormatProvider? provider)
+    public static StatusCode5 Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
         if (IsBinaryPrefix(span))
             return new(ParseBinary(span.Slice(2)));
         if (IsHexPrefix(span))
-            return new(ushort.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(ushort.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
+            return new(byte.Parse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(byte.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a ProtocolHeader16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a StatusCode5. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out ProtocolHeader16 result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out StatusCode5 result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -345,7 +362,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
         }
         if (IsHexPrefix(span))
         {
-            if (ushort.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (byte.TryParse(RemoveUnderscores(span.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -353,7 +370,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
             result = default;
             return false;
         }
-        if (ushort.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
+        if (byte.TryParse(RemoveUnderscores(span), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -362,25 +379,25 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
         return false;
     }
 
-    /// <summary>Parses a span of characters into a ProtocolHeader16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a StatusCode5. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed ProtocolHeader16 value.</returns>
-    public static ProtocolHeader16 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed StatusCode5 value.</returns>
+    public static StatusCode5 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
         if (IsHexPrefix(s))
-            return new(ushort.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
-        return new(ushort.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
+            return new(byte.Parse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider));
+        return new(byte.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a ProtocolHeader16. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a StatusCode5. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out ProtocolHeader16 result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out StatusCode5 result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -394,7 +411,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
         }
         if (IsHexPrefix(s))
         {
-            if (ushort.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
+            if (byte.TryParse(RemoveUnderscores(s.Slice(2)), NumberStyles.HexNumber, provider, out var hexValue))
             {
                 result = new(hexValue);
                 return true;
@@ -402,7 +419,7 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
             result = default;
             return false;
         }
-        if (ushort.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
+        if (byte.TryParse(RemoveUnderscores(s), NumberStyles.Integer, provider, out var value))
         {
             result = new(value);
             return true;
@@ -411,18 +428,18 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
         return false;
     }
 
-    /// <summary>Parses a string into a ProtocolHeader16 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a StatusCode5 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed ProtocolHeader16 value.</returns>
+    /// <returns>The parsed StatusCode5 value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ProtocolHeader16 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static StatusCode5 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a ProtocolHeader16 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a StatusCode5 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out ProtocolHeader16 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out StatusCode5 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -442,38 +459,38 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a ProtocolHeader16.</exception>
+    /// <exception cref="ArgumentException">obj is not a StatusCode5.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is ProtocolHeader16 other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type ProtocolHeader16", nameof(obj));
+        if (obj is StatusCode5 other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type StatusCode5", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another ProtocolHeader16 and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A ProtocolHeader16 to compare.</param>
+    /// <summary>Compares this instance to another StatusCode5 and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A StatusCode5 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(ProtocolHeader16 other) => Value.CompareTo(other.Value);
+    public int CompareTo(StatusCode5 other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another ProtocolHeader16.</summary>
-    /// <param name="other">A ProtocolHeader16 to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another StatusCode5.</summary>
+    /// <param name="other">A StatusCode5 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(ProtocolHeader16 other) => Value == other.Value;
+    public bool Equals(StatusCode5 other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes ProtocolHeader16 as a string.</summary>
-    private sealed class ProtocolHeader16JsonConverter : JsonConverter<ProtocolHeader16>
+    /// <summary>JSON converter that serializes StatusCode5 as a string.</summary>
+    private sealed class StatusCode5JsonConverter : JsonConverter<StatusCode5>
     {
-        /// <summary>Reads a ProtocolHeader16 from a JSON string.</summary>
-        public override ProtocolHeader16 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a StatusCode5 from a JSON string.</summary>
+        public override StatusCode5 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : ProtocolHeader16.Parse(s);
+            return s is null ? default : StatusCode5.Parse(s);
         }
 
-        /// <summary>Writes a ProtocolHeader16 to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, ProtocolHeader16 value, JsonSerializerOptions options)
+        /// <summary>Writes a StatusCode5 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, StatusCode5 value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

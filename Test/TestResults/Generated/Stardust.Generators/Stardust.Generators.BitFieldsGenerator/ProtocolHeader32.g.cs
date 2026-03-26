@@ -52,17 +52,21 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     public partial global::Stardust.Utilities.Tests.StatusFlags Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)(Value & STATUS_MASK);
+        get => (global::Stardust.Utilities.Tests.StatusFlags)((byte)(Value & STATUS_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & STATUS_INVERTED_MASK) | (((uint)value) & STATUS_MASK));
+        set { var __ev = (byte)value;
+            Value = (uint)((Value & STATUS_INVERTED_MASK) | (((uint)__ev) & STATUS_MASK));
+        }
     }
 
     public partial global::Stardust.Utilities.Tests.CommandCode Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.CommandCode)((Value >> COMMAND_START_BIT) & COMMAND_MASK);
+        get => (global::Stardust.Utilities.Tests.CommandCode)((byte)((Value >> COMMAND_START_BIT) & COMMAND_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
+        set { var __ev = (byte)value;
+            Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)__ev) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
+        }
     }
 
     public partial byte Version

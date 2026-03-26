@@ -13,103 +13,56 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(FileHeaderJsonConverter))]
-public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquatable<FileHeader>,
-                             IFormattable, ISpanFormattable, IParsable<FileHeader>, ISpanParsable<FileHeader>
+[JsonConverter(typeof(Timestamp48JsonConverter))]
+public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEquatable<Timestamp48>,
+                             IFormattable, ISpanFormattable, IParsable<Timestamp48>, ISpanParsable<Timestamp48>
 {
     private ulong Value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
 
-    /// <summary>Returns a FileHeader with all bits set to zero.</summary>
-    public static FileHeader Zero => default;
+    /// <summary>Returns a Timestamp48 with all bits set to zero.</summary>
+    public static Timestamp48 Zero => default;
 
     // --- Bit field mask constants ---
-    // Magic: bits [0..15], width 16
-    private const int MAGIC_START_BIT = 0;
-    private const ulong MAGIC_MASK = 0x000000000000FFFFUL;
-    private const ulong MAGIC_INVERTED_MASK = 0xFFFFFFFFFFFF0000UL;  // ~MAGIC_MASK
-    // Flags: bits [16..23], width 8
-    private const int FLAGS_START_BIT = 16;
-    private const ulong FLAGS_MASK = 0x00000000000000FFUL;
-    private const ulong FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // FLAGS_MASK << FLAGS_START_BIT
-    private const ulong FLAGS_INVERTED_MASK = 0xFFFFFFFFFF00FFFFUL;  // ~FLAGS_SHIFTED_MASK
-    // VersionMajor: bits [24..31], width 8
-    private const int VERSION_MAJOR_START_BIT = 24;
-    private const ulong VERSION_MAJOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // VERSION_MAJOR_MASK << VERSION_MAJOR_START_BIT
-    private const ulong VERSION_MAJOR_INVERTED_MASK = 0xFFFFFFFF00FFFFFFUL;  // ~VERSION_MAJOR_SHIFTED_MASK
-    // VersionMinor: bits [32..39], width 8
-    private const int VERSION_MINOR_START_BIT = 32;
-    private const ulong VERSION_MINOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // VERSION_MINOR_MASK << VERSION_MINOR_START_BIT
-    private const ulong VERSION_MINOR_INVERTED_MASK = 0xFFFFFF00FFFFFFFFUL;  // ~VERSION_MINOR_SHIFTED_MASK
-    // Reserved: bits [40..63], width 24
-    private const int RESERVED_START_BIT = 40;
-    private const ulong RESERVED_MASK = 0x0000000000FFFFFFUL;
-    private const ulong RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // RESERVED_MASK << RESERVED_START_BIT
-    private const ulong RESERVED_INVERTED_MASK = 0x000000FFFFFFFFFFUL;  // ~RESERVED_SHIFTED_MASK
+    // Seconds: bits [0..31], width 32
+    private const int SECONDS_START_BIT = 0;
+    private const ulong SECONDS_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong SECONDS_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~SECONDS_MASK
+    // Millis: bits [32..47], width 16
+    private const int MILLIS_START_BIT = 32;
+    private const ulong MILLIS_MASK = 0x000000000000FFFFUL;
+    private const ulong MILLIS_SHIFTED_MASK = 0x0000FFFF00000000UL;  // MILLIS_MASK << MILLIS_START_BIT
+    private const ulong MILLIS_INVERTED_MASK = 0xFFFF0000FFFFFFFFUL;  // ~MILLIS_SHIFTED_MASK
 
-    /// <summary>Creates a new FileHeader with the specified raw bits value.</summary>
-    public FileHeader(ulong value) { Value = value; }
+    // --- Constructor normalization masks ---
+    private const ulong NORMALIZATION_AND_MASK = 0x0000FFFFFFFFFFFFUL;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    public partial ushort Magic
+    /// <summary>Creates a new Timestamp48 with the specified raw bits value.</summary>
+    public Timestamp48(ulong value) { Value = (ulong)(value & NORMALIZATION_AND_MASK); }
+
+    public partial uint Seconds
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)(Value & MAGIC_MASK);
+        get => (uint)(Value & SECONDS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & MAGIC_INVERTED_MASK) | (((ulong)value) & MAGIC_MASK));
+        set => Value = (ulong)((Value & SECONDS_INVERTED_MASK) | (((ulong)value) & SECONDS_MASK));
     }
 
-    public partial global::Stardust.Utilities.Tests.StatusFlags Flags
+    public partial ushort Millis
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)((byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK));
+        get => (ushort)((Value >> MILLIS_START_BIT) & MILLIS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set { var __ev = (byte)value;
-            Value = (ulong)((Value & FLAGS_INVERTED_MASK) | ((((ulong)__ev) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
-        }
+        set => Value = (ulong)((Value & MILLIS_INVERTED_MASK) | ((((ulong)value) << MILLIS_START_BIT) & MILLIS_SHIFTED_MASK));
     }
 
-    public partial byte VersionMajor
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_MAJOR_START_BIT) & VERSION_MAJOR_MASK);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK));
-    }
+    /// <summary>Returns a Timestamp48 with the mask for the Seconds field (bits 0-31).</summary>
+    public static Timestamp48 SecondsMask => new(SECONDS_MASK);
 
-    public partial byte VersionMinor
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_MINOR_START_BIT) & VERSION_MINOR_MASK);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK));
-    }
-
-    public partial uint Reserved
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & RESERVED_INVERTED_MASK) | ((((ulong)value) << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK));
-    }
-
-    /// <summary>Returns a FileHeader with the mask for the Magic field (bits 0-15).</summary>
-    public static FileHeader MagicMask => new(MAGIC_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the Flags field (bits 16-23).</summary>
-    public static FileHeader FlagsMask => new(FLAGS_SHIFTED_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the VersionMajor field (bits 24-31).</summary>
-    public static FileHeader VersionMajorMask => new(VERSION_MAJOR_SHIFTED_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the VersionMinor field (bits 32-39).</summary>
-    public static FileHeader VersionMinorMask => new(VERSION_MINOR_SHIFTED_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
-    public static FileHeader ReservedMask => new(RESERVED_SHIFTED_MASK);
+    /// <summary>Returns a Timestamp48 with the mask for the Millis field (bits 32-47).</summary>
+    public static Timestamp48 MillisMask => new(MILLIS_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -118,203 +71,188 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Seconds", 0, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 48, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
+        new("Millis", 32, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 48, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
     };
 
-    /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>
+    /// <summary>Returns a new Timestamp48 with the Seconds field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithMagic(ushort value) => new((ulong)((Value & MAGIC_INVERTED_MASK) | ((ulong)value & MAGIC_MASK)));
+    public Timestamp48 WithSeconds(uint value) => new((ulong)((Value & SECONDS_INVERTED_MASK) | ((ulong)value & SECONDS_MASK)));
 
-    /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
+    /// <summary>Returns a new Timestamp48 with the Millis field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & FLAGS_INVERTED_MASK) | (((ulong)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
-
-    /// <summary>Returns a new FileHeader with the VersionMajor field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK)));
-
-    /// <summary>Returns a new FileHeader with the VersionMinor field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & VERSION_MINOR_INVERTED_MASK) | (((ulong)value << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK)));
-
-    /// <summary>Returns a new FileHeader with the Reserved field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithReserved(uint value) => new((ulong)((Value & RESERVED_INVERTED_MASK) | (((ulong)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
+    public Timestamp48 WithMillis(ushort value) => new((ulong)((Value & MILLIS_INVERTED_MASK) | (((ulong)value << MILLIS_START_BIT) & MILLIS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ~(FileHeader a) => new((ulong)~a.Value);
+    public static Timestamp48 operator ~(Timestamp48 a) => new((ulong)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(FileHeader a, FileHeader b) => new((ulong)(a.Value | b.Value));
+    public static Timestamp48 operator |(Timestamp48 a, Timestamp48 b) => new((ulong)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(FileHeader a, FileHeader b) => new((ulong)(a.Value & b.Value));
+    public static Timestamp48 operator &(Timestamp48 a, Timestamp48 b) => new((ulong)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(FileHeader a, FileHeader b) => new((ulong)(a.Value ^ b.Value));
+    public static Timestamp48 operator ^(Timestamp48 a, Timestamp48 b) => new((ulong)(a.Value ^ b.Value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(FileHeader a, ulong b) => new(a.Value & b);
+    public static Timestamp48 operator &(Timestamp48 a, ulong b) => new(a.Value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(ulong a, FileHeader b) => new(a & b.Value);
+    public static Timestamp48 operator &(ulong a, Timestamp48 b) => new(a & b.Value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(FileHeader a, ulong b) => new(a.Value | b);
+    public static Timestamp48 operator |(Timestamp48 a, ulong b) => new(a.Value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(ulong a, FileHeader b) => new(a | b.Value);
+    public static Timestamp48 operator |(ulong a, Timestamp48 b) => new(a | b.Value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(FileHeader a, ulong b) => new(a.Value ^ b);
+    public static Timestamp48 operator ^(Timestamp48 a, ulong b) => new(a.Value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(ulong a, FileHeader b) => new(a ^ b.Value);
+    public static Timestamp48 operator ^(ulong a, Timestamp48 b) => new(a ^ b.Value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(FileHeader a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(Timestamp48 a, int b) => a.Value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, FileHeader b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, Timestamp48 b) => (ulong)a & b.Value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(FileHeader a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(Timestamp48 a, int b) => a.Value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, FileHeader b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, Timestamp48 b) => (ulong)a | b.Value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(FileHeader a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(Timestamp48 a, int b) => a.Value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, FileHeader b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, Timestamp48 b) => (ulong)a ^ b.Value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a) => a;
+    public static Timestamp48 operator +(Timestamp48 a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a) => new(unchecked((ulong)(0 - a.Value)));
+    public static Timestamp48 operator -(Timestamp48 a) => new(unchecked((ulong)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static Timestamp48 operator +(Timestamp48 a, Timestamp48 b) => new(unchecked((ulong)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static Timestamp48 operator +(Timestamp48 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(ulong a, FileHeader b) => new(unchecked((ulong)(a + b.Value)));
+    public static Timestamp48 operator +(ulong a, Timestamp48 b) => new(unchecked((ulong)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static Timestamp48 operator -(Timestamp48 a, Timestamp48 b) => new(unchecked((ulong)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static Timestamp48 operator -(Timestamp48 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(ulong a, FileHeader b) => new(unchecked((ulong)(a - b.Value)));
+    public static Timestamp48 operator -(ulong a, Timestamp48 b) => new(unchecked((ulong)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static Timestamp48 operator *(Timestamp48 a, Timestamp48 b) => new(unchecked((ulong)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static Timestamp48 operator *(Timestamp48 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(ulong a, FileHeader b) => new(unchecked((ulong)(a * b.Value)));
+    public static Timestamp48 operator *(ulong a, Timestamp48 b) => new(unchecked((ulong)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(FileHeader a, FileHeader b) => new((ulong)(a.Value / b.Value));
+    public static Timestamp48 operator /(Timestamp48 a, Timestamp48 b) => new((ulong)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(FileHeader a, ulong b) => new((ulong)(a.Value / b));
+    public static Timestamp48 operator /(Timestamp48 a, ulong b) => new((ulong)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(ulong a, FileHeader b) => new((ulong)(a / b.Value));
+    public static Timestamp48 operator /(ulong a, Timestamp48 b) => new((ulong)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(FileHeader a, FileHeader b) => new((ulong)(a.Value % b.Value));
+    public static Timestamp48 operator %(Timestamp48 a, Timestamp48 b) => new((ulong)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(FileHeader a, ulong b) => new((ulong)(a.Value % b));
+    public static Timestamp48 operator %(Timestamp48 a, ulong b) => new((ulong)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(ulong a, FileHeader b) => new((ulong)(a % b.Value));
+    public static Timestamp48 operator %(ulong a, Timestamp48 b) => new((ulong)(a % b.Value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator <<(FileHeader a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static Timestamp48 operator <<(Timestamp48 a, int b) => new(unchecked((ulong)(a.Value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator >>(FileHeader a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static Timestamp48 operator >>(Timestamp48 a, int b) => new(unchecked((ulong)(a.Value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator >>>(FileHeader a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static Timestamp48 operator >>>(Timestamp48 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(FileHeader a, FileHeader b) => a.Value < b.Value;
+    public static bool operator <(Timestamp48 a, Timestamp48 b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(FileHeader a, FileHeader b) => a.Value > b.Value;
+    public static bool operator >(Timestamp48 a, Timestamp48 b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(FileHeader a, FileHeader b) => a.Value <= b.Value;
+    public static bool operator <=(Timestamp48 a, Timestamp48 b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(FileHeader a, FileHeader b) => a.Value >= b.Value;
+    public static bool operator >=(Timestamp48 a, Timestamp48 b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(FileHeader a, FileHeader b) => a.Value == b.Value;
+    public static bool operator ==(Timestamp48 a, Timestamp48 b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(FileHeader a, FileHeader b) => a.Value != b.Value;
+    public static bool operator !=(Timestamp48 a, Timestamp48 b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is FileHeader other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is Timestamp48 other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -323,26 +261,26 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(FileHeader value) => value.Value;
+    public static implicit operator ulong(Timestamp48 value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator FileHeader(ulong value) => new(value);
+    public static implicit operator Timestamp48(ulong value) => new(value);
 
-    /// <summary>Creates a new FileHeader from a little-endian byte span.</summary>
+    /// <summary>Creates a new Timestamp48 from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public FileHeader(ReadOnlySpan<byte> bytes)
+    public Timestamp48(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-        this = new FileHeader(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
+        this = new Timestamp48(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new FileHeader by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new Timestamp48 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
-    /// <returns>The deserialized FileHeader.</returns>
+    /// <returns>The deserialized Timestamp48.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static Timestamp48 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
@@ -415,12 +353,12 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         }
     }
 
-    /// <summary>Parses a string into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a Timestamp48. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed FileHeader value.</returns>
+    /// <returns>The parsed Timestamp48 value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static FileHeader Parse(string s, IFormatProvider? provider)
+    public static Timestamp48 Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
@@ -431,12 +369,12 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return new(ulong.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a Timestamp48. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out FileHeader result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out Timestamp48 result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -469,11 +407,11 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return false;
     }
 
-    /// <summary>Parses a span of characters into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a Timestamp48. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed FileHeader value.</returns>
-    public static FileHeader Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed Timestamp48 value.</returns>
+    public static Timestamp48 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
@@ -482,12 +420,12 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return new(ulong.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a Timestamp48. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out FileHeader result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out Timestamp48 result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -518,18 +456,18 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return false;
     }
 
-    /// <summary>Parses a string into a FileHeader using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a Timestamp48 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed FileHeader value.</returns>
+    /// <returns>The parsed Timestamp48 value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static Timestamp48 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a FileHeader using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a Timestamp48 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out FileHeader result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out Timestamp48 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -549,38 +487,38 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a FileHeader.</exception>
+    /// <exception cref="ArgumentException">obj is not a Timestamp48.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is FileHeader other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type FileHeader", nameof(obj));
+        if (obj is Timestamp48 other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type Timestamp48", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another FileHeader and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A FileHeader to compare.</param>
+    /// <summary>Compares this instance to another Timestamp48 and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A Timestamp48 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(FileHeader other) => Value.CompareTo(other.Value);
+    public int CompareTo(Timestamp48 other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another FileHeader.</summary>
-    /// <param name="other">A FileHeader to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another Timestamp48.</summary>
+    /// <param name="other">A Timestamp48 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(FileHeader other) => Value == other.Value;
+    public bool Equals(Timestamp48 other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes FileHeader as a string.</summary>
-    private sealed class FileHeaderJsonConverter : JsonConverter<FileHeader>
+    /// <summary>JSON converter that serializes Timestamp48 as a string.</summary>
+    private sealed class Timestamp48JsonConverter : JsonConverter<Timestamp48>
     {
-        /// <summary>Reads a FileHeader from a JSON string.</summary>
-        public override FileHeader Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a Timestamp48 from a JSON string.</summary>
+        public override Timestamp48 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : FileHeader.Parse(s);
+            return s is null ? default : Timestamp48.Parse(s);
         }
 
-        /// <summary>Writes a FileHeader to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, FileHeader value, JsonSerializerOptions options)
+        /// <summary>Writes a Timestamp48 to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, Timestamp48 value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

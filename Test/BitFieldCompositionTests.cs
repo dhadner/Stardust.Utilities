@@ -1118,5 +1118,796 @@ public class BitFieldCompositionTests
     #endregion
 }
 
+#region BitFields(N) Smallest Backing Store Composition Test Structs
 
+/// <summary>
+/// A 5-bit status code declared with [BitFields(5)].
+/// Backed by byte (smallest type for 5 bits).
+/// </summary>
+[BitFields(5)]
+public partial struct StatusCode5
+{
+    [BitField(0, End = 2)] public partial byte Category { get; set; }   // 3-bit category (0-7)
+    [BitFlag(3)] public partial bool Urgent { get; set; }          // 1-bit flag
+    [BitFlag(4)] public partial bool Acknowledged { get; set; }    // 1-bit flag
+}
 
+/// <summary>
+/// A 12-bit sensor reading declared with [BitFields(12)].
+/// Backed by ushort (smallest type for 12 bits).
+/// </summary>
+[BitFields(12)]
+public partial struct SensorReading12
+{
+    [BitField(0, End = 9)] public partial ushort AdcValue { get; set; }  // 10-bit ADC value (0-1023)
+    [BitField(10, End = 11)] public partial byte Channel { get; set; } // 2-bit channel (0-3)
+}
+
+/// <summary>
+/// A 24-bit RGB color declared with [BitFields(24)].
+/// Backed by uint (smallest type for 24 bits).
+/// </summary>
+[BitFields(24, UndefinedBitsMustBe.Zeroes)]
+public partial struct RgbColor24
+{
+    [BitField(0, End = 7)] public partial byte Red { get; set; }
+    [BitField(8, End = 15)] public partial byte Green { get; set; }
+    [BitField(16, End = 23)] public partial byte Blue { get; set; }
+}
+
+/// <summary>
+/// A 48-bit timestamp declared with [BitFields(48)].
+/// Backed by ulong (smallest type for 48 bits).
+/// </summary>
+[BitFields(48, UndefinedBitsMustBe.Zeroes)]
+public partial struct Timestamp48
+{
+    [BitField(0, End = 31)] public partial uint Seconds { get; set; }   // 32-bit seconds
+    [BitField(32, End = 47)] public partial ushort Millis { get; set; } // 16-bit milliseconds
+}
+
+/// <summary>
+/// A 32-bit struct that embeds a [BitFields(5)] and a [BitFields(12)] struct.
+/// Tests composing smallest-backing-store structs inside a typeof(T) struct.
+/// </summary>
+[BitFields(typeof(uint))]
+public partial struct PacketWithNarrowFields
+{
+    [BitField(0, End = 4)] public partial StatusCode5 Status { get; set; }
+    [BitField(5, End = 16)] public partial SensorReading12 Sensor { get; set; }
+    [BitField(17, End = 31)] public partial ushort SequenceNum { get; set; }
+}
+
+/// <summary>
+/// A 64-bit struct that embeds a [BitFields(24)] and a [BitFields(5)] struct.
+/// Tests composing smallest-backing-store structs inside a typeof(T) struct.
+/// </summary>
+[BitFields(typeof(ulong))]
+public partial struct FrameWithColor
+{
+    [BitField(0, End = 23)] public partial RgbColor24 Color { get; set; }
+    [BitField(24, End = 28)] public partial StatusCode5 Status { get; set; }
+    [BitField(32, End = 63)] public partial uint Payload { get; set; }
+}
+
+/// <summary>
+/// A [BitFields(N)] struct embedding another [BitFields(N)] struct.
+/// Tests N-to-N composition with smallest backing stores.
+/// </summary>
+[BitFields(32, UndefinedBitsMustBe.Zeroes)]
+public partial struct Packet32WithStatus5
+{
+    [BitField(0, End = 4)] public partial StatusCode5 Status { get; set; }
+    [BitField(5, End = 15)] public partial ushort DataField { get; set; }
+    [BitField(16, End = 31)] public partial ushort Checksum { get; set; }
+}
+
+/// <summary>
+/// Record struct view that embeds [BitFields(N)] structs.
+/// Tests smallest-backing-store structs as property types in views.
+/// </summary>
+[BitFields]
+public partial record struct ViewWithNarrowStructs
+{
+    [BitField(0, End = 4)] public partial StatusCode5 Status { get; set; }
+    [BitField(8, End = 19)] public partial SensorReading12 Sensor { get; set; }
+    [BitField(24, End = 47)] public partial RgbColor24 Color { get; set; }
+    [BitField(48, End = 55)] public partial byte Tag { get; set; }
+}
+
+#endregion
+
+/// <summary>
+/// Tests for [BitFields(N)] smallest-backing-store structs used as embedded property types.
+/// Covers composing N-bit structs (N&lt;=64) in value-type structs, other N-bit structs,
+/// and record struct views.
+/// </summary>
+public class BitFieldsNarrowCompositionTests
+{
+    #region [BitFields(N)] Basic Standalone Tests
+
+    [Fact]
+    public void StatusCode5_RoundTrip()
+    {
+        StatusCode5 sc = 0;
+        sc.Category = 5;
+        sc.Urgent = true;
+        sc.Acknowledged = false;
+
+        sc.Category.Should().Be(5);
+        sc.Urgent.Should().BeTrue();
+        sc.Acknowledged.Should().BeFalse();
+
+        // Byte backing: category=5 (bits 0-2) | urgent=1 (bit 3) = 0x0D
+        byte raw = sc;
+        raw.Should().Be(0x0D);
+    }
+
+    [Fact]
+    public void SensorReading12_RoundTrip()
+    {
+        SensorReading12 sr = 0;
+        sr.AdcValue = 1023;
+        sr.Channel = 3;
+
+        sr.AdcValue.Should().Be(1023);
+        sr.Channel.Should().Be(3);
+
+        // ushort backing: value=1023 (bits 0-9) | channel=3 (bits 10-11) = 0x0FFF
+        ushort raw = sr;
+        raw.Should().Be(0x0FFF);
+    }
+
+    [Fact]
+    public void RgbColor24_RoundTrip()
+    {
+        RgbColor24 c = 0;
+        c.Red = 0xAB;
+        c.Green = 0xCD;
+        c.Blue = 0xEF;
+
+        c.Red.Should().Be(0xAB);
+        c.Green.Should().Be(0xCD);
+        c.Blue.Should().Be(0xEF);
+
+        // uint backing: 0x00EFCDAB (LE bit order)
+        uint raw = c;
+        raw.Should().Be(0x00EFCDAB);
+    }
+
+    [Fact]
+    public void Timestamp48_RoundTrip()
+    {
+        Timestamp48 ts = 0;
+        ts.Seconds = 0xDEADBEEF;
+        ts.Millis = 999;
+
+        ts.Seconds.Should().Be(0xDEADBEEF);
+        ts.Millis.Should().Be(999);
+    }
+
+    [Fact]
+    public void RgbColor24_UndefinedBitsMaskedOff()
+    {
+        // Set all 32 bits — undefined bits (24-31) should be masked to zero
+        RgbColor24 c = 0xFFFFFFFF;
+        uint raw = c;
+        (raw & 0xFF000000u).Should().Be(0, "undefined bits 24-31 should be masked off");
+        (raw & 0x00FFFFFFu).Should().Be(0x00FFFFFFu, "defined bits 0-23 should all be set");
+    }
+
+    #endregion
+
+    #region [BitFields(N)] Embedded in typeof(T) Struct
+
+    [Fact]
+    public void PacketWithNarrowFields_Set_And_Get()
+    {
+        PacketWithNarrowFields pkt = 0;
+
+        var status = new StatusCode5();
+        status.Category = 7;
+        status.Urgent = true;
+        pkt.Status = status;
+
+        var sensor = new SensorReading12();
+        sensor.AdcValue = 512;
+        sensor.Channel = 2;
+        pkt.Sensor = sensor;
+
+        pkt.SequenceNum = 0x7FFF;
+
+        pkt.Status.Category.Should().Be(7);
+        pkt.Status.Urgent.Should().BeTrue();
+        pkt.Sensor.AdcValue.Should().Be(512);
+        pkt.Sensor.Channel.Should().Be(2);
+        pkt.SequenceNum.Should().Be(0x7FFF);
+    }
+
+    [Fact]
+    public void PacketWithNarrowFields_RawRoundTrip()
+    {
+        PacketWithNarrowFields pkt = 0;
+
+        var status = new StatusCode5();
+        status.Category = 3;
+        status.Acknowledged = true;
+        pkt.Status = status;
+
+        var sensor = new SensorReading12();
+        sensor.AdcValue = 100;
+        sensor.Channel = 1;
+        pkt.Sensor = sensor;
+
+        pkt.SequenceNum = 42;
+
+        uint raw = pkt;
+        PacketWithNarrowFields restored = raw;
+
+        restored.Status.Category.Should().Be(3);
+        restored.Status.Acknowledged.Should().BeTrue();
+        restored.Sensor.AdcValue.Should().Be(100);
+        restored.Sensor.Channel.Should().Be(1);
+        restored.SequenceNum.Should().Be(42);
+    }
+
+    [Fact]
+    public void PacketWithNarrowFields_ModifyOneField_OthersUnchanged()
+    {
+        PacketWithNarrowFields pkt = 0;
+
+        var status = new StatusCode5();
+        status.Category = 5;
+        status.Urgent = true;
+        pkt.Status = status;
+
+        var sensor = new SensorReading12();
+        sensor.AdcValue = 999;
+        sensor.Channel = 3;
+        pkt.Sensor = sensor;
+
+        pkt.SequenceNum = 1000;
+
+        // Modify only the sensor
+        var newSensor = new SensorReading12();
+        newSensor.AdcValue = 0;
+        newSensor.Channel = 0;
+        pkt.Sensor = newSensor;
+
+        // Status and sequence should be untouched
+        pkt.Status.Category.Should().Be(5);
+        pkt.Status.Urgent.Should().BeTrue();
+        pkt.SequenceNum.Should().Be(1000);
+        pkt.Sensor.AdcValue.Should().Be(0);
+        pkt.Sensor.Channel.Should().Be(0);
+    }
+
+    [Fact]
+    public void FrameWithColor_EmbeddedRgb24_RoundTrip()
+    {
+        FrameWithColor frame = 0;
+
+        var color = new RgbColor24();
+        color.Red = 0xFF;
+        color.Green = 0x80;
+        color.Blue = 0x00;
+        frame.Color = color;
+
+        var status = new StatusCode5();
+        status.Category = 6;
+        status.Urgent = true;
+        frame.Status = status;
+
+        frame.Payload = 0xCAFEBABE;
+
+        frame.Color.Red.Should().Be(0xFF);
+        frame.Color.Green.Should().Be(0x80);
+        frame.Color.Blue.Should().Be(0x00);
+        frame.Status.Category.Should().Be(6);
+        frame.Status.Urgent.Should().BeTrue();
+        frame.Payload.Should().Be(0xCAFEBABE);
+    }
+
+    #endregion
+
+    #region [BitFields(N)] Embedded in [BitFields(N)] Struct
+
+    [Fact]
+    public void Packet32WithStatus5_NToN_RoundTrip()
+    {
+        Packet32WithStatus5 pkt = 0;
+
+        var status = new StatusCode5();
+        status.Category = 4;
+        status.Urgent = true;
+        status.Acknowledged = true;
+        pkt.Status = status;
+
+        pkt.DataField = 0x7FF;
+        pkt.Checksum = 0xBEEF;
+
+        pkt.Status.Category.Should().Be(4);
+        pkt.Status.Urgent.Should().BeTrue();
+        pkt.Status.Acknowledged.Should().BeTrue();
+        pkt.DataField.Should().Be(0x7FF);
+        pkt.Checksum.Should().Be(0xBEEF);
+
+        // Round-trip through raw
+        uint raw = pkt;
+        Packet32WithStatus5 restored = raw;
+
+        restored.Status.Category.Should().Be(4);
+        restored.Status.Urgent.Should().BeTrue();
+        restored.Status.Acknowledged.Should().BeTrue();
+        restored.DataField.Should().Be(0x7FF);
+        restored.Checksum.Should().Be(0xBEEF);
+    }
+
+    [Fact]
+    public void Packet32WithStatus5_UndefinedBitsMasked()
+    {
+        // All bits set — undefined bits should be masked off
+        Packet32WithStatus5 pkt = 0xFFFFFFFF;
+        uint raw = pkt;
+
+        // All 32 bits are defined (5 + 11 + 16 = 32), so no masking needed
+        pkt.Status.Category.Should().Be(7);
+        pkt.Status.Urgent.Should().BeTrue();
+        pkt.Status.Acknowledged.Should().BeTrue();
+        pkt.DataField.Should().Be(0x7FF);
+        pkt.Checksum.Should().Be(0xFFFF);
+    }
+
+    #endregion
+
+    #region [BitFields(N)] Embedded in Record Struct View
+
+    [Fact]
+    public void ViewWithNarrowStructs_StatusCode5_RoundTrip()
+    {
+        var data = new byte[8];
+        var view = new ViewWithNarrowStructs(data);
+
+        var status = new StatusCode5();
+        status.Category = 6;
+        status.Urgent = true;
+        view.Status = status;
+
+        view.Status.Category.Should().Be(6);
+        view.Status.Urgent.Should().BeTrue();
+        view.Status.Acknowledged.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ViewWithNarrowStructs_SensorReading12_RoundTrip()
+    {
+        var data = new byte[8];
+        var view = new ViewWithNarrowStructs(data);
+
+        var sensor = new SensorReading12();
+        sensor.AdcValue = 768;
+        sensor.Channel = 2;
+        view.Sensor = sensor;
+
+        view.Sensor.AdcValue.Should().Be(768);
+        view.Sensor.Channel.Should().Be(2);
+    }
+
+    [Fact]
+    public void ViewWithNarrowStructs_RgbColor24_RoundTrip()
+    {
+        var data = new byte[8];
+        var view = new ViewWithNarrowStructs(data);
+
+        var color = new RgbColor24();
+        color.Red = 0x12;
+        color.Green = 0x34;
+        color.Blue = 0x56;
+        view.Color = color;
+
+        view.Color.Red.Should().Be(0x12);
+        view.Color.Green.Should().Be(0x34);
+        view.Color.Blue.Should().Be(0x56);
+    }
+
+    [Fact]
+    public void ViewWithNarrowStructs_AllFields_Independent()
+    {
+        var data = new byte[8];
+        var view = new ViewWithNarrowStructs(data);
+
+        var status = new StatusCode5();
+        status.Category = 3;
+        status.Urgent = true;
+        view.Status = status;
+
+        var sensor = new SensorReading12();
+        sensor.AdcValue = 500;
+        sensor.Channel = 1;
+        view.Sensor = sensor;
+
+        var color = new RgbColor24();
+        color.Red = 0xAA;
+        color.Green = 0xBB;
+        color.Blue = 0xCC;
+        view.Color = color;
+
+        view.Tag = 0x42;
+
+        // All fields should be readable independently
+        view.Status.Category.Should().Be(3);
+        view.Status.Urgent.Should().BeTrue();
+        view.Sensor.AdcValue.Should().Be(500);
+        view.Sensor.Channel.Should().Be(1);
+        view.Color.Red.Should().Be(0xAA);
+        view.Color.Green.Should().Be(0xBB);
+        view.Color.Blue.Should().Be(0xCC);
+        view.Tag.Should().Be(0x42);
+
+        // Modify one field, others should be unaffected
+        view.Tag = 0x99;
+        view.Status.Category.Should().Be(3, "status unchanged after modifying tag");
+        view.Sensor.AdcValue.Should().Be(500, "sensor unchanged after modifying tag");
+        view.Color.Red.Should().Be(0xAA, "color unchanged after modifying tag");
+    }
+
+    #endregion
+}
+
+#region Multi-Word Composition Test Structs
+
+/// <summary>
+/// A 128-bit struct backed by typeof(UInt128).
+/// Tests multi-word (2-ulong) composition as an embedded property.
+/// </summary>
+[BitFields(typeof(UInt128))]
+public partial struct GuidBits128
+{
+    [BitField(0, End = 63)]   public partial ulong Low { get; set; }
+    [BitField(64, End = 127)] public partial ulong High { get; set; }
+}
+
+/// <summary>
+/// A 128-bit struct backed by typeof(decimal).
+/// Tests decimal-backed multi-word composition.
+/// </summary>
+[BitFields(typeof(decimal))]
+public partial struct DecimalPayload128
+{
+    [BitField(0, End = 95)]    public partial ulong Coefficient { get; set; }
+    [BitField(112, End = 118)] public partial byte Scale { get; set; }
+    [BitFlag(127)]             public partial bool Sign { get; set; }
+}
+
+/// <summary>
+/// A 256-bit struct using [BitFields(N)] multi-word.
+/// Tests arbitrary-width multi-word composition.
+/// </summary>
+[BitFields(256)]
+public partial struct WidePayload256
+{
+    [BitField(0, End = 63)]    public partial ulong Word0 { get; set; }
+    [BitField(64, End = 127)]  public partial ulong Word1 { get; set; }
+    [BitField(128, End = 191)] public partial ulong Word2 { get; set; }
+    [BitField(192, End = 255)] public partial ulong Word3 { get; set; }
+}
+
+/// <summary>
+/// A 512-bit multi-word parent that embeds two 128-bit structs and a 256-bit struct.
+/// Tests multi-word in multi-word composition.
+/// </summary>
+[BitFields(512)]
+public partial struct TelemetryFrame512
+{
+    [BitField(0, End = 127)]   public partial GuidBits128 Id { get; set; }
+    [BitField(128, End = 383)] public partial WidePayload256 Payload { get; set; }
+    [BitField(384, End = 511)] public partial DecimalPayload128 Footer { get; set; }
+}
+
+/// <summary>
+/// A record struct view that embeds a 128-bit UInt128-backed struct.
+/// Tests multi-word in view composition.
+/// </summary>
+[BitFields]
+public partial record struct FrameViewWith128
+{
+    [BitField(0, End = 31)]    public partial uint Header { get; set; }
+    [BitField(32, End = 159)]  public partial GuidBits128 Id { get; set; }
+    [BitField(160, End = 191)] public partial uint Checksum { get; set; }
+}
+
+/// <summary>
+/// A record struct view that embeds a 256-bit multi-word struct.
+/// Tests large multi-word in view composition.
+/// </summary>
+[BitFields]
+public partial record struct FrameViewWith256
+{
+    [BitField(0, End = 15)]    public partial ushort Tag { get; set; }
+    [BitField(16, End = 271)]  public partial WidePayload256 Payload { get; set; }
+    [BitField(272, End = 287)] public partial ushort Crc { get; set; }
+}
+
+/// <summary>
+/// A 512-bit multi-word parent with a 128-bit embedded struct at a non-byte-aligned
+/// bit position. Tests that multi-word embedding does NOT require byte alignment.
+/// </summary>
+[BitFields(512)]
+public partial struct UnalignedFrame512
+{
+    [BitField(0, End = 3)]     public partial byte Tag { get; set; }         // 4 bits
+    [BitField(4, End = 131)]   public partial GuidBits128 Id { get; set; }   // 128 bits at bit 4 (not byte-aligned)
+    [BitField(132, End = 139)] public partial byte Footer { get; set; }      // 8 bits
+}
+
+/// <summary>
+/// A record struct view with a 128-bit embedded struct at a non-byte-aligned
+/// bit position. Tests that view multi-word embedding does NOT require byte alignment.
+/// </summary>
+[BitFields]
+public partial record struct UnalignedViewWith128
+{
+    [BitField(0, End = 3)]     public partial byte Tag { get; set; }         // 4 bits
+    [BitField(4, End = 131)]   public partial GuidBits128 Id { get; set; }   // 128 bits at bit 4
+    [BitField(132, End = 139)] public partial byte Footer { get; set; }      // 8 bits
+}
+
+#endregion
+
+/// <summary>
+/// Tests for multi-word (128-bit, 256-bit, etc.) [BitFields] structs used as
+/// embedded property types in multi-word parents and record struct views.
+/// </summary>
+public class BitFieldsMultiWordCompositionTests
+{
+    #region Multi-Word Standalone Tests
+
+    [Fact]
+    public void GuidBits128_RoundTrip()
+    {
+        GuidBits128 g = default;
+        g.Low = 0xDEADBEEFCAFEBABE;
+        g.High = 0x0123456789ABCDEF;
+        g.Low.Should().Be(0xDEADBEEFCAFEBABE);
+        g.High.Should().Be(0x0123456789ABCDEF);
+    }
+
+    [Fact]
+    public void WidePayload256_RoundTrip()
+    {
+        WidePayload256 w = default;
+        w.Word0 = 0x1111111111111111;
+        w.Word1 = 0x2222222222222222;
+        w.Word2 = 0x3333333333333333;
+        w.Word3 = 0x4444444444444444;
+        w.Word0.Should().Be(0x1111111111111111);
+        w.Word1.Should().Be(0x2222222222222222);
+        w.Word2.Should().Be(0x3333333333333333);
+        w.Word3.Should().Be(0x4444444444444444);
+    }
+
+    #endregion
+
+    #region Multi-Word in Multi-Word Tests
+
+    [Fact]
+    public void TelemetryFrame512_EmbeddedGuid_RoundTrip()
+    {
+        TelemetryFrame512 frame = default;
+
+        var id = new GuidBits128 { Low = 0xAABBCCDDEEFF0011, High = 0x2233445566778899 };
+        frame.Id = id;
+
+        frame.Id.Low.Should().Be(0xAABBCCDDEEFF0011);
+        frame.Id.High.Should().Be(0x2233445566778899);
+    }
+
+    [Fact]
+    public void TelemetryFrame512_EmbeddedDecimalPayload_RoundTrip()
+    {
+        TelemetryFrame512 frame = default;
+
+        var footer = new DecimalPayload128 { Coefficient = 12345678, Scale = 2, Sign = true };
+        frame.Footer = footer;
+
+        frame.Footer.Coefficient.Should().Be(12345678);
+        frame.Footer.Scale.Should().Be(2);
+        frame.Footer.Sign.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TelemetryFrame512_AllEmbedded_Independent()
+    {
+        TelemetryFrame512 frame = default;
+
+        // Set all embedded fields
+        var id = new GuidBits128 { Low = 0x1111111111111111, High = 0x2222222222222222 };
+        var footer = new DecimalPayload128 { Coefficient = 99, Scale = 5, Sign = false };
+        frame.Id = id;
+        frame.Footer = footer;
+
+        // Verify they're independent
+        frame.Id.Low.Should().Be(0x1111111111111111);
+        frame.Id.High.Should().Be(0x2222222222222222);
+        frame.Footer.Coefficient.Should().Be(99);
+        frame.Footer.Scale.Should().Be(5);
+        frame.Footer.Sign.Should().BeFalse();
+
+        // Modify one, verify others unchanged
+        frame.Id = new GuidBits128 { Low = 0, High = 0 };
+        frame.Footer.Coefficient.Should().Be(99, "footer unchanged after modifying id");
+        frame.Footer.Scale.Should().Be(5, "footer unchanged after modifying id");
+    }
+
+    #endregion
+
+    #region Multi-Word in View Tests
+
+    [Fact]
+    public void FrameViewWith128_Embedded_RoundTrip()
+    {
+        byte[] buffer = new byte[FrameViewWith128.SIZE_IN_BYTES];
+        var view = new FrameViewWith128(buffer);
+
+        view.Header = 0xDEAD;
+        var id = new GuidBits128 { Low = 0xCAFEBABE12345678, High = 0xFEDCBA9876543210 };
+        view.Id = id;
+        view.Checksum = 0xBEEF;
+
+        view.Header.Should().Be(0xDEAD);
+        view.Id.Low.Should().Be(0xCAFEBABE12345678);
+        view.Id.High.Should().Be(0xFEDCBA9876543210);
+        view.Checksum.Should().Be(0xBEEF);
+    }
+
+    [Fact]
+    public void FrameViewWith128_ModifyOne_OthersUnchanged()
+    {
+        byte[] buffer = new byte[FrameViewWith128.SIZE_IN_BYTES];
+        var view = new FrameViewWith128(buffer);
+
+        view.Header = 0x1234;
+        view.Id = new GuidBits128 { Low = 0xAAAA, High = 0xBBBB };
+        view.Checksum = 0x5678;
+
+        // Modify embedded, verify others unchanged
+        view.Id = new GuidBits128 { Low = 0, High = 0 };
+        view.Header.Should().Be(0x1234, "header unchanged after modifying embedded");
+        view.Checksum.Should().Be(0x5678, "checksum unchanged after modifying embedded");
+    }
+
+    [Fact]
+    public void FrameViewWith256_Embedded_RoundTrip()
+    {
+        byte[] buffer = new byte[FrameViewWith256.SIZE_IN_BYTES];
+        var view = new FrameViewWith256(buffer);
+
+        view.Tag = 0x1234;
+        var data = new WidePayload256
+        {
+            Word0 = 0x1111111111111111,
+            Word1 = 0x2222222222222222,
+            Word2 = 0x3333333333333333,
+            Word3 = 0x4444444444444444
+        };
+        view.Payload = data;
+        view.Crc = 0xABCD;
+
+        view.Tag.Should().Be(0x1234);
+        view.Payload.Word0.Should().Be(0x1111111111111111);
+        view.Payload.Word1.Should().Be(0x2222222222222222);
+        view.Payload.Word2.Should().Be(0x3333333333333333);
+        view.Payload.Word3.Should().Be(0x4444444444444444);
+        view.Crc.Should().Be(0xABCD);
+    }
+
+    [Fact]
+    public void FrameViewWith256_ModifyEmbedded_OthersUnchanged()
+    {
+        byte[] buffer = new byte[FrameViewWith256.SIZE_IN_BYTES];
+        var view = new FrameViewWith256(buffer);
+
+        view.Tag = 0x9999;
+        view.Payload = new WidePayload256 { Word0 = 1, Word1 = 2, Word2 = 3, Word3 = 4 };
+        view.Crc = 0x7777;
+
+        // Modify embedded, verify others unchanged
+        view.Payload = new WidePayload256 { Word0 = 0xFF, Word1 = 0xFF, Word2 = 0xFF, Word3 = 0xFF };
+        view.Tag.Should().Be(0x9999, "tag unchanged after modifying embedded data");
+        view.Crc.Should().Be(0x7777, "crc unchanged after modifying embedded data");
+    }
+
+    #endregion
+
+    #region Non-Byte-Aligned Multi-Word Tests
+
+    [Fact]
+    public void UnalignedFrame512_EmbeddedAt4Bits_RoundTrip()
+    {
+        UnalignedFrame512 frame = default;
+
+        frame.Tag = 0x0A;  // 4 bits
+        var id = new GuidBits128 { Low = 0xDEADBEEFCAFEBABE, High = 0x0123456789ABCDEF };
+        frame.Id = id;
+        frame.Footer = 0x55;
+
+        frame.Tag.Should().Be(0x0A);
+        frame.Id.Low.Should().Be(0xDEADBEEFCAFEBABE);
+        frame.Id.High.Should().Be(0x0123456789ABCDEF);
+        frame.Footer.Should().Be(0x55);
+    }
+
+    [Fact]
+    public void UnalignedFrame512_ModifyEmbedded_OthersUnchanged()
+    {
+        UnalignedFrame512 frame = default;
+
+        frame.Tag = 0x0F;
+        frame.Id = new GuidBits128 { Low = 0xAAAA, High = 0xBBBB };
+        frame.Footer = 0xCC;
+
+        // Modify embedded, verify others unchanged
+        frame.Id = new GuidBits128 { Low = 0, High = 0 };
+        frame.Tag.Should().Be(0x0F, "tag unchanged after clearing embedded");
+        frame.Footer.Should().Be(0xCC, "footer unchanged after clearing embedded");
+    }
+
+    [Fact]
+    public void UnalignedFrame512_AllBitPatterns()
+    {
+        UnalignedFrame512 frame = default;
+
+        // Fill with all-ones pattern
+        var id = new GuidBits128 { Low = ulong.MaxValue, High = ulong.MaxValue };
+        frame.Tag = 0x0F;  // 4 bits all set
+        frame.Id = id;
+        frame.Footer = 0xFF;
+
+        frame.Tag.Should().Be(0x0F);
+        frame.Id.Low.Should().Be(ulong.MaxValue);
+        frame.Id.High.Should().Be(ulong.MaxValue);
+        frame.Footer.Should().Be(0xFF);
+
+        // Now clear embedded, verify neighbors kept their bits
+        frame.Id = new GuidBits128 { Low = 0, High = 0 };
+        frame.Tag.Should().Be(0x0F, "tag preserved when embedded cleared");
+        frame.Id.Low.Should().Be(0UL);
+        frame.Id.High.Should().Be(0UL);
+        frame.Footer.Should().Be(0xFF, "footer preserved when embedded cleared");
+    }
+
+    [Fact]
+    public void UnalignedViewWith128_EmbeddedAt4Bits_RoundTrip()
+    {
+        byte[] buffer = new byte[UnalignedViewWith128.SIZE_IN_BYTES];
+        var view = new UnalignedViewWith128(buffer);
+
+        view.Tag = 0x0A;
+        var id = new GuidBits128 { Low = 0xDEADBEEFCAFEBABE, High = 0x0123456789ABCDEF };
+        view.Id = id;
+        view.Footer = 0x55;
+
+        view.Tag.Should().Be(0x0A);
+        view.Id.Low.Should().Be(0xDEADBEEFCAFEBABE);
+        view.Id.High.Should().Be(0x0123456789ABCDEF);
+        view.Footer.Should().Be(0x55);
+    }
+
+    [Fact]
+    public void UnalignedViewWith128_ModifyEmbedded_OthersUnchanged()
+    {
+        byte[] buffer = new byte[UnalignedViewWith128.SIZE_IN_BYTES];
+        var view = new UnalignedViewWith128(buffer);
+
+        view.Tag = 0x0F;
+        view.Id = new GuidBits128 { Low = 0x1111, High = 0x2222 };
+        view.Footer = 0xCC;
+
+        // Modify embedded, verify others unchanged
+        view.Id = new GuidBits128 { Low = 0, High = 0 };
+        view.Tag.Should().Be(0x0F, "tag unchanged after clearing embedded");
+        view.Footer.Should().Be(0xCC, "footer unchanged after clearing embedded");
+    }
+
+    #endregion
+}

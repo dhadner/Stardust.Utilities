@@ -1,0 +1,286 @@
+@page "/stream"
+@using System.Text
+
+<h2 class="page-title">Floating-Point Stream Lab</h2>
+<p class="page-subtitle">Zero-copy record struct views over a binary telemetry buffer with double, float, and Half fields at configurable bit-padding</p>
+
+<div class="card">
+    <div class="toolbar">
+        <label>Pad bits between fields:</label>
+        <select @bind="_padBits" @bind:after="OnPadChanged">
+            <option value="0">0-bit (byte-aligned)</option>
+            <option value="1">1-bit (flags between fields)</option>
+            <option value="3">3-bit (cross-nibble)</option>
+            <option value="7">7-bit (worst-case misalignment)</option>
+        </select>
+        <span class="stream-info">Buffer: @_buffer.Length bytes &middot; @(_buffer.Length * 8) bits</span>
+    </div>
+
+    <div class="toolbar">
+        <label>Temperature (°C):</label>
+        <input type="number" step="0.001" @bind="_temperature" @bind:event="oninput" @bind:after="OnValueChanged"
+               style="width: 130px; font-family: var(--mono);" />
+
+        <label>Pressure (hPa):</label>
+        <input type="number" step="0.01" @bind="_pressure" @bind:event="oninput" @bind:after="OnValueChanged"
+               style="width: 130px; font-family: var(--mono);" />
+
+        <label>Health:</label>
+        <input type="number" step="0.01" min="0" max="1" @bind="_sensorHealth" @bind:event="oninput" @bind:after="OnValueChanged"
+               style="width: 80px; font-family: var(--mono);" />
+    </div>
+
+    <div class="toolbar">
+        <button @onclick="OnSimulateStream">&#x25B6; Simulate Stream (10 frames)</button>
+        <button @onclick="OnReset">&#x21BA; Reset</button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(_structDesc))
+{
+    <div class="section-header">&#x25B8; Active View: @_viewName</div>
+    <div class="stream-desc">@_structDesc</div>
+}
+
+<div class="section-header">&#x25B8; Written &rarr; Read Back</div>
+<div class="card stream-readback">
+    <table>
+        <thead><tr><th>Field</th><th>Written</th><th>Read Back</th><th>Match</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>Temperature</td>
+                <td class="mono">@_temperature</td>
+                <td class="mono">@_readback.Temperature</td>
+                <td>@MatchIcon(_temperature == _readback.Temperature)</td>
+            </tr>
+            <tr>
+                <td>Pressure</td>
+                <td class="mono">@_pressure</td>
+                <td class="mono">@_readback.Pressure</td>
+                <td>@MatchIcon(_pressure == _readback.Pressure)</td>
+            </tr>
+            <tr>
+                <td>Sensor Health</td>
+                <td class="mono">@_sensorHealth</td>
+                <td class="mono">@_readback.SensorHealth</td>
+                <td>@MatchIcon(_sensorHealth == _readback.SensorHealth)</td>
+            </tr>
+            <tr>
+                <td>Checksum (Half)</td>
+                <td class="mono">@_checksum</td>
+                <td class="mono">@_readback.Checksum</td>
+                <td>@MatchIcon(_checksum == _readback.Checksum)</td>
+            </tr>
+            <tr><td>SOF</td><td class="mono">true</td><td class="mono">@_readback.SOF</td><td>@MatchIcon(_readback.SOF)</td></tr>
+                <tr><td>EOF</td><td class="mono">true</td><td class="mono">@_readback.EOF</td><td>@MatchIcon(_readback.EOF)</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section-header">&#x25B8; IEEE 754 Decomposition</div>
+<div class="card stream-decomposition">
+    <table>
+        <thead><tr><th>Field</th><th>Value</th><th>Sign</th><th>Exponent</th><th>Mantissa</th><th>Class</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>Temperature (double)</td>
+                <td class="mono">@_readback.Temperature</td>
+                @{ var dt = (IEEE754Double)_readback.Temperature; }
+                <td>@(dt.Sign ? "-" : "+")</td>
+                <td class="mono">@(dt.Exponent?.ToString() ?? "n/a")</td>
+                <td class="mono">0x@(dt.Mantissa.ToString("X13"))</td>
+                <td>@Classify(dt)</td>
+            </tr>
+            <tr>
+                <td>Pressure (double)</td>
+                <td class="mono">@_readback.Pressure</td>
+                @{ var dp = (IEEE754Double)_readback.Pressure; }
+                <td>@(dp.Sign ? "-" : "+")</td>
+                <td class="mono">@(dp.Exponent?.ToString() ?? "n/a")</td>
+                <td class="mono">0x@(dp.Mantissa.ToString("X13"))</td>
+                <td>@Classify(dp)</td>
+            </tr>
+            <tr>
+                <td>Health (float)</td>
+                <td class="mono">@_readback.SensorHealth</td>
+                @{ var fs = (IEEE754Single)_readback.SensorHealth; }
+                <td>@(fs.Sign ? "-" : "+")</td>
+                <td class="mono">@(fs.Exponent?.ToString() ?? "n/a")</td>
+                <td class="mono">0x@(fs.Mantissa.ToString("X6"))</td>
+                <td>@Classify(fs)</td>
+            </tr>
+            <tr>
+                <td>Checksum (Half)</td>
+                <td class="mono">@_readback.Checksum</td>
+                @{ var hc = (IEEE754Half)_readback.Checksum; }
+                <td>@(hc.Sign ? "-" : "+")</td>
+                <td class="mono">@(hc.Exponent?.ToString() ?? "n/a")</td>
+                <td class="mono">0x@(hc.Mantissa.ToString("X3"))</td>
+                <td>@Classify(hc)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section-header">&#x25B8; Fields</div>
+<div class="field-chips">
+    @foreach (var f in _fields)
+    {
+        <div class="field-chip @(f.Name == _activeField ? "active" : "")"
+             style="border-color: @f.Color; background: @Palette.WithAlpha(f.Color, 0.18); color: @f.Color;"
+             title="@f.Description"
+             @onclick="() => ToggleField(f.Name)">
+            <span class="chip-name">@f.Name</span>
+            <span class="chip-bits">bits @f.Start–@f.End (@(f.End - f.Start + 1))</span>
+        </div>
+    }
+</div>
+
+<div class="section-header">&#x25B8; Raw Buffer (hex)</div>
+<div class="hex-display">
+    @for (int i = 0; i < _buffer.Length; i++)
+    {
+        var idx = i;
+        var info = GetByteInfo(idx);
+        <span class="hex-byte @(info.Name == _activeField ? "active" : "")"
+              style="color: @info.Color;"
+              @onclick="() => ToggleField(info.Name)">@_buffer[idx].ToString("X2") </span>
+    }
+</div>
+
+<div class="section-header">&#x25B8; RFC Diagram</div>
+<div class="diagram-output">@_diagram</div>
+
+@if (_streamLog.Count > 0)
+{
+    <div class="section-header">&#x25B8; Simulated Stream Log</div>
+    <div class="diagram-output stream-log">@foreach (var line in _streamLog) { @line@("\n") }</div>
+}
+
+@code {
+    private record FieldDef(string Name, int Start, int End, string Color, string? Description);
+    private record ByteInfo(string? Name, string Color);
+
+    private int _padBits;
+    private double _temperature = TelemetryStreamDemo.Defaults.TEMPERATURE;
+    private double _pressure = TelemetryStreamDemo.Defaults.PRESSURE;
+    private float _sensorHealth = TelemetryStreamDemo.Defaults.SENSOR_HEALTH;
+    private Half _checksum = TelemetryStreamDemo.Defaults.CHECKSUM;
+    private byte[] _buffer = [];
+    private TelemetryReadback _readback;
+    private string _viewName = "";
+    private string? _structDesc;
+    private string _diagram = "";
+    private List<FieldDef> _fields = [];
+    private string? _activeField;
+    private List<string> _streamLog = [];
+
+    protected override void OnInitialized() => Rebuild();
+
+    private void OnPadChanged() => Rebuild();
+
+    private void OnValueChanged() => Rebuild();
+
+    private void OnReset()
+    {
+        _temperature = TelemetryStreamDemo.Defaults.TEMPERATURE;
+        _pressure = TelemetryStreamDemo.Defaults.PRESSURE;
+        _sensorHealth = TelemetryStreamDemo.Defaults.SENSOR_HEALTH;
+        _checksum = TelemetryStreamDemo.Defaults.CHECKSUM;
+        _streamLog.Clear();
+        Rebuild();
+    }
+
+    private void OnSimulateStream()
+    {
+        _streamLog.Clear();
+        var rng = new Random(42);
+
+        for (int i = 0; i < 10; i++)
+        {
+            double temp = 20.0 + rng.NextDouble() * 10.0;
+            double pres = 1000.0 + rng.NextDouble() * 30.0;
+            float health = (float)(0.85 + rng.NextDouble() * 0.15);
+            Half ck = (Half)(rng.NextDouble() * 2.0);
+            byte seq = (byte)(i + 1);
+
+            var buf = new byte[TelemetryStreamDemo.BufferSize(_padBits)];
+            TelemetryStreamDemo.WriteFrame(buf, _padBits, temp, pres, health, ck);
+            var rb = TelemetryStreamDemo.ReadFrame(buf, _padBits);
+
+            bool ok = rb.Temperature == temp && rb.Pressure == pres
+                   && rb.SensorHealth == health && rb.Checksum == ck;
+
+            _streamLog.Add($"Frame {seq,2}: T={rb.Temperature,10:F4}°C  P={rb.Pressure,9:F2}hPa  " +
+                           $"H={rb.SensorHealth:F4}  Ck={rb.Checksum,6}  [{(ok ? "OK" : "MISMATCH")}]  " +
+                           $"({buf.Length} bytes, {_padBits}-bit pad)");
+        }
+    }
+
+    private void Rebuild()
+    {
+        _buffer = new byte[TelemetryStreamDemo.BufferSize(_padBits)];
+        _viewName = TelemetryStreamDemo.WriteFrame(
+            _buffer, _padBits,
+            _temperature, _pressure, _sensorHealth, _checksum);
+        _readback = TelemetryStreamDemo.ReadFrame(_buffer, _padBits);
+        _structDesc = TelemetryStreamDemo.GetDescription(_padBits);
+
+        // Build field list
+        _fields.Clear();
+        int ci = 0;
+        foreach (var m in TelemetryStreamDemo.GetFields(_padBits))
+            _fields.Add(new(m.Name, m.Start, m.End, Palette.Get(ci++), m.GetDescription()));
+
+        // Build RFC diagram
+        var diag = new BitFieldDiagram(TelemetryStreamDemo.GetViewType(_padBits),
+            bitsPerRow: 32, includeDescriptions: true);
+        _diagram = diag.RenderToString().Match(s => s, e => $"Diagram error: {e}");
+    }
+
+    private static string MatchIcon(bool match) => match ? "\u2705" : "\u274C";
+
+    private static string Classify(IEEE754Double d)
+    {
+        if (d.IsNaN) return "NaN";
+        if (d.IsInfinity) return d.Sign ? "-Inf" : "+Inf";
+        if (d.IsZero) return d.Sign ? "-0" : "0";
+        if (d.IsDenormalized) return "Denorm";
+        return "Normal";
+    }
+
+    private static string Classify(IEEE754Single f)
+    {
+        if (f.IsNaN) return "NaN";
+        if (f.IsInfinity) return f.Sign ? "-Inf" : "+Inf";
+        if (f.IsZero) return f.Sign ? "-0" : "0";
+        if (f.IsDenormalized) return "Denorm";
+        return "Normal";
+    }
+
+    private static string Classify(IEEE754Half h)
+    {
+        if (h.IsNaN) return "NaN";
+        if (h.IsInfinity) return h.Sign ? "-Inf" : "+Inf";
+        if (h.IsZero) return h.Sign ? "-0" : "0";
+        if (h.IsDenormalized) return "Denorm";
+        return "Normal";
+    }
+
+    private ByteInfo GetByteInfo(int byteIndex)
+    {
+        int bitStart = byteIndex * 8;
+        int bitEnd = bitStart + 7;
+        foreach (var f in _fields)
+        {
+            if (f.Start <= bitEnd && f.End >= bitStart)
+                return new(f.Name, f.Color);
+        }
+        return new(null, "#888");
+    }
+
+    private void ToggleField(string? name)
+    {
+        _activeField = _activeField == name ? null : name;
+    }
+}

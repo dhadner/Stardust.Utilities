@@ -186,7 +186,19 @@ internal sealed class BitFieldInfo
     /// <summary>The source location of the property declaration, for diagnostic reporting.</summary>
     public Location? Location { get; }
 
-    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBe valueOverride = MustBe.Any, ByteOrder? fieldByteOrder = null, string? nativeType = null, string? description = null, string? descriptionResourceType = null, Location? location = null)
+    /// <summary>
+    /// True when the property type is a multi-word <c>[BitFields]</c> struct (N &gt; 64, UInt128, Int128, decimal)
+    /// that must be read/written via <c>ReadFrom</c>/<c>WriteTo</c> span methods instead of cast chains.
+    /// </summary>
+    public bool IsSpanBacked { get; }
+
+    /// <summary>
+    /// The <c>SIZE_IN_BYTES</c> of the embedded multi-word struct, or 0 for non-span-backed fields.
+    /// Used to size the temp span for <c>ReadFrom</c>/<c>WriteTo</c> calls.
+    /// </summary>
+    public int StructSizeBytes { get; }
+
+    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBe valueOverride = MustBe.Any, ByteOrder? fieldByteOrder = null, string? nativeType = null, string? description = null, string? descriptionResourceType = null, Location? location = null, bool isSpanBacked = false, int structSizeBytes = 0)
     {
         Name = name;
         PropertyType = propertyType;
@@ -198,6 +210,8 @@ internal sealed class BitFieldInfo
         Description = description;
         DescriptionResourceType = descriptionResourceType;
         Location = location;
+        IsSpanBacked = isSpanBacked;
+        StructSizeBytes = structSizeBytes;
     }
 }
 

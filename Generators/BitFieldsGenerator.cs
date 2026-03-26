@@ -115,11 +115,24 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 }
                 else
                 {
-                    // Int-based constructor: [BitFields(200)]
-                    isMultiWord = true;
+                    // Int-based constructor: [BitFields(N)]
                     bitCount = intValue;
                     if (bitCount < 1 || bitCount > BitFieldsMultiWordGenerator.MAX_BIT_COUNT)
                         return null;
+
+                    if (bitCount <= 64)
+                    {
+                        // Right-sized backing: route through NativeInteger with
+                        // the smallest unsigned primitive that can hold N bits.
+                        storageType = bitCount <= 8 ? "byte"
+                            : bitCount <= 16 ? "ushort"
+                            : bitCount <= 32 ? "uint"
+                            : "ulong";
+                    }
+                    else
+                    {
+                        isMultiWord = true;
+                    }
                 }
             }
         }
@@ -268,10 +281,79 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                         continue;
                     }
 
+                    // Detect embedded [BitFields] struct property types
+                    string? embeddedNativeType = null;
+                    bool isSpanBacked = false;
+                    int structSizeBytes = 0;
+                    var embeddedBitFieldsAttr = member.Type.GetAttributes()
+                        .FirstOrDefault(a => a.AttributeClass?.Name == "BitFieldsAttribute");
+                    if (embeddedBitFieldsAttr != null)
+                    {
+                        // SD0022: Record structs (views) cannot be embedded in value-type structs
+                        if (member.Type is INamedTypeSymbol embeddedTypeSymbol && embeddedTypeSymbol.IsRecord)
+                        {
+                            propertyDiagnostics.Add(new PropertyDiagnosticInfo(
+                                BitFieldsDiagnostics.CannotEmbedViewInValueType,
+                                memberLocation, member.Name, structSymbol.Name, propTypeFull));
+                            continue;
+                        }
+
+                        var embeddedInfo = GeneratorUtils.ResolveEmbeddedBitFieldsInfo(embeddedBitFieldsAttr);
+                        if (embeddedInfo != null)
+                        {
+                            // SD0021: Width mismatch (only for [BitFields(N)] exact-width types)
+                            if (embeddedInfo.Value.IsExactWidth)
+                            {
+                                var widthDiag = GeneratorUtils.ValidateEmbeddedStructWidth(
+                                    propTypeFull, resolved.Value.Width, embeddedInfo.Value.BitWidth,
+                                    member.Name, structSymbol.Name, memberLocation);
+                                if (widthDiag != null)
+                                {
+                                    propertyDiagnostics.Add(widthDiag);
+                                    continue;
+                                }
+                            }
+                            embeddedNativeType = embeddedInfo.Value.NativeType;
+                        }
+                        else
+                        {
+                            // Check for multi-word embedded type (UInt128, Int128, decimal, [BitFields(N)] N>64)
+                            var multiWordInfo = GeneratorUtils.ResolveMultiWordEmbeddedInfo(embeddedBitFieldsAttr);
+                            if (multiWordInfo != null)
+                            {
+                                if (!isMultiWord)
+                                {
+                                    // SD0023: Cannot embed multi-word type in a single-word parent
+                                    propertyDiagnostics.Add(new PropertyDiagnosticInfo(
+                                        BitFieldsDiagnostics.CannotEmbedMultiWordInSingleWord,
+                                        memberLocation, member.Name, structSymbol.Name, propTypeFull,
+                                        multiWordInfo.Value.BitWidth));
+                                    continue;
+                                }
+
+                                // SD0021: Width validation for exact-width multi-word types
+                                if (multiWordInfo.Value.IsExactWidth)
+                                {
+                                    var widthDiag = GeneratorUtils.ValidateEmbeddedStructWidth(
+                                        propTypeFull, resolved.Value.Width, multiWordInfo.Value.BitWidth,
+                                        member.Name, structSymbol.Name, memberLocation);
+                                    if (widthDiag != null)
+                                    {
+                                        propertyDiagnostics.Add(widthDiag);
+                                        continue;
+                                    }
+                                }
+
+                                isSpanBacked = true;
+                                structSizeBytes = multiWordInfo.Value.SizeInBytes;
+                            }
+                        }
+                    }
+
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 
-                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, resolved.Value.Start, resolved.Value.Width, resolved.Value.ValueOverride, description: desc, descriptionResourceType: descResType, location: memberLocation));
+                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, resolved.Value.Start, resolved.Value.Width, resolved.Value.ValueOverride, nativeType: embeddedNativeType, description: desc, descriptionResourceType: descResType, location: memberLocation, isSpanBacked: isSpanBacked, structSizeBytes: structSizeBytes));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {
@@ -375,7 +457,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         {
             mode = StorageMode.NativeInteger;
             wordCount = 1;
-            totalBits = GetStorageTypeBitWidth(storageType!);
+            totalBits = bitCount > 0 ? bitCount : GetStorageTypeBitWidth(storageType!);
         }
 
         // If MSB-first bit ordering, convert all positions to LSB-first (physical) positions.

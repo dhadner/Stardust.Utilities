@@ -153,19 +153,95 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
                         var (nativeType, fieldByteOrder) = ResolveEndianType(qualifiedName);
 
                         // If no endian-type override, check if the property type is a [BitFields]
-                        // struct with a declared ByteOrder — use that as a per-field override.
+                        // struct — use its ByteOrder as a per-field override and its
+                        // StorageType to resolve the native type for cast logic.
                         if (fieldByteOrder == null)
                         {
                             var bitFieldsAttr = member.Type.GetAttributes()
                                 .FirstOrDefault(a => a.AttributeClass?.Name == "BitFieldsAttribute");
-                            if (bitFieldsAttr != null &&
-                                bitFieldsAttr.ConstructorArguments.Length >= 4 &&
-                                bitFieldsAttr.ConstructorArguments[3].Value is int bfByteOrder)
+                            if (bitFieldsAttr != null)
                             {
-                                // ByteOrder enum: BigEndian = 0, LittleEndian = 1
-                                fieldByteOrder = bfByteOrder == 0
-                                    ? ByteOrder.BigEndian
-                                    : ByteOrder.LittleEndian;
+                                if (bitFieldsAttr.ConstructorArguments.Length >= 4 &&
+                                    bitFieldsAttr.ConstructorArguments[3].Value is int bfByteOrder)
+                                {
+                                    // ByteOrder enum: BigEndian = 0, LittleEndian = 1
+                                    fieldByteOrder = bfByteOrder == 0
+                                        ? ByteOrder.BigEndian
+                                        : ByteOrder.LittleEndian;
+                                }
+
+                                // Resolve the underlying native type from the [BitFields] StorageType
+                                // so that cast logic can convert through the native type.
+                                var resolvedNative = ResolveBitFieldsNativeType(bitFieldsAttr);
+                                if (resolvedNative != null)
+                                {
+                                    nativeType = resolvedNative;
+
+                                    // Validate width for float-backed BitFields structs (SD0020)
+                                    int reqWidth = GeneratorUtils.GetRequiredFloatBitWidth(resolvedNative);
+                                    if (reqWidth >= 0 && width != reqWidth)
+                                    {
+                                        var loc = member.Locations.Length > 0 ? member.Locations[0] : null;
+                                        propertyDiagnostics.Add(new PropertyDiagnosticInfo(
+                                            BitFieldsDiagnostics.FloatPropertyWidthMismatch,
+                                            loc, member.Name, structSymbol.Name, qualifiedName, reqWidth, width));
+                                        continue;
+                                    }
+                                }
+
+                                // SD0021: Validate width for embedded [BitFields] structs.
+                                // For [BitFields(N)] N<=64 where ResolveBitFieldsNativeType returned null,
+                                // also resolve the native type for cast logic.
+                                var embeddedInfo = GeneratorUtils.ResolveEmbeddedBitFieldsInfo(bitFieldsAttr);
+                                if (embeddedInfo != null)
+                                {
+                                    if (resolvedNative == null)
+                                        nativeType = embeddedInfo.Value.NativeType;
+
+                                    // Skip width validation for float-backed types (already handled as SD0020)
+                                    // Only enforce exact width match for [BitFields(N)] types, not typeof(T) partial-width
+                                    if (embeddedInfo.Value.IsExactWidth)
+                                    {
+                                        int reqFloat = GeneratorUtils.GetRequiredFloatBitWidth(nativeType ?? qualifiedName);
+                                        if (reqFloat < 0)
+                                        {
+                                            var widthDiag = GeneratorUtils.ValidateEmbeddedStructWidth(
+                                                qualifiedName, width, embeddedInfo.Value.BitWidth,
+                                                member.Name, structSymbol.Name,
+                                                member.Locations.Length > 0 ? member.Locations[0] : null);
+                                            if (widthDiag != null)
+                                            {
+                                                propertyDiagnostics.Add(widthDiag);
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    // Check for multi-word embedded type (UInt128, Int128, decimal, [BitFields(N)] N>64)
+                                    var multiWordInfo = GeneratorUtils.ResolveMultiWordEmbeddedInfo(bitFieldsAttr);
+                                    if (multiWordInfo != null)
+                                    {
+                                        // SD0021: Width validation for exact-width multi-word types
+                                        if (multiWordInfo.Value.IsExactWidth)
+                                        {
+                                            var widthDiag = GeneratorUtils.ValidateEmbeddedStructWidth(
+                                                qualifiedName, width, multiWordInfo.Value.BitWidth,
+                                                member.Name, structSymbol.Name,
+                                                member.Locations.Length > 0 ? member.Locations[0] : null);
+                                            if (widthDiag != null)
+                                            {
+                                                propertyDiagnostics.Add(widthDiag);
+                                                continue;
+                                            }
+                                        }
+
+                                        var (desc2, descResType2) = ReadDescriptionArgs(memberAttr);
+                                        fields.Add(new BitFieldInfo(member.Name, qualifiedName, start, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType, description: desc2, descriptionResourceType: descResType2, isSpanBacked: true, structSizeBytes: multiWordInfo.Value.SizeInBytes));
+                                        continue;
+                                    }
+                                }
                             }
                         }
 
@@ -400,7 +476,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         GenerateJsonConverter(sb, info, mind);
 
         // Emit opaque bit-reinterpretation helpers for decimal property types
-        if (info.Fields.Any(f => f.PropertyType == "decimal"))
+        if (info.Fields.Any(f => f.NativeType == "decimal"))
             EmitDecimalHelpers(sb, mind);
 
         sb.AppendLine($"{ind}}}");
@@ -437,11 +513,19 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             maxEndBit = Math.Max(maxEndBit, end);
 
             int firstByte = start / 8;
-            int lastByte = end / 8;
-
-            int byteSpan = lastByte - firstByte + 1;
-            int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : byteSpan <= 8 ? 8 : 16;
-            int needed = firstByte + readWidth;
+            int needed;
+            if (f.IsSpanBacked)
+            {
+                // Span-backed multi-word field: exact byte range
+                needed = firstByte + f.StructSizeBytes;
+            }
+            else
+            {
+                int lastByte = end / 8;
+                int byteSpan = lastByte - firstByte + 1;
+                int readWidth = byteSpan <= 1 ? 1 : byteSpan <= 2 ? 2 : byteSpan <= 4 ? 4 : byteSpan <= 8 ? 8 : 16;
+                needed = firstByte + readWidth;
+            }
             if (needed > minBytes) minBytes = needed;
         }
         foreach (var f in info.Flags)
@@ -470,6 +554,13 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static void GenerateFieldProperty(StringBuilder sb, BitFieldsViewInfo info, BitFieldInfo field, string ind)
     {
+        // Span-backed embedded multi-word struct: use ReadFrom/WriteTo on the byte buffer
+        if (field.IsSpanBacked)
+        {
+            GenerateSpanBackedViewProperty(sb, field, ind);
+            return;
+        }
+
         int start = field.Shift;
         int width = field.Width;
         int end = start + width - 1;
@@ -709,6 +800,64 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     }
 
     /// <summary>
+    /// Generates a property accessor for a span-backed embedded multi-word struct
+    /// inside a record struct view. Uses <c>ReadFrom</c>/<c>WriteTo</c> on the
+    /// underlying <c>Memory&lt;byte&gt;</c> buffer.
+    /// When the field starts at a byte-aligned position the span is a simple slice;
+    /// otherwise byte-level bit-shifting is emitted to support arbitrary bit offsets.
+    /// </summary>
+    private static void GenerateSpanBackedViewProperty(StringBuilder sb, BitFieldInfo field, string ind)
+    {
+        int startByte = field.Shift / 8;
+        int bitOffset = field.Shift % 8;
+        int sizeBytes = field.StructSizeBytes;
+        bool aligned = bitOffset == 0;
+
+        sb.AppendLine($"{ind}public partial {field.PropertyType} {field.Name}");
+        sb.AppendLine($"{ind}{{");
+
+        if (aligned)
+        {
+            sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}    get => {field.PropertyType}.ReadFrom(_data.Span.Slice({startByte}, {sizeBytes}));");
+            sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            sb.AppendLine($"{ind}    set => value.WriteTo(_data.Span.Slice({startByte}, {sizeBytes}));");
+        }
+        else
+        {
+            int lowMask = (1 << bitOffset) - 1;
+            int hiMask = ~lowMask & 0xFF;
+
+            // Getter: extract bits with byte-level shifting
+            sb.AppendLine($"{ind}    get");
+            sb.AppendLine($"{ind}    {{");
+            sb.AppendLine($"{ind}        ReadOnlySpan<byte> __src = _data.Span;");
+            sb.AppendLine($"{ind}        Span<byte> __ebuf = stackalloc byte[{sizeBytes}];");
+            sb.AppendLine($"{ind}        for (int __i = 0; __i < {sizeBytes}; __i++)");
+            sb.AppendLine($"{ind}            __ebuf[__i] = (byte)((__src[{startByte} + __i] >> {bitOffset}) | (({startByte} + __i + 1 < __src.Length) ? (__src[{startByte} + __i + 1] << {8 - bitOffset}) : 0));");
+            sb.AppendLine($"{ind}        return {field.PropertyType}.ReadFrom(__ebuf);");
+            sb.AppendLine($"{ind}    }}");
+
+            // Setter: insert bits with byte-level shifting
+            sb.AppendLine($"{ind}    set");
+            sb.AppendLine($"{ind}    {{");
+            sb.AppendLine($"{ind}        Span<byte> __dst = _data.Span;");
+            sb.AppendLine($"{ind}        Span<byte> __ebuf = stackalloc byte[{sizeBytes}];");
+            sb.AppendLine($"{ind}        value.WriteTo(__ebuf);");
+            sb.AppendLine($"{ind}        for (int __i = 0; __i < {sizeBytes}; __i++)");
+            sb.AppendLine($"{ind}        {{");
+            sb.AppendLine($"{ind}            __dst[{startByte} + __i] = (byte)((__dst[{startByte} + __i] & 0x{lowMask:X2}) | (__ebuf[__i] << {bitOffset}));");
+            sb.AppendLine($"{ind}            if ({startByte} + __i + 1 < __dst.Length)");
+            sb.AppendLine($"{ind}                __dst[{startByte} + __i + 1] = (byte)((__dst[{startByte} + __i + 1] & 0x{hiMask:X2}) | (__ebuf[__i] >> {8 - bitOffset}));");
+            sb.AppendLine($"{ind}        }}");
+            sb.AppendLine($"{ind}    }}");
+        }
+
+        sb.AppendLine($"{ind}}}");
+        sb.AppendLine();
+    }
+
+    /// <summary>
     /// Generates a property accessor for a single-bit boolean flag.
     /// Fast path for _bitOffset == 0, offset-aware path for nested views.
     /// </summary>
@@ -828,6 +977,14 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             string unsignedType = FloatPropertyUnsignedType(field.PropertyType);
             return $"{fromBits}(({unsignedType})";
         }
+        // BitFields struct wrapping a float type (e.g., IEEE754Double wraps double):
+        // reinterpret raw bits via BitConverter, then rely on the struct's implicit conversion.
+        if (IsFloatingPointPropertyType(field.NativeType) && field.PropertyType != field.NativeType)
+        {
+            string fromBits = FloatPropertyFromBits(field.NativeType);
+            string unsignedType = FloatPropertyUnsignedType(field.NativeType);
+            return $"({field.PropertyType}){fromBits}(({unsignedType})";
+        }
         if (field.PropertyType != field.NativeType)
             return $"({field.PropertyType})({field.NativeType})";
         return $"({field.PropertyType})";
@@ -848,6 +1005,13 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             string toBits = FloatPropertyToBits(field.PropertyType);
             return $"({readType}){toBits}(";
         }
+        // BitFields struct wrapping a float type: convert to native float via implicit conversion,
+        // then to raw bits via BitConverter.
+        if (IsFloatingPointPropertyType(field.NativeType) && field.PropertyType != field.NativeType)
+        {
+            string toBits = FloatPropertyToBits(field.NativeType);
+            return $"({readType}){toBits}(({field.NativeType})";
+        }
         if (field.PropertyType != field.NativeType)
             return $"({readType})({field.NativeType})";
         return $"({readType})";
@@ -861,7 +1025,9 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static string SetterValueSuffix(BitFieldInfo field)
     {
-        return IsFloatingPointPropertyType(field.PropertyType) ? ")" : "";
+        return IsFloatingPointPropertyType(field.PropertyType)
+            || (IsFloatingPointPropertyType(field.NativeType) && field.PropertyType != field.NativeType)
+            ? ")" : "";
     }
 
     /// <summary>
@@ -872,7 +1038,9 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
     /// </summary>
     private static string GetterSuffix(BitFieldInfo field)
     {
-        return IsFloatingPointPropertyType(field.PropertyType) ? ")" : "";
+        return IsFloatingPointPropertyType(field.PropertyType)
+            || (IsFloatingPointPropertyType(field.NativeType) && field.PropertyType != field.NativeType)
+            ? ")" : "";
     }
 
     /// <summary>
@@ -949,6 +1117,87 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
             _ => (qualifiedType, null)
         };
     }
+
+    /// <summary>
+    /// Extracts the native storage type name from a <c>[BitFields]</c> attribute.
+    /// Returns <c>null</c> when the attribute does not declare a storage type
+    /// (e.g., the record-struct view constructor or the bit-count constructor).
+    /// </summary>
+    private static string? ResolveBitFieldsNativeType(AttributeData bitFieldsAttr)
+    {
+        if (bitFieldsAttr.ConstructorArguments.Length == 0)
+            return null;
+
+        var firstArg = bitFieldsAttr.ConstructorArguments[0];
+
+        // StorageType enum constructor: BitFieldsAttribute(StorageType, ...)
+        if (firstArg.Kind == TypedConstantKind.Enum &&
+            firstArg.Type?.Name == "StorageType" &&
+            firstArg.Value is int storageTypeValue)
+        {
+            return StorageTypeIntToNativeName(storageTypeValue);
+        }
+
+        // Type constructor: BitFieldsAttribute(Type, ...)
+        if (firstArg.Kind == TypedConstantKind.Type && firstArg.Value is ITypeSymbol typeSymbol)
+        {
+            return TypeSymbolToNativeName(typeSymbol);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Maps a <c>StorageType</c> enum value (its underlying int) to the C# type keyword.
+    /// </summary>
+    private static string? StorageTypeIntToNativeName(int value) => value switch
+    {
+        0  => "sbyte",                  // StorageType.SByte
+        1  => "byte",                   // StorageType.Byte
+        2  => "short",                  // StorageType.Int16
+        3  => "ushort",                 // StorageType.UInt16
+        4  => "int",                    // StorageType.Int32
+        5  => "uint",                   // StorageType.UInt32
+        6  => "long",                   // StorageType.Int64
+        7  => "ulong",                  // StorageType.UInt64
+        8  => "nint",                   // StorageType.NInt
+        9  => "nuint",                  // StorageType.NUInt
+        10 => "global::System.Half",    // StorageType.Half
+        11 => "float",                  // StorageType.Single
+        12 => "double",                 // StorageType.Double
+        13 => "decimal",               // StorageType.Decimal
+        14 => "Int128",                 // StorageType.Int128
+        15 => "UInt128",                // StorageType.UInt128
+        _  => null
+    };
+
+    /// <summary>
+    /// Maps an <see cref="ITypeSymbol"/> (from a <c>typeof(T)</c> attribute argument)
+    /// to the C# type keyword.
+    /// </summary>
+    private static string? TypeSymbolToNativeName(ITypeSymbol type) => type.SpecialType switch
+    {
+        SpecialType.System_SByte   => "sbyte",
+        SpecialType.System_Byte    => "byte",
+        SpecialType.System_Int16   => "short",
+        SpecialType.System_UInt16  => "ushort",
+        SpecialType.System_Int32   => "int",
+        SpecialType.System_UInt32  => "uint",
+        SpecialType.System_Int64   => "long",
+        SpecialType.System_UInt64  => "ulong",
+        SpecialType.System_Single  => "float",
+        SpecialType.System_Double  => "double",
+        SpecialType.System_Decimal => "decimal",
+        SpecialType.System_IntPtr  => "nint",
+        SpecialType.System_UIntPtr => "nuint",
+        _ => type.Name switch
+        {
+            "Half"    => "global::System.Half",
+            "Int128"  => "Int128",
+            "UInt128" => "UInt128",
+            _         => null
+        }
+    };
 
     /// <summary>
     /// Resolves the effective byte order for a field: per-field override wins,

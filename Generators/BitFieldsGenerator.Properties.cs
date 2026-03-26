@@ -34,6 +34,10 @@ public partial class BitFieldsGenerator
         // Check if the property type is a floating-point type that needs BitConverter wrapping
         bool isFloatProp = IsFloatingPointPropertyType(field.PropertyType);
 
+        // Check if the property type is an embedded [BitFields] struct that needs
+        // cast chains through its native storage type (NativeType != PropertyType, not float)
+        bool isEmbeddedStruct = field.NativeType != field.PropertyType && !isFloatProp;
+
         sb.AppendLine($"{indent}public partial {field.PropertyType} {field.Name}");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -83,9 +87,28 @@ public partial class BitFieldsGenerator
                     sb.AppendLine($"{indent}    get => {fromBits}(({unsignedType})((Value >> {startBitConst}) & {maskHex}));");
             }
         }
+        else if (isEmbeddedStruct)
+        {
+            // Embedded [BitFields] struct: extract raw bits, cast to native storage type,
+            // then convert to struct type via implicit operator.
+            // E.g., (MyStruct)(byte)((Value >> START_BIT) & MASK)
+            if (info.NeedsUnsignedCast)
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(({field.NativeType})((({info.UnsignedStorageType})Value) & {maskHex}));");
+                else
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(({field.NativeType})(((({info.UnsignedStorageType})Value) >> {startBitConst}) & {maskHex}));");
+            }
+            else
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(({field.NativeType})(Value & {maskHex}));");
+                else
+                    sb.AppendLine($"{indent}    get => ({field.PropertyType})(({field.NativeType})((Value >> {startBitConst}) & {maskHex}));");
+            }
+        }
         else
         {
-            // No sign extension needed - original behavior
             if (info.NeedsUnsignedCast)
             {
                 if (shift == 0)
@@ -156,6 +179,26 @@ public partial class BitFieldsGenerator
                     sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType}){setterValueExpr}) & {shiftedMaskHex}));");
                 else
                     sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType}){setterValueExpr}) << {startBitConst}) & {shiftedMaskHex}));");
+            }
+            sb.AppendLine($"{indent}    }}");
+        }
+        else if (isEmbeddedStruct)
+        {
+            // Embedded struct setter: convert to native type via implicit operator, then insert bits.
+            sb.AppendLine($"{indent}    set {{ var __ev = ({field.NativeType})value;");
+            if (info.NeedsUnsignedCast)
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | ((({info.UnsignedStorageType})__ev) & {shiftedMaskHex}));");
+                else
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})__ev) << {startBitConst}) & {shiftedMaskHex}));");
+            }
+            else
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})__ev) & {shiftedMaskHex}));");
+                else
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType})__ev) << {startBitConst}) & {shiftedMaskHex}));");
             }
             sb.AppendLine($"{indent}    }}");
         }

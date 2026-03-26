@@ -318,4 +318,204 @@ internal static class GeneratorUtils
         "decimal" => "DecimalToUInt128Bits",
         _ => throw new System.ArgumentException($"Not a floating-point property type: {typeName}")
     };
+
+    // ── Embedded [BitFields] struct helpers ─────────────────────────────
+
+    /// <summary>
+    /// Resolves the effective native storage type (used by implicit operators) and
+    /// declared bit width for a <c>[BitFields]</c>-attributed struct from its
+    /// attribute data.  Returns <c>null</c> when the attribute uses a multi-word
+    /// configuration (UInt128, Int128, decimal, or N &gt; 64) — use
+    /// <see cref="ResolveMultiWordEmbeddedInfo"/> for those types instead.
+    /// <para>
+    /// <c>IsExactWidth</c> is <c>true</c> only for <c>[BitFields(N)]</c> constructors
+    /// where the user explicitly declared a custom bit width.  For <c>typeof(T)</c> and
+    /// <c>StorageType.X</c> constructors, partial-width embedding is allowed (the field
+    /// width may be narrower than the storage type width).
+    /// </para>
+    /// </summary>
+    internal static (string NativeType, int BitWidth, bool IsExactWidth)? ResolveEmbeddedBitFieldsInfo(AttributeData bitFieldsAttr)
+    {
+        if (bitFieldsAttr.ConstructorArguments.Length == 0)
+            return null;
+
+        var firstArg = bitFieldsAttr.ConstructorArguments[0];
+
+        // Int-based constructor: [BitFields(N)] — exact width required
+        if (firstArg.Value is int intValue && firstArg.Type?.Name != "StorageType")
+        {
+            if (intValue < 1 || intValue > 64) return null;
+            string nativeType = intValue <= 8 ? "byte"
+                : intValue <= 16 ? "ushort"
+                : intValue <= 32 ? "uint"
+                : "ulong";
+            return (nativeType, intValue, true);
+        }
+
+        // Resolve the declared type name from the attribute
+        string? declaredType = null;
+
+        if (firstArg.Kind == TypedConstantKind.Enum &&
+            firstArg.Type?.Name == "StorageType" &&
+            firstArg.Value is int enumValue)
+        {
+            declaredType = MapStorageTypeToKeyword(enumValue);
+        }
+        else if (firstArg.Kind == TypedConstantKind.Type && firstArg.Value is ITypeSymbol typeSymbol)
+        {
+            declaredType = TypeSymbolToKeyword(typeSymbol);
+        }
+
+        if (declaredType == null) return null;
+
+        // Map the declared type to its internal storage type and bit width.
+        // Float types are stored internally as unsigned integers.
+        // Multi-word types (decimal, UInt128, Int128) are handled by ResolveMultiWordEmbeddedInfo.
+        // IsExactWidth = false: partial-width embedding is allowed for typeof(T) forms.
+        return declaredType switch
+        {
+            "sbyte"  => ("sbyte", 8, false),
+            "byte"   => ("byte", 8, false),
+            "short"  => ("short", 16, false),
+            "ushort" => ("ushort", 16, false),
+            "int"    => ("int", 32, false),
+            "uint"   => ("uint", 32, false),
+            "long"   => ("long", 64, false),
+            "ulong"  => ("ulong", 64, false),
+            "nint"   => ("nint", 64, false),
+            "nuint"  => ("nuint", 64, false),
+            "Half"   => ("ushort", 16, false),
+            "float"  => ("uint", 32, false),
+            "double" => ("ulong", 64, false),
+            _        => null
+        };
+    }
+
+    /// <summary>
+    /// Resolves information about a multi-word <c>[BitFields]</c> struct (UInt128, Int128,
+    /// decimal, or <c>[BitFields(N)]</c> with N &gt; 64) for span-based embedding.
+    /// Returns <c>null</c> when the attribute does not describe a multi-word type.
+    /// </summary>
+    internal static (int BitWidth, int SizeInBytes, bool IsExactWidth)? ResolveMultiWordEmbeddedInfo(AttributeData bitFieldsAttr)
+    {
+        if (bitFieldsAttr.ConstructorArguments.Length == 0)
+            return null;
+
+        var firstArg = bitFieldsAttr.ConstructorArguments[0];
+
+        // Int-based constructor: [BitFields(N)] where N > 64
+        if (firstArg.Value is int intValue && firstArg.Type?.Name != "StorageType")
+        {
+            if (intValue <= 64 || intValue > BitFieldsMultiWordGenerator.MAX_BIT_COUNT)
+                return null;
+            int sizeInBytes = ComputeMultiWordStructBytes(intValue);
+            return (intValue, sizeInBytes, true);
+        }
+
+        // Resolve the declared type name from the attribute
+        string? declaredType = null;
+
+        if (firstArg.Kind == TypedConstantKind.Enum &&
+            firstArg.Type?.Name == "StorageType" &&
+            firstArg.Value is int enumValue)
+        {
+            declaredType = MapStorageTypeToKeyword(enumValue);
+        }
+        else if (firstArg.Kind == TypedConstantKind.Type && firstArg.Value is ITypeSymbol typeSymbol)
+        {
+            declaredType = TypeSymbolToKeyword(typeSymbol);
+        }
+
+        if (declaredType == null) return null;
+
+        return declaredType switch
+        {
+            "decimal" => (128, 16, false),
+            "UInt128" => (128, 16, false),
+            "Int128"  => (128, 16, false),
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Computes the struct byte size for a multi-word <c>[BitFields(N)]</c> type.
+    /// Uses the same layout as <c>BitFieldsMultiWordGenerator.WordLayout</c>:
+    /// full ulong words plus the smallest type for the remainder.
+    /// </summary>
+    private static int ComputeMultiWordStructBytes(int totalBits)
+    {
+        int fullWords = totalBits / 64;
+        int remainder = totalBits % 64;
+        int lastWordBytes = remainder == 0 ? 0
+            : remainder <= 8 ? 1
+            : remainder <= 16 ? 2
+            : remainder <= 32 ? 4
+            : 8;
+        return fullWords * 8 + lastWordBytes;
+    }
+
+    /// <summary>
+    /// If the property type is a <c>[BitFields]</c> struct whose declared bit width
+    /// does not match the field width, returns an SD0021 diagnostic.  Otherwise <c>null</c>.
+    /// </summary>
+    internal static PropertyDiagnosticInfo? ValidateEmbeddedStructWidth(
+        string propertyType, int fieldWidth, int structBitWidth,
+        string propertyName, string structName, Location? location)
+    {
+        if (fieldWidth == structBitWidth) return null;
+        return new PropertyDiagnosticInfo(
+            BitFieldsDiagnostics.EmbeddedStructWidthMismatch,
+            location, propertyName, structName, propertyType, structBitWidth, fieldWidth);
+    }
+
+    /// <summary>
+    /// Maps a <c>StorageType</c> enum integer value to the C# type keyword.
+    /// </summary>
+    private static string? MapStorageTypeToKeyword(int value) => value switch
+    {
+        0  => "sbyte",
+        1  => "byte",
+        2  => "short",
+        3  => "ushort",
+        4  => "int",
+        5  => "uint",
+        6  => "long",
+        7  => "ulong",
+        8  => "nint",
+        9  => "nuint",
+        10 => "Half",
+        11 => "float",
+        12 => "double",
+        13 => "decimal",
+        14 => "Int128",
+        15 => "UInt128",
+        _  => null
+    };
+
+    /// <summary>
+    /// Maps an <see cref="ITypeSymbol"/> to the C# type keyword.
+    /// </summary>
+    private static string? TypeSymbolToKeyword(ITypeSymbol type) => type.SpecialType switch
+    {
+        SpecialType.System_SByte   => "sbyte",
+        SpecialType.System_Byte    => "byte",
+        SpecialType.System_Int16   => "short",
+        SpecialType.System_UInt16  => "ushort",
+        SpecialType.System_Int32   => "int",
+        SpecialType.System_UInt32  => "uint",
+        SpecialType.System_Int64   => "long",
+        SpecialType.System_UInt64  => "ulong",
+        SpecialType.System_Single  => "float",
+        SpecialType.System_Double  => "double",
+        SpecialType.System_Decimal => "decimal",
+        SpecialType.System_IntPtr  => "nint",
+        SpecialType.System_UIntPtr => "nuint",
+        _ => type.Name switch
+        {
+            "Half"    => "Half",
+            "Int128"  => "Int128",
+            "UInt128" => "UInt128",
+            _         => null
+        }
+    };
 }

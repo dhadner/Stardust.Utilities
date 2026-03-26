@@ -134,12 +134,12 @@ public partial class ExtensionsTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (global::Stardust.Utilities.Tests.ExtensionsTests.TcpFlags)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(2)) & 0x01FF);
+                    return (global::Stardust.Utilities.Tests.ExtensionsTests.TcpFlags)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(2)) & 0x01FF);
                 }
                 int ep = 16 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (global::Stardust.Utilities.Tests.ExtensionsTests.TcpFlags)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x01FF);
+                return (global::Stardust.Utilities.Tests.ExtensionsTests.TcpFlags)(ushort)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x01FF);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -149,7 +149,7 @@ public partial class ExtensionsTests
                 {
                     var slice = s.Slice(2);
                     ushort raw = BinaryPrimitives.ReadUInt16LittleEndian(slice);
-                    raw = (ushort)((raw & 0xFE00) | ((ushort)value & 0x01FF));
+                    raw = (ushort)((raw & 0xFE00) | ((ushort)(ushort)value & 0x01FF));
                     BinaryPrimitives.WriteUInt16LittleEndian(slice, raw);
                 }
                 else
@@ -160,7 +160,7 @@ public partial class ExtensionsTests
                     var slice = s.Slice(bi);
                     ushort raw = BinaryPrimitives.ReadUInt16LittleEndian(slice);
                     ushort m = (ushort)(0x01FF << sh);
-                    raw = (ushort)((raw & (ushort)~m) | (((ushort)value << sh) & m));
+                    raw = (ushort)((raw & (ushort)~m) | (((ushort)(ushort)value << sh) & m));
                     BinaryPrimitives.WriteUInt16LittleEndian(slice, raw);
                 }
             }

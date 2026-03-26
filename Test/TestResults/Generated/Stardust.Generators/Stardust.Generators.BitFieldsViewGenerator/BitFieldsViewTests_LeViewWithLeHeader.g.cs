@@ -60,12 +60,12 @@ public partial class BitFieldsViewTests
                 var s = _data.Span;
                 if (_bitOffset == 0)
                 {
-                    return (global::Stardust.Utilities.Tests.ProtocolHeader16)BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0));
+                    return (global::Stardust.Utilities.Tests.ProtocolHeader16)(ushort)BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0));
                 }
                 int ep = 0 + _bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
-                return (global::Stardust.Utilities.Tests.ProtocolHeader16)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
+                return (global::Stardust.Utilities.Tests.ProtocolHeader16)(ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -74,7 +74,7 @@ public partial class BitFieldsViewTests
                 if (_bitOffset == 0)
                 {
                     var slice = s.Slice(0);
-                    BinaryPrimitives.WriteUInt16LittleEndian(slice, (ushort)value);
+                    BinaryPrimitives.WriteUInt16LittleEndian(slice, (ushort)(ushort)value);
                 }
                 else
                 {
@@ -84,7 +84,7 @@ public partial class BitFieldsViewTests
                     var slice = s.Slice(bi);
                     uint raw = BinaryPrimitives.ReadUInt32LittleEndian(slice);
                     uint m = (uint)(0xFFFFU << sh);
-                    raw = (uint)((raw & (uint)~m) | (((uint)value << sh) & m));
+                    raw = (uint)((raw & (uint)~m) | (((uint)(ushort)value << sh) & m));
                     BinaryPrimitives.WriteUInt32LittleEndian(slice, raw);
                 }
             }

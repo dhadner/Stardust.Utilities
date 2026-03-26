@@ -8,6 +8,9 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SD0020  | Stardust.BitFields | Error | BitField width does not match floating point property size
+SD0021  | Stardust.BitFields | Error | BitField width does not match embedded BitFields struct size
+SD0022  | Stardust.BitFields | Error | Cannot embed a view record struct in a value-type BitFields struct
+SD0023  | Stardust.BitFields | Error | Cannot embed multi-word BitFields struct in a single-word value-type struct
 
 ## Release 0.9.6
 

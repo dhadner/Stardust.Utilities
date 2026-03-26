@@ -13,103 +13,73 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(FileHeaderJsonConverter))]
-public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquatable<FileHeader>,
-                             IFormattable, ISpanFormattable, IParsable<FileHeader>, ISpanParsable<FileHeader>
+[JsonConverter(typeof(FrameWithColorJsonConverter))]
+public partial struct FrameWithColor : IComparable, IComparable<FrameWithColor>, IEquatable<FrameWithColor>,
+                             IFormattable, ISpanFormattable, IParsable<FrameWithColor>, ISpanParsable<FrameWithColor>
 {
     private ulong Value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
 
-    /// <summary>Returns a FileHeader with all bits set to zero.</summary>
-    public static FileHeader Zero => default;
+    /// <summary>Returns a FrameWithColor with all bits set to zero.</summary>
+    public static FrameWithColor Zero => default;
 
     // --- Bit field mask constants ---
-    // Magic: bits [0..15], width 16
-    private const int MAGIC_START_BIT = 0;
-    private const ulong MAGIC_MASK = 0x000000000000FFFFUL;
-    private const ulong MAGIC_INVERTED_MASK = 0xFFFFFFFFFFFF0000UL;  // ~MAGIC_MASK
-    // Flags: bits [16..23], width 8
-    private const int FLAGS_START_BIT = 16;
-    private const ulong FLAGS_MASK = 0x00000000000000FFUL;
-    private const ulong FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // FLAGS_MASK << FLAGS_START_BIT
-    private const ulong FLAGS_INVERTED_MASK = 0xFFFFFFFFFF00FFFFUL;  // ~FLAGS_SHIFTED_MASK
-    // VersionMajor: bits [24..31], width 8
-    private const int VERSION_MAJOR_START_BIT = 24;
-    private const ulong VERSION_MAJOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // VERSION_MAJOR_MASK << VERSION_MAJOR_START_BIT
-    private const ulong VERSION_MAJOR_INVERTED_MASK = 0xFFFFFFFF00FFFFFFUL;  // ~VERSION_MAJOR_SHIFTED_MASK
-    // VersionMinor: bits [32..39], width 8
-    private const int VERSION_MINOR_START_BIT = 32;
-    private const ulong VERSION_MINOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // VERSION_MINOR_MASK << VERSION_MINOR_START_BIT
-    private const ulong VERSION_MINOR_INVERTED_MASK = 0xFFFFFF00FFFFFFFFUL;  // ~VERSION_MINOR_SHIFTED_MASK
-    // Reserved: bits [40..63], width 24
-    private const int RESERVED_START_BIT = 40;
-    private const ulong RESERVED_MASK = 0x0000000000FFFFFFUL;
-    private const ulong RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // RESERVED_MASK << RESERVED_START_BIT
-    private const ulong RESERVED_INVERTED_MASK = 0x000000FFFFFFFFFFUL;  // ~RESERVED_SHIFTED_MASK
+    // Color: bits [0..23], width 24
+    private const int COLOR_START_BIT = 0;
+    private const ulong COLOR_MASK = 0x0000000000FFFFFFUL;
+    private const ulong COLOR_INVERTED_MASK = 0xFFFFFFFFFF000000UL;  // ~COLOR_MASK
+    // Status: bits [24..28], width 5
+    private const int STATUS_START_BIT = 24;
+    private const ulong STATUS_MASK = 0x000000000000001FUL;
+    private const ulong STATUS_SHIFTED_MASK = 0x000000001F000000UL;  // STATUS_MASK << STATUS_START_BIT
+    private const ulong STATUS_INVERTED_MASK = 0xFFFFFFFFE0FFFFFFUL;  // ~STATUS_SHIFTED_MASK
+    // Payload: bits [32..63], width 32
+    private const int PAYLOAD_START_BIT = 32;
+    private const ulong PAYLOAD_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong PAYLOAD_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // PAYLOAD_MASK << PAYLOAD_START_BIT
+    private const ulong PAYLOAD_INVERTED_MASK = 0x00000000FFFFFFFFUL;  // ~PAYLOAD_SHIFTED_MASK
 
-    /// <summary>Creates a new FileHeader with the specified raw bits value.</summary>
-    public FileHeader(ulong value) { Value = value; }
+    /// <summary>Creates a new FrameWithColor with the specified raw bits value.</summary>
+    public FrameWithColor(ulong value) { Value = value; }
 
-    public partial ushort Magic
+    public partial global::Stardust.Utilities.Tests.RgbColor24 Color
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)(Value & MAGIC_MASK);
+        get => (global::Stardust.Utilities.Tests.RgbColor24)((uint)(Value & COLOR_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & MAGIC_INVERTED_MASK) | (((ulong)value) & MAGIC_MASK));
-    }
-
-    public partial global::Stardust.Utilities.Tests.StatusFlags Flags
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)((byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set { var __ev = (byte)value;
-            Value = (ulong)((Value & FLAGS_INVERTED_MASK) | ((((ulong)__ev) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
+        set { var __ev = (uint)value;
+            Value = (ulong)((Value & COLOR_INVERTED_MASK) | (((ulong)__ev) & COLOR_MASK));
         }
     }
 
-    public partial byte VersionMajor
+    public partial global::Stardust.Utilities.Tests.StatusCode5 Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_MAJOR_START_BIT) & VERSION_MAJOR_MASK);
+        get => (global::Stardust.Utilities.Tests.StatusCode5)((byte)((Value >> STATUS_START_BIT) & STATUS_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK));
+        set { var __ev = (byte)value;
+            Value = (ulong)((Value & STATUS_INVERTED_MASK) | ((((ulong)__ev) << STATUS_START_BIT) & STATUS_SHIFTED_MASK));
+        }
     }
 
-    public partial byte VersionMinor
+    public partial uint Payload
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_MINOR_START_BIT) & VERSION_MINOR_MASK);
+        get => (uint)((Value >> PAYLOAD_START_BIT) & PAYLOAD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK));
+        set => Value = (ulong)((Value & PAYLOAD_INVERTED_MASK) | ((((ulong)value) << PAYLOAD_START_BIT) & PAYLOAD_SHIFTED_MASK));
     }
 
-    public partial uint Reserved
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & RESERVED_INVERTED_MASK) | ((((ulong)value) << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK));
-    }
+    /// <summary>Returns a FrameWithColor with the mask for the Color field (bits 0-23).</summary>
+    public static FrameWithColor ColorMask => new(COLOR_MASK);
 
-    /// <summary>Returns a FileHeader with the mask for the Magic field (bits 0-15).</summary>
-    public static FileHeader MagicMask => new(MAGIC_MASK);
+    /// <summary>Returns a FrameWithColor with the mask for the Status field (bits 24-28).</summary>
+    public static FrameWithColor StatusMask => new(STATUS_SHIFTED_MASK);
 
-    /// <summary>Returns a FileHeader with the mask for the Flags field (bits 16-23).</summary>
-    public static FileHeader FlagsMask => new(FLAGS_SHIFTED_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the VersionMajor field (bits 24-31).</summary>
-    public static FileHeader VersionMajorMask => new(VERSION_MAJOR_SHIFTED_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the VersionMinor field (bits 32-39).</summary>
-    public static FileHeader VersionMinorMask => new(VERSION_MINOR_SHIFTED_MASK);
-
-    /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
-    public static FileHeader ReservedMask => new(RESERVED_SHIFTED_MASK);
+    /// <summary>Returns a FrameWithColor with the mask for the Payload field (bits 32-63).</summary>
+    public static FrameWithColor PayloadMask => new(PAYLOAD_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -118,203 +88,193 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Magic", 0, 16, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Flags", 16, 8, "Stardust.Utilities.Tests.StatusFlags", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("VersionMajor", 24, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("VersionMinor", 32, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("Reserved", 40, 24, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Color", 0, 24, "Stardust.Utilities.Tests.RgbColor24", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Status", 24, 5, "Stardust.Utilities.Tests.StatusCode5", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Payload", 32, 32, "uint", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 64, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
-    /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>
+    /// <summary>Returns a new FrameWithColor with the Color field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithMagic(ushort value) => new((ulong)((Value & MAGIC_INVERTED_MASK) | ((ulong)value & MAGIC_MASK)));
+    public FrameWithColor WithColor(global::Stardust.Utilities.Tests.RgbColor24 value) => new((ulong)((Value & COLOR_INVERTED_MASK) | ((ulong)value & COLOR_MASK)));
 
-    /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
+    /// <summary>Returns a new FrameWithColor with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & FLAGS_INVERTED_MASK) | (((ulong)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
+    public FrameWithColor WithStatus(global::Stardust.Utilities.Tests.StatusCode5 value) => new((ulong)((Value & STATUS_INVERTED_MASK) | (((ulong)value << STATUS_START_BIT) & STATUS_SHIFTED_MASK)));
 
-    /// <summary>Returns a new FileHeader with the VersionMajor field set to the specified value.</summary>
+    /// <summary>Returns a new FrameWithColor with the Payload field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK)));
-
-    /// <summary>Returns a new FileHeader with the VersionMinor field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & VERSION_MINOR_INVERTED_MASK) | (((ulong)value << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK)));
-
-    /// <summary>Returns a new FileHeader with the Reserved field set to the specified value.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithReserved(uint value) => new((ulong)((Value & RESERVED_INVERTED_MASK) | (((ulong)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
+    public FrameWithColor WithPayload(uint value) => new((ulong)((Value & PAYLOAD_INVERTED_MASK) | (((ulong)value << PAYLOAD_START_BIT) & PAYLOAD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ~(FileHeader a) => new((ulong)~a.Value);
+    public static FrameWithColor operator ~(FrameWithColor a) => new((ulong)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(FileHeader a, FileHeader b) => new((ulong)(a.Value | b.Value));
+    public static FrameWithColor operator |(FrameWithColor a, FrameWithColor b) => new((ulong)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(FileHeader a, FileHeader b) => new((ulong)(a.Value & b.Value));
+    public static FrameWithColor operator &(FrameWithColor a, FrameWithColor b) => new((ulong)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(FileHeader a, FileHeader b) => new((ulong)(a.Value ^ b.Value));
+    public static FrameWithColor operator ^(FrameWithColor a, FrameWithColor b) => new((ulong)(a.Value ^ b.Value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(FileHeader a, ulong b) => new(a.Value & b);
+    public static FrameWithColor operator &(FrameWithColor a, ulong b) => new(a.Value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(ulong a, FileHeader b) => new(a & b.Value);
+    public static FrameWithColor operator &(ulong a, FrameWithColor b) => new(a & b.Value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(FileHeader a, ulong b) => new(a.Value | b);
+    public static FrameWithColor operator |(FrameWithColor a, ulong b) => new(a.Value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(ulong a, FileHeader b) => new(a | b.Value);
+    public static FrameWithColor operator |(ulong a, FrameWithColor b) => new(a | b.Value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(FileHeader a, ulong b) => new(a.Value ^ b);
+    public static FrameWithColor operator ^(FrameWithColor a, ulong b) => new(a.Value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(ulong a, FileHeader b) => new(a ^ b.Value);
+    public static FrameWithColor operator ^(ulong a, FrameWithColor b) => new(a ^ b.Value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(FileHeader a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(FrameWithColor a, int b) => a.Value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, FileHeader b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, FrameWithColor b) => (ulong)a & b.Value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(FileHeader a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(FrameWithColor a, int b) => a.Value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, FileHeader b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, FrameWithColor b) => (ulong)a | b.Value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(FileHeader a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(FrameWithColor a, int b) => a.Value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, FileHeader b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, FrameWithColor b) => (ulong)a ^ b.Value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a) => a;
+    public static FrameWithColor operator +(FrameWithColor a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a) => new(unchecked((ulong)(0 - a.Value)));
+    public static FrameWithColor operator -(FrameWithColor a) => new(unchecked((ulong)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static FrameWithColor operator +(FrameWithColor a, FrameWithColor b) => new(unchecked((ulong)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static FrameWithColor operator +(FrameWithColor a, ulong b) => new(unchecked((ulong)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(ulong a, FileHeader b) => new(unchecked((ulong)(a + b.Value)));
+    public static FrameWithColor operator +(ulong a, FrameWithColor b) => new(unchecked((ulong)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static FrameWithColor operator -(FrameWithColor a, FrameWithColor b) => new(unchecked((ulong)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static FrameWithColor operator -(FrameWithColor a, ulong b) => new(unchecked((ulong)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(ulong a, FileHeader b) => new(unchecked((ulong)(a - b.Value)));
+    public static FrameWithColor operator -(ulong a, FrameWithColor b) => new(unchecked((ulong)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static FrameWithColor operator *(FrameWithColor a, FrameWithColor b) => new(unchecked((ulong)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static FrameWithColor operator *(FrameWithColor a, ulong b) => new(unchecked((ulong)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(ulong a, FileHeader b) => new(unchecked((ulong)(a * b.Value)));
+    public static FrameWithColor operator *(ulong a, FrameWithColor b) => new(unchecked((ulong)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(FileHeader a, FileHeader b) => new((ulong)(a.Value / b.Value));
+    public static FrameWithColor operator /(FrameWithColor a, FrameWithColor b) => new((ulong)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(FileHeader a, ulong b) => new((ulong)(a.Value / b));
+    public static FrameWithColor operator /(FrameWithColor a, ulong b) => new((ulong)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(ulong a, FileHeader b) => new((ulong)(a / b.Value));
+    public static FrameWithColor operator /(ulong a, FrameWithColor b) => new((ulong)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(FileHeader a, FileHeader b) => new((ulong)(a.Value % b.Value));
+    public static FrameWithColor operator %(FrameWithColor a, FrameWithColor b) => new((ulong)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(FileHeader a, ulong b) => new((ulong)(a.Value % b));
+    public static FrameWithColor operator %(FrameWithColor a, ulong b) => new((ulong)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(ulong a, FileHeader b) => new((ulong)(a % b.Value));
+    public static FrameWithColor operator %(ulong a, FrameWithColor b) => new((ulong)(a % b.Value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator <<(FileHeader a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static FrameWithColor operator <<(FrameWithColor a, int b) => new(unchecked((ulong)(a.Value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator >>(FileHeader a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static FrameWithColor operator >>(FrameWithColor a, int b) => new(unchecked((ulong)(a.Value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator >>>(FileHeader a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static FrameWithColor operator >>>(FrameWithColor a, int b) => new(unchecked((ulong)(a.Value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(FileHeader a, FileHeader b) => a.Value < b.Value;
+    public static bool operator <(FrameWithColor a, FrameWithColor b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(FileHeader a, FileHeader b) => a.Value > b.Value;
+    public static bool operator >(FrameWithColor a, FrameWithColor b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(FileHeader a, FileHeader b) => a.Value <= b.Value;
+    public static bool operator <=(FrameWithColor a, FrameWithColor b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(FileHeader a, FileHeader b) => a.Value >= b.Value;
+    public static bool operator >=(FrameWithColor a, FrameWithColor b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(FileHeader a, FileHeader b) => a.Value == b.Value;
+    public static bool operator ==(FrameWithColor a, FrameWithColor b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(FileHeader a, FileHeader b) => a.Value != b.Value;
+    public static bool operator !=(FrameWithColor a, FrameWithColor b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is FileHeader other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is FrameWithColor other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -323,26 +283,26 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(FileHeader value) => value.Value;
+    public static implicit operator ulong(FrameWithColor value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator FileHeader(ulong value) => new(value);
+    public static implicit operator FrameWithColor(ulong value) => new(value);
 
-    /// <summary>Creates a new FileHeader from a little-endian byte span.</summary>
+    /// <summary>Creates a new FrameWithColor from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public FileHeader(ReadOnlySpan<byte> bytes)
+    public FrameWithColor(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-        this = new FileHeader(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
+        this = new FrameWithColor(BinaryPrimitives.ReadUInt64LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new FileHeader by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new FrameWithColor by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
-    /// <returns>The deserialized FileHeader.</returns>
+    /// <returns>The deserialized FrameWithColor.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static FrameWithColor ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
@@ -415,12 +375,12 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         }
     }
 
-    /// <summary>Parses a string into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a FrameWithColor. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed FileHeader value.</returns>
+    /// <returns>The parsed FrameWithColor value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static FileHeader Parse(string s, IFormatProvider? provider)
+    public static FrameWithColor Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
@@ -431,12 +391,12 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return new(ulong.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a FrameWithColor. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out FileHeader result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out FrameWithColor result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -469,11 +429,11 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return false;
     }
 
-    /// <summary>Parses a span of characters into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a FrameWithColor. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed FileHeader value.</returns>
-    public static FileHeader Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed FrameWithColor value.</returns>
+    public static FrameWithColor Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
@@ -482,12 +442,12 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return new(ulong.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a FileHeader. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a FrameWithColor. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out FileHeader result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out FrameWithColor result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -518,18 +478,18 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
         return false;
     }
 
-    /// <summary>Parses a string into a FileHeader using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a FrameWithColor using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed FileHeader value.</returns>
+    /// <returns>The parsed FrameWithColor value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static FrameWithColor Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a FileHeader using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a FrameWithColor using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out FileHeader result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out FrameWithColor result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -549,38 +509,38 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a FileHeader.</exception>
+    /// <exception cref="ArgumentException">obj is not a FrameWithColor.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is FileHeader other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type FileHeader", nameof(obj));
+        if (obj is FrameWithColor other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type FrameWithColor", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another FileHeader and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A FileHeader to compare.</param>
+    /// <summary>Compares this instance to another FrameWithColor and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A FrameWithColor to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(FileHeader other) => Value.CompareTo(other.Value);
+    public int CompareTo(FrameWithColor other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another FileHeader.</summary>
-    /// <param name="other">A FileHeader to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another FrameWithColor.</summary>
+    /// <param name="other">A FrameWithColor to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(FileHeader other) => Value == other.Value;
+    public bool Equals(FrameWithColor other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes FileHeader as a string.</summary>
-    private sealed class FileHeaderJsonConverter : JsonConverter<FileHeader>
+    /// <summary>JSON converter that serializes FrameWithColor as a string.</summary>
+    private sealed class FrameWithColorJsonConverter : JsonConverter<FrameWithColor>
     {
-        /// <summary>Reads a FileHeader from a JSON string.</summary>
-        public override FileHeader Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a FrameWithColor from a JSON string.</summary>
+        public override FrameWithColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : FileHeader.Parse(s);
+            return s is null ? default : FrameWithColor.Parse(s);
         }
 
-        /// <summary>Writes a FileHeader to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, FileHeader value, JsonSerializerOptions options)
+        /// <summary>Writes a FrameWithColor to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, FrameWithColor value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

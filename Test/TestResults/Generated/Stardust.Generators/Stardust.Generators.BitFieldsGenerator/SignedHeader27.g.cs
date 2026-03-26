@@ -50,9 +50,11 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     public partial global::Stardust.Utilities.Tests.SubHeader9 SubHeader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.SubHeader9)(((uint)Value) & SUB_HEADER_MASK);
+        get => (global::Stardust.Utilities.Tests.SubHeader9)((ushort)(((uint)Value) & SUB_HEADER_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & SUB_HEADER_INVERTED_MASK) | (((uint)value) & SUB_HEADER_MASK));
+        set { var __ev = (ushort)value;
+            Value = (int)((((uint)Value) & SUB_HEADER_INVERTED_MASK) | (((uint)__ev) & SUB_HEADER_MASK));
+        }
     }
 
     public partial ushort PayloadSize

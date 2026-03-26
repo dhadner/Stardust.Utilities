@@ -372,3 +372,67 @@ input[type="range"] {
     word-break: break-all;
     color: var(--text-dim);
 }
+
+/* ── FP Stream Lab ──────────────────────────────────────────── */
+.stream-info {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--text-dim);
+}
+
+.stream-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+.stream-readback table,
+.stream-decomposition table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.stream-readback th,
+.stream-decomposition th {
+    text-align: left;
+    color: var(--accent);
+    font-weight: 600;
+    padding: 4px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+}
+
+.stream-readback td,
+.stream-decomposition td {
+    padding: 4px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.stream-readback td.mono,
+.stream-decomposition td.mono {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+}
+
+.stream-log {
+    max-height: 280px;
+    overflow-y: auto;
+    font-size: 0.78rem;
+}
+
+.field-chip .chip-bits {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    opacity: 0.7;
+    display: block;
+}
+
+input[type="number"] {
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+}

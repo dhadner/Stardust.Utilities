@@ -142,4 +142,46 @@ internal static class BitFieldsDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "Half requires exactly 16 bits, float requires 32 bits, double requires 64 bits, and decimal requires 128 bits. A mismatched width could silently corrupt the value.");
+
+    /// <summary>
+    /// Error: A property type is a [BitFields] struct whose declared bit width does not
+    /// match the [BitField(start, End)] width allocated in the parent struct.
+    /// The full storage must survive the round-trip; partial embedding silently truncates data.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor EmbeddedStructWidthMismatch = new(
+        id: "SD0021",
+        title: "BitField width does not match embedded BitFields struct size",
+        messageFormat: "Property '{0}' in '{1}' has type '{2}' ({3} bits) but the field width is {4} bits. Embedded [BitFields] structs require an exact bit-width match to avoid silent data truncation.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "When a [BitFields] struct is used as a property type, the field width must exactly match the embedded type's declared bit width. Use [BitFields(N)] to declare a custom-width struct, or adjust the field range to match the embedded type's storage width.");
+
+    /// <summary>
+    /// Error: A record struct view ([BitFieldsView] or [BitFields] on a record struct)
+    /// cannot be embedded as a property in a value-type [BitFields] struct.
+    /// Views are backed by Memory&lt;byte&gt; and cannot be stored in a single integer value.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor CannotEmbedViewInValueType = new(
+        id: "SD0022",
+        title: "Cannot embed a view record struct in a value-type BitFields struct",
+        messageFormat: "Property '{0}' in '{1}' has type '{2}' which is a Memory<byte>-backed view (record struct). Views cannot be embedded in value-type [BitFields] structs. Use a [BitFields] value-type struct instead.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Record struct views are backed by Memory<byte> and require a buffer reference. They cannot be stored within a single integer backing field. Declare the embedded type as a [BitFields] value-type struct (not a record struct) instead.");
+
+    /// <summary>
+    /// Error: A multi-word [BitFields] struct (UInt128, Int128, decimal, or N &gt; 64)
+    /// cannot be embedded in a single-word value-type parent. The parent struct's backing
+    /// integer is too narrow to hold the embedded type's bits.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor CannotEmbedMultiWordInSingleWord = new(
+        id: "SD0023",
+        title: "Cannot embed multi-word BitFields struct in a single-word value-type struct",
+        messageFormat: "Property '{0}' in '{1}' has type '{2}' ({3} bits) which is a multi-word [BitFields] struct. It cannot be embedded in a single-word (≤ 64-bit) value-type struct. Use a multi-word parent ([BitFields(N)] where N ≥ {3}) or a record struct view instead.",
+        category: CATEGORY,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Multi-word BitFields structs (UInt128, Int128, decimal, or [BitFields(N)] where N > 64) use multiple ulong words for storage and cannot be represented within a single-word integer backing field. Embed them in a multi-word parent struct or a record struct view instead.");
 }

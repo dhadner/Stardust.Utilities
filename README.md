@@ -261,7 +261,7 @@ the equivalent type-based form:
 | `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
 | `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
 | `StorageType.Decimal` | `typeof(decimal)` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
-| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits |
+| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits. N <= 64 uses smallest backing type (`byte`/`ushort`/`uint`/`ulong`); N > 64 uses multi-word storage |
 
 ##### Property Types
 
@@ -274,7 +274,7 @@ Both value types and views support the same property types:
 | Floating-point / decimal | `Half`, `float`, `double`, `decimal` | Opaque bit reinterpretation; field width must match type size exactly (16/32/64/128 bits) |
 | Enums | `OpMode`, `StatusCode` | Zero-cost enum properties |
 | Endian types | `UInt16Be`, `UInt32Le`, `Int64Be` | Explicit byte ordering per field |
-| Nested value types | `StatusFlags`, `ProtocolHeader` | Composition; reusable sub-structures |
+| Nested value types | `StatusFlags`, `ProtocolHeader` | Composition; reusable sub-structures (all backing types, including multi-word) |
 | Nested views | `CaptureHeaderView` | Sub-views with independent byte/bit order |
 
 When a property type has its own byte or bit order (endian types or nested structs with explicit
@@ -336,6 +336,65 @@ ProtocolHeader header = 0;
 header.Status = new StatusFlags { Ready = true, Priority = 5 };
 bool ready = header.Status.Ready;  // true
 ```
+
+`[BitFields(N)]` structs (N <= 64) are also composable. The generator selects the
+smallest unsigned backing type (`byte`, `ushort`, `uint`, or `ulong`), so a 5-bit struct
+is only 1 byte. These can be embedded in value-type structs, other `[BitFields(N)]`
+structs, and record struct views:
+
+```csharp
+// 5-bit status code -- backed by byte automatically
+[BitFields(5)]
+public partial struct StatusCode5
+{
+    [BitField(0, End = 2)] public partial byte Category { get; set; }  // 3 bits
+    [BitFlag(3)]           public partial bool Urgent { get; set; }
+    [BitFlag(4)]           public partial bool Ack { get; set; }
+}
+
+// Embed in a view
+[BitFields]
+public partial record struct SensorView
+{
+    [BitField(0, End = 4)]   public partial StatusCode5 Status { get; set; }
+    [BitField(8, End = 19)]  public partial ushort Reading { get; set; }
+}
+```
+
+Multi-word types (`UInt128`, `Int128`, `decimal`, `[BitFields(N)]` N > 64) are also
+composable. They can be embedded in multi-word value-type parents and record struct views
+using span-based `ReadFrom`/`WriteTo`. The embedded field must be byte-aligned (start bit
+is a multiple of 8):
+
+```csharp
+[BitFields(typeof(UInt128))]
+public partial struct GuidBits128
+{
+    [BitField(0, End = 63)]   public partial ulong Low { get; set; }
+    [BitField(64, End = 127)] public partial ulong High { get; set; }
+}
+
+// Embed 128-bit type in a 512-bit telemetry frame
+[BitFields(512)]
+public partial struct TelemetryFrame
+{
+    [BitField(0, End = 127)]   public partial GuidBits128 Id { get; set; }
+    [BitField(128, End = 383)] public partial WidePayload256 Payload { get; set; }
+    [BitField(384, End = 511)] public partial GuidBits128 Footer { get; set; }
+}
+
+// Or embed in a view
+[BitFields]
+public partial record struct FrameView
+{
+    [BitField(0, End = 31)]    public partial uint Header { get; set; }
+    [BitField(32, End = 159)]  public partial GuidBits128 Id { get; set; }
+    [BitField(160, End = 191)] public partial uint Checksum { get; set; }
+}
+```
+
+The generator validates all composition constraints at compile time: **SD0021** (width
+mismatch), **SD0022** (view in value type), **SD0023** (multi-word in single-word parent).
 
 ##### Undefined and Reserved Bits
 
@@ -1164,7 +1223,7 @@ public partial struct StatusRegister
 
 This applies to both value-type structs and record struct views.
 
-### BitField syntax diagnostics (SD0015–SD0020)
+### BitField syntax diagnostics (SD0015--SD0023)
 
 The source generator validates `[BitField]` attribute usage and emits diagnostics when the
 syntax is ambiguous, redundant, or incomplete:
@@ -1177,6 +1236,9 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0018** | Error | `Start` is specified but neither `End` nor `Width` | The field range is incomplete. Add `End = N` or `Width = N` or use the positional argument `end:`. |
 | **SD0019** | Error | `End` or `Width` is specified but `Start` is missing | Provide `Start` as a positional argument (`start:`) or as the named property `Start`. |
 | **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width could silently corrupt the value. |
+| **SD0021** | Error | Embedded `[BitFields(N)]` struct width mismatch | The field width must exactly match the embedded type's declared N bits to avoid silent data truncation. |
+| **SD0022** | Error | Record struct (view) used as property in value-type struct | Views are backed by `Memory<byte>` and cannot be stored in an integer field. Use a value-type struct. |
+| **SD0023** | Error | Multi-word type in single-word parent | A multi-word type (UInt128, Int128, decimal, `[BitFields(N)]` N > 64) cannot fit in a single-word (<=64-bit) parent. Use a multi-word parent or a view. |
 
 **SD0015** is a learning aid: it reminds developers that the second positional parameter is
 an inclusive *end bit*, not a *width*. Once you are comfortable with the convention you can

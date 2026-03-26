@@ -57,9 +57,11 @@ public partial class BitFieldProtocolTests
         public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((Value >> FLAGS_START_BIT) & FLAGS_MASK);
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)value) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
+            set { var __ev = (byte)value;
+                Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)__ev) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
+            }
         }
 
         public partial ushort FragmentOffset

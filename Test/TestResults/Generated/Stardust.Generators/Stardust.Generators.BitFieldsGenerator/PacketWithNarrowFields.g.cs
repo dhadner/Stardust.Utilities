@@ -13,74 +13,73 @@ using Stardust.Utilities;
 
 namespace Stardust.Utilities.Tests;
 
-[JsonConverter(typeof(Header27JsonConverter))]
-public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<Header27>,
-                             IFormattable, ISpanFormattable, IParsable<Header27>, ISpanParsable<Header27>
+[JsonConverter(typeof(PacketWithNarrowFieldsJsonConverter))]
+public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWithNarrowFields>, IEquatable<PacketWithNarrowFields>,
+                             IFormattable, ISpanFormattable, IParsable<PacketWithNarrowFields>, ISpanParsable<PacketWithNarrowFields>
 {
     private uint Value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
 
-    /// <summary>Returns a Header27 with all bits set to zero.</summary>
-    public static Header27 Zero => default;
+    /// <summary>Returns a PacketWithNarrowFields with all bits set to zero.</summary>
+    public static PacketWithNarrowFields Zero => default;
 
     // --- Bit field mask constants ---
-    // SubHeader: bits [0..8], width 9
-    private const int SUB_HEADER_START_BIT = 0;
-    private const uint SUB_HEADER_MASK = 0x000001FFU;
-    private const uint SUB_HEADER_INVERTED_MASK = 0xFFFFFE00U;  // ~SUB_HEADER_MASK
-    // PayloadSize: bits [9..18], width 10
-    private const int PAYLOAD_SIZE_START_BIT = 9;
-    private const uint PAYLOAD_SIZE_MASK = 0x000003FFU;
-    private const uint PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // PAYLOAD_SIZE_MASK << PAYLOAD_SIZE_START_BIT
-    private const uint PAYLOAD_SIZE_INVERTED_MASK = 0xFFF801FFU;  // ~PAYLOAD_SIZE_SHIFTED_MASK
-    // Sequence: bits [19..26], width 8
-    private const int SEQUENCE_START_BIT = 19;
-    private const uint SEQUENCE_MASK = 0x000000FFU;
-    private const uint SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // SEQUENCE_MASK << SEQUENCE_START_BIT
-    private const uint SEQUENCE_INVERTED_MASK = 0xF807FFFFU;  // ~SEQUENCE_SHIFTED_MASK
+    // Status: bits [0..4], width 5
+    private const int STATUS_START_BIT = 0;
+    private const uint STATUS_MASK = 0x0000001FU;
+    private const uint STATUS_INVERTED_MASK = 0xFFFFFFE0U;  // ~STATUS_MASK
+    // Sensor: bits [5..16], width 12
+    private const int SENSOR_START_BIT = 5;
+    private const uint SENSOR_MASK = 0x00000FFFU;
+    private const uint SENSOR_SHIFTED_MASK = 0x0001FFE0U;  // SENSOR_MASK << SENSOR_START_BIT
+    private const uint SENSOR_INVERTED_MASK = 0xFFFE001FU;  // ~SENSOR_SHIFTED_MASK
+    // SequenceNum: bits [17..31], width 15
+    private const int SEQUENCE_NUM_START_BIT = 17;
+    private const uint SEQUENCE_NUM_MASK = 0x00007FFFU;
+    private const uint SEQUENCE_NUM_SHIFTED_MASK = 0xFFFE0000U;  // SEQUENCE_NUM_MASK << SEQUENCE_NUM_START_BIT
+    private const uint SEQUENCE_NUM_INVERTED_MASK = 0x0001FFFFU;  // ~SEQUENCE_NUM_SHIFTED_MASK
 
-    // --- Constructor normalization masks ---
-    private const uint NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+    /// <summary>Creates a new PacketWithNarrowFields with the specified raw bits value.</summary>
+    public PacketWithNarrowFields(uint value) { Value = value; }
 
-    /// <summary>Creates a new Header27 with the specified raw bits value.</summary>
-    public Header27(uint value) { Value = (uint)(value & NORMALIZATION_AND_MASK); }
-
-    public partial global::Stardust.Utilities.Tests.SubHeader9 SubHeader
+    public partial global::Stardust.Utilities.Tests.StatusCode5 Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.SubHeader9)((ushort)(Value & SUB_HEADER_MASK));
+        get => (global::Stardust.Utilities.Tests.StatusCode5)((byte)(Value & STATUS_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set { var __ev = (ushort)value;
-            Value = (uint)((Value & SUB_HEADER_INVERTED_MASK) | (((uint)__ev) & SUB_HEADER_MASK));
+        set { var __ev = (byte)value;
+            Value = (uint)((Value & STATUS_INVERTED_MASK) | (((uint)__ev) & STATUS_MASK));
         }
     }
 
-    public partial ushort PayloadSize
+    public partial global::Stardust.Utilities.Tests.SensorReading12 Sensor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_MASK);
+        get => (global::Stardust.Utilities.Tests.SensorReading12)((ushort)((Value >> SENSOR_START_BIT) & SENSOR_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_SHIFTED_MASK));
+        set { var __ev = (ushort)value;
+            Value = (uint)((Value & SENSOR_INVERTED_MASK) | ((((uint)__ev) << SENSOR_START_BIT) & SENSOR_SHIFTED_MASK));
+        }
     }
 
-    public partial byte Sequence
+    public partial ushort SequenceNum
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> SEQUENCE_START_BIT) & SEQUENCE_MASK);
+        get => (ushort)((Value >> SEQUENCE_NUM_START_BIT) & SEQUENCE_NUM_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & SEQUENCE_INVERTED_MASK) | ((((uint)value) << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK));
+        set => Value = (uint)((Value & SEQUENCE_NUM_INVERTED_MASK) | ((((uint)value) << SEQUENCE_NUM_START_BIT) & SEQUENCE_NUM_SHIFTED_MASK));
     }
 
-    /// <summary>Returns a Header27 with the mask for the SubHeader field (bits 0-8).</summary>
-    public static Header27 SubHeaderMask => new(SUB_HEADER_MASK);
+    /// <summary>Returns a PacketWithNarrowFields with the mask for the Status field (bits 0-4).</summary>
+    public static PacketWithNarrowFields StatusMask => new(STATUS_MASK);
 
-    /// <summary>Returns a Header27 with the mask for the PayloadSize field (bits 9-18).</summary>
-    public static Header27 PayloadSizeMask => new(PAYLOAD_SIZE_SHIFTED_MASK);
+    /// <summary>Returns a PacketWithNarrowFields with the mask for the Sensor field (bits 5-16).</summary>
+    public static PacketWithNarrowFields SensorMask => new(SENSOR_SHIFTED_MASK);
 
-    /// <summary>Returns a Header27 with the mask for the Sequence field (bits 19-26).</summary>
-    public static Header27 SequenceMask => new(SEQUENCE_SHIFTED_MASK);
+    /// <summary>Returns a PacketWithNarrowFields with the mask for the SequenceNum field (bits 17-31).</summary>
+    public static PacketWithNarrowFields SequenceNumMask => new(SEQUENCE_NUM_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -89,193 +88,193 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("SubHeader", 0, 9, "Stardust.Utilities.Tests.SubHeader9", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
-        new("PayloadSize", 9, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
-        new("Sequence", 19, 8, "byte", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Zeroes),
+        new("Status", 0, 5, "Stardust.Utilities.Tests.StatusCode5", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Sensor", 5, 12, "Stardust.Utilities.Tests.SensorReading12", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("SequenceNum", 17, 15, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 32, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
-    /// <summary>Returns a new Header27 with the SubHeader field set to the specified value.</summary>
+    /// <summary>Returns a new PacketWithNarrowFields with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((Value & SUB_HEADER_INVERTED_MASK) | ((uint)value & SUB_HEADER_MASK)));
+    public PacketWithNarrowFields WithStatus(global::Stardust.Utilities.Tests.StatusCode5 value) => new((uint)((Value & STATUS_INVERTED_MASK) | ((uint)value & STATUS_MASK)));
 
-    /// <summary>Returns a new Header27 with the PayloadSize field set to the specified value.</summary>
+    /// <summary>Returns a new PacketWithNarrowFields with the Sensor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithPayloadSize(ushort value) => new((uint)((Value & PAYLOAD_SIZE_INVERTED_MASK) | (((uint)value << PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_SHIFTED_MASK)));
+    public PacketWithNarrowFields WithSensor(global::Stardust.Utilities.Tests.SensorReading12 value) => new((uint)((Value & SENSOR_INVERTED_MASK) | (((uint)value << SENSOR_START_BIT) & SENSOR_SHIFTED_MASK)));
 
-    /// <summary>Returns a new Header27 with the Sequence field set to the specified value.</summary>
+    /// <summary>Returns a new PacketWithNarrowFields with the SequenceNum field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSequence(byte value) => new((uint)((Value & SEQUENCE_INVERTED_MASK) | (((uint)value << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK)));
+    public PacketWithNarrowFields WithSequenceNum(ushort value) => new((uint)((Value & SEQUENCE_NUM_INVERTED_MASK) | (((uint)value << SEQUENCE_NUM_START_BIT) & SEQUENCE_NUM_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ~(Header27 a) => new((uint)~a.Value);
+    public static PacketWithNarrowFields operator ~(PacketWithNarrowFields a) => new((uint)~a.Value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator |(Header27 a, Header27 b) => new((uint)(a.Value | b.Value));
+    public static PacketWithNarrowFields operator |(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value | b.Value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator &(Header27 a, Header27 b) => new((uint)(a.Value & b.Value));
+    public static PacketWithNarrowFields operator &(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value & b.Value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ^(Header27 a, Header27 b) => new((uint)(a.Value ^ b.Value));
+    public static PacketWithNarrowFields operator ^(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value ^ b.Value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator &(Header27 a, uint b) => new(a.Value & b);
+    public static PacketWithNarrowFields operator &(PacketWithNarrowFields a, uint b) => new(a.Value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator &(uint a, Header27 b) => new(a & b.Value);
+    public static PacketWithNarrowFields operator &(uint a, PacketWithNarrowFields b) => new(a & b.Value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator |(Header27 a, uint b) => new(a.Value | b);
+    public static PacketWithNarrowFields operator |(PacketWithNarrowFields a, uint b) => new(a.Value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator |(uint a, Header27 b) => new(a | b.Value);
+    public static PacketWithNarrowFields operator |(uint a, PacketWithNarrowFields b) => new(a | b.Value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ^(Header27 a, uint b) => new(a.Value ^ b);
+    public static PacketWithNarrowFields operator ^(PacketWithNarrowFields a, uint b) => new(a.Value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ^(uint a, Header27 b) => new(a ^ b.Value);
+    public static PacketWithNarrowFields operator ^(uint a, PacketWithNarrowFields b) => new(a ^ b.Value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(Header27 a, int b) => a.Value & (long)b;
+    public static long operator &(PacketWithNarrowFields a, int b) => a.Value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, Header27 b) => (long)a & b.Value;
+    public static long operator &(int a, PacketWithNarrowFields b) => (long)a & b.Value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(Header27 a, int b) => a.Value | (long)b;
+    public static long operator |(PacketWithNarrowFields a, int b) => a.Value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, Header27 b) => (long)a | b.Value;
+    public static long operator |(int a, PacketWithNarrowFields b) => (long)a | b.Value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(Header27 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(PacketWithNarrowFields a, int b) => a.Value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, Header27 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, PacketWithNarrowFields b) => (long)a ^ b.Value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(Header27 a) => a;
+    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a) => a;
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(Header27 a) => new(unchecked((uint)(0 - a.Value)));
+    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a) => new(unchecked((uint)(0 - a.Value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(Header27 a, Header27 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.Value + b.Value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(Header27 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.Value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(uint a, Header27 b) => new(unchecked((uint)(a + b.Value)));
+    public static PacketWithNarrowFields operator +(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a + b.Value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(Header27 a, Header27 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.Value - b.Value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(Header27 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.Value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(uint a, Header27 b) => new(unchecked((uint)(a - b.Value)));
+    public static PacketWithNarrowFields operator -(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a - b.Value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator *(Header27 a, Header27 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static PacketWithNarrowFields operator *(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.Value * b.Value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator *(Header27 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static PacketWithNarrowFields operator *(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.Value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator *(uint a, Header27 b) => new(unchecked((uint)(a * b.Value)));
+    public static PacketWithNarrowFields operator *(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a * b.Value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator /(Header27 a, Header27 b) => new((uint)(a.Value / b.Value));
+    public static PacketWithNarrowFields operator /(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value / b.Value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator /(Header27 a, uint b) => new((uint)(a.Value / b));
+    public static PacketWithNarrowFields operator /(PacketWithNarrowFields a, uint b) => new((uint)(a.Value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator /(uint a, Header27 b) => new((uint)(a / b.Value));
+    public static PacketWithNarrowFields operator /(uint a, PacketWithNarrowFields b) => new((uint)(a / b.Value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator %(Header27 a, Header27 b) => new((uint)(a.Value % b.Value));
+    public static PacketWithNarrowFields operator %(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value % b.Value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator %(Header27 a, uint b) => new((uint)(a.Value % b));
+    public static PacketWithNarrowFields operator %(PacketWithNarrowFields a, uint b) => new((uint)(a.Value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator %(uint a, Header27 b) => new((uint)(a % b.Value));
+    public static PacketWithNarrowFields operator %(uint a, PacketWithNarrowFields b) => new((uint)(a % b.Value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator <<(Header27 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static PacketWithNarrowFields operator <<(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.Value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator >>(Header27 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static PacketWithNarrowFields operator >>(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.Value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator >>>(Header27 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static PacketWithNarrowFields operator >>>(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.Value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(Header27 a, Header27 b) => a.Value < b.Value;
+    public static bool operator <(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value < b.Value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(Header27 a, Header27 b) => a.Value > b.Value;
+    public static bool operator >(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value > b.Value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(Header27 a, Header27 b) => a.Value <= b.Value;
+    public static bool operator <=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value <= b.Value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(Header27 a, Header27 b) => a.Value >= b.Value;
+    public static bool operator >=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value >= b.Value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Header27 a, Header27 b) => a.Value == b.Value;
+    public static bool operator ==(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value == b.Value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Header27 a, Header27 b) => a.Value != b.Value;
+    public static bool operator !=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value != b.Value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is Header27 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is PacketWithNarrowFields other && Value == other.Value;
 
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode() => Value.GetHashCode();
@@ -284,26 +283,26 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     public override string ToString() => $"0x{Value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(Header27 value) => value.Value;
+    public static implicit operator uint(PacketWithNarrowFields value) => value.Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Header27(uint value) => new(value);
+    public static implicit operator PacketWithNarrowFields(uint value) => new(value);
 
-    /// <summary>Creates a new Header27 from a little-endian byte span.</summary>
+    /// <summary>Creates a new PacketWithNarrowFields from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
     /// <exception cref="ArgumentException">The span is too short.</exception>
-    public Header27(ReadOnlySpan<byte> bytes)
+    public PacketWithNarrowFields(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-        this = new Header27(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
+        this = new PacketWithNarrowFields(BinaryPrimitives.ReadUInt32LittleEndian(bytes));
     }
 
-    /// <summary>Creates a new Header27 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
+    /// <summary>Creates a new PacketWithNarrowFields by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
     /// <param name="bytes">The source span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
-    /// <returns>The deserialized Header27.</returns>
+    /// <returns>The deserialized PacketWithNarrowFields.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
+    public static PacketWithNarrowFields ReadFrom(ReadOnlySpan<byte> bytes) => new(bytes);
 
     /// <summary>Writes the value as little-endian bytes into the destination span.</summary>
     /// <param name="destination">The destination span. Must contain at least <see cref="SIZE_IN_BYTES"/> bytes.</param>
@@ -376,12 +375,12 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
         }
     }
 
-    /// <summary>Parses a string into a Header27. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a PacketWithNarrowFields. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed Header27 value.</returns>
+    /// <returns>The parsed PacketWithNarrowFields value.</returns>
     /// <exception cref="ArgumentNullException">s is null.</exception>
-    public static Header27 Parse(string s, IFormatProvider? provider)
+    public static PacketWithNarrowFields Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         var span = s.AsSpan();
@@ -392,12 +391,12 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
         return new(uint.Parse(RemoveUnderscores(span), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a string into a Header27. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a PacketWithNarrowFields. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(string? s, IFormatProvider? provider, out Header27 result)
+    public static bool TryParse(string? s, IFormatProvider? provider, out PacketWithNarrowFields result)
     {
         if (s is null) { result = default; return false; }
         var span = s.AsSpan();
@@ -430,11 +429,11 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
         return false;
     }
 
-    /// <summary>Parses a span of characters into a Header27. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a span of characters into a PacketWithNarrowFields. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
-    /// <returns>The parsed Header27 value.</returns>
-    public static Header27 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    /// <returns>The parsed PacketWithNarrowFields value.</returns>
+    public static PacketWithNarrowFields Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         if (IsBinaryPrefix(s))
             return new(ParseBinary(s.Slice(2)));
@@ -443,12 +442,12 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
         return new(uint.Parse(RemoveUnderscores(s), NumberStyles.Integer, provider));
     }
 
-    /// <summary>Tries to parse a span of characters into a Header27. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a span of characters into a PacketWithNarrowFields. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The span of characters to parse.</param>
     /// <param name="provider">An object that provides culture-specific formatting information.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out Header27 result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out PacketWithNarrowFields result)
     {
         if (IsBinaryPrefix(s))
         {
@@ -479,18 +478,18 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
         return false;
     }
 
-    /// <summary>Parses a string into a Header27 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Parses a string into a PacketWithNarrowFields using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
-    /// <returns>The parsed Header27 value.</returns>
+    /// <returns>The parsed PacketWithNarrowFields value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
+    public static PacketWithNarrowFields Parse(string s) => Parse(s, CultureInfo.InvariantCulture);
 
-    /// <summary>Tries to parse a string into a Header27 using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
+    /// <summary>Tries to parse a string into a PacketWithNarrowFields using invariant culture. Supports decimal, hex (0x prefix), and binary (0b prefix) formats with optional underscores.</summary>
     /// <param name="s">The string to parse.</param>
     /// <param name="result">When this method returns, contains the parsed value if successful.</param>
     /// <returns>true if parsing succeeded; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryParse(string? s, out Header27 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
+    public static bool TryParse(string? s, out PacketWithNarrowFields result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
     /// <param name="format">The format to use, or null for the default format.</param>
@@ -510,38 +509,38 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
-    /// <exception cref="ArgumentException">obj is not a Header27.</exception>
+    /// <exception cref="ArgumentException">obj is not a PacketWithNarrowFields.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is null) return 1;
-        if (obj is Header27 other) return CompareTo(other);
-        throw new ArgumentException("Object must be of type Header27", nameof(obj));
+        if (obj is PacketWithNarrowFields other) return CompareTo(other);
+        throw new ArgumentException("Object must be of type PacketWithNarrowFields", nameof(obj));
     }
 
-    /// <summary>Compares this instance to another Header27 and returns an integer indicating their relative order.</summary>
-    /// <param name="other">A Header27 to compare.</param>
+    /// <summary>Compares this instance to another PacketWithNarrowFields and returns an integer indicating their relative order.</summary>
+    /// <param name="other">A PacketWithNarrowFields to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Header27 other) => Value.CompareTo(other.Value);
+    public int CompareTo(PacketWithNarrowFields other) => Value.CompareTo(other.Value);
 
-    /// <summary>Indicates whether this instance is equal to another Header27.</summary>
-    /// <param name="other">A Header27 to compare with this instance.</param>
+    /// <summary>Indicates whether this instance is equal to another PacketWithNarrowFields.</summary>
+    /// <param name="other">A PacketWithNarrowFields to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Header27 other) => Value == other.Value;
+    public bool Equals(PacketWithNarrowFields other) => Value == other.Value;
 
-    /// <summary>JSON converter that serializes Header27 as a string.</summary>
-    private sealed class Header27JsonConverter : JsonConverter<Header27>
+    /// <summary>JSON converter that serializes PacketWithNarrowFields as a string.</summary>
+    private sealed class PacketWithNarrowFieldsJsonConverter : JsonConverter<PacketWithNarrowFields>
     {
-        /// <summary>Reads a Header27 from a JSON string.</summary>
-        public override Header27 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <summary>Reads a PacketWithNarrowFields from a JSON string.</summary>
+        public override PacketWithNarrowFields Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var s = reader.GetString();
-            return s is null ? default : Header27.Parse(s);
+            return s is null ? default : PacketWithNarrowFields.Parse(s);
         }
 
-        /// <summary>Writes a Header27 to JSON as a string.</summary>
-        public override void Write(Utf8JsonWriter writer, Header27 value, JsonSerializerOptions options)
+        /// <summary>Writes a PacketWithNarrowFields to JSON as a string.</summary>
+        public override void Write(Utf8JsonWriter writer, PacketWithNarrowFields value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
         }

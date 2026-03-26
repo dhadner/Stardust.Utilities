@@ -8,6 +8,13 @@ internal static partial class BitFieldsMultiWordGenerator
 {
     private static void GenerateBitFieldProperty(StringBuilder sb, BitFieldsInfo info, WordLayout layout, BitFieldInfo field, string ind)
     {
+        // Span-backed embedded multi-word struct: use WriteTo/ReadFrom
+        if (field.IsSpanBacked)
+        {
+            GenerateSpanBackedProperty(sb, info, layout, field, ind);
+            return;
+        }
+
         int shift = field.Shift;
         int width = field.Width;
         int startWord = shift / 64;
@@ -228,6 +235,68 @@ internal static partial class BitFieldsMultiWordGenerator
             sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"value ? ({rd} | 0x{mask:X}UL) : ({rd} & 0x{~mask:X16}UL)")};");
         }
 
+        sb.AppendLine($"{ind}}}");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Generates a property accessor for a span-backed embedded multi-word struct.
+    /// Uses <c>WriteTo</c> / <c>ReadFrom</c> on a temp byte span.
+    /// When the field starts at a byte-aligned position the span is a simple slice;
+    /// otherwise byte-level bit-shifting is emitted to support arbitrary bit offsets.
+    /// </summary>
+    private static void GenerateSpanBackedProperty(StringBuilder sb, BitFieldsInfo info, WordLayout layout, BitFieldInfo field, string ind)
+    {
+        int startByte = field.Shift / 8;
+        int bitOffset = field.Shift % 8;
+        int sizeBytes = field.StructSizeBytes;
+        bool aligned = bitOffset == 0;
+
+        sb.AppendLine($"{ind}public partial {field.PropertyType} {field.Name}");
+        sb.AppendLine($"{ind}{{");
+
+        // ── Getter ──────────────────────────────────────────────────────
+        sb.AppendLine($"{ind}    get");
+        sb.AppendLine($"{ind}    {{");
+        sb.AppendLine($"{ind}        Span<byte> __buf = stackalloc byte[SIZE_IN_BYTES];");
+        sb.AppendLine($"{ind}        WriteTo(__buf);");
+        if (aligned)
+        {
+            sb.AppendLine($"{ind}        return {field.PropertyType}.ReadFrom(__buf.Slice({startByte}, {sizeBytes}));");
+        }
+        else
+        {
+            sb.AppendLine($"{ind}        Span<byte> __ebuf = stackalloc byte[{sizeBytes}];");
+            sb.AppendLine($"{ind}        for (int __i = 0; __i < {sizeBytes}; __i++)");
+            sb.AppendLine($"{ind}            __ebuf[__i] = (byte)((__buf[{startByte} + __i] >> {bitOffset}) | (({startByte} + __i + 1 < SIZE_IN_BYTES) ? (__buf[{startByte} + __i + 1] << {8 - bitOffset}) : 0));");
+            sb.AppendLine($"{ind}        return {field.PropertyType}.ReadFrom(__ebuf);");
+        }
+        sb.AppendLine($"{ind}    }}");
+
+        // ── Setter ──────────────────────────────────────────────────────
+        sb.AppendLine($"{ind}    set");
+        sb.AppendLine($"{ind}    {{");
+        sb.AppendLine($"{ind}        Span<byte> __buf = stackalloc byte[SIZE_IN_BYTES];");
+        sb.AppendLine($"{ind}        WriteTo(__buf);");
+        if (aligned)
+        {
+            sb.AppendLine($"{ind}        value.WriteTo(__buf.Slice({startByte}, {sizeBytes}));");
+        }
+        else
+        {
+            int lowMask = (1 << bitOffset) - 1;
+            int hiMask = ~lowMask & 0xFF;
+            sb.AppendLine($"{ind}        Span<byte> __ebuf = stackalloc byte[{sizeBytes}];");
+            sb.AppendLine($"{ind}        value.WriteTo(__ebuf);");
+            sb.AppendLine($"{ind}        for (int __i = 0; __i < {sizeBytes}; __i++)");
+            sb.AppendLine($"{ind}        {{");
+            sb.AppendLine($"{ind}            __buf[{startByte} + __i] = (byte)((__buf[{startByte} + __i] & 0x{lowMask:X2}) | (__ebuf[__i] << {bitOffset}));");
+            sb.AppendLine($"{ind}            if ({startByte} + __i + 1 < SIZE_IN_BYTES)");
+            sb.AppendLine($"{ind}                __buf[{startByte} + __i + 1] = (byte)((__buf[{startByte} + __i + 1] & 0x{hiMask:X2}) | (__ebuf[__i] >> {8 - bitOffset}));");
+            sb.AppendLine($"{ind}        }}");
+        }
+        sb.AppendLine($"{ind}        this = ReadFrom(__buf);");
+        sb.AppendLine($"{ind}    }}");
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
     }

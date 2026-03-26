@@ -47,9 +47,11 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     public partial global::Stardust.Utilities.Tests.Header27 Protocol
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.Header27)(Value & PROTOCOL_MASK);
+        get => (global::Stardust.Utilities.Tests.Header27)((uint)(Value & PROTOCOL_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & PROTOCOL_INVERTED_MASK) | (((ulong)value) & PROTOCOL_MASK));
+        set { var __ev = (uint)value;
+            Value = (ulong)((Value & PROTOCOL_INVERTED_MASK) | (((ulong)__ev) & PROTOCOL_MASK));
+        }
     }
 
     public partial byte Priority
