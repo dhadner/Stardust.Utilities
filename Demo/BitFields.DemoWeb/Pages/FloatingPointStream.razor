@@ -1,183 +1,281 @@
 @page "/stream"
 @using System.Text
 
-<h2 class="page-title">Floating-Point Stream Lab</h2>
-<p class="page-subtitle">Zero-copy record struct views over a binary telemetry buffer with double, float, and Half fields at configurable bit-padding</p>
+<h2 class="page-title">&#x1F6F0; Composable Floating-Point Stream Lab</h2>
+<p class="page-subtitle">Single <code>TelemetryFrame</code> struct with dual IEEE 754 / native access &mdash; bit-shifted to any stream offset to prove non-byte-aligned fidelity</p>
 
-<div class="card">
+<div class="card stream-controls">
     <div class="toolbar">
-        <label>Pad bits between fields:</label>
-        <select @bind="_padBits" @bind:after="OnPadChanged">
-            <option value="0">0-bit (byte-aligned)</option>
-            <option value="1">1-bit (flags between fields)</option>
-            <option value="3">3-bit (cross-nibble)</option>
-            <option value="7">7-bit (worst-case misalignment)</option>
-        </select>
-        <span class="stream-info">Buffer: @_buffer.Length bytes &middot; @(_buffer.Length * 8) bits</span>
+        <label>&#x1F4E1; Stream Start Bit:</label>
+        <input type="range" min="0" max="7" @bind="_offsetBits" @bind:event="oninput" @bind:after="OnValueChanged"
+               style="width: 180px;" />
+        <span class="offset-badge" style="background: @OffsetColor(_offsetBits);">@_offsetBits</span>
+        <span class="stream-info">Frame: @TelemetryStreamDemo.FrameBytes bytes (@(TelemetryStreamDemo.FrameBytes * 8) bits) &middot;
+            Stream: @_streamBuffer.Length bytes &middot; Offset: @_offsetBits bit@(_offsetBits != 1 ? "s" : "")</span>
     </div>
 
     <div class="toolbar">
-        <label>Temperature (°C):</label>
+        <label>&#x1F321; Temperature (°C):</label>
         <input type="number" step="0.001" @bind="_temperature" @bind:event="oninput" @bind:after="OnValueChanged"
-               style="width: 130px; font-family: var(--mono);" />
+               class="fp-input" style="width: 130px; border-color: @FieldColor("Temperature"); background: @Palette.WithAlpha(FieldColor("Temperature"), 0.1);"
+               @onfocus='() => _activeField = "Temperature"' @onblur="() => _activeField = null" />
 
-        <label>Pressure (hPa):</label>
+        <label>&#x1F4A8; Pressure (hPa):</label>
         <input type="number" step="0.01" @bind="_pressure" @bind:event="oninput" @bind:after="OnValueChanged"
-               style="width: 130px; font-family: var(--mono);" />
+               class="fp-input" style="width: 130px; border-color: @FieldColor("Pressure"); background: @Palette.WithAlpha(FieldColor("Pressure"), 0.1);"
+               @onfocus='() => _activeField = "Pressure"' @onblur="() => _activeField = null" />
 
-        <label>Health:</label>
+        <label>&#x1F49A; Health:</label>
         <input type="number" step="0.01" min="0" max="1" @bind="_sensorHealth" @bind:event="oninput" @bind:after="OnValueChanged"
-               style="width: 80px; font-family: var(--mono);" />
+               class="fp-input" style="width: 80px; border-color: @FieldColor("SensorHealth"); background: @Palette.WithAlpha(FieldColor("SensorHealth"), 0.1);"
+               @onfocus='() => _activeField = "SensorHealth"' @onblur="() => _activeField = null" />
+
+        <label>&#x1F4A7; Humidity (%):</label>
+        <input type="number" step="0.01" @bind="_humidity" @bind:event="oninput" @bind:after="OnValueChanged"
+               class="fp-input" style="width: 80px; border-color: @FieldColor("Humidity"); background: @Palette.WithAlpha(FieldColor("Humidity"), 0.1);"
+               @onfocus='() => _activeField = "Humidity"' @onblur="() => _activeField = null" />
     </div>
 
     <div class="toolbar">
-        <button @onclick="OnSimulateStream">&#x25B6; Simulate Stream (10 frames)</button>
+        <button class="btn-accent" @onclick="OnSimulateStream">&#x25B6; Simulate Stream (10 frames)</button>
         <button @onclick="OnReset">&#x21BA; Reset</button>
     </div>
 </div>
 
 @if (!string.IsNullOrEmpty(_structDesc))
 {
-    <div class="section-header">&#x25B8; Active View: @_viewName</div>
+    <div class="section-header">&#x25B8; Active View: <span class="view-name">TelemetryFrame</span></div>
     <div class="stream-desc">@_structDesc</div>
 }
 
-<div class="section-header">&#x25B8; Written &rarr; Read Back</div>
+@* ── Bit-Shift Round-Trip ──────────────────────────────────────── *@
+<div class="section-header">&#x25B8; Bit-Shift Round-Trip</div>
+<div class="card stream-roundtrip">
+    <div class="roundtrip-steps">
+        <div class="step">
+            <div class="step-num" style="background: #61AFEF;">1</div>
+            <div class="step-text">Write frame to buffer at bit 0</div>
+        </div>
+        <div class="step-arrow">&#x27A1;</div>
+        <div class="step">
+            <div class="step-num" style="background: #C678DD;">2</div>
+            <div class="step-text">Shift right by <strong>@_offsetBits</strong> bit@(_offsetBits != 1 ? "s" : "")</div>
+        </div>
+        <div class="step-arrow">&#x27A1;</div>
+        <div class="step">
+            <div class="step-num" style="background: #7AC04A;">3</div>
+            <div class="step-text">Extract frame from offset</div>
+        </div>
+        <div class="step-arrow">&#x27A1;</div>
+        <div class="step">
+            <div class="step-num" style="background: @(_allMatch ? "#50C878" : "#E06C75");">4</div>
+            <div class="step-text">Verify: @(_allMatch ? "All fields match!" : "MISMATCH") @(_allMatch ? "\u2705" : "\u274C")</div>
+        </div>
+    </div>
+</div>
+
+@* ── Written → Read Back ───────────────────────────────────────── *@
+<div class="section-header">&#x25B8; Written &#x2192; Read Back</div>
 <div class="card stream-readback">
     <table>
         <thead><tr><th>Field</th><th>Written</th><th>Read Back</th><th>Match</th></tr></thead>
         <tbody>
             <tr>
-                <td>Temperature</td>
+                <td><span class="field-dot" style="background: @FieldColor("Temperature");"></span> Temperature</td>
                 <td class="mono">@_temperature</td>
                 <td class="mono">@_readback.Temperature</td>
                 <td>@MatchIcon(_temperature == _readback.Temperature)</td>
             </tr>
             <tr>
-                <td>Pressure</td>
+                <td><span class="field-dot" style="background: @FieldColor("Pressure");"></span> Pressure</td>
                 <td class="mono">@_pressure</td>
                 <td class="mono">@_readback.Pressure</td>
                 <td>@MatchIcon(_pressure == _readback.Pressure)</td>
             </tr>
             <tr>
-                <td>Sensor Health</td>
+                <td><span class="field-dot" style="background: @FieldColor("SensorHealth");"></span> Sensor Health</td>
                 <td class="mono">@_sensorHealth</td>
                 <td class="mono">@_readback.SensorHealth</td>
                 <td>@MatchIcon(_sensorHealth == _readback.SensorHealth)</td>
             </tr>
             <tr>
-                <td>Checksum (Half)</td>
-                <td class="mono">@_checksum</td>
-                <td class="mono">@_readback.Checksum</td>
-                <td>@MatchIcon(_checksum == _readback.Checksum)</td>
+                <td><span class="field-dot" style="background: @FieldColor("Humidity");"></span> Humidity (%)</td>
+                <td class="mono">@_humidity</td>
+                <td class="mono">@_readback.Humidity</td>
+                <td>@MatchIcon(_humidity == _readback.Humidity)</td>
             </tr>
-            <tr><td>SOF</td><td class="mono">true</td><td class="mono">@_readback.SOF</td><td>@MatchIcon(_readback.SOF)</td></tr>
-                <tr><td>EOF</td><td class="mono">true</td><td class="mono">@_readback.EOF</td><td>@MatchIcon(_readback.EOF)</td></tr>
+            <tr><td><span class="field-dot" style="background: @FieldColor("SOF");"></span> SOF</td><td class="mono">true</td><td class="mono">@_readback.SOF</td><td>@MatchIcon(_readback.SOF)</td></tr>
+            <tr><td><span class="field-dot" style="background: @FieldColor("EOF");"></span> EOF</td><td class="mono">true</td><td class="mono">@_readback.EOF</td><td>@MatchIcon(_readback.EOF)</td></tr>
         </tbody>
     </table>
 </div>
 
-<div class="section-header">&#x25B8; IEEE 754 Decomposition</div>
-<div class="card stream-decomposition">
-    <table>
-        <thead><tr><th>Field</th><th>Value</th><th>Sign</th><th>Exponent</th><th>Mantissa</th><th>Class</th></tr></thead>
-        <tbody>
-            <tr>
-                <td>Temperature (double)</td>
-                <td class="mono">@_readback.Temperature</td>
-                @{ var dt = (IEEE754Double)_readback.Temperature; }
-                <td>@(dt.Sign ? "-" : "+")</td>
-                <td class="mono">@(dt.Exponent?.ToString() ?? "n/a")</td>
-                <td class="mono">0x@(dt.Mantissa.ToString("X13"))</td>
-                <td>@Classify(dt)</td>
-            </tr>
-            <tr>
-                <td>Pressure (double)</td>
-                <td class="mono">@_readback.Pressure</td>
-                @{ var dp = (IEEE754Double)_readback.Pressure; }
-                <td>@(dp.Sign ? "-" : "+")</td>
-                <td class="mono">@(dp.Exponent?.ToString() ?? "n/a")</td>
-                <td class="mono">0x@(dp.Mantissa.ToString("X13"))</td>
-                <td>@Classify(dp)</td>
-            </tr>
-            <tr>
-                <td>Health (float)</td>
-                <td class="mono">@_readback.SensorHealth</td>
-                @{ var fs = (IEEE754Single)_readback.SensorHealth; }
-                <td>@(fs.Sign ? "-" : "+")</td>
-                <td class="mono">@(fs.Exponent?.ToString() ?? "n/a")</td>
-                <td class="mono">0x@(fs.Mantissa.ToString("X6"))</td>
-                <td>@Classify(fs)</td>
-            </tr>
-            <tr>
-                <td>Checksum (Half)</td>
-                <td class="mono">@_readback.Checksum</td>
-                @{ var hc = (IEEE754Half)_readback.Checksum; }
-                <td>@(hc.Sign ? "-" : "+")</td>
-                <td class="mono">@(hc.Exponent?.ToString() ?? "n/a")</td>
-                <td class="mono">0x@(hc.Mantissa.ToString("X3"))</td>
-                <td>@Classify(hc)</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 
-<div class="section-header">&#x25B8; Fields</div>
+@* ── Fields ────────────────────────────────────────────────────── *@
+<div class="section-header">&#x25B8; Frame Fields</div>
+<p class="ieee-intro">Click a floating-point field to expand its IEEE 754 decomposition. Edit Sign, Exponent, or Mantissa directly to see the native value change in real time.</p>
 <div class="field-chips">
-    @foreach (var f in _fields)
+    @foreach (var f in _fields.Where(f => !f.IsIeeeOverlay))
     {
-        <div class="field-chip @(f.Name == _activeField ? "active" : "")"
-             style="border-color: @f.Color; background: @Palette.WithAlpha(f.Color, 0.18); color: @f.Color;"
-             title="@f.Description"
-             @onclick="() => ToggleField(f.Name)">
-            <span class="chip-name">@f.Name</span>
-            <span class="chip-bits">bits @f.Start–@f.End (@(f.End - f.Start + 1))</span>
+        var ieeeName = GetIeeeName(f.Name);
+        var isFloat = ieeeName != null;
+        var isExpanded = isFloat && _activeField == f.Name;
+        <div class="field-chip-wrapper">
+            <div class="field-chip @(IsFieldGroupActive(f.Name) ? "active" : "") @(isFloat ? "field-chip-float" : "")"
+                 style="border-color: @f.Color; background: @Palette.WithAlpha(f.Color, 0.18); color: @f.Color;"
+                 title="@f.Description"
+                 @onclick="() => ToggleField(f.Name)">
+                <span class="chip-name">@f.Name</span>
+                <span class="chip-bits">bits @f.Start–@f.End (@(f.End - f.Start + 1))</span>
+                @if (isFloat)
+                {
+                    <span class="chip-expand-icon">@(isExpanded ? "\u25B2" : "\u25BC")</span>
+                }
+            </div>
+            @if (isExpanded && ieeeName != null)
+            {
+                var ieeeInfo = GetIeeeInfo(ieeeName);
+                <div class="ieee-drawer" style="border-color: @f.Color;" @onclick:stopPropagation="true">
+                    <div class="ieee-drawer-header">
+                        <span class="ieee-card-type">@ieeeInfo.TypeLabel</span>
+                        <span class="ieee-card-class @ClassCss(ieeeInfo.Classification)">@ieeeInfo.Classification</span>
+                        <span class="ieee-drawer-native">Native: <span class="mono">@ieeeInfo.NativeValue</span></span>
+                    </div>
+                    <div class="ieee-bit-bar">
+                        <div class="ieee-seg ieee-seg-sign" style="flex: 1;" title="Sign">S</div>
+                        <div class="ieee-seg ieee-seg-exp" style="flex: @ieeeInfo.ExpBits;" title="Exponent (@(ieeeInfo.ExpBits) bits)">Exp (@ieeeInfo.ExpBits)</div>
+                        <div class="ieee-seg ieee-seg-man" style="flex: @ieeeInfo.ManBits;" title="Mantissa (@(ieeeInfo.ManBits) bits)">Mantissa (@ieeeInfo.ManBits)</div>
+                    </div>
+                    <div class="ieee-fields-row">
+                        <div class="ieee-field">
+                            <div class="ieee-field-label">Sign <span class="ieee-bits">1 bit</span></div>
+                            <button class="ieee-toggle" @onclick="() => OnToggleSign(ieeeName)">@(ieeeInfo.Sign ? "\u2212 (1)" : "+ (0)")</button>
+                        </div>
+                        <div class="ieee-field">
+                            <div class="ieee-field-label">BiasedExponent <span class="ieee-bits">@ieeeInfo.ExpBits bits, raw</span></div>
+                            <input type="number" class="ieee-input" min="0" max="@ieeeInfo.ExpMax" value="@ieeeInfo.BiasedExponent" @onchange="e => OnExpChanged(ieeeName, e)" />
+                        </div>
+                        <div class="ieee-field">
+                            <div class="ieee-field-label">Exponent <span class="ieee-bits">bias @ieeeInfo.ExpBias</span></div>
+                            <div class="ieee-field-value mono">@(ieeeInfo.Exponent?.ToString() ?? "n/a")</div>
+                        </div>
+                        <div class="ieee-field ieee-field-wide">
+                            <div class="ieee-field-label">Mantissa <span class="ieee-bits">@ieeeInfo.ManBits bits</span></div>
+                            <input type="text" class="ieee-input ieee-input-wide" value="@ieeeInfo.MantissaHex" @onchange="e => OnMantissaChanged(ieeeName, e)" />
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
 </div>
-
-<div class="section-header">&#x25B8; Raw Buffer (hex)</div>
+@* ── Stream Buffer Visualization ───────────────────────────────── *@
+<div class="section-header">&#x25B8; Stream Buffer (hex) &mdash; @_streamBuffer.Length bytes, frame at bit @_offsetBits</div>
 <div class="hex-display">
-    @for (int i = 0; i < _buffer.Length; i++)
+    @for (int i = 0; i < _streamBuffer.Length; i++)
     {
         var idx = i;
         var info = GetByteInfo(idx);
-        <span class="hex-byte @(info.Name == _activeField ? "active" : "")"
+        <span class="hex-byte @(IsFieldActive(idx) ? "active" : "")"
               style="color: @info.Color;"
-              @onclick="() => ToggleField(info.Name)">@_buffer[idx].ToString("X2") </span>
+              @onclick="() => ToggleField(info.Name)">@_streamBuffer[idx].ToString("X2") </span>
     }
 </div>
 
+@* ── RFC Diagram ───────────────────────────────────────────────── *@
 <div class="section-header">&#x25B8; RFC Diagram</div>
 <div class="diagram-output">@_diagram</div>
 
+@* ── Simulated Stream Log ──────────────────────────────────────── *@
 @if (_streamLog.Count > 0)
 {
-    <div class="section-header">&#x25B8; Simulated Stream Log</div>
+    <div class="section-header">&#x25B8; Simulated Stream Log (@_offsetBits-bit offset)</div>
     <div class="diagram-output stream-log">@foreach (var line in _streamLog) { @line@("\n") }</div>
 }
 
 @code {
-    private record FieldDef(string Name, int Start, int End, string Color, string? Description);
+    private record FieldDef(string Name, int Start, int End, string Color, string? Description, bool IsIeeeOverlay = false, string? DisplayName = null);
     private record ByteInfo(string? Name, string Color);
 
-    private int _padBits;
+    private static readonly Dictionary<string, string> IeeeToNative = new(StringComparer.Ordinal)
+    {
+        ["TemperatureIEEE"] = "Temperature",
+        ["PressureIEEE"] = "Pressure",
+        ["SensorHealthIEEE"] = "SensorHealth",
+        ["HumidityIEEE"] = "Humidity",
+    };
+
+    private static readonly Dictionary<string, string> NativeToIeee = new(StringComparer.Ordinal)
+    {
+        ["Temperature"] = "TemperatureIEEE",
+        ["Pressure"] = "PressureIEEE",
+        ["SensorHealth"] = "SensorHealthIEEE",
+        ["Humidity"] = "HumidityIEEE",
+    };
+
+    private static readonly Dictionary<string, string> IeeeDisplayNames = new(StringComparer.Ordinal)
+    {
+        ["TemperatureIEEE"] = "IEEE 754 Decomposition Temperature",
+        ["PressureIEEE"] = "IEEE 754 Decomposition Pressure",
+        ["SensorHealthIEEE"] = "IEEE 754 Decomposition SensorHealth",
+        ["HumidityIEEE"] = "IEEE 754 Decomposition Humidity",
+    };
+
+    private record IeeeDrawerInfo(
+        string TypeLabel, string Classification, string NativeValue,
+        bool Sign, int? Exponent, ushort BiasedExponent, string MantissaHex,
+        int ExpBits, int ManBits, int ExpMax, int ExpBias);
+
+    private static string? GetIeeeName(string nativeFieldName)
+    {
+        return NativeToIeee.TryGetValue(nativeFieldName, out var ieee) ? ieee : null;
+    }
+
+    private IeeeDrawerInfo GetIeeeInfo(string ieeeName)
+    {
+        return ieeeName switch
+        {
+            "TemperatureIEEE" => MakeDouble(_ieee.Temperature, _readback.Temperature.ToString()),
+            "PressureIEEE"    => MakeDouble(_ieee.Pressure, _readback.Pressure.ToString()),
+            "SensorHealthIEEE" => MakeSingle(_ieee.SensorHealth, _readback.SensorHealth.ToString()),
+            "HumidityIEEE"    => MakeHalf(_ieee.Humidity, _readback.Humidity.ToString()),
+            _ => MakeDouble(default, "?")
+        };
+
+        static IeeeDrawerInfo MakeDouble(IEEE754Double d, string native) =>
+            new("IEEE754Double (64-bit)", TelemetryStreamDemo.Classify(d), native,
+                d.Sign, d.Exponent, (ushort)d.BiasedExponent, $"0x{d.Mantissa:X13}",
+                11, 52, 2047, IEEE754Double.EXPONENT_BIAS);
+
+        static IeeeDrawerInfo MakeSingle(IEEE754Single s, string native) =>
+            new("IEEE754Single (32-bit)", TelemetryStreamDemo.Classify(s), native,
+                s.Sign, s.Exponent, s.BiasedExponent, $"0x{s.Mantissa:X6}",
+                8, 23, 255, IEEE754Single.EXPONENT_BIAS);
+
+        static IeeeDrawerInfo MakeHalf(IEEE754Half h, string native) =>
+            new("IEEE754Half (16-bit)", TelemetryStreamDemo.Classify(h), native,
+                h.Sign, h.Exponent, h.BiasedExponent, $"0x{h.Mantissa:X3}",
+                5, 10, 31, IEEE754Half.EXPONENT_BIAS);
+    }
+
+    private int _offsetBits;
     private double _temperature = TelemetryStreamDemo.Defaults.TEMPERATURE;
     private double _pressure = TelemetryStreamDemo.Defaults.PRESSURE;
     private float _sensorHealth = TelemetryStreamDemo.Defaults.SENSOR_HEALTH;
-    private Half _checksum = TelemetryStreamDemo.Defaults.CHECKSUM;
-    private byte[] _buffer = [];
+    private Half _humidity = TelemetryStreamDemo.Defaults.HUMIDITY;
+    private byte[] _frameBuffer = [];
+    private byte[] _streamBuffer = [];
     private TelemetryReadback _readback;
-    private string _viewName = "";
+    private IEEEReadback _ieee;
+    private bool _allMatch;
     private string? _structDesc;
     private string _diagram = "";
     private List<FieldDef> _fields = [];
+    private Dictionary<string, string> _fieldColors = new(StringComparer.Ordinal);
     private string? _activeField;
     private List<string> _streamLog = [];
 
     protected override void OnInitialized() => Rebuild();
-
-    private void OnPadChanged() => Rebuild();
 
     private void OnValueChanged() => Rebuild();
 
@@ -186,7 +284,8 @@
         _temperature = TelemetryStreamDemo.Defaults.TEMPERATURE;
         _pressure = TelemetryStreamDemo.Defaults.PRESSURE;
         _sensorHealth = TelemetryStreamDemo.Defaults.SENSOR_HEALTH;
-        _checksum = TelemetryStreamDemo.Defaults.CHECKSUM;
+        _humidity = TelemetryStreamDemo.Defaults.HUMIDITY;
+        _offsetBits = 0;
         _streamLog.Clear();
         Rebuild();
     }
@@ -198,73 +297,179 @@
 
         for (int i = 0; i < 10; i++)
         {
-            double temp = 20.0 + rng.NextDouble() * 10.0;
-            double pres = 1000.0 + rng.NextDouble() * 30.0;
-            float health = (float)(0.85 + rng.NextDouble() * 0.15);
-            Half ck = (Half)(rng.NextDouble() * 2.0);
+            double temp = _temperature + (rng.NextDouble() - 0.5) * 4.0;
+            double pres = _pressure + (rng.NextDouble() - 0.5) * 20.0;
+            float health = Math.Clamp(_sensorHealth + (float)(rng.NextDouble() - 0.5) * 0.1f, 0f, 1f);
+            Half hm = (Half)((double)_humidity + (rng.NextDouble() - 0.5) * 0.5);
             byte seq = (byte)(i + 1);
 
-            var buf = new byte[TelemetryStreamDemo.BufferSize(_padBits)];
-            TelemetryStreamDemo.WriteFrame(buf, _padBits, temp, pres, health, ck);
-            var rb = TelemetryStreamDemo.ReadFrame(buf, _padBits);
+            // Write → shift → extract → read
+            var fb = new byte[TelemetryStreamDemo.FrameBytes];
+            TelemetryStreamDemo.WriteFrame(fb, temp, pres, health, hm);
+            var stream = TelemetryStreamDemo.ShiftRight(fb, _offsetBits);
+            var extracted = TelemetryStreamDemo.ExtractFrame(stream, _offsetBits, TelemetryStreamDemo.FrameBytes);
+            var rb = TelemetryStreamDemo.ReadFrame(extracted);
 
             bool ok = rb.Temperature == temp && rb.Pressure == pres
-                   && rb.SensorHealth == health && rb.Checksum == ck;
+                   && rb.SensorHealth == health && rb.Humidity == hm;
 
             _streamLog.Add($"Frame {seq,2}: T={rb.Temperature,10:F4}°C  P={rb.Pressure,9:F2}hPa  " +
-                           $"H={rb.SensorHealth:F4}  Ck={rb.Checksum,6}  [{(ok ? "OK" : "MISMATCH")}]  " +
-                           $"({buf.Length} bytes, {_padBits}-bit pad)");
+                           $"H={rb.SensorHealth:F4}  Hm={rb.Humidity,6}  [{(ok ? "\u2705 OK" : "\u274C MISMATCH")}]  " +
+                           $"({stream.Length} bytes, {_offsetBits}-bit offset)");
         }
     }
 
     private void Rebuild()
     {
-        _buffer = new byte[TelemetryStreamDemo.BufferSize(_padBits)];
-        _viewName = TelemetryStreamDemo.WriteFrame(
-            _buffer, _padBits,
-            _temperature, _pressure, _sensorHealth, _checksum);
-        _readback = TelemetryStreamDemo.ReadFrame(_buffer, _padBits);
-        _structDesc = TelemetryStreamDemo.GetDescription(_padBits);
+        // Step 1: Write frame at bit 0
+        _frameBuffer = new byte[TelemetryStreamDemo.FrameBytes];
+        TelemetryStreamDemo.WriteFrame(_frameBuffer, _temperature, _pressure, _sensorHealth, _humidity);
 
-        // Build field list
+        // Step 2: Shift right by offset bits into stream buffer
+        _streamBuffer = TelemetryStreamDemo.ShiftRight(_frameBuffer, _offsetBits);
+
+        // Step 3: Extract frame from stream buffer
+        var extracted = TelemetryStreamDemo.ExtractFrame(_streamBuffer, _offsetBits, TelemetryStreamDemo.FrameBytes);
+
+        // Step 4: Read back and verify
+        _readback = TelemetryStreamDemo.ReadFrame(extracted);
+        _ieee = TelemetryStreamDemo.ReadIEEE(extracted);
+
+        _allMatch = _readback.Temperature == _temperature
+                 && _readback.Pressure == _pressure
+                 && _readback.SensorHealth == _sensorHealth
+                 && _readback.Humidity == _humidity
+                 && _readback.SOF && _readback.EOF;
+
+        _structDesc = TelemetryStreamDemo.GetDescription();
+
+        // Build field list sorted by start position; IEEE overlays share their native field's color
         _fields.Clear();
         int ci = 0;
-        foreach (var m in TelemetryStreamDemo.GetFields(_padBits))
-            _fields.Add(new(m.Name, m.Start, m.End, Palette.Get(ci++), m.GetDescription()));
+        var nativeColors = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var m in TelemetryStreamDemo.GetFields())
+        {
+            bool isIeee = IeeeToNative.ContainsKey(m.Name);
+            string color;
+            string? displayName = null;
+            if (isIeee)
+            {
+                color = nativeColors[IeeeToNative[m.Name]];
+                displayName = IeeeDisplayNames[m.Name];
+            }
+            else
+            {
+                color = Palette.Get(ci++);
+                nativeColors[m.Name] = color;
+            }
+            _fields.Add(new(m.Name, m.Start + _offsetBits, m.End + _offsetBits, color, m.GetDescription(), isIeee, displayName));
+        }
+        _fields.Sort((a, b) =>
+        {
+            int cmp = a.Start.CompareTo(b.Start);
+            return cmp != 0 ? cmp : a.IsIeeeOverlay.CompareTo(b.IsIeeeOverlay);
+        });
 
-        // Build RFC diagram
-        var diag = new BitFieldDiagram(TelemetryStreamDemo.GetViewType(_padBits),
+        // Cache native field colors for toolbar inputs and readback table
+        _fieldColors = nativeColors;
+
+        // Build RFC diagram (always from the frame struct itself)
+        var diag = new BitFieldDiagram(TelemetryStreamDemo.GetViewType(),
             bitsPerRow: 32, includeDescriptions: true);
         _diagram = diag.RenderToString().Match(s => s, e => $"Diagram error: {e}");
     }
 
+    // ── IEEE editing ────────────────────────────────────────────
+
+    private void OnToggleSign(string field)
+    {
+        switch (field)
+        {
+            case "TemperatureIEEE": IEEE754Double dt = _temperature; dt.Sign = !dt.Sign; _temperature = dt; break;
+            case "PressureIEEE": IEEE754Double dp = _pressure; dp.Sign = !dp.Sign; _pressure = dp; break;
+            case "SensorHealthIEEE": IEEE754Single fs = _sensorHealth; fs.Sign = !fs.Sign; _sensorHealth = fs; break;
+            case "HumidityIEEE": IEEE754Half hc = _humidity; hc.Sign = !hc.Sign; _humidity = hc; break;
+        }
+        Rebuild();
+    }
+
+    private void OnExpChanged(string field, ChangeEventArgs e)
+    {
+        if (!ushort.TryParse(e.Value?.ToString(), out var val)) return;
+        switch (field)
+        {
+            case "TemperatureIEEE": IEEE754Double dt = _temperature; dt.BiasedExponent = val; _temperature = dt; break;
+            case "PressureIEEE": IEEE754Double dp = _pressure; dp.BiasedExponent = val; _pressure = dp; break;
+            case "SensorHealthIEEE": IEEE754Single fs = _sensorHealth; fs.BiasedExponent = (byte)val; _sensorHealth = fs; break;
+            case "HumidityIEEE": IEEE754Half hc = _humidity; hc.BiasedExponent = (byte)val; _humidity = hc; break;
+        }
+        Rebuild();
+    }
+
+    private void OnMantissaChanged(string field, ChangeEventArgs e)
+    {
+        var text = e.Value?.ToString()?.Trim() ?? "";
+        if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            text = text[2..];
+        if (!ulong.TryParse(text, System.Globalization.NumberStyles.HexNumber, null, out var val)) return;
+        switch (field)
+        {
+            case "TemperatureIEEE": IEEE754Double dt = _temperature; dt.Mantissa = val; _temperature = dt; break;
+            case "PressureIEEE": IEEE754Double dp = _pressure; dp.Mantissa = val; _pressure = dp; break;
+            case "SensorHealthIEEE": IEEE754Single fs = _sensorHealth; fs.Mantissa = (uint)val; _sensorHealth = fs; break;
+            case "HumidityIEEE": IEEE754Half hc = _humidity; hc.Mantissa = (ushort)val; _humidity = hc; break;
+        }
+        Rebuild();
+    }
+
+    // ── Helpers ─────────────────────────────────────────────────
+
     private static string MatchIcon(bool match) => match ? "\u2705" : "\u274C";
 
-    private static string Classify(IEEE754Double d)
+    private string FieldColor(string name) =>
+        _fieldColors.TryGetValue(name, out var c) ? c : "#888";
+
+    private static string ClassCss(string cls) => cls switch
     {
-        if (d.IsNaN) return "NaN";
-        if (d.IsInfinity) return d.Sign ? "-Inf" : "+Inf";
-        if (d.IsZero) return d.Sign ? "-0" : "0";
-        if (d.IsDenormalized) return "Denorm";
-        return "Normal";
+        "Normal" => "class-normal",
+        "NaN" => "class-special",
+        "Denorm" => "class-special",
+        _ when cls.Contains('\u221E') => "class-special",
+        _ => "class-zero",
+    };
+
+    private static string OffsetColor(int offset) => offset switch
+    {
+        0 => "#50C878",
+        1 or 2 => "#61AFEF",
+        3 or 4 => "#D4A034",
+        5 or 6 => "#E06C75",
+        7 => "#C678DD",
+        _ => "#888",
+    };
+
+    private static string? GetPairedField(string fieldName)
+    {
+        if (IeeeToNative.TryGetValue(fieldName, out var native)) return native;
+        if (NativeToIeee.TryGetValue(fieldName, out var ieee)) return ieee;
+        return null;
     }
 
-    private static string Classify(IEEE754Single f)
+    private bool IsFieldGroupActive(string fieldName)
     {
-        if (f.IsNaN) return "NaN";
-        if (f.IsInfinity) return f.Sign ? "-Inf" : "+Inf";
-        if (f.IsZero) return f.Sign ? "-0" : "0";
-        if (f.IsDenormalized) return "Denorm";
-        return "Normal";
+        if (_activeField == null) return false;
+        if (_activeField == fieldName) return true;
+        string? paired = GetPairedField(fieldName);
+        return paired != null && _activeField == paired;
     }
 
-    private static string Classify(IEEE754Half h)
+    private string GetFieldColor(string fieldName)
     {
-        if (h.IsNaN) return "NaN";
-        if (h.IsInfinity) return h.Sign ? "-Inf" : "+Inf";
-        if (h.IsZero) return h.Sign ? "-0" : "0";
-        if (h.IsDenormalized) return "Denorm";
-        return "Normal";
+        foreach (var f in _fields)
+        {
+            if (f.Name == fieldName) return f.Color;
+        }
+        return "#888";
     }
 
     private ByteInfo GetByteInfo(int byteIndex)
@@ -273,10 +478,24 @@
         int bitEnd = bitStart + 7;
         foreach (var f in _fields)
         {
-            if (f.Start <= bitEnd && f.End >= bitStart)
+            if (!f.IsIeeeOverlay && f.Start <= bitEnd && f.End >= bitStart)
                 return new(f.Name, f.Color);
         }
         return new(null, "#888");
+    }
+
+    private bool IsFieldActive(int byteIndex)
+    {
+        if (_activeField == null) return false;
+        string? paired = GetPairedField(_activeField);
+        int bitStart = byteIndex * 8;
+        int bitEnd = bitStart + 7;
+        foreach (var f in _fields)
+        {
+            if ((f.Name == _activeField || f.Name == paired) && f.Start <= bitEnd && f.End >= bitStart)
+                return true;
+        }
+        return false;
     }
 
     private void ToggleField(string? name)

@@ -6,6 +6,8 @@ using FluentAssertions;
 using Stardust.Utilities.Protocols;
 using Xunit;
 
+#pragma warning disable CS0618 // BitFieldsViewAttribute is obsolete — these tests intentionally exercise the deprecated API
+
 namespace Stardust.Utilities.Tests;
 
 /// <summary>

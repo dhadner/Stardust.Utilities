@@ -180,6 +180,21 @@ select:focus, input:focus, textarea:focus {
     border-color: var(--accent);
 }
 
+.fp-input {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    color: var(--text);
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.fp-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px currentColor;
+}
+
 textarea {
     background: var(--bg-input);
     color: var(--text);
@@ -386,6 +401,102 @@ input[type="range"] {
     margin-bottom: 12px;
 }
 
+.stream-controls {
+    border-left: 3px solid var(--accent);
+}
+
+.offset-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: var(--mono);
+}
+
+.view-name {
+    font-family: var(--mono);
+    color: #C678DD;
+}
+
+.btn-accent {
+    background: linear-gradient(135deg, #1e6a9a, #38bdf8);
+    border-color: #38bdf8;
+    font-weight: 600;
+}
+
+.btn-accent:hover {
+    background: linear-gradient(135deg, #38bdf8, #61AFEF);
+}
+
+.stream-roundtrip {
+    border-left: 3px solid #50C878;
+}
+
+.roundtrip-steps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+.step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.step-text {
+    font-size: 0.85rem;
+}
+
+.step-arrow {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+}
+
+.field-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.ieee-sign {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.ieee-class {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #7AC04A;
+}
+
 .stream-readback table,
 .stream-decomposition table {
     width: 100%;
@@ -419,6 +530,198 @@ input[type="range"] {
     max-height: 280px;
     overflow-y: auto;
     font-size: 0.78rem;
+}
+
+/* ── IEEE 754 Decomposition Cards ─────────────────────────────── */
+
+.ieee-intro {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.ieee-card-type {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.ieee-card-class {
+    margin-left: auto;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 4px;
+}
+
+.ieee-card-class.class-normal { background: rgba(122, 192, 74, 0.18); color: #7AC04A; }
+.ieee-card-class.class-special { background: rgba(224, 108, 117, 0.18); color: #E06C75; }
+.ieee-card-class.class-zero { background: rgba(136, 136, 136, 0.18); color: #999; }
+
+
+
+.ieee-bit-bar {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 22px;
+    height: 22px;
+}
+
+.ieee-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ieee-seg-sign { background: #E06C75; color: #fff; border-radius: 4px 0 0 4px; }
+.ieee-seg-exp  { background: #61AFEF; color: #fff; }
+.ieee-seg-man  { background: #7AC04A; color: #fff; border-radius: 0 4px 4px 0; }
+
+.ieee-fields-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ieee-field {
+    flex: 1 1 100px;
+    min-width: 90px;
+}
+
+.ieee-field-wide {
+    flex: 2 1 180px;
+}
+
+.ieee-field-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+
+.ieee-bits {
+    font-weight: 400;
+    color: var(--accent);
+    font-size: 0.68rem;
+}
+
+.ieee-field-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--fg);
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.ieee-field-value.mono {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+}
+
+.ieee-sign-val {
+    font-family: var(--mono);
+    font-weight: 700;
+    text-align: center;
+}
+
+.ieee-toggle {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.88rem;
+    background: rgba(224, 108, 117, 0.12);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--fg);
+    padding: 4px 12px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background 0.15s;
+}
+
+.ieee-toggle:hover {
+    background: rgba(224, 108, 117, 0.25);
+}
+
+.ieee-input {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--fg);
+    padding: 4px 8px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.ieee-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.ieee-input-wide {
+    min-width: 140px;
+}
+
+.field-chip-wrapper {
+    display: contents;
+}
+
+.field-chip-float {
+    cursor: pointer;
+    position: relative;
+}
+
+.chip-expand-icon {
+    font-size: 0.6rem;
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
+.ieee-drawer {
+    grid-column: 1 / -1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0 0 8px 8px;
+    padding: 14px 16px 12px;
+    margin: -4px 0 8px 0;
+    animation: drawer-open 0.2s ease-out;
+}
+
+@keyframes drawer-open {
+    from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+    to   { opacity: 1; max-height: 300px; }
+}
+
+.ieee-drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ieee-drawer-native {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: var(--muted);
 }
 
 .field-chip .chip-bits {

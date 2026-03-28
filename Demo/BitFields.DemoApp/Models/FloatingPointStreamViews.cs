@@ -1,29 +1,29 @@
+using System;
 using Stardust.Utilities;
 
 namespace BitFields.DemoApp;
 
 // ═══════════════════════════════════════════════════════════════════
-//  Telemetry Stream Views — single fixed frame layout at variable
-//  stream offsets, demonstrating non-byte-aligned floating-point
-//  access through both native types and IEEE 754 decompositions.
+//  Composable Telemetry Frame — a single record-struct view with
+//  dual-access floating-point fields (native + IEEE 754) and 1-bit
+//  separators that force every data field off byte boundaries.
 //
 //  Frame layout (181 data bits):
 //    SOF(1) | Temperature(64) | Sep1(1) | Pressure(64) | Sep2(1)
-//    | SensorHealth(32) | Sep3(1) | Checksum(16) | EOF(1)
+//    | SensorHealth(32) | Sep3(1) | Humidity(16) | EOF(1)
 //
 //  Each floating-point field is exposed as BOTH a native type
 //  (double/float/Half) and as an IEEE 754 BitFields struct
 //  (IEEE754Double/IEEE754Single/IEEE754Half) at the same bit range,
 //  letting the user read and write the same bits two ways.
 //
-//  The leading stream offset (0, 1, 3, or 7 bits) shifts the
-//  entire frame within the buffer, proving the library handles
-//  arbitrary bit alignment.
+//  At runtime the demo bit-shifts the frame into a larger stream
+//  buffer at a user-chosen offset (0-7 bits), then extracts and
+//  reads it back — proving the library handles arbitrary alignment.
 // ═══════════════════════════════════════════════════════════════════
 
-// ── Offset 0 ─────────────────────────────────────────────────────
 /// <summary>
-/// Telemetry frame at stream offset 0 (no leading pad).
+/// Single composable telemetry frame with dual-access floating-point fields.
 /// <code>
 /// Bit  0      : SOF          (1-bit start-of-frame)
 /// Bits 1-64   : Temperature  (64-bit double / IEEE754Double)
@@ -32,12 +32,12 @@ namespace BitFields.DemoApp;
 /// Bit  130    : Sep2         (1-bit separator)
 /// Bits 131-162: SensorHealth (32-bit float / IEEE754Single)
 /// Bit  163    : Sep3         (1-bit separator)
-/// Bits 164-179: Checksum     (16-bit Half / IEEE754Half)
+/// Bits 164-179: Humidity     (16-bit Half / IEEE754Half)
 /// Bit  180    : EOF          (1-bit end-of-frame)
 /// </code>
 /// </summary>
-[BitFields(Description = "Telemetry Frame — stream offset 0 (all fields non-byte-aligned)")]
-public partial record struct TelemetryStreamAt0
+[BitFields(Description = "Composable Telemetry Frame — dual float/IEEE 754 access, 1-bit separators")]
+public partial record struct TelemetryFrame
 {
     [BitFlag(0, Description = "Start-of-frame marker")]
     public partial bool SOF { get; set; }
@@ -66,153 +66,12 @@ public partial record struct TelemetryStreamAt0
     [BitFlag(163, Description = "Field separator")]
     public partial bool Sep3 { get; set; }
 
-    [BitField(164, End = 179, Description = "Checksum — native Half")]
-    public partial Half Checksum { get; set; }
-    [BitField(164, End = 179, Description = "Checksum — IEEE 754 half decomposition")]
-    public partial IEEE754Half ChecksumIEEE { get; set; }
+    [BitField(164, End = 179, Description = "Humidity (%) — native Half")]
+    public partial Half Humidity { get; set; }
+    [BitField(164, End = 179, Description = "Humidity (%) — IEEE 754 half decomposition")]
+    public partial IEEE754Half HumidityIEEE { get; set; }
 
     [BitFlag(180, Description = "End-of-frame marker")]
-    public partial bool EOF { get; set; }
-}
-
-// ── Offset 1 ─────────────────────────────────────────────────────
-/// <summary>
-/// Telemetry frame at stream offset 1 (1-bit leading pad).
-/// Same frame layout shifted by 1 bit within the stream buffer.
-/// </summary>
-[BitFields(Description = "Telemetry Frame — stream offset 1 (1-bit lead)")]
-public partial record struct TelemetryStreamAt1
-{
-    [BitField(0, End = 0, Description = "Stream offset padding (1 bit)")]
-    public partial byte Pad { get; set; }
-
-    [BitFlag(1, Description = "Start-of-frame marker")]
-    public partial bool SOF { get; set; }
-
-    [BitField(2, End = 65, Description = "Temperature (°C) — native double")]
-    public partial double Temperature { get; set; }
-    [BitField(2, End = 65, Description = "Temperature (°C) — IEEE 754 double decomposition")]
-    public partial IEEE754Double TemperatureIEEE { get; set; }
-
-    [BitFlag(66, Description = "Field separator")]
-    public partial bool Sep1 { get; set; }
-
-    [BitField(67, End = 130, Description = "Pressure (hPa) — native double")]
-    public partial double Pressure { get; set; }
-    [BitField(67, End = 130, Description = "Pressure (hPa) — IEEE 754 double decomposition")]
-    public partial IEEE754Double PressureIEEE { get; set; }
-
-    [BitFlag(131, Description = "Field separator")]
-    public partial bool Sep2 { get; set; }
-
-    [BitField(132, End = 163, Description = "Sensor health — native float")]
-    public partial float SensorHealth { get; set; }
-    [BitField(132, End = 163, Description = "Sensor health — IEEE 754 single decomposition")]
-    public partial IEEE754Single SensorHealthIEEE { get; set; }
-
-    [BitFlag(164, Description = "Field separator")]
-    public partial bool Sep3 { get; set; }
-
-    [BitField(165, End = 180, Description = "Checksum — native Half")]
-    public partial Half Checksum { get; set; }
-    [BitField(165, End = 180, Description = "Checksum — IEEE 754 half decomposition")]
-    public partial IEEE754Half ChecksumIEEE { get; set; }
-
-    [BitFlag(181, Description = "End-of-frame marker")]
-    public partial bool EOF { get; set; }
-}
-
-// ── Offset 3 ─────────────────────────────────────────────────────
-/// <summary>
-/// Telemetry frame at stream offset 3 (3-bit leading pad).
-/// Same frame layout shifted by 3 bits within the stream buffer.
-/// </summary>
-[BitFields(Description = "Telemetry Frame — stream offset 3 (3-bit lead)")]
-public partial record struct TelemetryStreamAt3
-{
-    [BitField(0, End = 2, Description = "Stream offset padding (3 bits)")]
-    public partial byte Pad { get; set; }
-
-    [BitFlag(3, Description = "Start-of-frame marker")]
-    public partial bool SOF { get; set; }
-
-    [BitField(4, End = 67, Description = "Temperature (°C) — native double")]
-    public partial double Temperature { get; set; }
-    [BitField(4, End = 67, Description = "Temperature (°C) — IEEE 754 double decomposition")]
-    public partial IEEE754Double TemperatureIEEE { get; set; }
-
-    [BitFlag(68, Description = "Field separator")]
-    public partial bool Sep1 { get; set; }
-
-    [BitField(69, End = 132, Description = "Pressure (hPa) — native double")]
-    public partial double Pressure { get; set; }
-    [BitField(69, End = 132, Description = "Pressure (hPa) — IEEE 754 double decomposition")]
-    public partial IEEE754Double PressureIEEE { get; set; }
-
-    [BitFlag(133, Description = "Field separator")]
-    public partial bool Sep2 { get; set; }
-
-    [BitField(134, End = 165, Description = "Sensor health — native float")]
-    public partial float SensorHealth { get; set; }
-    [BitField(134, End = 165, Description = "Sensor health — IEEE 754 single decomposition")]
-    public partial IEEE754Single SensorHealthIEEE { get; set; }
-
-    [BitFlag(166, Description = "Field separator")]
-    public partial bool Sep3 { get; set; }
-
-    [BitField(167, End = 182, Description = "Checksum — native Half")]
-    public partial Half Checksum { get; set; }
-    [BitField(167, End = 182, Description = "Checksum — IEEE 754 half decomposition")]
-    public partial IEEE754Half ChecksumIEEE { get; set; }
-
-    [BitFlag(183, Description = "End-of-frame marker")]
-    public partial bool EOF { get; set; }
-}
-
-// ── Offset 7 ─────────────────────────────────────────────────────
-/// <summary>
-/// Telemetry frame at stream offset 7 (7-bit leading pad).
-/// Same frame layout shifted by 7 bits within the stream buffer.
-/// </summary>
-[BitFields(Description = "Telemetry Frame — stream offset 7 (7-bit lead)")]
-public partial record struct TelemetryStreamAt7
-{
-    [BitField(0, End = 6, Description = "Stream offset padding (7 bits)")]
-    public partial byte Pad { get; set; }
-
-    [BitFlag(7, Description = "Start-of-frame marker")]
-    public partial bool SOF { get; set; }
-
-    [BitField(8, End = 71, Description = "Temperature (°C) — native double")]
-    public partial double Temperature { get; set; }
-    [BitField(8, End = 71, Description = "Temperature (°C) — IEEE 754 double decomposition")]
-    public partial IEEE754Double TemperatureIEEE { get; set; }
-
-    [BitFlag(72, Description = "Field separator")]
-    public partial bool Sep1 { get; set; }
-
-    [BitField(73, End = 136, Description = "Pressure (hPa) — native double")]
-    public partial double Pressure { get; set; }
-    [BitField(73, End = 136, Description = "Pressure (hPa) — IEEE 754 double decomposition")]
-    public partial IEEE754Double PressureIEEE { get; set; }
-
-    [BitFlag(137, Description = "Field separator")]
-    public partial bool Sep2 { get; set; }
-
-    [BitField(138, End = 169, Description = "Sensor health — native float")]
-    public partial float SensorHealth { get; set; }
-    [BitField(138, End = 169, Description = "Sensor health — IEEE 754 single decomposition")]
-    public partial IEEE754Single SensorHealthIEEE { get; set; }
-
-    [BitFlag(170, Description = "Field separator")]
-    public partial bool Sep3 { get; set; }
-
-    [BitField(171, End = 186, Description = "Checksum — native Half")]
-    public partial Half Checksum { get; set; }
-    [BitField(171, End = 186, Description = "Checksum — IEEE 754 half decomposition")]
-    public partial IEEE754Half ChecksumIEEE { get; set; }
-
-    [BitFlag(187, Description = "End-of-frame marker")]
     public partial bool EOF { get; set; }
 }
 
@@ -228,7 +87,7 @@ public readonly record struct IEEEReadback(
     IEEE754Double Temperature,
     IEEE754Double Pressure,
     IEEE754Single SensorHealth,
-    IEEE754Half Checksum);
+    IEEE754Half Humidity);
 
 /// <summary>
 /// Values read back from a telemetry buffer (native types).
@@ -237,211 +96,147 @@ public readonly record struct TelemetryReadback(
     double Temperature,
     double Pressure,
     float SensorHealth,
-    Half Checksum,
+    Half Humidity,
     bool SOF,
     bool EOF);
 
 /// <summary>
-/// Shared logic for the telemetry stream demo. Platform-agnostic so it can be
-/// consumed by both the WPF and Blazor front-ends.
+/// Shared logic for the composable telemetry frame demo.
+/// Uses a single <see cref="TelemetryFrame"/> struct and bit-shifts
+/// the data at runtime to simulate arbitrary stream offsets.
 /// </summary>
 public static class TelemetryStreamDemo
 {
-    /// <summary>Supported stream offsets.</summary>
-    public static readonly int[] OFFSETS = [0, 1, 3, 7];
+    /// <summary>Maximum supported stream bit offset.</summary>
+    public const int MAX_OFFSET = 7;
 
-    /// <summary>Returns the buffer size for the selected stream offset.</summary>
-    public static int BufferSize(int offset) => offset switch
-    {
-        0 => TelemetryStreamAt0.SIZE_IN_BYTES,
-        1 => TelemetryStreamAt1.SIZE_IN_BYTES,
-        3 => TelemetryStreamAt3.SIZE_IN_BYTES,
-        7 => TelemetryStreamAt7.SIZE_IN_BYTES,
-        _ => TelemetryStreamAt0.SIZE_IN_BYTES,
-    };
+    /// <summary>Frame size in bytes (no offset).</summary>
+    public static int FrameBytes => TelemetryFrame.SIZE_IN_BYTES;
 
     /// <summary>
-    /// Writes telemetry values into a byte buffer using the appropriate
-    /// offset view. Returns the view type name.
+    /// Returns the stream buffer size needed when the frame starts at
+    /// <paramref name="offsetBits"/> bits into the stream.
     /// </summary>
-    public static string WriteFrame(
-        byte[] buffer, int offset,
+    public static int StreamBufferSize(int offsetBits) =>
+        (TelemetryFrame.SIZE_IN_BYTES * 8 + offsetBits + 7) / 8;
+
+    /// <summary>
+    /// Writes telemetry values into a frame-sized buffer at bit offset 0.
+    /// </summary>
+    public static void WriteFrame(byte[] frameBuffer,
         double temperature, double pressure,
-        float sensorHealth, Half checksum)
+        float sensorHealth, Half humidity)
     {
-        Array.Clear(buffer, 0, buffer.Length);
-
-        switch (offset)
-        {
-            case 0:
-            {
-                var v = new TelemetryStreamAt0(buffer);
-                v.SOF = true;
-                v.Temperature = temperature;
-                v.Sep1 = true;
-                v.Pressure = pressure;
-                v.Sep2 = true;
-                v.SensorHealth = sensorHealth;
-                v.Sep3 = true;
-                v.Checksum = checksum;
-                v.EOF = true;
-                return nameof(TelemetryStreamAt0);
-            }
-            case 1:
-            {
-                var v = new TelemetryStreamAt1(buffer);
-                v.SOF = true;
-                v.Temperature = temperature;
-                v.Sep1 = true;
-                v.Pressure = pressure;
-                v.Sep2 = true;
-                v.SensorHealth = sensorHealth;
-                v.Sep3 = true;
-                v.Checksum = checksum;
-                v.EOF = true;
-                return nameof(TelemetryStreamAt1);
-            }
-            case 3:
-            {
-                var v = new TelemetryStreamAt3(buffer);
-                v.SOF = true;
-                v.Temperature = temperature;
-                v.Sep1 = true;
-                v.Pressure = pressure;
-                v.Sep2 = true;
-                v.SensorHealth = sensorHealth;
-                v.Sep3 = true;
-                v.Checksum = checksum;
-                v.EOF = true;
-                return nameof(TelemetryStreamAt3);
-            }
-            case 7:
-            {
-                var v = new TelemetryStreamAt7(buffer);
-                v.SOF = true;
-                v.Temperature = temperature;
-                v.Sep1 = true;
-                v.Pressure = pressure;
-                v.Sep2 = true;
-                v.SensorHealth = sensorHealth;
-                v.Sep3 = true;
-                v.Checksum = checksum;
-                v.EOF = true;
-                return nameof(TelemetryStreamAt7);
-            }
-            default:
-                return "Unknown";
-        }
+        Array.Clear(frameBuffer, 0, frameBuffer.Length);
+        var frame = new TelemetryFrame(frameBuffer);
+        frame.SOF = true;
+        frame.Temperature = temperature;
+        frame.Sep1 = true;
+        frame.Pressure = pressure;
+        frame.Sep2 = true;
+        frame.SensorHealth = sensorHealth;
+        frame.Sep3 = true;
+        frame.Humidity = humidity;
+        frame.EOF = true;
     }
 
     /// <summary>
-    /// Writes IEEE 754 decomposed values (sign, exponent, mantissa) back
-    /// into the buffer through the IEEE 754 overlay properties.
+    /// Writes IEEE 754 decomposed values back into the buffer.
     /// </summary>
-    public static void WriteIEEE(
-        byte[] buffer, int offset,
+    public static void WriteIEEE(byte[] frameBuffer,
         IEEE754Double temperature, IEEE754Double pressure,
-        IEEE754Single sensorHealth, IEEE754Half checksum)
+        IEEE754Single sensorHealth, IEEE754Half humidity)
     {
-        switch (offset)
-        {
-            case 0:
-            {
-                var v = new TelemetryStreamAt0(buffer);
-                v.TemperatureIEEE = temperature;
-                v.PressureIEEE = pressure;
-                v.SensorHealthIEEE = sensorHealth;
-                v.ChecksumIEEE = checksum;
-                break;
-            }
-            case 1:
-            {
-                var v = new TelemetryStreamAt1(buffer);
-                v.TemperatureIEEE = temperature;
-                v.PressureIEEE = pressure;
-                v.SensorHealthIEEE = sensorHealth;
-                v.ChecksumIEEE = checksum;
-                break;
-            }
-            case 3:
-            {
-                var v = new TelemetryStreamAt3(buffer);
-                v.TemperatureIEEE = temperature;
-                v.PressureIEEE = pressure;
-                v.SensorHealthIEEE = sensorHealth;
-                v.ChecksumIEEE = checksum;
-                break;
-            }
-            case 7:
-            {
-                var v = new TelemetryStreamAt7(buffer);
-                v.TemperatureIEEE = temperature;
-                v.PressureIEEE = pressure;
-                v.SensorHealthIEEE = sensorHealth;
-                v.ChecksumIEEE = checksum;
-                break;
-            }
-        }
+        var f = new TelemetryFrame(frameBuffer);
+        f.TemperatureIEEE = temperature;
+        f.PressureIEEE = pressure;
+        f.SensorHealthIEEE = sensorHealth;
+        f.HumidityIEEE = humidity;
     }
 
-    /// <summary>Reads native telemetry values back from a buffer.</summary>
-    public static TelemetryReadback ReadFrame(byte[] buffer, int offset) => offset switch
+    /// <summary>Reads native telemetry values from a frame-sized buffer.</summary>
+    public static TelemetryReadback ReadFrame(byte[] frameBuffer)
     {
-        0 => Read0(buffer),
-        1 => Read1(buffer),
-        3 => Read3(buffer),
-        7 => Read7(buffer),
-        _ => Read0(buffer),
-    };
+        var f = new TelemetryFrame(frameBuffer);
+        return new(f.Temperature, f.Pressure, f.SensorHealth, f.Humidity, f.SOF, f.EOF);
+    }
 
-    /// <summary>Reads IEEE 754 decompositions from a buffer.</summary>
-    public static IEEEReadback ReadIEEE(byte[] buffer, int offset) => offset switch
+    /// <summary>Reads IEEE 754 decompositions from a frame-sized buffer.</summary>
+    public static IEEEReadback ReadIEEE(byte[] frameBuffer)
     {
-        0 => ReadIEEE0(buffer),
-        1 => ReadIEEE1(buffer),
-        3 => ReadIEEE3(buffer),
-        7 => ReadIEEE7(buffer),
-        _ => ReadIEEE0(buffer),
-    };
+        var f = new TelemetryFrame(frameBuffer);
+        return new(f.TemperatureIEEE, f.PressureIEEE, f.SensorHealthIEEE, f.HumidityIEEE);
+    }
 
-    // ── Native readers ───────────────────────────────────────
-    private static TelemetryReadback Read0(byte[] b) { var v = new TelemetryStreamAt0(b); return new(v.Temperature, v.Pressure, v.SensorHealth, v.Checksum, v.SOF, v.EOF); }
-    private static TelemetryReadback Read1(byte[] b) { var v = new TelemetryStreamAt1(b); return new(v.Temperature, v.Pressure, v.SensorHealth, v.Checksum, v.SOF, v.EOF); }
-    private static TelemetryReadback Read3(byte[] b) { var v = new TelemetryStreamAt3(b); return new(v.Temperature, v.Pressure, v.SensorHealth, v.Checksum, v.SOF, v.EOF); }
-    private static TelemetryReadback Read7(byte[] b) { var v = new TelemetryStreamAt7(b); return new(v.Temperature, v.Pressure, v.SensorHealth, v.Checksum, v.SOF, v.EOF); }
+    // ── Bit-shift helpers ────────────────────────────────────
 
-    // ── IEEE 754 readers ─────────────────────────────────────
-    private static IEEEReadback ReadIEEE0(byte[] b) { var v = new TelemetryStreamAt0(b); return new(v.TemperatureIEEE, v.PressureIEEE, v.SensorHealthIEEE, v.ChecksumIEEE); }
-    private static IEEEReadback ReadIEEE1(byte[] b) { var v = new TelemetryStreamAt1(b); return new(v.TemperatureIEEE, v.PressureIEEE, v.SensorHealthIEEE, v.ChecksumIEEE); }
-    private static IEEEReadback ReadIEEE3(byte[] b) { var v = new TelemetryStreamAt3(b); return new(v.TemperatureIEEE, v.PressureIEEE, v.SensorHealthIEEE, v.ChecksumIEEE); }
-    private static IEEEReadback ReadIEEE7(byte[] b) { var v = new TelemetryStreamAt7(b); return new(v.TemperatureIEEE, v.PressureIEEE, v.SensorHealthIEEE, v.ChecksumIEEE); }
-
-    /// <summary>Returns field metadata for the selected offset.</summary>
-    public static ReadOnlySpan<BitFieldInfo> GetFields(int offset) => offset switch
+    /// <summary>
+    /// Shifts all bits in <paramref name="src"/> right by
+    /// <paramref name="bitShift"/> positions, producing a new buffer
+    /// large enough to hold the shifted result.  Simulates the frame
+    /// appearing at an arbitrary bit offset within a stream.
+    /// </summary>
+    public static byte[] ShiftRight(byte[] src, int bitShift)
     {
-        0 => TelemetryStreamAt0.Fields,
-        1 => TelemetryStreamAt1.Fields,
-        3 => TelemetryStreamAt3.Fields,
-        7 => TelemetryStreamAt7.Fields,
-        _ => TelemetryStreamAt0.Fields,
-    };
+        if (bitShift == 0) return (byte[])src.Clone();
 
-    /// <summary>Returns the struct description for the selected offset.</summary>
-    public static string? GetDescription(int offset)
+        int totalBits = src.Length * 8 + bitShift;
+        var dst = new byte[(totalBits + 7) / 8];
+
+        for (int i = 0; i < src.Length * 8; i++)
+        {
+            if ((src[i / 8] & (1 << (i % 8))) != 0)
+            {
+                int d = i + bitShift;
+                dst[d / 8] |= (byte)(1 << (d % 8));
+            }
+        }
+
+        return dst;
+    }
+
+    /// <summary>
+    /// Extracts frame data from a stream buffer that was shifted by
+    /// <paramref name="bitShift"/> bits.  Returns a frame-sized buffer.
+    /// </summary>
+    public static byte[] ExtractFrame(byte[] streamBuffer, int bitShift, int frameBytes)
     {
-        var fields = GetFields(offset);
+        if (bitShift == 0)
+        {
+            var copy = new byte[frameBytes];
+            Array.Copy(streamBuffer, copy, Math.Min(streamBuffer.Length, frameBytes));
+            return copy;
+        }
+
+        var dst = new byte[frameBytes];
+        int frameBits = frameBytes * 8;
+
+        for (int i = 0; i < frameBits; i++)
+        {
+            int s = i + bitShift;
+            if (s / 8 < streamBuffer.Length &&
+                (streamBuffer[s / 8] & (1 << (s % 8))) != 0)
+            {
+                dst[i / 8] |= (byte)(1 << (i % 8));
+            }
+        }
+
+        return dst;
+    }
+
+    /// <summary>Returns field metadata for the frame.</summary>
+    public static ReadOnlySpan<BitFieldInfo> GetFields() =>
+        TelemetryFrame.Fields;
+
+    /// <summary>Returns the struct description.</summary>
+    public static string? GetDescription()
+    {
+        var fields = TelemetryFrame.Fields;
         return fields.Length > 0 ? fields[0].StructDescription : null;
     }
 
-    /// <summary>Returns the view Type for the selected offset (for diagram generation).</summary>
-    public static Type GetViewType(int offset) => offset switch
-    {
-        0 => typeof(TelemetryStreamAt0),
-        1 => typeof(TelemetryStreamAt1),
-        3 => typeof(TelemetryStreamAt3),
-        7 => typeof(TelemetryStreamAt7),
-        _ => typeof(TelemetryStreamAt0),
-    };
+    /// <summary>Returns the view Type for diagram generation.</summary>
+    public static Type GetViewType() => typeof(TelemetryFrame);
 
     /// <summary>Default sample values.</summary>
     public static class Defaults
@@ -449,7 +244,7 @@ public static class TelemetryStreamDemo
         public const double TEMPERATURE = 23.456;
         public const double PRESSURE = 1013.25;
         public const float SENSOR_HEALTH = 0.98f;
-        public static readonly Half CHECKSUM = (Half)1.5;
+        public static readonly Half HUMIDITY = (Half)0.65;
     }
 
     /// <summary>Classifies an IEEE 754 double value.</summary>

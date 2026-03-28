@@ -153,6 +153,88 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="🛰️ FP Stream Lab">
+                <ScrollViewer x:Name="FpScroller" VerticalScrollBarVisibility="Auto">
+                    <Grid MinHeight="{Binding ViewportHeight, ElementName=FpScroller}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="40" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="16,16,16,0" Orientation="Vertical">
+                            <TextBlock Text="Composable Floating-Point Stream Lab" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="Single TelemetryFrame struct with dual IEEE 754 / native access — bit-shifted to any stream offset" Opacity="0.6" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            <TextBlock x:Name="FpStructDesc" TextWrapping="Wrap" Margin="0,4,0,0" FontSize="11" Opacity="0.7" Visibility="Collapsed" />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <TextBlock Text="Stream Start Bit:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <Slider x:Name="FpOffsetSlider" Minimum="0" Maximum="7" Width="200" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="OnFpOffsetChanged" />
+                                <Border x:Name="FpOffsetBadge" CornerRadius="14" Width="28" Height="28" Margin="8,0,0,0">
+                                    <TextBlock x:Name="FpOffsetValue" Text="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Consolas" FontWeight="Bold" Foreground="White" />
+                                </Border>
+                                <TextBlock x:Name="FpStreamInfo" VerticalAlignment="Center" Margin="12,0,0,0" FontFamily="Consolas" FontSize="11" Opacity="0.6" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock Text="Temperature (°C):" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox x:Name="FpTemperature" Width="120" Height="26" FontFamily="Consolas" FontSize="13" Padding="4,2" VerticalContentAlignment="Center" Text="23.456" TextChanged="OnFpValueChanged" />
+                                <TextBlock Text="Pressure (hPa):" VerticalAlignment="Center" Margin="12,0,6,0" />
+                                <TextBox x:Name="FpPressure" Width="120" Height="26" FontFamily="Consolas" FontSize="13" Padding="4,2" VerticalContentAlignment="Center" Text="1013.25" TextChanged="OnFpValueChanged" />
+                                <TextBlock Text="Health:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                                <TextBox x:Name="FpHealth" Width="80" Height="26" FontFamily="Consolas" FontSize="13" Padding="4,2" VerticalContentAlignment="Center" Text="0.98" TextChanged="OnFpValueChanged" />
+                                <TextBlock Text="Humidity (%):" VerticalAlignment="Center" Margin="12,0,6,0" />
+                                <TextBox x:Name="FpHumidity" Width="80" Height="26" FontFamily="Consolas" FontSize="13" Padding="4,2" VerticalContentAlignment="Center" Text="0.65" TextChanged="OnFpValueChanged" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Content="▶ Simulate Stream (10)" Padding="12,4" Click="OnFpSimulate" />
+                                <Button Content="↺ Reset" Padding="12,4" Margin="8,0,0,0" Click="OnFpReset" />
+                            </StackPanel>
+
+                            <TextBlock Text="&#x25B8; Bit-Shift Round-Trip" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
+                            <Border BorderBrush="#FF3A3A3A" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,0,0,8">
+                                <WrapPanel x:Name="FpRoundTripPanel" Orientation="Horizontal" />
+                            </Border>
+
+                            <TextBlock Text="&#x25B8; Written &#x2192; Read Back" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <DataGrid x:Name="FpVerifyGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                                      CanUserSortColumns="False" HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal" SelectionMode="Single"
+                                      Margin="0,0,0,8" FontFamily="Consolas" FontSize="12" RowHeight="24">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Field" Binding="{Binding Field}" Width="*" />
+                                    <DataGridTextColumn Header="Written" Binding="{Binding Written}" Width="*" />
+                                    <DataGridTextColumn Header="Read Back" Binding="{Binding ReadBack}" Width="*" />
+                                    <DataGridTextColumn Header="Match" Binding="{Binding Match}" Width="60" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <TextBlock Text="&#x25B8; Fields" FontWeight="Bold" FontSize="13" Margin="0,16,0,6" Foreground="#FF38BDF8" />
+                            <WrapPanel x:Name="FpFieldSummaryPanel" />
+
+                            <TextBlock Text="&#x25B8; Stream Buffer (hex)" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
+                                <WrapPanel x:Name="FpHexBytesPanel" />
+                            </Border>
+
+                            <TextBlock Text="&#x25B8; Stream Binary" FontWeight="Bold" FontSize="13" Margin="0,12,0,6" Foreground="#FF38BDF8" />
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
+                                <WrapPanel x:Name="FpBinaryBitsPanel" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Margin="16,16,16,16">
+                            <TextBlock Text="&#x25B8; RFC Diagram" FontWeight="Bold" FontSize="13" Margin="0,0,0,6" Foreground="#FF38BDF8" />
+                            <TextBox x:Name="FpRfcDiagram" TextWrapping="NoWrap" AcceptsReturn="True" IsReadOnly="True"
+                                     FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Auto" Height="180" Margin="0,0,0,12" />
+                            <TextBlock Text="&#x25B8; Simulated Stream Log" FontWeight="Bold" FontSize="13" Margin="0,0,0,6" Foreground="#FF7AC04A" />
+                            <TextBox x:Name="FpStreamLog" TextWrapping="NoWrap" AcceptsReturn="True" IsReadOnly="True" FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto" Height="200" />
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
 
         </TabControl>
     </Grid>
