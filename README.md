@@ -363,8 +363,8 @@ public partial record struct SensorView
 
 Multi-word types (`UInt128`, `Int128`, `decimal`, `[BitFields(N)]` N > 64) are also
 composable. They can be embedded in multi-word value-type parents and record struct views
-using span-based `ReadFrom`/`WriteTo`. The embedded field must be byte-aligned (start bit
-is a multiple of 8):
+using span-based `ReadFrom`/`WriteTo`. Multi-word fields can start at any bit position;
+non-byte-aligned positions use byte-level bit-shifting:
 
 ```csharp
 [BitFields(typeof(UInt128))]

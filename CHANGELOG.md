@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once version 1.0 is released.
 
+## [Unreleased]
+
 ## [0.9.7] - 2026-03-28
 ### 🟣 Changed
 - **Unified `[BitFields]` attribute for both value types and views** -- `[BitFields]` now works on `partial record struct` in addition to `partial struct`. The generator detects the `record` keyword and produces zero-copy `Memory<byte>`-backed view code (the same codegen previously produced by `[BitFieldsView]`). New parameterless and `(ByteOrder, BitOrder)` constructors on `BitFieldsAttribute` support the view use case. Existing value-type constructors (`StorageType`, `typeof(T)`, `int bitCount`) are unchanged.
@@ -14,7 +16,7 @@ and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2
 - **CHANGELOG.md format changed** to use standard ordering of sections and standard colorized emojis for easier visual scanning.
 
 ### 🟢 Added
-- **Right-sized backing for `[BitFields(N)]` (N <= 64)** -- `[BitFields(N)]` where N is 1--64 now selects the smallest unsigned primitive that can hold N bits: `byte` for N <= 8, `ushort` for N <= 16, `uint` for N <= 32, `ulong` for N <= 64. Previously these were always backed by `ulong`. The smaller backing type reduces struct size and enables efficient composition -- for example, a `[BitFields(5)]` struct is only 1 byte and can be embedded in larger structs or views at its exact bit width.
+- **Right-sized backing for `[BitFields(N)]` (N \<= 64)** -- `[BitFields(N)]` where N is 1--64 now selects the smallest unsigned primitive that can hold N bits: `byte` for N \<= 8, `ushort` for N \<= 16, `uint` for N \<= 32, `ulong` for N \<= 64. Previously these were always backed by `ulong`. The smaller backing type reduces struct size and enables efficient composition -- for example, a `[BitFields(5)]` struct is only 1 byte and can be embedded in larger structs or views at its exact bit width.
 - **Full composability of ALL `[BitFields]` types** -- any `[BitFields]` value-type struct can now be used as a property type inside other `[BitFields]` value-type structs, multi-word structs, and record struct views. This includes single-word types (`byte` through `ulong`, `nint`/`nuint`, `Half`/`float`/`double`), right-sized `[BitFields(N)]` (N <= 64), and multi-word types (`UInt128`, `Int128`, `decimal`, `[BitFields(N)]` N > 64). Single-word and right-sized types embed via efficient cast chains through implicit conversion operators. Multi-word types embed via generated span-based `ReadFrom`/`WriteTo` calls at any bit position (byte-alignment is not required; non-aligned positions use byte-level bit-shifting). Width validation (SD0021) enforces exact bit-width match for `[BitFields(N)]` types. New diagnostic: SD0023 (cannot embed multi-word type in a single-word parent). Includes 29 composition tests covering standalone round-trips, N-in-typeof(T), N-in-N, N-in-view, 128-bit-in-512-bit, 256-bit-in-512-bit, 128-bit-in-view, 256-bit-in-view, non-byte-aligned multi-word embedding, and field independence verification across all embedding contexts.
 - **JSON serialization for all `[BitFields]` types** -- every generated `[BitFields]` type (both value types and record struct views) now includes a `System.Text.Json` converter applied via `[JsonConverter]`. The converter serializes the underlying storage as a `"0x..."` hex string and round-trips through `Parse`. For record struct views, the converter serializes the `Memory<byte>` bytes in the same hex format and deserializes by parsing the hex string back into a `byte[]`. Works in DTOs (Data Transfer Objects), REST APIs, and configuration files without setup. Comprehensive test coverage for all 16 supported storage types (`byte`, `sbyte`, `ushort`, `short`, `uint`, `int`, `ulong`, `long`, `nint`, `nuint`, `Half`, `float`, `double`, `decimal`, `UInt128`, `Int128`), all multi-word size classes (65/128/200/256/512/16384-bit including cross-word fields), `StorageType` enum-constructor variants, big-endian and little-endian views, embedded BitFields composition, hex/binary/decimal format deserialization, and null-to-default behavior. Added dedicated JSON serialization sections in README.md and BITFIELDS.md.
 - **Span serialization documentation** -- added dedicated `Span Serialization` sections in README.md and BITFIELDS.md documenting the generated `ReadFrom`, `WriteTo`, `TryWriteTo`, and `ToByteArray` methods.
@@ -130,8 +132,6 @@ with no breaking changes.
 ### 🔴 Removed
 - Removed unused BitStream feature - not useful enough yet.
 - Removed a few unnecessary Extensions features that can be accomplished easily in .NET already.
-
-## [Unreleased]
 
 ## [0.9.1] - 2026-02-01
 ### 🟢 Added
