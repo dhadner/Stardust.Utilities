@@ -1335,6 +1335,158 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+    #region Reversed Start/End Bit Order Tests
+
+    /// <summary>
+    /// BitFieldAttribute(int start, int end) constructor silently swaps when end &lt; start.
+    /// </summary>
+    [Fact]
+    public void BitFieldAttribute_Constructor_SwapsWhenEndLessThanStart()
+    {
+        var attr = new BitFieldAttribute(7, 3);
+        attr.Start.Should().Be(3);
+        attr.End.Should().Be(7);
+    }
+
+    /// <summary>
+    /// BitFieldAttribute(int start, int end) constructor leaves values unchanged when start &lt;= end.
+    /// </summary>
+    [Fact]
+    public void BitFieldAttribute_Constructor_NoSwapWhenStartLessThanEnd()
+    {
+        var attr = new BitFieldAttribute(3, 7);
+        attr.Start.Should().Be(3);
+        attr.End.Should().Be(7);
+    }
+
+    /// <summary>
+    /// BitFieldAttribute(int start, int end) constructor leaves equal values unchanged.
+    /// </summary>
+    [Fact]
+    public void BitFieldAttribute_Constructor_NoSwapWhenEqual()
+    {
+        var attr = new BitFieldAttribute(5, 5);
+        attr.Start.Should().Be(5);
+        attr.End.Should().Be(5);
+    }
+
+    /// <summary>
+    /// A field declared with reversed positional syntax [BitField(7, 0)] covers all 8 bits.
+    /// The generator silently swaps to Start=0, End=7.
+    /// </summary>
+    [Fact]
+    public void ReversedPositionalReg_GetSet_WorksCorrectly()
+    {
+        ReversedPositionalReg reg = 0;
+        reg.AllBits = 0xAB;
+        reg.AllBits.Should().Be(0xAB);
+        ((byte)reg).Should().Be(0xAB);
+
+        reg.AllBits = 0x00;
+        ((byte)reg).Should().Be(0x00);
+    }
+
+    /// <summary>
+    /// Fields declared with reversed fully-named syntax [BitField(Start = high, End = low)]
+    /// behave identically to the same fields declared in canonical order.
+    /// </summary>
+    [Fact]
+    public void ReversedNamedSyntaxReg_GetSet_WorksCorrectly()
+    {
+        ReversedNamedSyntaxReg reg = 0;
+
+        reg.UpperFive = 0b11111;   // 31 -- bits 3-7 all set
+        ((byte)reg).Should().Be(0xF8);
+        reg.UpperFive.Should().Be(31);
+
+        reg = 0;
+        reg.LowerThree = 0b111;   // 7 -- bits 0-2 all set
+        ((byte)reg).Should().Be(0x07);
+        reg.LowerThree.Should().Be(7);
+
+        reg = 0;
+        reg.UpperFive = 31;
+        reg.LowerThree = 7;
+        ((byte)reg).Should().Be(0xFF);
+    }
+
+    /// <summary>
+    /// Fields declared with reversed mixed syntax [BitField(highBit, End = lowBit)]
+    /// behave identically to the same fields declared in canonical order.
+    /// </summary>
+    [Fact]
+    public void ReversedMixedSyntaxReg_GetSet_WorksCorrectly()
+    {
+        ReversedMixedSyntaxReg reg = 0;
+
+        reg.UpperFive = 0b11111;  // 31 -- bits 3-7 all set
+        ((byte)reg).Should().Be(0xF8);
+        reg.UpperFive.Should().Be(31);
+
+        reg = 0;
+        reg.LowerThree = 0b111;  // 7 -- bits 0-2 all set
+        ((byte)reg).Should().Be(0x07);
+        reg.LowerThree.Should().Be(7);
+
+        reg = 0;
+        reg.UpperFive = 31;
+        reg.LowerThree = 7;
+        ((byte)reg).Should().Be(0xFF);
+    }
+
+    #endregion
+
+    #region End + Width derives Start Tests
+
+    /// <summary>
+    /// [BitField(End = N, Width = W)] with no Start derives Start = End - Width + 1.
+    /// Upper nibble: End=7, Width=4 -> Start=4, covering bits 4-7.
+    /// Lower nibble: End=3, Width=4 -> Start=0, covering bits 0-3.
+    /// </summary>
+    [Fact]
+    public void EndAndWidthOnlyReg_GetSet_WorksCorrectly()
+    {
+        EndAndWidthOnlyReg reg = 0;
+
+        reg.UpperNibble = 0xA;   // bits 4-7 = 10
+        ((byte)reg).Should().Be(0xA0);
+        reg.UpperNibble.Should().Be(0xA);
+
+        reg = 0;
+        reg.LowerNibble = 0x5;   // bits 0-3 = 5
+        ((byte)reg).Should().Be(0x05);
+        reg.LowerNibble.Should().Be(0x5);
+
+        reg = 0;
+        reg.UpperNibble = 0xA;
+        reg.LowerNibble = 0x5;
+        ((byte)reg).Should().Be(0xA5);
+    }
+
+    /// <summary>
+    /// [BitField(End = N, Width = W)] round-trips all 256 byte values correctly,
+    /// verifying that Start derivation produces the same result as explicit [BitField(Start, End)].
+    /// </summary>
+    [Fact]
+    public void EndAndWidthOnlyReg_AllValues_RoundTrip()
+    {
+        for (byte upper = 0; upper <= 0xF; upper++)
+        {
+            for (byte lower = 0; lower <= 0xF; lower++)
+            {
+                EndAndWidthOnlyReg reg = 0;
+                reg.UpperNibble = upper;
+                reg.LowerNibble = lower;
+                byte expected = (byte)((upper << 4) | lower);
+                ((byte)reg).Should().Be(expected, $"upper={upper}, lower={lower}");
+                reg.UpperNibble.Should().Be(upper);
+                reg.LowerNibble.Should().Be(lower);
+            }
+        }
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -1489,6 +1641,52 @@ public partial struct EnumReg64
     [BitField(0, End = 7)] public partial byte Status { get; set; }
     [BitField(8, End = 23)] public partial ushort Data { get; set; }
     [BitFlag(56)] public partial bool Valid { get; set; }
+}
+
+/// <summary>
+/// Byte register with a single field declared using reversed positional syntax [BitField(7, 0)].
+/// After silent swap this covers all 8 bits.
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct ReversedPositionalReg
+{
+#pragma warning disable SD0015
+    [BitField(7, 0)] public partial byte AllBits { get; set; }
+#pragma warning restore SD0015
+}
+
+/// <summary>
+/// Byte register with fields declared using reversed fully-named syntax [BitField(Start = end, End = start)].
+/// After silent swap: UpperFive covers bits 3-7 (5 bits), LowerThree covers bits 0-2 (3 bits).
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct ReversedNamedSyntaxReg
+{
+    [BitField(Start = 7, End = 3)] public partial byte UpperFive { get; set; }
+    [BitField(Start = 2, End = 0)] public partial byte LowerThree { get; set; }
+}
+
+/// <summary>
+/// Byte register with fields declared using reversed mixed syntax [BitField(endValue, End = startValue)].
+/// After silent swap: UpperFive covers bits 3-7 (5 bits), LowerThree covers bits 0-2 (3 bits).
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct ReversedMixedSyntaxReg
+{
+    [BitField(7, End = 3)] public partial byte UpperFive { get; set; }
+    [BitField(2, End = 0)] public partial byte LowerThree { get; set; }
+}
+
+/// <summary>
+/// Byte register with fields using End+Width-only syntax (no Start).
+/// [BitField(End = 7, Width = 4)] -> Start derived as 7 - 4 + 1 = 4, covering bits 4-7.
+/// [BitField(End = 3, Width = 4)] -> Start derived as 3 - 4 + 1 = 0, covering bits 0-3.
+/// </summary>
+[BitFields(typeof(byte))]
+public partial struct EndAndWidthOnlyReg
+{
+    [BitField(End = 7, Width = 4)] public partial byte UpperNibble { get; set; }
+    [BitField(End = 3, Width = 4)] public partial byte LowerNibble { get; set; }
 }
 
 #endregion

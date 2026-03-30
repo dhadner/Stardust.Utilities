@@ -5,9 +5,10 @@ namespace Stardust.Utilities;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Specify the bit range using <see cref="Start"/> with either <see cref="End"/>
-/// (inclusive end position) or <see cref="Width"/> (bit count). Both <c>Start</c>
-/// and one of <c>End</c>/<c>Width</c> are required.
+/// Specify the bit range using any two of the three values <see cref="Start"/>,
+/// <see cref="End"/> (inclusive end position), and <see cref="Width"/> (bit count).
+/// The third value is derived automatically: <c>Width = End - Start + 1</c>,
+/// <c>End = Start + Width - 1</c>, or <c>Start = End - Width + 1</c>.
 /// </para>
 /// <para>
 /// The property must be declared as <c>public partial {type}</c> where type is
@@ -26,7 +27,10 @@ namespace Stardust.Utilities;
 ///
 ///     // End syntax (inclusive):
 ///     // [BitField(0, End = 2)] public partial byte Sound { get; set; }
-///     
+///
+///     // End + Width derives Start (Start = End - Width + 1):
+///     // [BitField(End = 2, Width = 3)] public partial byte Sound { get; set; }
+///
 ///     // Second parameter is 'end' (inclusive).
 ///     // A warning message is generated to clarify that this syntax is potentially confusing and can be mistaken for 'Width':
 ///     // [BitField(0, 2)] public partial byte Sound { get; set; }
@@ -99,6 +103,7 @@ public sealed class BitFieldAttribute : Attribute
     /// <code>
     /// [BitField(Start = 0, Width = 3)]
     /// [BitField(Start = 0, End = 2)]
+    /// [BitField(End = 2, Width = 3)]  // Start derived as End - Width + 1 = 0
     /// </code>
     /// </example>
     public BitFieldAttribute() { }
@@ -127,15 +132,16 @@ public sealed class BitFieldAttribute : Attribute
     /// Second parameter is 'end', not to be confused with 'Width'.
     /// Use named <see cref="End"/> or <see cref="Width"/> properties instead:
     /// <c>[BitField(start, End = N)]</c> or <c>[BitField(start, Width = N)]</c>.
+    /// If <paramref name="end"/> is less than <paramref name="start"/>, the two values
+    /// are silently swapped so either order is accepted.
     /// </summary>
     /// <param name="start">The starting bit position (0-based, inclusive).</param>
-    /// <param name="end">The end bit position (0-based, inclusive). Must be greater than 'start'</param>
+    /// <param name="end">The end bit position (0-based, inclusive). If less than <paramref name="start"/>, the values are swapped automatically.</param>
     /// <param name="mustBe">Optional override for how bits are handled for this field.</param>
-    /// <exception cref="ArgumentException">Thrown when end is less than start.</exception>
     public BitFieldAttribute(int start, int end, MustBe mustBe = MustBe.Any)
     {
         if (end < start)
-            throw new ArgumentException($"end ({end}) must be >= start ({start})", nameof(end));
+            (start, end) = (end, start);
 
         Start = start;
         End = end;

@@ -165,11 +165,12 @@ determines the codegen path; the field attributes are the same either way:
 | `[BitFields(typeof(T))]` | Storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Value type. Equivalent to the enum form; exists for backward compatibility |
 | `[BitFields]` | Optional `ByteOrder`, optional `BitOrder` | Zero-copy view (on a `partial record struct`) |
 | `[BitFields(ByteOrder.X)]` | `ByteOrder`, optional `BitOrder` | Zero-copy view with explicit byte order |
-| `[BitField(start, end)]` | Inclusive range -- second parameter is the end bit position, not bit width | Use named 'End = N' syntax for clarity or disable warning SD0015 if brevity is preferred |
+| `[BitField(start, end)]` | Inclusive range -- second parameter is the end bit position, not bit width. Either order is accepted; values are swapped silently if needed | Use named 'End = N' syntax for clarity or disable warning SD0015 if brevity is preferred |
 | `[BitField(start, End = N)]` | Named inclusive end position | Multi-bit field (width = End - start + 1) |
 | `[BitField(start, Width = N)]` | Named bit count | Multi-bit field (N bits starting at start) |
 | `[BitField(Start = N, End = M)]` | Fully named inclusive range | Multi-bit field (width = M - N + 1) |
 | `[BitField(Start = N, Width = W)]` | Fully named with width | Multi-bit field (W bits starting at N) |
+| `[BitField(End = N, Width = W)]` | End + Width, no Start | Start derived as End - Width + 1; equivalent to `[BitField(End - Width + 1, End = N)]` |
 | `[BitFlag(bit)]` | 0-based bit position, optional `MustBe` | Single-bit boolean flag |
 
 > **Deprecation notice:** The separate `[BitFieldsView]` attribute is deprecated. Use `[BitFields]`
@@ -181,6 +182,8 @@ determines the codegen path; the field attributes are the same either way:
 - `[BitField(3, Width = 1)]` -- 1-bit field at bit 3 only
 - `[BitField(Start = 0, Width = 8)]` -- fully named, 8-bit field
 - `[BitField(0, 2)]` -- positional syntax; emits SD0015 warning. Suppress globally via `.editorconfig` or `<NoWarn>` (see [BitField Syntax Diagnostics](#bitfield-syntax-diagnostics-sd0015sd0019)).
+- `[BitField(7, 0)]`, `[BitField(Start = 7, End = 3)]`, `[BitField(7, End = 3)]` -- reversed order; values are swapped silently, identical to canonical order.
+- `[BitField(End = 7, Width = 4)]` -- Start derived as 7 - 4 + 1 = 4; equivalent to `[BitField(4, End = 7)]`.
 
 ## Byte Order and Bit Order
 
@@ -415,7 +418,7 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0016** | Warning | Both `End` and `Width` specified and consistent | Redundant -- remove one. |
 | **SD0017** | Error | Both `End` and `Width` specified but inconsistent | Contradictory values. Remove one or correct them. |
 | **SD0018** | Error | `Start` present but no `End` or `Width` | Field range is incomplete. |
-| **SD0019** | Error | `End` or `Width` present but no `Start` | Start position is missing. |
+| **SD0019** | Error | `End` or `Width` present but no `Start` | Specify `Start` explicitly, or provide both `End` and `Width` to let the generator derive `Start = End - Width + 1`. |
 | **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width silently corrupts the value. |
 | **SD0021** | Error | Embedded `[BitFields(N)]` struct width mismatch | The field width must exactly match the embedded type's declared N bits to avoid silent truncation. |
 | **SD0022** | Error | Record struct (view) used as property in value-type struct | Views are backed by `Memory<byte>` and cannot be stored in an integer field. Use a value-type struct. |

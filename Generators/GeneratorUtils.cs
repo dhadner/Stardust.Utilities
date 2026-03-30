@@ -148,6 +148,18 @@ internal static class GeneratorUtils
             }
         }
 
+        // When Start is absent but both End and Width are present, derive Start = End - (Width - 1).
+        // This is only meaningful for the named-argument path (not the confusing 2-param ctor,
+        // which always supplies start positionally). Applies in both LSB-first and MSB-first
+        // bit orderings because ResolveBitFieldAttribute operates in user-space coordinates
+        // before any BitOrder conversion is applied.
+        bool startDerivedFromEndAndWidth = false;
+        if (start < 0 && !isConfusing2ParamCtor && namedEndBit >= 0 && namedWidth >= 0)
+        {
+            start = namedEndBit - namedWidth + 1;
+            startDerivedFromEndAndWidth = true;
+        }
+
         // SD0019: No Start specified
         if (start < 0)
         {
@@ -164,6 +176,9 @@ internal static class GeneratorUtils
         {
             // Named End overrides constructor end if present
             int effectiveEndBit = namedEndBit >= 0 ? namedEndBit : ctorEndBit;
+            // Silently swap if end < start so either order is accepted
+            if (effectiveEndBit < start)
+                (start, effectiveEndBit) = (effectiveEndBit, start);
             int effectiveWidth = effectiveEndBit - start + 1;
 
             // SD0015: confusing 2-param constructor
@@ -200,12 +215,20 @@ internal static class GeneratorUtils
 
             if (hasEndBit && hasWidth)
             {
+                // Silently swap if end < start so either order is accepted
+                if (namedEndBit < start)
+                    (start, namedEndBit) = (namedEndBit, start);
                 int expectedWidth = namedEndBit - start + 1;
                 if (expectedWidth == namedWidth)
                 {
-                    diagnostics.Add(new PropertyDiagnosticInfo(
-                        BitFieldsDiagnostics.RedundantEndBitAndWidth, location,
-                        propertyName, namedEndBit, namedWidth));
+                    // Only warn about redundancy when Start was explicitly provided.
+                    // When Start was derived from End and Width, both values are intentional.
+                    if (!startDerivedFromEndAndWidth)
+                    {
+                        diagnostics.Add(new PropertyDiagnosticInfo(
+                            BitFieldsDiagnostics.RedundantEndBitAndWidth, location,
+                            propertyName, namedEndBit, namedWidth));
+                    }
                     resolvedEndBit = namedEndBit;
                     resolvedWidth = namedWidth;
                 }
@@ -219,6 +242,9 @@ internal static class GeneratorUtils
             }
             else if (hasEndBit)
             {
+                // Silently swap if end < start so either order is accepted
+                if (namedEndBit < start)
+                    (start, namedEndBit) = (namedEndBit, start);
                 resolvedEndBit = namedEndBit;
                 resolvedWidth = namedEndBit - start + 1;
             }

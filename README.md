@@ -44,20 +44,22 @@ The included demo app is a showcase of the library's capabilities, not a standal
 
 [Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4)
 
-![PE Header Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/PEHeaderViewDemo.png)
+![RFC Diagram](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/TCPHeaderDiagram.png)
 
-![Network Packet Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/NetworkPacketViewDemo.png)
+![PE Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/PEHeaderViewDemo.png)
+
+![Network Packet](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/NetworkPacketViewDemo.png)
 
 ![CPU Register Lab](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/CPURegisterLabDemo.png)
 
-![TCP Header RFC Diagram](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/TCPHeaderDiagram.png)
+![Composable FP Stream](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/FP-Lab-Demo.png)
 
 ---
 
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.7" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.8" />
 ```
 
 That's it
@@ -236,12 +238,15 @@ The `[BitField]` and `[BitFlag]` property attributes work on both `struct` and `
 | `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe`, optional `Description` | Single-bit boolean flag |
 | `[BitField(start, End = N)]` | Named inclusive end, optional `MustBe`, optional `Description` | Multi-bit field (width = End - start + 1) |
 | `[BitField(start, Width = N)]` | Named bit count, optional `MustBe`, optional `Description` | Multi-bit field (N bits starting at start) |
+| `[BitField(End = N, Width = W)]` | End + Width, no Start | Start derived as End - Width + 1 |
 
 **BitField Examples:**
 - `[BitField(0, Width = 3)]` - 3-bit field at bits 0, 1, 2
 - `[BitField(4, End = 7)]` - 4-bit field at bits 4, 5, 6, 7
 - `[BitField(3, Width = 1)]` - 1-bit field at bit 3 only
 - `[BitField(Start = 0, Width = 8)]` - fully named, 8-bit field
+- `[BitField(7, 0)]`, `[BitField(Start = 7, End = 3)]` - reversed order; values are swapped silently
+- `[BitField(End = 7, Width = 4)]` - Start derived as 7 - 4 + 1 = 4; equivalent to `[BitField(4, End = 7)]`
 
 ##### Supported Storage Types
 
@@ -1131,7 +1136,7 @@ to your `[BitField]`/`[BitFlag]` property declarations (see
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-    <PackageReference Include="Stardust.Utilities" Version="0.9.7" />
+    <PackageReference Include="Stardust.Utilities" Version="0.9.8" />
     ```
 2. Add the `partial` keyword to all `[BitField]` and `[BitFlag]` properties
 3. Clean and rebuild the solution
@@ -1234,7 +1239,7 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0016** | Warning | Both `End` and `Width` are specified and consistent | Redundant -- remove one for conciseness. |
 | **SD0017** | Error | Both `End` and `Width` are specified but inconsistent | The generator cannot determine intent. Remove one or correct the values. |
 | **SD0018** | Error | `Start` is specified but neither `End` nor `Width` | The field range is incomplete. Add `End = N` or `Width = N` or use the positional argument `end:`. |
-| **SD0019** | Error | `End` or `Width` is specified but `Start` is missing | Provide `Start` as a positional argument (`start:`) or as the named property `Start`. |
+| **SD0019** | Error | `End` or `Width` is specified but `Start` is missing | Specify `Start` explicitly, or provide both `End` and `Width` to let the generator derive `Start = End - Width + 1`. |
 | **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width could silently corrupt the value. |
 | **SD0021** | Error | Embedded `[BitFields(N)]` struct width mismatch | The field width must exactly match the embedded type's declared N bits to avoid silent data truncation. |
 | **SD0022** | Error | Record struct (view) used as property in value-type struct | Views are backed by `Memory<byte>` and cannot be stored in an integer field. Use a value-type struct. |

@@ -7,6 +7,13 @@ and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### 🟣 Changed
+- **`[BitField]` accepts bit positions in either order** -- when the end bit is less than the start bit (e.g., `[BitField(7, 0)]`, `[BitField(Start = 7, End = 3)]`, or `[BitField(7, End = 3)]`), the values are silently swapped so either order produces the same correctly-ranged field. This applies to all forms: the positional two-parameter constructor, fully-named syntax, and mixed positional+named syntax. Previously, the two-parameter positional constructor threw `ArgumentException` when `end < start`; reversed named syntax produced incorrect negative widths at code-generation time. This change makes `[BitField]` more tolerant of copy-paste or transposed values from hardware datasheets.
+- **`[BitField(End = N, Width = W)]` derives `Start` automatically** -- when `End` and `Width` are both specified as named arguments but `Start` is omitted, the generator computes `Start = End - Width + 1`. This is the natural counterpart to the existing `[BitField(start, Width = W)]` form (which derives `End = start + W - 1`). For example, `[BitField(End = 7, Width = 4)]` is equivalent to `[BitField(4, End = 7)]`. Previously this combination produced an SD0019 error. The formula is bit-order-agnostic and works correctly with both `BitOrder.BitZeroIsLsb` and `BitOrder.BitZeroIsMsb`.
+
+### 🟤 Backwards Compatibility
+- The `BitFieldAttribute(int start, int end)` constructor no longer throws `ArgumentException` when `end < start`. Code that relied on catching that exception must be updated -- the constructor now silently swaps the values instead.
+
 ## [0.9.7] - 2026-03-28
 ### 🟣 Changed
 - **Unified `[BitFields]` attribute for both value types and views** -- `[BitFields]` now works on `partial record struct` in addition to `partial struct`. The generator detects the `record` keyword and produces zero-copy `Memory<byte>`-backed view code (the same codegen previously produced by `[BitFieldsView]`). New parameterless and `(ByteOrder, BitOrder)` constructors on `BitFieldsAttribute` support the view use case. Existing value-type constructors (`StorageType`, `typeof(T)`, `int bitCount`) are unchanged.

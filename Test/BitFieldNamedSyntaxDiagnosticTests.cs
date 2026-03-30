@@ -13,15 +13,168 @@ namespace Stardust.Utilities.Tests;
 /// Tests that the BitFields generators emit correct diagnostics for the named
 /// BitField syntax (SD0015–SD0020): confusing two-parameter constructor, redundant
 /// End+Width, inconsistent End+Width, missing End/Width, missing Start,
-/// and floating-point property type width mismatch.
+/// floating-point property type width mismatch, and reversed start/end ordering.
 /// </summary>
 public class BitFieldNamedSyntaxDiagnosticTests
 {
-    #region SD0015 - Confusing two-parameter constructor
+    #region Reversed start/end ordering
 
     /// <summary>
-    /// The confusing two-parameter constructor [BitField(start, end)] should produce info-level SD0015.
+    /// Reversed positional [BitField(7, 0)] should produce only SD0015 (no errors).
+    /// The generator silently swaps to Start=0, End=7 and generates valid code.
     /// </summary>
+    [Fact]
+    public void ReversedPositional_OnlySD0015_NoErrors()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct ReversedPositionalDiag
+            {
+                [BitField(7, 0)] public partial byte AllBits { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0015").Should().HaveCount(1);
+        diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Reversed fully-named syntax [BitField(Start = high, End = low)] should produce no SD0015–SD0023 diagnostics.
+    /// </summary>
+    [Fact]
+    public void ReversedFullyNamed_NoDiagnostics()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct ReversedNamedDiag
+            {
+                [BitField(Start = 7, End = 3)] public partial byte UpperFive { get; set; }
+                [BitField(Start = 2, End = 0)] public partial byte LowerThree { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id is "SD0015" or "SD0016" or "SD0017" or "SD0018" or "SD0019")
+            .Should().BeEmpty();
+        diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Reversed mixed syntax [BitField(highBit, End = lowBit)] should produce no SD0015–SD0023 diagnostics.
+    /// </summary>
+    [Fact]
+    public void ReversedMixedSyntax_NoDiagnostics()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct ReversedMixedDiag
+            {
+                [BitField(7, End = 3)] public partial byte UpperFive { get; set; }
+                [BitField(2, End = 0)] public partial byte LowerThree { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id is "SD0015" or "SD0016" or "SD0017" or "SD0018" or "SD0019")
+            .Should().BeEmpty();
+        diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region End + Width derives Start
+
+    /// <summary>
+    /// [BitField(End = N, Width = W)] with no Start should produce no SD0015-SD0023 diagnostics.
+    /// Start is derived as End - Width + 1.
+    /// </summary>
+    [Fact]
+    public void EndAndWidthOnly_NoDiagnostics()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct EndWidthDerivedStart
+            {
+                [BitField(End = 7, Width = 4)] public partial byte UpperNibble { get; set; }
+                [BitField(End = 3, Width = 4)] public partial byte LowerNibble { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id is "SD0015" or "SD0016" or "SD0017" or "SD0018" or "SD0019")
+            .Should().BeEmpty();
+        diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// [BitField(End = N, Width = W)] in a ushort-backed struct should produce no diagnostics.
+    /// Verifies derivation works across a wider storage type.
+    /// </summary>
+    [Fact]
+    public void EndAndWidthOnly_UInt16_NoDiagnostics()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(ushort))]
+            public partial struct EndWidthDerivedStart16
+            {
+                [BitField(End = 7, Width = 8)]  public partial byte Low  { get; set; }
+                [BitField(End = 15, Width = 8)] public partial byte High { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id is "SD0015" or "SD0016" or "SD0017" or "SD0018" or "SD0019")
+            .Should().BeEmpty();
+        diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// [BitField(End = N, Width = W)] with a Width that would derive a negative Start
+    /// should produce SD0019 (missing/invalid Start).
+    /// </summary>
+    [Fact]
+    public void EndAndWidthOnly_NegativeDerivedStart_ProducesSD0019()
+    {
+        const string SOURCE = """
+            using Stardust.Utilities;
+            namespace TestDiag;
+
+            [BitFields(typeof(byte))]
+            public partial struct BadEndWidth
+            {
+                [BitField(End = 2, Width = 10)] public partial byte TooWide { get; set; }
+            }
+            """;
+
+        var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
+
+        diagnostics.Where(d => d.Id == "SD0019").Should().HaveCount(1);
+    }
+
+    #endregion
+
+    #region SD0015 - Confusing two-parameter constructor
     [Fact]
     public void ConfusingTwoParam_ProducesInfo()
     {
@@ -496,10 +649,11 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Parameterless constructor with both End and Width but no Start should produce SD0019.
+    /// Parameterless constructor with both End and Width but no Start should now succeed,
+    /// deriving Start = End - Width + 1 = 0. Previously this produced SD0019.
     /// </summary>
     [Fact]
-    public void MissingStartBit_EndBitAndWidth_ProducesError()
+    public void MissingStartBit_EndBitAndWidth_DerivesStart_NoDiagnostics()
     {
         const string SOURCE = """
             using Stardust.Utilities;
@@ -514,7 +668,9 @@ public class BitFieldNamedSyntaxDiagnosticTests
 
         var diagnostics = RunGeneratorAndGetDiagnostics(SOURCE);
 
-        diagnostics.Where(d => d.Id == "SD0019").Should().HaveCount(1);
+        diagnostics.Where(d => d.Id is "SD0015" or "SD0016" or "SD0017" or "SD0018" or "SD0019")
+            .Should().BeEmpty();
+        diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
     }
 
     /// <summary>
