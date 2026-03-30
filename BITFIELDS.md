@@ -261,6 +261,49 @@ Console.WriteLine(reg.Speed);   // 5 (unsigned, stays positive)
 
 ---
 
+## Saturating Setters
+
+By default, when a value exceeding the field's bit width is written, the excess bits are silently
+truncated (masked). Setting `Saturating = true` on a `[BitField]` changes this to **clamp** the
+value to the field's representable range instead:
+
+```csharp
+[BitFields(StorageType.Byte)]
+public partial struct PwmRegister
+{
+    [BitField(0, Width = 3, Saturating = true)] public partial byte Duty { get; set; }
+}
+
+PwmRegister reg = 0;
+reg.Duty = 10;          // clamped to 7 (max for 3-bit unsigned)
+reg.Duty = 0;           // passes through as-is
+```
+
+For signed property types (`sbyte`, `short`, `int`, `long`, `nint`), the clamping range is
+`[-(2^(Width-1)), 2^(Width-1) - 1]`:
+
+```csharp
+[BitFields(typeof(int))]
+public partial struct TrimRegister
+{
+    [BitField(0, Width = 5, Saturating = true)] public partial int Trim { get; set; }
+}
+
+TrimRegister t = 0;
+t.Trim = 20;            // clamped to 15
+t.Trim = -20;           // clamped to -16
+```
+
+The `With{Name}` fluent method also clamps when `Saturating = true`.
+
+**Applicability:** Saturating is supported for the ten integer primitives (`byte`, `sbyte`,
+`ushort`, `short`, `uint`, `int`, `ulong`, `long`, `nint`, `nuint`). It is silently ignored for
+floating-point types, embedded `[BitFields]` struct types, enum types, fields whose
+`ValueOverride` forces a fixed value, and full-width fields where the bit width equals the
+property type size.
+
+---
+
 ## Floating-Point and Decimal Property Types
 
 `Half`, `float`, `double`, and `decimal` can be used as property types inside `[BitFields]`

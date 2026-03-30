@@ -35,6 +35,13 @@ internal static partial class BitFieldsMultiWordGenerator
             : isFloatProp ? $"(ulong){FloatPropertyToBits(field.PropertyType)}(value)"
             : "(ulong)value";
 
+        // Saturating: clamp value before inserting into storage.
+        bool canSaturate = !isFloatProp && !isWideFloat
+            && field.Saturating
+            && IsSaturatablePropertyType(field.PropertyType)
+            && field.Width < GetTypeBitWidth(field.PropertyType)
+            && field.ValueOverride == MustBe.Any;
+
         sb.AppendLine($"{ind}public partial {field.PropertyType} {field.Name}");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -61,6 +68,38 @@ internal static partial class BitFieldsMultiWordGenerator
             else if (field.ValueOverride == MustBe.One)
             {
                 sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} | 0x{shiftedMask:X16}UL)")};" );
+            }
+            else if (canSaturate)
+            {
+                // Block setter with saturation clamp
+                bool isSigned = IsSignedType(field.PropertyType);
+                string satConstType = GetSatConstType(field.PropertyType);
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                if (isSigned)
+                {
+                    long satMin = -(1L << (width - 1));
+                    long satMax = (1L << (width - 1)) - 1;
+                    sb.AppendLine($"{ind}        const {satConstType} SAT_MIN = {FormatSignedSatLiteral(satMin, satConstType)};");
+                    sb.AppendLine($"{ind}        const {satConstType} SAT_MAX = {FormatSignedSatLiteral(satMax, satConstType)};");
+                    string clamp = BuildSatClampExpr(field.PropertyType, true, "SAT_MIN", "SAT_MAX");
+                    sb.AppendLine($"{ind}        var __sat = {clamp};");
+                }
+                else
+                {
+                    ulong satMax = (1UL << width) - 1;
+                    sb.AppendLine($"{ind}        const {satConstType} SAT_MAX = {FormatUnsignedSatLiteral(satMax, satConstType)};");
+                    string clamp = BuildSatClampExpr(field.PropertyType, false, null!, "SAT_MAX");
+                    sb.AppendLine($"{ind}        var __sat = {clamp};");
+                }
+                string satOpen = "(ulong)__sat";
+                if (localShift == 0 && width == 64)
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, satOpen)};");
+                else if (localShift == 0)
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ({satOpen} & 0x{shiftedMask:X16}UL)")};");
+                else
+                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (({satOpen} << {localShift}) & 0x{shiftedMask:X16}UL)")};");
+                sb.AppendLine($"{ind}    }}");
             }
             else if (localShift == 0 && width == 64)
                 sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, setterOpen)};");
@@ -188,6 +227,35 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}    {{");
                 sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{maskStartShifted:X16}UL)")};" );
                 sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{maskEnd:X16}UL)")};" );
+                sb.AppendLine($"{ind}    }}");
+            }
+            else if (canSaturate)
+            {
+                // Cross-word block setter with saturation clamp
+                bool isSigned = IsSignedType(field.PropertyType);
+                string satConstType = GetSatConstType(field.PropertyType);
+                sb.AppendLine($"{ind}    set");
+                sb.AppendLine($"{ind}    {{");
+                if (isSigned)
+                {
+                    long satMin = -(1L << (width - 1));
+                    long satMax = (1L << (width - 1)) - 1;
+                    sb.AppendLine($"{ind}        const {satConstType} SAT_MIN = {FormatSignedSatLiteral(satMin, satConstType)};");
+                    sb.AppendLine($"{ind}        const {satConstType} SAT_MAX = {FormatSignedSatLiteral(satMax, satConstType)};");
+                    string clamp = BuildSatClampExpr(field.PropertyType, true, "SAT_MIN", "SAT_MAX");
+                    sb.AppendLine($"{ind}        var __sat = {clamp};");
+                }
+                else
+                {
+                    ulong satMax = (1UL << width) - 1;
+                    sb.AppendLine($"{ind}        const {satConstType} SAT_MAX = {FormatUnsignedSatLiteral(satMax, satConstType)};");
+                    string clamp = BuildSatClampExpr(field.PropertyType, false, null!, "SAT_MAX");
+                    sb.AppendLine($"{ind}        var __sat = {clamp};");
+                }
+                string satOpen = "(ulong)__sat";
+                ulong maskStart = (1UL << bitsInStart) - 1;
+                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (({satOpen} & 0x{maskStart:X}UL) << {localShift})")};");
+                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (({satOpen} >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
                 sb.AppendLine($"{ind}    }}");
             }
             else

@@ -247,7 +247,7 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
 
                         var (desc, descResType) = ReadDescriptionArgs(memberAttr);
 
-                        fields.Add(new BitFieldInfo(member.Name, qualifiedName, start, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType, description: desc, descriptionResourceType: descResType));
+                        fields.Add(new BitFieldInfo(member.Name, qualifiedName, start, width, fieldByteOrder: fieldByteOrder, nativeType: nativeType, description: desc, descriptionResourceType: descResType, saturating: resolved.Value.Saturating));
                     }
                 }
                 else if (attrName == "BitFlagAttribute" && memberAttr.ConstructorArguments.Length >= 1)
@@ -619,6 +619,36 @@ public class BitFieldsViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{ind}    set");
         sb.AppendLine($"{ind}    {{");
+
+        // Saturation clamp: emitted as const locals at the top of the setter body so the
+        // existing fast/offset paths pick up the clamped value via the 'value' parameter.
+        bool isViewSat = field.Saturating
+            && !IsFloatingPointPropertyType(field.PropertyType)
+            && field.NativeType == field.PropertyType  // not an endian-aware / embedded type
+            && GeneratorUtils.IsSaturatablePropertyType(field.PropertyType)
+            && width < GeneratorUtils.GetTypeBitWidth(field.PropertyType);
+        if (isViewSat)
+        {
+            bool isSigned = GeneratorUtils.IsSignedType(field.PropertyType);
+            string satConstType = GeneratorUtils.GetSatConstType(field.PropertyType);
+            if (isSigned)
+            {
+                long satMinVal = -(1L << (width - 1));
+                long satMaxVal = (1L << (width - 1)) - 1;
+                sb.AppendLine($"{ind}        const {satConstType} SAT_MIN = {GeneratorUtils.FormatSignedSatLiteral(satMinVal, satConstType)};  // saturating: min for {width}-bit signed field");
+                sb.AppendLine($"{ind}        const {satConstType} SAT_MAX = {GeneratorUtils.FormatSignedSatLiteral(satMaxVal, satConstType)};  // saturating: max for {width}-bit signed field");
+                string clampExpr = GeneratorUtils.BuildSatClampExpr(field.PropertyType, true, "SAT_MIN", "SAT_MAX");
+                sb.AppendLine($"{ind}        value = ({field.PropertyType})({clampExpr});");
+            }
+            else
+            {
+                ulong satMaxVal = (1UL << width) - 1;
+                sb.AppendLine($"{ind}        const {satConstType} SAT_MAX = {GeneratorUtils.FormatUnsignedSatLiteral(satMaxVal, satConstType)};  // saturating: max for {width}-bit unsigned field");
+                string clampExpr = GeneratorUtils.BuildSatClampExpr(field.PropertyType, false, null!, "SAT_MAX");
+                sb.AppendLine($"{ind}        value = ({field.PropertyType})({clampExpr});");
+            }
+        }
+
         sb.AppendLine($"{ind}        var s = _data.Span;");
         sb.AppendLine($"{ind}        if (_bitOffset == 0)");
         sb.AppendLine($"{ind}        {{");

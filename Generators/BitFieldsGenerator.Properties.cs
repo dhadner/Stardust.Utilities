@@ -38,6 +38,15 @@ public partial class BitFieldsGenerator
         // cast chains through its native storage type (NativeType != PropertyType, not float)
         bool isEmbeddedStruct = field.NativeType != field.PropertyType && !isFloatProp;
 
+        // Saturating: clamp value to the field's valid range before inserting into storage.
+        // Only applies for non-float, non-embedded, non-MustBe fields that are narrower than
+        // their property type (so the clamp actually changes behaviour vs. the mask).
+        bool canSaturate = !isFloatProp && !isEmbeddedStruct
+            && field.Saturating
+            && GeneratorUtils.IsSaturatablePropertyType(field.PropertyType)
+            && field.Width < GetTypeBitWidth(field.PropertyType)
+            && field.ValueOverride == MustBe.Any;
+
         sb.AppendLine($"{indent}public partial {field.PropertyType} {field.Name}");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -202,6 +211,31 @@ public partial class BitFieldsGenerator
             }
             sb.AppendLine($"{indent}    }}");
         }
+        else if (canSaturate)
+        {
+            // Saturating setter: clamp value to the field's valid range, then read-modify-write.
+            string satClampExpr = GeneratorUtils.BuildSatClampExpr(
+                field.PropertyType, IsSignedType(field.PropertyType),
+                $"{snakeName}_SAT_MIN", $"{snakeName}_SAT_MAX");
+            sb.AppendLine($"{indent}    set");
+            sb.AppendLine($"{indent}    {{");
+            sb.AppendLine($"{indent}        var __sat = {satClampExpr};");
+            if (info.NeedsUnsignedCast)
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | ((({info.UnsignedStorageType})__sat) & {shiftedMaskHex}));");
+                else
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType})__sat) << {startBitConst}) & {shiftedMaskHex}));");
+            }
+            else
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType})__sat) & {shiftedMaskHex}));");
+                else
+                    sb.AppendLine($"{indent}        Value = ({info.StorageType})((Value & {invertedMaskHex}) | (((({info.StorageType})__sat) << {startBitConst}) & {shiftedMaskHex}));");
+            }
+            sb.AppendLine($"{indent}    }}");
+        }
         else if (info.NeedsUnsignedCast)
         {
             if (shift == 0)
@@ -356,12 +390,47 @@ public partial class BitFieldsGenerator
 
         // For floating-point property types, wrap `value` with BitConverter.*To*Bits(value)
         bool isFloatProp = IsFloatingPointPropertyType(field.PropertyType);
+        bool isEmbeddedStruct = field.NativeType != field.PropertyType && !isFloatProp;
         string valueExpr = isFloatProp ? $"{FloatPropertyToBits(field.PropertyType)}(value)" : "value";
+
+        // Saturating: clamp in With method too
+        bool canSaturate = !isFloatProp && !isEmbeddedStruct
+            && field.Saturating
+            && GeneratorUtils.IsSaturatablePropertyType(field.PropertyType)
+            && field.Width < GetTypeBitWidth(field.PropertyType)
+            && field.ValueOverride == MustBe.Any;
 
         sb.AppendLine($"{indent}/// <summary>Returns a new {info.TypeName} with the {field.Name} field set to the specified value.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
 
-        if (info.StorageTypeIsSigned)
+        if (canSaturate)
+        {
+            // Block form with saturation clamp
+            string satClampExpr = GeneratorUtils.BuildSatClampExpr(
+                field.PropertyType, IsSignedType(field.PropertyType),
+                $"{snakeName}_SAT_MIN", $"{snakeName}_SAT_MAX");
+            string sv = "__sat";
+
+            sb.AppendLine($"{indent}public {info.TypeName} With{field.Name}({field.PropertyType} value)");
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}    var {sv} = {satClampExpr};");
+            if (info.StorageTypeIsSigned)
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}    return new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (({info.UnsignedStorageType}){sv} & {shiftedMaskHex})));");
+                else
+                    sb.AppendLine($"{indent}    return new(({info.StorageType})(((({info.UnsignedStorageType})Value) & {invertedMaskHex}) | (((({info.UnsignedStorageType}){sv}) << {startBitConst}) & {shiftedMaskHex})));");
+            }
+            else
+            {
+                if (shift == 0)
+                    sb.AppendLine($"{indent}    return new(({info.StorageType})((Value & {invertedMaskHex}) | (({info.StorageType}){sv} & {shiftedMaskHex})));");
+                else
+                    sb.AppendLine($"{indent}    return new(({info.StorageType})((Value & {invertedMaskHex}) | ((({info.StorageType}){sv} << {startBitConst}) & {shiftedMaskHex})));");
+            }
+            sb.AppendLine($"{indent}}}");
+        }
+        else if (info.StorageTypeIsSigned)
         {
             if (shift == 0)
             {
@@ -412,6 +481,27 @@ public partial class BitFieldsGenerator
             if (shift > 0)
                 sb.AppendLine($"{indent}private const {maskType} {snakeName}_SHIFTED_MASK = {FormatHex(shiftedMask, maskType)};  // {snakeName}_MASK << {snakeName}_START_BIT");
             sb.AppendLine($"{indent}private const {maskType} {snakeName}_INVERTED_MASK = {FormatHex(invertedShiftedMask, maskType)};  // ~{(shift > 0 ? $"{snakeName}_SHIFTED_MASK" : $"{snakeName}_MASK")}");
+
+            // Saturation constants (only emitted when Saturating=true and the field is narrower
+            // than its property type, so the clamp actually changes behaviour).
+            if (field.Saturating && GeneratorUtils.IsSaturatablePropertyType(field.PropertyType)
+                && width < GetTypeBitWidth(field.PropertyType))
+            {
+                bool satSigned = IsSignedType(field.PropertyType);
+                string satConstType = GeneratorUtils.GetSatConstType(field.PropertyType);
+                if (satSigned)
+                {
+                    long satMin = -(1L << (width - 1));
+                    long satMax = (1L << (width - 1)) - 1;
+                    sb.AppendLine($"{indent}private const {satConstType} {snakeName}_SAT_MIN = {GeneratorUtils.FormatSignedSatLiteral(satMin, satConstType)};  // saturating: min for {width}-bit signed field");
+                    sb.AppendLine($"{indent}private const {satConstType} {snakeName}_SAT_MAX = {GeneratorUtils.FormatSignedSatLiteral(satMax, satConstType)};  // saturating: max for {width}-bit signed field");
+                }
+                else
+                {
+                    ulong satMax = (1UL << width) - 1;
+                    sb.AppendLine($"{indent}private const {satConstType} {snakeName}_SAT_MAX = {GeneratorUtils.FormatUnsignedSatLiteral(satMax, satConstType)};  // saturating: max for {width}-bit unsigned field");
+                }
+            }
         }
 
         foreach (var flag in info.Flags)

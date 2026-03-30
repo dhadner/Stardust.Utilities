@@ -198,7 +198,14 @@ internal sealed class BitFieldInfo
     /// </summary>
     public int StructSizeBytes { get; }
 
-    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBe valueOverride = MustBe.Any, ByteOrder? fieldByteOrder = null, string? nativeType = null, string? description = null, string? descriptionResourceType = null, Location? location = null, bool isSpanBacked = false, int structSizeBytes = 0)
+    /// <summary>
+    /// When true, the generated setter clamps the incoming value to the field's valid range
+    /// for its bit width instead of silently truncating (wrapping).
+    /// Only meaningful for integer property types that are narrower than their field width.
+    /// </summary>
+    public bool Saturating { get; }
+
+    public BitFieldInfo(string name, string propertyType, int shift, int width, MustBe valueOverride = MustBe.Any, ByteOrder? fieldByteOrder = null, string? nativeType = null, string? description = null, string? descriptionResourceType = null, Location? location = null, bool isSpanBacked = false, int structSizeBytes = 0, bool saturating = false)
     {
         Name = name;
         PropertyType = propertyType;
@@ -212,6 +219,7 @@ internal sealed class BitFieldInfo
         Location = location;
         IsSpanBacked = isSpanBacked;
         StructSizeBytes = structSizeBytes;
+        Saturating = saturating;
     }
 }
 

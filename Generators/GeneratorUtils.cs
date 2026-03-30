@@ -72,13 +72,15 @@ internal static class GeneratorUtils
         public int End { get; }
         public int Width { get; }
         public MustBe ValueOverride { get; }
+        public bool Saturating { get; }
 
-        public BitFieldResolveResult(int start, int end, int width, MustBe valueOverride)
+        public BitFieldResolveResult(int start, int end, int width, MustBe valueOverride, bool saturating = false)
         {
             Start = start;
             End = end;
             Width = width;
             ValueOverride = valueOverride;
+            Saturating = saturating;
         }
     }
 
@@ -128,6 +130,7 @@ internal static class GeneratorUtils
         // Read named arguments (these override/supplement constructor values)
         int namedEndBit = -1;
         int namedWidth = -1;
+        bool saturating = false;
 
         foreach (var named in attr.NamedArguments)
         {
@@ -144,6 +147,9 @@ internal static class GeneratorUtils
                     break;
                 case "ValueOverride" when named.Value.Value is int vo:
                     valueOverride = (MustBe)vo;
+                    break;
+                case "Saturating" when named.Value.Value is bool sat:
+                    saturating = sat;
                     break;
             }
         }
@@ -262,7 +268,7 @@ internal static class GeneratorUtils
             }
         }
 
-        return (new BitFieldResolveResult(start, resolvedEndBit, resolvedWidth, valueOverride), diagnostics);
+        return (new BitFieldResolveResult(start, resolvedEndBit, resolvedWidth, valueOverride, saturating), diagnostics);
     }
 
     // ── Floating-point property type helpers ─────────────────────────────
@@ -544,4 +550,90 @@ internal static class GeneratorUtils
             _         => null
         }
     };
+
+    // ── Saturation helpers ───────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns <c>true</c> when a property type supports generated saturation clamping.
+    /// Supported types are the ten integer primitives: byte, sbyte, ushort, short, uint,
+    /// int, ulong, long, nint, nuint.
+    /// </summary>
+    internal static bool IsSaturatablePropertyType(string typeName) => typeName is
+        "byte" or "sbyte" or "ushort" or "short" or "uint" or "int" or "ulong" or "long" or "nint" or "nuint";
+
+    /// <summary>
+    /// Returns the C# type used for the generated saturation <c>const</c> fields/locals.
+    /// For <c>nint</c> returns <c>long</c> and for <c>nuint</c> returns <c>ulong</c>
+    /// because <c>nint</c>/<c>nuint</c> cannot be used in <c>const</c> declarations.
+    /// For all other types, returns the property type unchanged.
+    /// </summary>
+    internal static string GetSatConstType(string propertyType) => propertyType switch
+    {
+        "nint"  => "long",
+        "nuint" => "ulong",
+        _ => propertyType
+    };
+
+    /// <summary>
+    /// Returns <c>true</c> when the type is a signed integer primitive.
+    /// </summary>
+    internal static bool IsSignedType(string typeName) =>
+        typeName is "sbyte" or "short" or "int" or "long" or "nint";
+
+    /// <summary>
+    /// Returns the number of bits in the given numeric type.
+    /// <c>nint</c> and <c>nuint</c> are treated as 64-bit for code-generation purposes.
+    /// </summary>
+    internal static int GetTypeBitWidth(string typeName) => typeName switch
+    {
+        "sbyte" or "byte"                                        => 8,
+        "short" or "ushort"                                      => 16,
+        "int"   or "uint"                                        => 32,
+        "long"  or "ulong" or "nint" or "nuint"                  => 64,
+        _                                                        => 32
+    };
+
+    /// <summary>
+    /// Formats a signed saturation literal for a <c>const</c> declaration.
+    /// For <c>long</c> adds an <c>L</c> suffix; all other integral types use bare decimal.
+    /// </summary>
+    internal static string FormatSignedSatLiteral(long value, string constType)
+        => constType == "long" ? $"{value}L" : $"{value}";
+
+    /// <summary>
+    /// Formats an unsigned saturation literal for a <c>const</c> declaration using
+    /// compact hex notation.
+    /// </summary>
+    internal static string FormatUnsignedSatLiteral(ulong value, string constType) => constType switch
+    {
+        "ulong"  => $"0x{value:X}UL",
+        "uint"   => $"0x{(uint)value:X}U",
+        "ushort" => $"0x{(ushort)value:X}",
+        "byte"   => $"0x{(byte)value:X}",
+        _        => $"0x{value:X}UL"  // nuint -> ulong constant
+    };
+
+    /// <summary>
+    /// Builds the saturation clamp expression used in generated setters and <c>With</c> methods.
+    /// The expression clamps the setter <c>value</c> parameter to the field's valid range.
+    /// <paramref name="satMinConst"/> and <paramref name="satMaxConst"/> are the names of the
+    /// saturation constants (e.g. <c>FIELD_SAT_MIN</c> / <c>FIELD_SAT_MAX</c> or simple
+    /// <c>SAT_MIN</c> / <c>SAT_MAX</c> when used as const locals).
+    /// </summary>
+    internal static string BuildSatClampExpr(
+        string propertyType, bool isSigned, string satMinConst, string satMaxConst)
+    {
+        bool needsCast = GetSatConstType(propertyType) != propertyType;
+        if (isSigned)
+        {
+            string minRef = needsCast ? $"({propertyType}){satMinConst}" : satMinConst;
+            string maxRef = needsCast ? $"({propertyType}){satMaxConst}" : satMaxConst;
+            return $"value < {minRef} ? {minRef} : value > {maxRef} ? {maxRef} : value";
+        }
+        else
+        {
+            string maxRef = needsCast ? $"({propertyType}){satMaxConst}" : satMaxConst;
+            return $"value > {maxRef} ? {maxRef} : value";
+        }
+    }
 }

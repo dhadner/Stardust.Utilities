@@ -353,7 +353,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     // Read optional Description / DescriptionResourceType named arguments
                     var (desc, descResType) = ReadDescriptionArgs(attr);
 
-                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, resolved.Value.Start, resolved.Value.Width, resolved.Value.ValueOverride, nativeType: embeddedNativeType, description: desc, descriptionResourceType: descResType, location: memberLocation, isSpanBacked: isSpanBacked, structSizeBytes: structSizeBytes));
+                    fields.Add(new BitFieldInfo(member.Name, propTypeFull, resolved.Value.Start, resolved.Value.Width, resolved.Value.ValueOverride, nativeType: embeddedNativeType, description: desc, descriptionResourceType: descResType, location: memberLocation, isSpanBacked: isSpanBacked, structSizeBytes: structSizeBytes, saturating: resolved.Value.Saturating));
                 }
                 else if (attrName == "BitFlagAttribute" && attr.ConstructorArguments.Length >= 1)
                 {

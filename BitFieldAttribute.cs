@@ -97,6 +97,24 @@ public sealed class BitFieldAttribute : Attribute
     public Type? DescriptionResourceType { get; set; }
 
     /// <summary>
+    /// When <c>true</c>, the generated property setter clamps the incoming value to the
+    /// valid range for this field's bit width instead of silently truncating (wrapping).
+    /// For unsigned property types the value is clamped to <c>[0, 2^Width - 1]</c>.
+    /// For signed property types it is clamped to <c>[-(2^(Width-1)), 2^(Width-1) - 1]</c>.
+    /// Defaults to <c>false</c> (truncating behaviour).
+    /// </summary>
+    /// <remarks>
+    /// Supported property types: <c>byte</c>, <c>sbyte</c>, <c>ushort</c>, <c>short</c>,
+    /// <c>uint</c>, <c>int</c>, <c>ulong</c>, <c>long</c>, <c>nint</c>, <c>nuint</c>.
+    /// Saturation is silently ignored for floating-point types (<c>Half</c>, <c>float</c>,
+    /// <c>double</c>, <c>decimal</c>), embedded <c>[BitFields]</c> struct types, enum types,
+    /// and fields whose <see cref="ValueOverride"/> forces a fixed value.
+    /// Saturation is also a no-op when the field width equals the full property type width.
+    /// The <c>With{Name}</c> fluent method is similarly clamped when <c>Saturating</c> is true.
+    /// </remarks>
+    public bool Saturating { get; set; } = false;
+
+    /// <summary>
     /// Creates a new bit field attribute with all properties specified via named syntax.
     /// </summary>
     /// <example>

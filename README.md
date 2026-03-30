@@ -239,9 +239,11 @@ The `[BitField]` and `[BitFlag]` property attributes work on both `struct` and `
 | `[BitField(start, End = N)]` | Named inclusive end, optional `MustBe`, optional `Description` | Multi-bit field (width = End - start + 1) |
 | `[BitField(start, Width = N)]` | Named bit count, optional `MustBe`, optional `Description` | Multi-bit field (N bits starting at start) |
 | `[BitField(End = N, Width = W)]` | End + Width, no Start | Start derived as End - Width + 1 |
+| `[BitField(start,end,Saturating=true)]` | start and end bits, Saturating flag (defaults to false) | Saturating = true -> setter clamps value |
 
 **BitField Examples:**
 - `[BitField(0, Width = 3)]` - 3-bit field at bits 0, 1, 2
+- `[BitField(0, Width = 3, Saturating = true)]` - 3-bit field at bits 0, 1, 2 with saturating setter
 - `[BitField(4, End = 7)]` - 4-bit field at bits 4, 5, 6, 7
 - `[BitField(3, Width = 1)]` - 1-bit field at bit 3 only
 - `[BitField(Start = 0, Width = 8)]` - fully named, 8-bit field
@@ -311,6 +313,47 @@ Console.WriteLine(reg.Speed);   // Output: 5 (unsigned, stays positive)
 ```
 
 The sign extension is optimized to a single mask-and-shift operation with zero overhead for unsigned property types.
+
+##### Saturating Setters
+
+By default, when a value exceeding the field's bit width is written, the excess bits are silently
+truncated (masked). Setting `Saturating = true` on a `[BitField]` changes this to **clamp** the
+value to the field's representable range instead. This is useful for DAC registers, PWM duty
+cycles, or any field where out-of-range values should pin to the limit rather than wrap:
+
+```csharp
+[BitFields(StorageType.Byte)]
+public partial struct PwmRegister
+{
+    // 3-bit duty cycle (0-7). Saturating clamps to 7 instead of wrapping.
+    [BitField(0, Width = 3, Saturating = true)] public partial byte Duty { get; set; }
+    [BitField(3, Width = 5)]                    public partial byte Config { get; set; }
+}
+
+PwmRegister reg = 0;
+reg.Duty = 10;                         // clamped to 7 (max for 3-bit unsigned)
+Console.WriteLine(reg.Duty);           // Output: 7
+Console.WriteLine(reg.WithDuty(100).Duty); // Output: 7  (With method also clamps)
+```
+
+For signed property types the range is `[-(2^(Width-1)), 2^(Width-1) - 1]`:
+
+```csharp
+[BitFields(StorageType.UInt32)]
+public partial struct TrimRegister
+{
+    // 5-bit signed trim. Range: [-16, 15].
+    [BitField(0, Width = 5, Saturating = true)] public partial int Trim { get; set; }
+}
+
+TrimRegister reg = 0;
+reg.Trim = 20;                         // clamped to 15
+reg.Trim = -20;                        // clamped to -16
+```
+
+Saturating is supported for integer property types (`byte`, `sbyte`, `ushort`, `short`, `uint`,
+`int`, `ulong`, `long`, `nint`, `nuint`). It is silently ignored for floating-point types,
+embedded structs, enum types, and fields where the width matches the full property type size.
 
 ##### Composition and Nesting
 
