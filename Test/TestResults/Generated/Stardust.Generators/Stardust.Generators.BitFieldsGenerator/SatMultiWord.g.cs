@@ -22,41 +22,45 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
 {
     private ulong _w0; // bits 0-63
     private ulong _w1; // bits 64-127
+    private byte _w2; // bits 128-132
 
     /// <summary>Number of conceptual words in the backing store.</summary>
-    private const int WORD_COUNT = 2;
+    private const int WORD_COUNT = 3;
 
     /// <summary>Total number of defined bits.</summary>
-    private const int TOTAL_BITS = 128;
+    private const int TOTAL_BITS = 133;
 
     /// <summary>Size of this struct in bytes.</summary>
-    public const int SIZE_IN_BYTES = 16;
+    public const int SIZE_IN_BYTES = 17;
 
-    private const ulong LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
+    private const ulong LAST_WORD_MASK = 0x000000000000001FUL;
 
     /// <summary>Returns a SatMultiWord with all bits set to zero.</summary>
     public static SatMultiWord Zero => default;
 
     /// <summary>Creates a new SatMultiWord from individual word values.</summary>
     /// <param name="lower">Bits 0-63 (least significant).</param>
-    /// <param name="upper">Bits 64-127 (most significant).</param>
-    public SatMultiWord(ulong lower, ulong upper)
+    /// <param name="middle">Bits 64-127.</param>
+    /// <param name="upper">Bits 128-132 (most significant).</param>
+    public SatMultiWord(ulong lower, ulong middle, byte upper)
     {
         _w0 = lower;
-        _w1 = upper;
+        _w1 = middle;
+        _w2 = upper;
     }
 
     /// <summary>Creates a new SatMultiWord from a ulong value (zero-extended).</summary>
-    public SatMultiWord(ulong value) : this(value, 0UL) { }
+    public SatMultiWord(ulong value) : this(value, 0UL, default(byte)) { }
 
     /// <summary>Creates a new SatMultiWord from an int value. Negative values are sign-extended
-    /// to all 128 bits (e.g., -1 sets all bits to 1).</summary>
+    /// to all 133 bits (e.g., -1 sets all bits to 1).</summary>
     public SatMultiWord(int value)
     {
         ulong extended = unchecked((ulong)(long)value);
         ulong fill = value < 0 ? ulong.MaxValue : 0UL;
         _w0 = extended;
         _w1 = fill;
+        _w2 = (byte)(fill);
     }
 
     public partial ushort Low
@@ -81,10 +85,10 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
     }
 
     /// <summary>Returns a SatMultiWord with the mask for the Low field (bits 0-9).</summary>
-    public static SatMultiWord LowMask => new(0x3FFUL, 0UL);
+    public static SatMultiWord LowMask => new(0x3FFUL, 0UL, default(byte));
 
     /// <summary>Returns a SatMultiWord with the mask for the High field (bits 10-59).</summary>
-    public static SatMultiWord HighMask => new(0xFFFFFFFFFFFFC00UL, 0UL);
+    public static SatMultiWord HighMask => new(0xFFFFFFFFFFFFC00UL, 0UL, default(byte));
 
     /// <summary>Returns a new SatMultiWord with the Low field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -101,29 +105,29 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
     /// <summary>Metadata for every field and flag declared on this struct, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {
-        new("Low", 0, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
-        new("High", 10, 50, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 128, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("Low", 0, 10, "ushort", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 133, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
+        new("High", 10, 50, "ulong", false, ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb, StructTotalBits: 133, FieldMustBe: MustBe.Any, StructUndefinedMustBe: UndefinedBitsMustBe.Any),
     };
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiWord operator ~(SatMultiWord a) => new(~a._w0, ~a._w1);
+    public static SatMultiWord operator ~(SatMultiWord a) => new(~a._w0, ~a._w1, (byte)(~((ulong)a._w2)));
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiWord operator |(SatMultiWord a, SatMultiWord b) => new(a._w0 | b._w0, a._w1 | b._w1);
+    public static SatMultiWord operator |(SatMultiWord a, SatMultiWord b) => new(a._w0 | b._w0, a._w1 | b._w1, (byte)(((ulong)a._w2) | ((ulong)b._w2)));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiWord operator &(SatMultiWord a, SatMultiWord b) => new(a._w0 & b._w0, a._w1 & b._w1);
+    public static SatMultiWord operator &(SatMultiWord a, SatMultiWord b) => new(a._w0 & b._w0, a._w1 & b._w1, (byte)(((ulong)a._w2) & ((ulong)b._w2)));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiWord operator ^(SatMultiWord a, SatMultiWord b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1);
+    public static SatMultiWord operator ^(SatMultiWord a, SatMultiWord b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1, (byte)(((ulong)a._w2) ^ ((ulong)b._w2)));
 
     /// <summary>Bitwise AND operator with ulong (applied to lowest word).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiWord operator &(SatMultiWord a, ulong b) => new(a._w0 & b, 0UL);
+    public static SatMultiWord operator &(SatMultiWord a, ulong b) => new(a._w0 & b, 0UL, default(byte));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -139,7 +143,9 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
         ulong w0 = a._w0 + b._w0;
         ulong c0 = (w0 < a._w0) ? 1UL : 0UL;
         ulong w1 = a._w1 + b._w1 + c0;
-        return new(w0, w1);
+        ulong c1 = (w1 < a._w1 || (c0 != 0 && w1 == a._w1)) ? 1UL : 0UL;
+        ulong w2 = ((ulong)a._w2) + ((ulong)b._w2) + c1;
+        return new(w0, w1, (byte)w2);
     }
 
     /// <summary>Addition operator with ulong.</summary>
@@ -153,7 +159,10 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
         ulong borrow0 = (a._w0 < b._w0) ? 1UL : 0UL;
         ulong diff1 = a._w1 - b._w1;
         ulong w1 = diff1 - borrow0;
-        return new(w0, w1);
+        ulong borrow1 = (a._w1 < b._w1 || (borrow0 != 0 && diff1 == 0)) ? 1UL : 0UL;
+        ulong diff2 = ((ulong)a._w2) - ((ulong)b._w2);
+        ulong w2 = diff2 - borrow1;
+        return new(w0, w1, (byte)w2);
     }
 
     /// <summary>Subtraction operator with ulong.</summary>
@@ -242,6 +251,7 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
         {
             0 => v._w0,
             1 => v._w1,
+            2 => ((ulong)v._w2),
             _ => 0UL,
         };
     }
@@ -253,12 +263,14 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
         {
             case 0: v._w0 = value; break;
             case 1: v._w1 = value; break;
+            case 2: v._w2 = (byte)(value); break;
         }
     }
 
     /// <summary>Less than operator.</summary>
     public static bool operator <(SatMultiWord a, SatMultiWord b)
     {
+        if (((ulong)a._w2) != ((ulong)b._w2)) return ((ulong)a._w2) < ((ulong)b._w2);
         if (a._w1 != b._w1) return a._w1 < b._w1;
         if (a._w0 != b._w0) return a._w0 < b._w0;
         return false;
@@ -278,7 +290,7 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SatMultiWord a, SatMultiWord b) => a._w0 == b._w0 && a._w1 == b._w1;
+    public static bool operator ==(SatMultiWord a, SatMultiWord b) => a._w0 == b._w0 && a._w1 == b._w1 && a._w2 == b._w2;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -290,7 +302,7 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode()
     {
-        return HashCode.Combine(_w0, _w1);
+        return HashCode.Combine(_w0, _w1, _w2);
     }
 
     /// <summary>Returns a hex string representation of the value.</summary>
@@ -315,19 +327,22 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
     /// <summary>Converts this value to a BigInteger.</summary>
     public BigInteger ToBigInteger()
     {
-        BigInteger result = _w1;
+        BigInteger result = ((ulong)_w2);
+        result = (result << 64) | _w1;
         result = (result << 64) | _w0;
         return result;
     }
 
-    /// <summary>Creates a SatMultiWord from a BigInteger (truncated to 128 bits).</summary>
+    /// <summary>Creates a SatMultiWord from a BigInteger (truncated to 133 bits).</summary>
     public static SatMultiWord FromBigInteger(BigInteger value)
     {
         if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
         ulong w0 = (ulong)(value & ulong.MaxValue);
         value >>= 64;
         ulong w1 = (ulong)(value & ulong.MaxValue);
-        return new(w0, w1);
+        value >>= 64;
+        ulong w2 = (ulong)(value & ulong.MaxValue);
+        return new(w0, w1, (byte)w2);
     }
 
     /// <summary>Creates a new SatMultiWord from a little-endian byte span.</summary>
@@ -339,6 +354,7 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
         _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
         _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
+        _w2 = bytes[16];
     }
 
     /// <summary>Creates a new SatMultiWord by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
@@ -356,6 +372,7 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
         BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
         BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
+        destination[16] = _w2;
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -463,6 +480,7 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
     /// <summary>Compares this instance to another SatMultiWord.</summary>
     public int CompareTo(SatMultiWord other)
     {
+        if (((ulong)_w2) != ((ulong)other._w2)) return ((ulong)_w2).CompareTo(((ulong)other._w2));
         if (_w1 != other._w1) return _w1.CompareTo(other._w1);
         if (_w0 != other._w0) return _w0.CompareTo(other._w0);
         return 0;

@@ -88,7 +88,7 @@ public partial struct SatWithMethod
 /// <summary>
 /// Multi-word struct with saturating field.
 /// </summary>
-[BitFields(128)]
+[BitFields(133)]
 public partial struct SatMultiWord
 {
     [BitField(0, Width = 10, Saturating = true)] public partial ushort Low { get; set; }
