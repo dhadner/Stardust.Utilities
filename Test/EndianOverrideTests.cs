@@ -2,14 +2,13 @@ using System;
 using FluentAssertions;
 using Xunit;
 
-#pragma warning disable CS0618 // BitFieldsViewAttribute is obsolete — these tests intentionally exercise the deprecated API
 
 namespace Stardust.Utilities.Tests;
 
 /// <summary>
 /// Exhaustive tests for endian-type overrides (*Be/*Le property types)
 /// across all combinations of ByteOrder and BitOrder in both
-/// record struct views (deprecated [BitFieldsView]) and [BitFields] structs.
+/// record struct views (deprecated [BitFields]) and [BitFields] structs.
 ///
 /// Coverage matrix:
 ///
@@ -26,13 +25,13 @@ namespace Stardust.Utilities.Tests;
 public partial class EndianOverrideTests
 {
     // ================================================================
-    // View struct definitions (deprecated [BitFieldsView]) � all four ByteOrder � BitOrder
+    // View struct definitions (deprecated [BitFields]) � all four ByteOrder � BitOrder
     // combos, each with opposite-endian overrides + same-endian explicit
     // ================================================================
 
     // --- Combo 1: BigEndian / BitZeroIsMsb, with *Le overrides ---
 
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct View_BE_Msb
     {
         [BitField(0, End = 15)]   public partial ushort    NativeU16 { get; set; }  // BE (struct default)
@@ -43,7 +42,7 @@ public partial class EndianOverrideTests
 
     // --- Combo 2: BigEndian / BitZeroIsLsb, with *Le overrides ---
 
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsLsb)]
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct View_BE_Lsb
     {
         [BitField(0, End = 15)]   public partial ushort    NativeU16 { get; set; }  // BE (struct default)
@@ -54,7 +53,7 @@ public partial class EndianOverrideTests
 
     // --- Combo 3: LittleEndian / BitZeroIsLsb, with *Be overrides ---
 
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+    [BitFields(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct View_LE_Lsb
     {
         [BitField(0, End = 15)]   public partial ushort    NativeU16 { get; set; }  // LE (struct default)
@@ -65,7 +64,7 @@ public partial class EndianOverrideTests
 
     // --- Combo 4: LittleEndian / BitZeroIsMsb, with *Be overrides ---
 
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb)]
+    [BitFields(ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct View_LE_Msb
     {
         [BitField(0, End = 15)]   public partial ushort    NativeU16 { get; set; }  // LE (struct default)
@@ -718,28 +717,28 @@ public partial class EndianOverrideTests
     /// BE struct with explicit UInt16Be field: should produce same wire bytes
     /// as a plain ushort in the same BE struct.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct SameEndian_BE_Msb
     {
         [BitField(0, End = 15)]  public partial ushort    NativeU16 { get; set; }
         [BitField(16, End = 31)] public partial UInt16Be  ExplicitU16 { get; set; }
     }
 
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsLsb)]
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct SameEndian_BE_Lsb
     {
         [BitField(0, End = 15)]  public partial ushort    NativeU16 { get; set; }
         [BitField(16, End = 31)] public partial UInt16Be  ExplicitU16 { get; set; }
     }
 
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+    [BitFields(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct SameEndian_LE_Lsb
     {
         [BitField(0, End = 15)]  public partial ushort    NativeU16 { get; set; }
         [BitField(16, End = 31)] public partial UInt16Le  ExplicitU16 { get; set; }
     }
 
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb)]
+    [BitFields(ByteOrder.LittleEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct SameEndian_LE_Msb
     {
         [BitField(0, End = 15)]  public partial ushort    NativeU16 { get; set; }

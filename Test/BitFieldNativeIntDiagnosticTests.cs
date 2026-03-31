@@ -852,17 +852,17 @@ public class BitFieldNativeIntDiagnosticTests
     }
 
     /// <summary>
-    /// SD0004 for BitFieldsView: a non-partial property on a [BitFieldsView] record struct
+    /// SD0004 for RecordStructView: a non-partial property on a [BitFields] record struct
     /// should also produce SD0004.
     /// </summary>
     [Fact]
-    public void NonPartialBitFieldsView_ProducesError()
+    public void NonPartialRecordStructView_ProducesError()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct BadView
             {
                 [BitFlag(0)] public bool Active { get; set; }
@@ -879,16 +879,16 @@ public class BitFieldNativeIntDiagnosticTests
     }
 
     /// <summary>
-    /// A fully-partial [BitFieldsView] record struct should NOT produce SD0004.
+    /// A fully-partial [BitFields] record struct should NOT produce SD0004.
     /// </summary>
     [Fact]
-    public void AllPartialBitFieldsView_NoDiagnostic()
+    public void AllPartialRecordStructView_NoDiagnostic()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct GoodView
             {
                 [BitFlag(0)] public partial bool Active { get; set; }
@@ -901,7 +901,7 @@ public class BitFieldNativeIntDiagnosticTests
     }
 
     /// <summary>
-    /// Runs the BitFieldsViewGenerator against the given source and returns the diagnostics.
+    /// Runs the RecordStructViewGenerator against the given source and returns the diagnostics.
     /// </summary>
     private static IReadOnlyList<Diagnostic> RunViewGeneratorAndGetDiagnostics(string source)
     {
@@ -922,7 +922,7 @@ public class BitFieldNativeIntDiagnosticTests
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        var generator = new BitFieldsViewGenerator();
+        var generator = new RecordStructViewGenerator();
         var driver = CSharpGeneratorDriver.Create(
             generators: [generator.AsSourceGenerator()]);
 

@@ -47,7 +47,7 @@ internal static class GeneratorUtils
 
     /// <summary>
     /// Returns true if the given property symbol is declared with the <c>partial</c> keyword.
-    /// Used by both <see cref="BitFieldsGenerator"/> and <see cref="BitFieldsViewGenerator"/>
+    /// Used by both <see cref="BitFieldsGenerator"/> and <see cref="RecordStructViewGenerator"/>
     /// to detect non-partial properties and emit SD0004 diagnostics.
     /// </summary>
     internal static bool IsPartialProperty(IPropertySymbol property)

@@ -8,11 +8,12 @@
 		<!-- NuGet Package Settings -->
 		<IsPackable>true</IsPackable>
 		<PackageId>Stardust.Utilities</PackageId>
-		<!-- Version is specified at build time via: .\Build-Combined-NuGetPackages.ps1 X.Y.Z -->
+		
+		<!-- Version is specified in the Directory.Build.props file -->
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for bit manipulation, error handling, and big-endian data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
 		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>v0.9.7: Unified [BitFields] attribute for struct and record struct. JSON serialization for all types. Floating-point/decimal property types. Deprecated [BitFieldsView]. Removed DiagramSection. Fixed 64-bit field mask overflow and view 64-bit read bug.</PackageReleaseNotes>
+		<PackageReleaseNotes>Added optional 'Saturating' parameter on [BitField] properties to limit min/max values to fit the bit width. Removed the deprecated [BitFieldsView] attribute -- use the [BitFields] attribute on 'record struct' types instead. Removed the type.IsBitFieldsViewType()` extension method.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>

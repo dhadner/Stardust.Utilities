@@ -13,7 +13,7 @@
   <!-- Version is specified at build time via build script -->
   <Authors>Dave Hadner</Authors>
   <Description>Source generators for [BitFields] attributes in Stardust.Utilities</Description>
-  <PackageTags>source-generator;roslyn;bitfields;bitfieldsview</PackageTags>
+  <PackageTags>source-generator;roslyn;bitfields</PackageTags>
   <IncludeBuildOutput>false</IncludeBuildOutput>
   <DevelopmentDependency>true</DevelopmentDependency>
   <NoPackageAnalysis>true</NoPackageAnalysis>

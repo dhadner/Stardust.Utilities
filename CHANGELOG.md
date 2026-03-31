@@ -16,9 +16,16 @@ and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2
 ### 🟢 Added
 - **`Saturating` parameter on `[BitField]`** -- when `Saturating = true`, the generated property setter and `With{Name}` method clamp the incoming value to the field's valid range instead of silently truncating (wrapping). For unsigned property types the value is clamped to `[0, 2^Width - 1]`; for signed property types it is clamped to `[-(2^(Width-1)), 2^(Width-1) - 1]`. Defaults to `false` (existing truncation behaviour). Supported property types: `byte`, `sbyte`, `ushort`, `short`, `uint`, `int`, `ulong`, `long`, `nint`, `nuint`. Silently ignored for floating-point types, embedded `[BitFields]` struct types, enum types, fields whose `ValueOverride` forces a fixed value, and full-width fields where the field width equals the property type width. Works across all generator modes: single-word value types, multi-word value types, and record struct views. Generated code uses named `SCREAMING_SNAKE_CASE` constants for the saturation bounds (`{FIELD}_SAT_MIN`, `{FIELD}_SAT_MAX`) for easy verification. Includes 26 tests covering unsigned clamping, signed clamping (positive/negative overflow, boundary values), sbyte small type, non-saturating wrapping comparison, field independence, shifted fields, full-width no-op, `With{Name}` method clamping, 10-bit ushort, multi-word structs, and record struct views.
 
+### 🔴 Removed
+- **`[BitFieldsView]` attribute removed** -- `BitFieldsViewAttribute` was deprecated in 0.9.7 and has now been removed. Use `[BitFields]` on a `partial record struct` instead. The generator detects the `record` keyword and produces identical view code. Migration is a find-and-replace: `[BitFieldsView]` to `[BitFields]`, `[BitFieldsView(` to `[BitFields(`.
+- **`IsBitFieldsViewType()` extension method removed** -- use `IsBitFieldsType()` or `IsBitsType()` instead.
+- **`BitFieldsViewTests` renamed to `RecordStructViewTests`** -- all test struct definitions converted from `[BitFieldsView]` to `[BitFields]`. 4 unified-attribute comparison tests removed (they compared legacy vs unified which is no longer applicable).
+- Internal generator classes renamed: `BitFieldsViewGenerator` to `RecordStructViewGenerator`, `BitFieldsViewInfo` to `RecordStructViewInfo`.
+
 ### 🟤 Backwards Compatibility
 - The `BitFieldAttribute(int start, int end)` constructor no longer throws `ArgumentException` when `end < start`. Code that relied on catching that exception must be updated -- the constructor now silently swaps the values instead.
 - The `Saturating` parameter on `[BitField]` is entirely additive. Existing code that does not use `Saturating` is unaffected; the default is `false` which preserves the existing truncation (masking) behaviour.
+- **`[BitFieldsView]` removed** -- code using `[BitFieldsView]` must be changed to `[BitFields]` on a `partial record struct`. The generated code is identical. `IsBitFieldsViewType()` callers should switch to `IsBitFieldsType()` or `IsBitsType()`.
 
 ## [0.9.7] - 2026-03-28
 ### 🟣 Changed

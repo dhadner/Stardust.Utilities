@@ -816,9 +816,8 @@ Each nested type independently controls its own byte order, so a big-endian tran
 can wrap a little-endian file payload that itself contains big-endian network captures -- all
 zero-copy on the same underlying buffer.
 
-> **Note:** The `[BitFieldsView]` attribute is deprecated. Use `[BitFields]` on a `partial record struct`
+> **Note:** The `[BitFieldsView]` attribute has been removed. Use `[BitFields]` on a `partial record struct`
 > instead -- the generator detects the `record` keyword and produces identical code.
-> `[BitFieldsViewAttribute]` will be removed in a future release.
 
 See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
 full documentation on nesting, mixed-endian scenarios, and write-through semantics.

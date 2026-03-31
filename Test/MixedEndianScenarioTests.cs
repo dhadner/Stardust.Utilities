@@ -2,7 +2,6 @@ using System;
 using FluentAssertions;
 using Xunit;
 
-#pragma warning disable CS0618 // BitFieldsViewAttribute is obsolete — these tests intentionally exercise the deprecated API
 
 namespace Stardust.Utilities.Tests;
 
@@ -36,7 +35,7 @@ public partial class MixedEndianScenarioTests
     /// <summary>
     /// Embedded network capture header in native BE/MSB-first order.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct CaptureHeaderView
     {
         [BitField(0, End = 15)]  public partial ushort Protocol { get; set; }
@@ -48,7 +47,7 @@ public partial class MixedEndianScenarioTests
     /// x86 binary file blob in native LE/LSB-first order.
     /// Contains an embedded BE field (CapturedSrcIp) and a nested BE sub-view (Capture).
     /// </summary>
-    [BitFieldsView(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
+    [BitFields(ByteOrder.LittleEndian, BitOrder.BitZeroIsLsb)]
     public partial record struct FileBlobView
     {
         [BitField(0, End = 31)]    public partial uint Magic { get; set; }
@@ -62,7 +61,7 @@ public partial class MixedEndianScenarioTests
     /// Outer transport protocol in network byte order (BE/MSB-first).
     /// Carries the x86 binary file blob as a nested LE sub-view.
     /// </summary>
-    [BitFieldsView(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+    [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
     public partial record struct TransportHeaderView
     {
         [BitField(0, End = 15)]   public partial ushort MessageType { get; set; }

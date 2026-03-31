@@ -93,7 +93,7 @@ Stardust.Utilities/
 ├── Generators/
 │   ├── Stardust.Generators.csproj       # Source generator project
 │   ├── BitFieldsGenerator.cs            # [BitFields] generator
-│   ├── BitFieldsViewGenerator.cs        # [BitFields] record struct view generator (also handles deprecated [BitFieldsView])
+│   ├── RecordStructViewGenerator.cs      # [BitFields] record struct view generator
 │   └── *.cs                             # Additional generator source files
 ├── Test/
 │   └── Stardust.Utilities.Tests.csproj

@@ -132,7 +132,7 @@ public sealed class BitFieldsAttribute : Attribute
     /// <summary>
     /// Creates a BitFields attribute for a zero-copy buffer view (<c>partial record struct</c>).
     /// When applied to a <c>record struct</c>, the generator produces a view over <c>Memory&lt;byte&gt;</c>
-    /// instead of a value type with inline storage. This replaces <see cref="BitFieldsViewAttribute"/>.
+    /// instead of a value type with inline storage.
     /// </summary>
     /// <param name="byteOrder">Byte order for multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
     /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>

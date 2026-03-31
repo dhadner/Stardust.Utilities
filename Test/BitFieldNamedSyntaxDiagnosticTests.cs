@@ -250,16 +250,16 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0015 should fire for BitFieldsView as well (not just BitFields).
+    /// SD0015 should fire for RecordStructView as well (not just BitFields).
     /// </summary>
     [Fact]
-    public void ConfusingTwoParam_BitFieldsView_ProducesWarning()
+    public void ConfusingTwoParam_RecordStructView_ProducesWarning()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct DepView
             {
                 [BitField(0, 7)] public partial byte Status { get; set; }
@@ -375,16 +375,16 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0016 for BitFieldsView: redundant End+Width should also warn.
+    /// SD0016 for RecordStructView: redundant End+Width should also warn.
     /// </summary>
     [Fact]
-    public void RedundantEndBitAndWidth_BitFieldsView_ProducesWarning()
+    public void RedundantEndBitAndWidth_RecordStructView_ProducesWarning()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct RedView
             {
                 [BitField(0, End = 7, Width = 8)] public partial byte Status { get; set; }
@@ -475,16 +475,16 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0017 for BitFieldsView: inconsistent End+Width should produce error.
+    /// SD0017 for RecordStructView: inconsistent End+Width should produce error.
     /// </summary>
     [Fact]
-    public void InconsistentEndBitAndWidth_BitFieldsView_ProducesError()
+    public void InconsistentEndBitAndWidth_RecordStructView_ProducesError()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct IncView
             {
                 [BitField(0, End = 7, Width = 4)] public partial byte Status { get; set; }
@@ -552,16 +552,16 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0018 for BitFieldsView: missing range info should produce error.
+    /// SD0018 for RecordStructView: missing range info should produce error.
     /// </summary>
     [Fact]
-    public void MissingEndBitOrWidth_BitFieldsView_ProducesError()
+    public void MissingEndBitOrWidth_RecordStructView_ProducesError()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct NoRangeView
             {
                 [BitField(0)] public partial byte Status { get; set; }
@@ -674,16 +674,16 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// SD0019 for BitFieldsView: missing Start should produce error.
+    /// SD0019 for RecordStructView: missing Start should produce error.
     /// </summary>
     [Fact]
-    public void MissingStartBit_BitFieldsView_ProducesError()
+    public void MissingStartBit_RecordStructView_ProducesError()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct NoStartView
             {
                 [BitField(Width = 8)] public partial byte Status { get; set; }
@@ -796,16 +796,16 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Valid named syntax on [BitFieldsView] should NOT produce any SD0015–SD0019 diagnostics.
+    /// Valid named syntax on [BitFields] should NOT produce any SD0015–SD0019 diagnostics.
     /// </summary>
     [Fact]
-    public void ValidNamedSyntax_BitFieldsView_NoDiagnostics()
+    public void ValidNamedSyntax_RecordStructView_NoDiagnostics()
     {
         const string SOURCE = """
             using Stardust.Utilities;
             namespace TestDiag;
 
-            [BitFieldsView]
+            [BitFields]
             public partial record struct GoodView
             {
                 [BitField(0, Width = 8)] public partial byte Status { get; set; }
@@ -1353,7 +1353,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
     }
 
     /// <summary>
-    /// Runs the BitFieldsViewGenerator against the given source and returns the diagnostics.
+    /// Runs the RecordStructViewGenerator against the given source and returns the diagnostics.
     /// </summary>
     private static ImmutableArray<Diagnostic> RunViewGeneratorAndGetDiagnostics(string source)
     {
@@ -1374,7 +1374,7 @@ public class BitFieldNamedSyntaxDiagnosticTests
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        var generator = new BitFieldsViewGenerator();
+        var generator = new RecordStructViewGenerator();
         var driver = CSharpGeneratorDriver.Create(
             generators: [generator.AsSourceGenerator()]);
 

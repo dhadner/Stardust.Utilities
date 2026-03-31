@@ -158,7 +158,7 @@ internal static class BitFieldsDiagnostics
         description: "When a [BitFields] struct is used as a property type, the field width must exactly match the embedded type's declared bit width. Use [BitFields(N)] to declare a custom-width struct, or adjust the field range to match the embedded type's storage width.");
 
     /// <summary>
-    /// Error: A record struct view ([BitFieldsView] or [BitFields] on a record struct)
+    /// Error: A record struct view ([BitFields] on a record struct)
     /// cannot be embedded as a property in a value-type [BitFields] struct.
     /// Views are backed by Memory&lt;byte&gt; and cannot be stored in a single integer value.
     /// </summary>

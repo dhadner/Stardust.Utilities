@@ -3,7 +3,6 @@ using System.Text;
 using FluentAssertions;
 using Xunit;
 
-#pragma warning disable CS0618 // BitFieldsViewAttribute is obsolete — these tests intentionally exercise the deprecated API
 
 namespace Stardust.Utilities.Tests;
 
@@ -86,7 +85,7 @@ public partial class ExtensionsTests
     }
 
     /// <summary>TCP control flags (9 bits): FIN, SYN, RST, PSH, ACK, URG, ECE, CWR, NS.</summary>
-    [BitFieldsView]
+    [BitFields]
     public partial record struct TcpFlagsView
     {
         [BitFlag(0)] public partial bool FIN { get; set; } // connection finish
@@ -104,7 +103,7 @@ public partial class ExtensionsTests
     /// TCP header control word (32 bits): DataOffset(4) | Reserved(3) | Flags(9) | WindowSize(16).
     /// Demonstrates composition: TcpFlags embedded in a 9-bit field.
     /// </summary>
-    [BitFieldsView]
+    [BitFields]
     public partial record struct TcpControlWordView
     {
         [BitField(28, End = 31)] public partial byte DataOffset { get; set; }   // header length in 32-bit words
@@ -116,19 +115,16 @@ public partial class ExtensionsTests
     #endregion
 
     [Theory]
-    [InlineData(typeof(int), null, false, false, false, null, null)]
-    [InlineData(typeof(TcpControlWord), null, true, false, true, null, null)]
-    [InlineData(typeof(TcpControlWord), "DataOffset", true, false, true, true, false)]
-    [InlineData(typeof(TcpControlWordView), null, false, true, true, null, null)]
-    [InlineData(typeof(TcpControlWordView), "DataOffset", false, true, true, true, false)]
-    [InlineData(typeof(TcpControlWordView), null, false, true, true, false, false)]
-    public void Extension_MetaData_Works_For_Types(Type bitType, string? propName, bool hasBitFields, bool hasBitFieldsView, bool isBitType, bool? fieldIsBitField, bool? fieldIsBitFlag)
+    [InlineData(typeof(int), null, false, false, null, null)]
+    [InlineData(typeof(TcpControlWord), null, true, true, null, null)]
+    [InlineData(typeof(TcpControlWord), "DataOffset", true, true, true, false)]
+    [InlineData(typeof(TcpControlWordView), null, true, true, null, null)]
+    [InlineData(typeof(TcpControlWordView), "DataOffset", true, true, true, false)]
+    public void Extension_MetaData_Works_For_Types(Type bitType, string? propName, bool hasBitFields, bool isBitType, bool? fieldIsBitField, bool? fieldIsBitFlag)
     {
         Assert.Equal(hasBitFields, bitType.IsBitFieldsType());
-        Assert.Equal(hasBitFieldsView, bitType.IsBitFieldsViewType());
         Assert.Equal(isBitType, bitType.IsBitsType());
         Assert.Equal(hasBitFields, bitType.GetAttribute<BitFieldsAttribute>() != null);
-        Assert.Equal(hasBitFieldsView, bitType.GetAttribute<BitFieldsViewAttribute>() != null);
         if (fieldIsBitField != null && fieldIsBitFlag != null) 
         {
             if (propName == null) propName = "";
@@ -164,10 +160,10 @@ public partial class ExtensionsTests
         Assert.NotNull(typeof(TcpControlWord).GetAttribute<BitFieldsAttribute>());
         Assert.True(typeof(TcpControlWord).IsBitsType());
 
-        Assert.NotNull(typeof(TcpControlWordView).GetAttribute<BitFieldsViewAttribute>());
+        Assert.NotNull(typeof(TcpControlWordView).GetAttribute<BitFieldsAttribute>());
         Assert.True(typeof(TcpControlWordView).IsBitsType());
 
-        Assert.True(typeof(TcpControlWordView).IsBitFieldsViewType());
+        Assert.True(typeof(TcpControlWordView).IsBitFieldsType());
 
         Assert.True(typeof(TcpControlWord).IsBitField("DataOffset"));
         Assert.True(typeof(TcpControlWordView).IsBitField("DataOffset"));
@@ -198,7 +194,7 @@ public partial class ExtensionsTests
     }
 
     [Fact]
-    public void GetBitFieldInfoFromAttributes_BitFieldsViewStruct_ReturnsCorrectCount()
+    public void GetBitFieldInfoFromAttributes_RecordStructView_ReturnsCorrectCount()
     {
         var fields = typeof(TcpControlWordView).GetBitFieldInfoFromAttributes();
         Assert.Equal(4, fields.Length);
@@ -337,7 +333,7 @@ public partial class ExtensionsTests
     }
 
     [Fact]
-    public void GetFieldInfo_BitFieldsViewStruct_ReturnsSuccess()
+    public void GetFieldInfo_RecordStructView_ReturnsSuccess()
     {
         var result = typeof(TcpControlWordView).GetFieldInfo();
         Assert.True(result.IsSuccess);

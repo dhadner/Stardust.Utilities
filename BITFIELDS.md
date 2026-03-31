@@ -173,8 +173,8 @@ determines the codegen path; the field attributes are the same either way:
 | `[BitField(End = N, Width = W)]` | End + Width, no Start | Start derived as End - Width + 1; equivalent to `[BitField(End - Width + 1, End = N)]` |
 | `[BitFlag(bit)]` | 0-based bit position, optional `MustBe` | Single-bit boolean flag |
 
-> **Deprecation notice:** The separate `[BitFieldsView]` attribute is deprecated. Use `[BitFields]`
-> on a `partial record struct` instead. `[BitFieldsViewAttribute]` will be removed in a future release.
+> **Note:** The `[BitFieldsView]` attribute has been removed. Use `[BitFields]`
+> on a `partial record struct` instead -- the generator detects the `record` keyword and produces identical view code.
 
 **BitField syntax examples:**
 - `[BitField(0, Width = 3)]` -- 3-bit field at bits 0, 1, 2
