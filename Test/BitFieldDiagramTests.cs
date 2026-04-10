@@ -402,14 +402,14 @@ public class BitFieldDiagramTests
     {
         Assert.Equal("8-bit test status register", DiagramTestRegister.StructDescription);
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], includeDescriptions: false);
-        diagram.Render().Match(
-            onSuccess: lines => { 
+        diagram.Render().MapOrElse(
+            onOk: lines => { 
                 Assert.True(lines.Count == 4);
                 Assert.Contains(lines, l => l.Contains("Ready"));
                 Assert.DoesNotContain(lines, l => l.Contains("Mode: Operating mode"));
                 return Ok(lines);
             },
-            onFailure: err => {
+            onErr: err => {
                 Assert.Fail();
                 return Err(err);
             }
@@ -421,15 +421,15 @@ public class BitFieldDiagramTests
     {
         Assert.Equal("8-bit test status register", DiagramTestRegister.StructDescription);
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)]);
-        diagram.Render().Match(
-            onSuccess: lines => {
+        diagram.Render().MapOrElse(
+            onOk: lines => {
                 Assert.True(lines.Count > 6);
                 Assert.Contains(lines[0], "DiagramTestRegister");
                 Assert.Contains(lines[1], "8-bit test status register");
                 Assert.Contains(lines, l => l.Contains("Mode: Operating mode"));
                 return Ok(lines);
             },
-            onFailure: err => {
+            onErr: err => {
                 Assert.Fail();
                 return Err(err);
             }
@@ -441,15 +441,15 @@ public class BitFieldDiagramTests
     {
         Assert.Equal("8-bit test status register", DiagramTestRegister.StructDescription);
         var diagram = new BitFieldDiagram(typeof(DiagramTestRegister));
-        diagram.Render().Match(
-            onSuccess: lines => {
+        diagram.Render().MapOrElse(
+            onOk: lines => {
                 Assert.True(lines.Count > 6);
                 Assert.Contains(lines[0], "DiagramTestRegister");
                 Assert.Contains(lines[1], "8-bit test status register");
                 Assert.Contains(lines, l => l.Contains("Mode: Operating mode"));
                 return Ok(lines);
             },
-            onFailure: err => {
+            onErr: err => {
                 Assert.Fail();
                 return Err(err);
             }
@@ -461,13 +461,13 @@ public class BitFieldDiagramTests
     {
         var diagram = new BitFieldDiagram();
         diagram.AddStruct(typeof(DiagramTestRegister));
-        diagram.Render().Match(
-            onSuccess: lines => {
+        diagram.Render().MapOrElse(
+            onOk: lines => {
                 Assert.True(lines.Count > 6);
                 Assert.Contains(lines, l => l.Contains("Ready"));
                 return Ok(lines);
             },
-            onFailure: err => {
+            onErr: err => {
                 Assert.Fail();
                 return Err(err);
             }
@@ -563,7 +563,7 @@ public class BitFieldDiagramTests
     public void GetFields_ValidType_ReturnsFields()
     {
         var result = typeof(DiagramTestRegister).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.True(result.Value.Length > 0);
         Assert.Contains(result.Value, f => f.Name == "Ready");
     }
@@ -572,7 +572,7 @@ public class BitFieldDiagramTests
     public void GetFields_InvalidType_ReturnsError()
     {
         var result = typeof(int).GetFieldInfo();
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsErr);
         Assert.Contains("Int32", result.Error);
     }
 
@@ -728,7 +728,7 @@ public class BitFieldDiagramTests
     public void GetFields_ReturnsStructDescription()
     {
         var result = typeof(DiagramTestRegister).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.All(result.Value, f => Assert.Equal("8-bit test status register", f.StructDescription));
     }
 
@@ -736,7 +736,7 @@ public class BitFieldDiagramTests
     public void GetFields_NoDescription_StructDescriptionIsNull()
     {
         var result = typeof(DiagramWideRegister).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.All(result.Value, f => Assert.Null(f.StructDescription));
     }
 
@@ -744,7 +744,7 @@ public class BitFieldDiagramTests
     public void GetFields_View_ReturnsStructDescription()
     {
         var result = typeof(DiagramMsbView).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.All(result.Value, f => Assert.Equal("MSB-first test view", f.StructDescription));
     }
 
@@ -802,7 +802,7 @@ public class BitFieldDiagramTests
     public void GetFields_ReturnsCorrectFieldCount()
     {
         var result = typeof(DiagramTestRegister).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         // 3 flags + 2 fields = 5
         Assert.Equal(5, result.Value.Length);
     }
@@ -811,7 +811,7 @@ public class BitFieldDiagramTests
     public void GetFields_ReturnsFieldDescriptions()
     {
         var result = typeof(DiagramTestRegister).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         var ready = result.Value.First(f => f.Name == "Ready");
         Assert.Equal("Ready flag", ready.GetDescription());
     }
@@ -820,7 +820,7 @@ public class BitFieldDiagramTests
     public void GetFields_View_ReturnsCorrectFields()
     {
         var result = typeof(DiagramMsbView).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Contains(result.Value, f => f.Name == "Version");
         Assert.Contains(result.Value, f => f.Name == "Ihl");
         Assert.Contains(result.Value, f => f.Name == "TotalLength");
@@ -840,14 +840,14 @@ public class BitFieldDiagramTests
     public void DiagramInstance_WithDescription_NotDuplicated()
     {
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "Custom Title");
-        diagram.Render().Match(
-            onSuccess: lines =>
+        diagram.Render().MapOrElse(
+            onOk: lines =>
             {
                 int count = lines.Count(l => l.Contains("Custom Title"));
                 Assert.Equal(1, count);
                 return Ok(lines);
             },
-            onFailure: err =>
+            onErr: err =>
             {
                 Assert.Fail(err);
                 return Err(err);
@@ -858,14 +858,14 @@ public class BitFieldDiagramTests
     public void DiagramInstance_WithDescription_TitleAndStructDescriptionBothPresent()
     {
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "Custom Title");
-        diagram.Render().Match(
-            onSuccess: lines =>
+        diagram.Render().MapOrElse(
+            onOk: lines =>
             {
                 Assert.Contains(lines, l => l.Contains("Custom Title"));
                 Assert.Contains(lines, l => l.Contains("8-bit test status register"));
                 return Ok(lines);
             },
-            onFailure: err =>
+            onErr: err =>
             {
                 Assert.Fail(err);
                 return Err(err);
@@ -890,14 +890,14 @@ public class BitFieldDiagramTests
         // Reproduces the DemoWeb "TCP Header" scenario: BitFieldDiagram.Description
         // matches the struct's own StructDescription via [BitFields(Description = ...)].
         var diagram = new BitFieldDiagram([typeof(DiagramTestRegister)], description: "8-bit test status register");
-        diagram.Render().Match(
-            onSuccess: lines =>
+        diagram.Render().MapOrElse(
+            onOk: lines =>
             {
                 int count = lines.Count(l => l.Contains("8-bit test status register"));
                 Assert.Equal(1, count);
                 return Ok(lines);
             },
-            onFailure: err =>
+            onErr: err =>
             {
                 Assert.Fail(err);
                 return Err(err);
@@ -1084,7 +1084,7 @@ public class BitFieldDiagramTests
     {
         var diagram = new BitFieldDiagram();
         var result = diagram.AddStructs([typeof(DiagramTestRegister), typeof(DiagramWideRegister)]);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(2, diagram.Structs.Count);
     }
 
@@ -1093,7 +1093,7 @@ public class BitFieldDiagramTests
     {
         var diagram = new BitFieldDiagram();
         var result = diagram.AddStructs(Array.Empty<Type>());
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Empty(diagram.Structs);
     }
 
@@ -1102,7 +1102,7 @@ public class BitFieldDiagramTests
     {
         var diagram = new BitFieldDiagram();
         var result = diagram.AddStructs((List<Type>)null!);
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsErr);
         Assert.Contains("null", result.Error);
     }
 
@@ -1111,7 +1111,7 @@ public class BitFieldDiagramTests
     {
         var diagram = new BitFieldDiagram();
         var result = diagram.AddStructs([typeof(DiagramTestRegister), typeof(string), typeof(DiagramWideRegister)]);
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsErr);
         Assert.Contains("String", result.Error);
         // Only the first valid type was added before the failure
         Assert.Single(diagram.Structs);
@@ -1124,7 +1124,7 @@ public class BitFieldDiagramTests
         var diagram = new BitFieldDiagram();
         diagram.AddStructs([typeof(DiagramTestRegister), typeof(DiagramWideRegister)]);
         var result = diagram.RenderToString();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Contains("Ready", result.Value);
         Assert.Contains("LowHalf", result.Value);
     }
@@ -1135,7 +1135,7 @@ public class BitFieldDiagramTests
         var diagram = new BitFieldDiagram(typeof(DiagramTestRegister));
         Assert.Single(diagram.Structs);
         var result = diagram.AddStructs([typeof(DiagramWideRegister), typeof(DiagramGappyRegister)]);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(3, diagram.Structs.Count);
     }
 
@@ -1157,7 +1157,7 @@ public class BitFieldDiagramTests
     {
         var diagram = new BitFieldDiagram();
         var result = diagram.AddStructs([typeof(DiagramMsbView)]);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Single(diagram.Structs);
     }
 
@@ -1167,7 +1167,7 @@ public class BitFieldDiagramTests
         var diagram = new BitFieldDiagram();
         ReadOnlySpan<Type> readOnlySpan = [typeof(DiagramTestRegister), typeof(DiagramMsbView)];
         var result = diagram.AddStructs(readOnlySpan);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(2, diagram.Structs.Count);
     }
 
@@ -1177,7 +1177,7 @@ public class BitFieldDiagramTests
         var diagram = new BitFieldDiagram();
         var list = new List<Type>([typeof(DiagramTestRegister), typeof(DiagramMsbView)]);
         var result = diagram.AddStructs(list);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(2, diagram.Structs.Count);
     }
 

@@ -163,9 +163,9 @@ namespace Stardust.Utilities
         {
             if (fieldName != null)
             {
-                return type.GetStartAndEndBits(fieldName, inherit).Match(
-                    onSuccess: bits => Result<int, string>.Ok(bits.end - bits.start + 1),
-                    onFailure: err => Result<int, string>.Err(err)
+                return type.GetStartAndEndBits(fieldName, inherit).MapOrElse(
+                    onOk: bits => Result<int, string>.Ok(bits.end - bits.start + 1),
+                    onErr: err => Result<int, string>.Err(err)
                 );
             }
             // Bits based on size of struct
@@ -173,8 +173,8 @@ namespace Stardust.Utilities
             {
                 return Result<int, string>.Err("Type is not a [BitFields] struct");
             }
-            var structTotalBitsRes = type.GetBitTypeAttribute(inherit: inherit).Match(
-                onSuccess: attr =>
+            var structTotalBitsRes = type.GetBitTypeAttribute(inherit: inherit).MapOrElse(
+                onOk: attr =>
                 {
                     if (attr is BitFieldsAttribute fieldsAttr)
                     {
@@ -185,7 +185,7 @@ namespace Stardust.Utilities
                         return Result<int, string>.Err("Type does not have BitFields attribute");
                     }
                 },
-                onFailure: err => Result<int, string>.Err(err)
+                onErr: err => Result<int, string>.Err(err)
             );
             return structTotalBitsRes;
         }
@@ -199,9 +199,9 @@ namespace Stardust.Utilities
         /// <returns>Result with start bit number if success or error message if failure.</returns>
         public static Result<int,string> GetStartBit(this Type type, string fieldName, bool inherit = true)
         {
-            return type.GetStartAndEndBits(fieldName, inherit).Match(
-                onSuccess: bits => Result<int, string>.Ok(bits.start),
-                onFailure: err => Result<int, string>.Err(err)
+            return type.GetStartAndEndBits(fieldName, inherit).MapOrElse(
+                onOk: bits => Result<int, string>.Ok(bits.start),
+                onErr: err => Result<int, string>.Err(err)
             );
         }
 
@@ -214,9 +214,9 @@ namespace Stardust.Utilities
         /// <returns>Result with end bit number if success or error message if failure.</returns>
         public static Result<int,string> GetEndBit(this Type type, string fieldName, bool inherit = true)
         {
-            return type.GetStartAndEndBits(fieldName, inherit).Match(
-                onSuccess: bits => Result<int, string>.Ok(bits.end),
-                onFailure: err => Result<int, string>.Err(err)
+            return type.GetStartAndEndBits(fieldName, inherit).MapOrElse(
+                onOk: bits => Result<int, string>.Ok(bits.end),
+                onErr: err => Result<int, string>.Err(err)
             );
         }
 

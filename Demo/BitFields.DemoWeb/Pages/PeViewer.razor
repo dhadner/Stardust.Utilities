@@ -95,8 +95,7 @@
     {
         // Parse PE headers using Result pipeline -- demonstrates
         // Result<T, TError>.Then() chaining for multi-step validation
-        PeParser.Parse(_bytes)
-            .OnSuccess(pe =>
+        PeParser.Parse(_bytes).Inspect(pe =>
             {
                 _displayBytes = pe.TotalDisplayBytes;
                 int ci = 0;
@@ -126,7 +125,7 @@
                     }
                 }
             })
-            .OnFailure(error => _error = error);
+            .InspectErr(error => _error = error);
     }
 
     private void AddField(ref int ci, string name, int start, int end, string value, BitOrder order, string? desc)

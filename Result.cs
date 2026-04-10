@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Stardust.Utilities
 {
     /// <summary>
@@ -36,15 +38,51 @@ namespace Stardust.Utilities
             _isSuccess = false;
         }
 
-        /// <summary>
-        /// True if the operation succeeded.
-        /// </summary>
-        public bool IsSuccess => _isSuccess;
+        // ── Querying the variant ───────────────────────────────────
 
         /// <summary>
-        /// True if the operation failed.
+        /// True if the result is Ok (success).
         /// </summary>
+        public bool IsOk
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isSuccess;
+        }
+
+        /// <summary>
+        /// True if the result is Err (failure).
+        /// </summary>
+        public bool IsErr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => !_isSuccess;
+        }
+
+        /// <inheritdoc cref="IsOk"/>
+        [Obsolete("Use IsOk instead.")]
+        public bool IsSuccess => _isSuccess;
+
+        /// <inheritdoc cref="IsErr"/>
+        [Obsolete("Use IsErr instead.")]
         public bool IsFailure => !_isSuccess;
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the result is Ok and the contained value
+        /// satisfies the given <paramref name="predicate"/>.
+        /// </summary>
+        /// <param name="predicate">The predicate to test the contained value.</param>
+        /// <returns><see langword="true"/> if Ok and predicate returns true; otherwise false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsOkAnd(Func<T, bool> predicate) => _isSuccess && predicate(_value!);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the result is Err and the contained error
+        /// satisfies the given <paramref name="predicate"/>.
+        /// </summary>
+        /// <param name="predicate">The predicate to test the contained error.</param>
+        /// <returns><see langword="true"/> if Err and predicate returns true; otherwise false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsErrAnd(Func<TError, bool> predicate) => !_isSuccess && predicate(_error!);
 
         /// <summary>
         /// The success value. Throws if IsFailure.
@@ -89,7 +127,7 @@ namespace Stardust.Utilities
         /// <param name="result">Source Result&lt;TError&gt; to convert.</param>
         /// <returns>Converted Result&lt;T, TError&gt;.</returns>
         public static implicit operator Result<T, TError>(Result<TError> result) =>
-            result.IsSuccess ? throw new InvalidCastException("No value provided") : Err(result.Error);
+            result.IsOk ? throw new InvalidCastException("No value provided") : Err(result.Error);
 
 
         /// <summary>
@@ -129,126 +167,254 @@ namespace Stardust.Utilities
             return !_isSuccess;
         }
 
+        // ── Extracting contained values ───────────────────────────
+
         /// <summary>
-        /// Returns the value if successful, or the specified default if failed.
+        /// Unwraps the value, throwing if Err. Alias for <see cref="Value"/>.
+        /// </summary>
+        /// <returns>The success value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the result is Err.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Unwrap() => Value;
+
+        /// <summary>
+        /// Unwraps the value, or throws with a custom message if Err.
+        /// </summary>
+        /// <param name="message">Error message for the exception.</param>
+        /// <returns>The success value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the result is Err.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Expect(string message) => _isSuccess
+            ? _value!
+            : throw new InvalidOperationException(message);
+
+        /// <summary>
+        /// Unwraps the error, throwing if Ok. Alias for <see cref="Error"/>.
+        /// </summary>
+        /// <returns>The error value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the result is Ok.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TError UnwrapErr() => Error;
+
+        /// <summary>
+        /// Unwraps the error, or throws with a custom message if Ok.
+        /// </summary>
+        /// <param name="message">Error message for the exception.</param>
+        /// <returns>The error value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the result is Ok.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TError ExpectErr(string message) => !_isSuccess
+            ? _error!
+            : throw new InvalidOperationException(message);
+
+        /// <inheritdoc cref="UnwrapErr"/>
+        [Obsolete("Use UnwrapErr instead.")]
+        public TError UnwrapError() => UnwrapErr();
+
+        /// <summary>
+        /// Returns the success value or <paramref name="defaultValue"/> if Err.
         /// </summary>
         /// <param name="defaultValue">The default value to return on failure.</param>
         /// <returns>The success value or the provided default.</returns>
-        public T ValueOr(T defaultValue) => _isSuccess ? _value! : defaultValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T UnwrapOr(T defaultValue) => _isSuccess ? _value! : defaultValue;
 
         /// <summary>
-        /// Returns the value if successful, or invokes the factory to get a default.
+        /// Returns the success value or invokes <paramref name="defaultFactory"/> if Err.
         /// </summary>
-        /// <param name="defaultFactory">Factory invoked when the result is a failure.</param>
+        /// <param name="defaultFactory">Factory invoked with the error when the result is Err.</param>
         /// <returns>The success value or the factory result.</returns>
-        public T ValueOr(Func<TError, T> defaultFactory) =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T UnwrapOrElse(Func<TError, T> defaultFactory) =>
             _isSuccess ? _value! : defaultFactory(_error!);
 
         /// <summary>
-        /// Chains a transform that cannot fail.
-        /// If successful, applies the transform to the value; otherwise propagates the error.
+        /// Returns the success value or <c>default(T)</c> if Err.
         /// </summary>
-        /// <param name="transform">The transform to apply on success.</param>
-        /// <returns>The transformed result or the original error.</returns>
-        /// <example>
-        /// result.Then(x => x.ToString())  // Transform int to string
-        /// </example>
-        public Result<TNew, TError> Then<TNew>(Func<T, TNew> transform) =>
+        /// <returns>The success value or the default for <typeparamref name="T"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T? UnwrapOrDefault() => _isSuccess ? _value : default;
+
+        /// <inheritdoc cref="UnwrapOr"/>
+        [Obsolete("Use UnwrapOr instead.")]
+        public T ValueOr(T defaultValue) => UnwrapOr(defaultValue);
+
+        /// <inheritdoc cref="UnwrapOrElse"/>
+        [Obsolete("Use UnwrapOrElse instead.")]
+        public T ValueOr(Func<TError, T> defaultFactory) => UnwrapOrElse(defaultFactory);
+
+        // ── Transforming contained values ─────────────────────────
+
+        /// <summary>
+        /// Transforms the Ok value with <paramref name="transform"/>.
+        /// Err values are passed through unchanged.
+        /// </summary>
+        /// <param name="transform">The function to apply to the contained value.</param>
+        /// <returns>A new Result containing the transformed value, or the original error.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TNew, TError> Map<TNew>(Func<T, TNew> transform) =>
             _isSuccess ? Result<TNew, TError>.Ok(transform(_value!)) : Result<TNew, TError>.Err(_error!);
 
         /// <summary>
-        /// Chains an operation that can fail.
-        /// If successful, executes the next operation; otherwise propagates the error.
-        /// </summary>
-        /// <param name="nextStep">The operation to execute on success.</param>
-        /// <returns>The next result or the original error.</returns>
-        /// <example>
-        /// result.Then(x => Validate(x))  // Validate returns Result
-        /// </example>
-        public Result<TNew, TError> Then<TNew>(Func<T, Result<TNew, TError>> nextStep) =>
-            _isSuccess ? nextStep(_value!) : Result<TNew, TError>.Err(_error!);
-
-        /// <summary>
-        /// Chains an operation that can fail.
-        /// If successful, returns the next result; otherwise propagates the error.
-        /// Warning: The nextResult argument is evaluated eagerly!
-        /// </summary>
-        /// <param name="nextResult">The next result to return on success.</param>
-        /// <returns>The next result or the original error.</returns>
-        public Result<TNew, TError> Then<TNew>(Result<TNew, TError> nextResult) =>
-            _isSuccess ? nextResult : Result<TNew, TError>.Err(_error!);
-
-        /// <summary>
-        /// Chains an operation that can fail.
-        /// If successful, returns the next result; otherwise propagates the error.
-        /// Warning: The nextResult argument is evaluated eagerly!
-        /// </summary>
-        /// <param name="nextResult">The next result to return on success.</param>
-        /// <returns>The next result or the original error.</returns>
-        public Result<TError> Then(Result<TError> nextResult) =>
-            _isSuccess ? nextResult : Result<TError>.Err(_error!);
-
-        /// <summary>
-        /// Transforms the error if failed, preserving success. This is useful when
-        ///  - Converting between error types at layer boundaries
-        ///  - Adding context to errors as they bubble up
-        ///  - Translating technical errors to user-friendly messages
+        /// Transforms the Err value with <paramref name="transform"/>.
+        /// Ok values are passed through unchanged.
         /// </summary>
         /// <param name="transform">The transform applied to the error.</param>
         /// <returns>A result with the transformed error.</returns>
-        public Result<T, TNewError> MapError<TNewError>(Func<TError, TNewError> transform) =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<T, TNewError> MapErr<TNewError>(Func<TError, TNewError> transform) =>
             _isSuccess ? Result<T, TNewError>.Ok(_value!) : Result<T, TNewError>.Err(transform(_error!));
 
         /// <summary>
-        /// Executes an action if successful, returns self for chaining.
+        /// Transforms the Ok value with <paramref name="onOk"/>, or returns
+        /// <paramref name="defaultValue"/> if Err. The default is evaluated eagerly;
+        /// use <see cref="MapOrElse{TResult}"/> for lazy evaluation.
         /// </summary>
-        /// <param name="action">The action to execute on success.</param>
-        /// <returns>The current result.</returns>
-        public Result<T, TError> OnSuccess(Action<T> action)
+        /// <param name="onOk">Function invoked with the value when Ok.</param>
+        /// <param name="defaultValue">Value returned when Err.</param>
+        /// <returns>The transformed value or the default.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TResult MapOr<TResult>(Func<T, TResult> onOk, TResult defaultValue) =>
+            _isSuccess ? onOk(_value!) : defaultValue;
+
+        /// <summary>
+        /// Transforms the Ok value with <paramref name="onOk"/>, or invokes
+        /// <paramref name="onErr"/> with the error if Err.
+        /// </summary>
+        /// <param name="onOk">Function invoked with the value when Ok.</param>
+        /// <param name="onErr">Function invoked with the error when Err.</param>
+        /// <returns>The result of whichever branch was taken.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TResult MapOrElse<TResult>(Func<T, TResult> onOk, Func<TError, TResult> onErr) =>
+            _isSuccess ? onOk(_value!) : onErr(_error!);
+
+        /// <inheritdoc cref="Map{TNew}"/>
+        [Obsolete("Use Map instead.")]
+        public Result<TNew, TError> Then<TNew>(Func<T, TNew> transform) => Map(transform);
+
+        /// <inheritdoc cref="MapErr{TNewError}"/>
+        [Obsolete("Use MapErr instead.")]
+        public Result<T, TNewError> MapError<TNewError>(Func<TError, TNewError> transform) => MapErr(transform);
+
+        /// <inheritdoc cref="MapOrElse{TResult}"/>
+        [Obsolete("Use MapOrElse instead.")]
+        public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<TError, TResult> onFailure) =>
+            MapOrElse(onSuccess, onFailure);
+
+        // ── Side-effects ─────────────────────────────────────────
+
+        /// <summary>
+        /// Executes <paramref name="action"/> if Ok. Returns self for chaining.
+        /// </summary>
+        /// <param name="action">The action to execute on the contained value.</param>
+        /// <returns>This result unchanged.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<T, TError> Inspect(Action<T> action)
         {
             if (_isSuccess) action(_value!);
             return this;
         }
 
         /// <summary>
-        /// Executes an action if failed, returns self for chaining.
+        /// Executes <paramref name="action"/> if Err. Returns self for chaining.
         /// </summary>
-        /// <param name="action">The action to execute on failure.</param>
-        /// <returns>The current result.</returns>
-        public Result<T, TError> OnFailure(Action<TError> action)
+        /// <param name="action">The action to execute on the contained error.</param>
+        /// <returns>This result unchanged.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<T, TError> InspectErr(Action<TError> action)
         {
             if (!_isSuccess) action(_error!);
             return this;
         }
 
+        /// <inheritdoc cref="Inspect"/>
+        [Obsolete("Use Inspect instead.")]
+        public Result<T, TError> OnSuccess(Action<T> action) => Inspect(action);
+
+        /// <inheritdoc cref="InspectErr"/>
+        [Obsolete("Use InspectErr instead.")]
+        public Result<T, TError> OnFailure(Action<TError> action) => InspectErr(action);
+
+        // ── Boolean operators ─────────────────────────────────────
+
         /// <summary>
-        /// Pattern matches on success or failure.
+        /// Returns <paramref name="other"/> if this result is Ok; otherwise returns the Err value.
+        /// The <paramref name="other"/> argument is evaluated eagerly;
+        /// use <see cref="AndThen{TNew}"/> for lazy evaluation.
         /// </summary>
-        /// <param name="onSuccess">The function to invoke on success.</param>
-        /// <param name="onFailure">The function to invoke on failure.</param>
-        /// <returns>The result of the invoked function.</returns>
-        public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<TError, TResult> onFailure) =>
-            _isSuccess ? onSuccess(_value!) : onFailure(_error!);
+        /// <param name="other">The result to return when this is Ok.</param>
+        /// <returns><paramref name="other"/> if Ok; otherwise Err.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TNew, TError> And<TNew>(Result<TNew, TError> other) =>
+            _isSuccess ? other : Result<TNew, TError>.Err(_error!);
+
+        /// <summary>
+        /// Returns <paramref name="other"/> (void result) if this result is Ok;
+        /// otherwise returns the Err value.
+        /// </summary>
+        /// <param name="other">The void result to return when this is Ok.</param>
+        /// <returns><paramref name="other"/> if Ok; otherwise Err.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TError> And(Result<TError> other) =>
+            _isSuccess ? other : Result<TError>.Err(_error!);
+
+        /// <summary>
+        /// Flat-maps: if Ok, calls <paramref name="op"/> with the value; otherwise
+        /// returns the Err value.
+        /// </summary>
+        /// <param name="op">The function to apply to the contained value.</param>
+        /// <returns>The resulting Result, or the original Err.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TNew, TError> AndThen<TNew>(Func<T, Result<TNew, TError>> op) =>
+            _isSuccess ? op(_value!) : Result<TNew, TError>.Err(_error!);
+
+        /// <summary>
+        /// Returns this result if Ok; otherwise returns <paramref name="other"/>.
+        /// The <paramref name="other"/> argument is evaluated eagerly;
+        /// use <see cref="OrElse{TNewError}"/> for lazy evaluation.
+        /// </summary>
+        /// <param name="other">The fallback result.</param>
+        /// <returns>This result if Ok; otherwise <paramref name="other"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<T, TNewError> Or<TNewError>(Result<T, TNewError> other) =>
+            _isSuccess ? Result<T, TNewError>.Ok(_value!) : other;
+
+        /// <summary>
+        /// Returns this result if Ok; otherwise calls <paramref name="op"/> with the error.
+        /// </summary>
+        /// <param name="op">The function to apply to the error.</param>
+        /// <returns>This result if Ok; otherwise the function result.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<T, TNewError> OrElse<TNewError>(Func<TError, Result<T, TNewError>> op) =>
+            _isSuccess ? Result<T, TNewError>.Ok(_value!) : op(_error!);
+
+        /// <inheritdoc cref="And{TNew}(Result{TNew, TError})"/>
+        [Obsolete("Use And instead.")]
+        public Result<TNew, TError> Then<TNew>(Result<TNew, TError> nextResult) => And(nextResult);
+
+        /// <inheritdoc cref="And(Result{TError})"/>
+        [Obsolete("Use And instead.")]
+        public Result<TError> Then(Result<TError> nextResult) => And(nextResult);
+
+        /// <inheritdoc cref="AndThen{TNew}"/>
+        [Obsolete("Use AndThen instead.")]
+        public Result<TNew, TError> Then<TNew>(Func<T, Result<TNew, TError>> nextStep) => AndThen(nextStep);
+
+        // ── Interop with Nullable ─────────────────────────────────
 
         /// <summary>
         /// Converts to a nullable, returning null on failure.
         /// </summary>
         /// <returns>The success value or <see langword="null"/> on failure.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T? ToNullable() => _isSuccess ? _value : default;
 
-        /// <summary>
-        /// Unwraps the value, throwing if failed. Alias for Value property.
-        /// </summary>
-        /// <returns>The success value.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when the result is a failure.</exception>
-        public T Unwrap() => Value;
+        // ── ToString ─────────────────────────────────────────────
 
         /// <summary>
-        /// Unwraps the error, throwing if successful. Alias for Error property.
+        /// Returns "Ok(value)" or "Err(error)".
         /// </summary>
-        /// <returns>The error value.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when the result is a success.</exception>
-        public TError UnwrapError() => Error;
+        public override string ToString() => _isSuccess ? $"Ok({_value})" : $"ErrToOption({_error})";
     }
 
     /// <summary>
@@ -267,14 +433,32 @@ namespace Stardust.Utilities
             _error = error;
         }
 
-        /// <summary>
-        /// True if the operation succeeded.
-        /// </summary>
-        public bool IsSuccess => _isSuccess;
+        // ── Querying the variant ───────────────────────────────────
 
         /// <summary>
-        /// True if the operation failed.
+        /// True if the result is Ok (success).
         /// </summary>
+        public bool IsOk
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _isSuccess;
+        }
+
+        /// <summary>
+        /// True if the result is Err (failure).
+        /// </summary>
+        public bool IsErr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => !_isSuccess;
+        }
+
+        /// <inheritdoc cref="IsOk"/>
+        [Obsolete("Use IsOk instead.")]
+        public bool IsSuccess => _isSuccess;
+
+        /// <inheritdoc cref="IsErr"/>
+        [Obsolete("Use IsErr instead.")]
         public bool IsFailure => !_isSuccess;
 
         /// <summary>
@@ -344,66 +528,119 @@ namespace Stardust.Utilities
             return !_isSuccess;
         }
 
-        /// <summary>
-        /// Chains an operation that can fail.
-        /// If successful, executes the next operation; otherwise propagates the error.
-        /// </summary>
-        /// <param name="nextStep">The operation to execute on success.</param>
-        /// <returns>The next result or the original error.</returns>
-        public Result<TError> Then(Func<Result<TError>> nextStep) =>
-            _isSuccess ? nextStep() : this;
+        // ── Transforms ─────────────────────────────────────────────────
 
         /// <summary>
-        /// Chains an operation that can fail.
-        /// If successful, returns the next result; otherwise propagates the error.
-        /// Warning: The nextResult argument is evaluated eagerly!
-        /// </summary>
-        /// <param name="nextResult">The next result to return on success.</param>
-        /// <returns>The next result or the original error.</returns>
-        public Result<TError> Then(Result<TError> nextResult) =>
-            _isSuccess ? nextResult : this;
-
-        /// <summary>
-        /// Transforms the error if failed, preserving success. This is useful when
-        ///  - Converting between error types at layer boundaries
-        ///  - Adding context to errors as they bubble up
-        ///  - Translating technical errors to user-friendly messages
+        /// Transforms the Err value with <paramref name="transform"/>.
+        /// Ok is passed through unchanged.
         /// </summary>
         /// <param name="transform">The transform applied to the error.</param>
         /// <returns>A result with the transformed error.</returns>
-        public Result<TNewError> MapError<TNewError>(Func<TError, TNewError> transform) =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TNewError> MapErr<TNewError>(Func<TError, TNewError> transform) =>
             _isSuccess ? Result<TNewError>.Ok() : Result<TNewError>.Err(transform(_error!));
 
         /// <summary>
-        /// Executes an action if successful, returns self for chaining.
+        /// Transforms the Ok value with <paramref name="onOk"/>, or invokes
+        /// <paramref name="onErr"/> with the error if Err.
+        /// </summary>
+        /// <param name="onOk">Function invoked when Ok.</param>
+        /// <param name="onErr">Function invoked with the error when Err.</param>
+        /// <returns>The result of whichever branch was taken.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TResult MapOrElse<TResult>(Func<TResult> onOk, Func<TError, TResult> onErr) =>
+            _isSuccess ? onOk() : onErr(_error!);
+
+        /// <inheritdoc cref="MapErr{TNewError}"/>
+        [Obsolete("Use MapErr instead.")]
+        public Result<TNewError> MapError<TNewError>(Func<TError, TNewError> transform) => MapErr(transform);
+
+        /// <inheritdoc cref="MapOrElse{TResult}"/>
+        [Obsolete("Use MapOrElse instead.")]
+        public TResult Match<TResult>(Func<TResult> onSuccess, Func<TError, TResult> onFailure) =>
+            MapOrElse(onSuccess, onFailure);
+
+        // ── Side-effects ─────────────────────────────────────────────
+
+        /// <summary>
+        /// Executes <paramref name="action"/> if Ok. Returns self for chaining.
         /// </summary>
         /// <param name="action">The action to execute on success.</param>
-        /// <returns>The current result.</returns>
-        public Result<TError> OnSuccess(Action action)
+        /// <returns>This result unchanged.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TError> Inspect(Action action)
         {
             if (_isSuccess) action();
             return this;
         }
 
         /// <summary>
-        /// Executes an action if failed, returns self for chaining.
+        /// Executes <paramref name="action"/> if Err. Returns self for chaining.
         /// </summary>
-        /// <param name="action">The action to execute on failure.</param>
-        /// <returns>The current result.</returns>
-        public Result<TError> OnFailure(Action<TError> action)
+        /// <param name="action">The action to execute on the contained error.</param>
+        /// <returns>This result unchanged.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TError> InspectErr(Action<TError> action)
         {
             if (!_isSuccess) action(_error!);
             return this;
         }
 
+        /// <inheritdoc cref="Inspect"/>
+        [Obsolete("Use Inspect instead.")]
+        public Result<TError> OnSuccess(Action action) => Inspect(action);
+
+        /// <inheritdoc cref="InspectErr"/>
+        [Obsolete("Use InspectErr instead.")]
+        public Result<TError> OnFailure(Action<TError> action) => InspectErr(action);
+
+        // ── Boolean operators ─────────────────────────────────────────
+
         /// <summary>
-        /// Pattern matches on success or failure.
+        /// Returns <paramref name="other"/> if this result is Ok; otherwise returns the Err value.
+        /// The <paramref name="other"/> argument is evaluated eagerly;
+        /// use <see cref="AndThen"/> for lazy evaluation.
         /// </summary>
-        /// <param name="onSuccess">The function to invoke on success.</param>
-        /// <param name="onFailure">The function to invoke on failure.</param>
-        /// <returns>The result of the invoked function.</returns>
-        public TResult Match<TResult>(Func<TResult> onSuccess, Func<TError, TResult> onFailure) =>
-            _isSuccess ? onSuccess() : onFailure(_error!);
+        /// <param name="other">The result to return when this is Ok.</param>
+        /// <returns><paramref name="other"/> if Ok; otherwise Err.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TError> And(Result<TError> other) =>
+            _isSuccess ? other : this;
+
+        /// <summary>
+        /// Flat-maps: if Ok, calls <paramref name="op"/>; otherwise returns the Err value.
+        /// </summary>
+        /// <param name="op">The function to invoke on success.</param>
+        /// <returns>The resulting Result, or the original Err.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TError> AndThen(Func<Result<TError>> op) =>
+            _isSuccess ? op() : this;
+
+        /// <summary>
+        /// Returns this result if Ok; otherwise returns <paramref name="other"/>.
+        /// </summary>
+        /// <param name="other">The fallback result.</param>
+        /// <returns>This result if Ok; otherwise <paramref name="other"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TNewError> Or<TNewError>(Result<TNewError> other) =>
+            _isSuccess ? Result<TNewError>.Ok() : other;
+
+        /// <summary>
+        /// Returns this result if Ok; otherwise calls <paramref name="op"/> with the error.
+        /// </summary>
+        /// <param name="op">The function to apply to the error.</param>
+        /// <returns>This result if Ok; otherwise the function result.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Result<TNewError> OrElse<TNewError>(Func<TError, Result<TNewError>> op) =>
+            _isSuccess ? Result<TNewError>.Ok() : op(_error!);
+
+        /// <inheritdoc cref="And(Result{TError})"/>
+        [Obsolete("Use And instead.")]
+        public Result<TError> Then(Result<TError> nextResult) => And(nextResult);
+
+        /// <inheritdoc cref="AndThen"/>
+        [Obsolete("Use AndThen instead.")]
+        public Result<TError> Then(Func<Result<TError>> nextStep) => AndThen(nextStep);
 
         /// <summary>
         /// Converts to Result&lt;T, TError&gt; with the specified value on success.
@@ -422,10 +659,17 @@ namespace Stardust.Utilities
         {
             foreach (var result in results)
             {
-                if (result.IsFailure) return result;
+                if (result.IsErr) return result;
             }
             return Ok();
         }
+
+        // ── ToString ─────────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns "Ok" or "Err(error)".
+        /// </summary>
+        public override string ToString() => _isSuccess ? "Ok" : $"ErrToOption({_error})";
     }
 
     /// <summary>
@@ -483,58 +727,49 @@ namespace Stardust.Utilities
         public static Result<TError> ToResult<TError>(this TError? error) where TError : class =>
             error == null ? Result<TError>.Ok() : Result<TError>.Err(error);
 
+        // ── Async Map / AndThen ──────────────────────────────────────
+
         /// <summary>
         /// Chains an async transform that cannot fail.
         /// </summary>
         /// <param name="resultTask">The task producing the result.</param>
         /// <param name="transform">The transform to apply on success.</param>
         /// <returns>A task containing the transformed result.</returns>
-        /// <example>
-        /// await GetDataAsync().Then(x => x.ToString())
-        /// </example>
-        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
+        public static async Task<Result<TNew, TError>> Map<T, TNew, TError>(
             this Task<Result<T, TError>> resultTask,
             Func<T, TNew> transform)
         {
             var result = await resultTask;
-            return result.Then(transform);
+            return result.Map(transform);
         }
 
         /// <summary>
         /// Chains a sync operation that can fail after an async Result.
         /// </summary>
         /// <param name="resultTask">The task producing the result.</param>
-        /// <param name="nextStep">The next operation to execute on success.</param>
+        /// <param name="op">The next operation to execute on success.</param>
         /// <returns>A task containing the next result.</returns>
-        /// <example>
-        /// await GetDataAsync().Then(x => Validate(x))
-        /// </example>
-        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
+        public static async Task<Result<TNew, TError>> AndThen<T, TNew, TError>(
             this Task<Result<T, TError>> resultTask,
-            Func<T, Result<TNew, TError>> nextStep)
+            Func<T, Result<TNew, TError>> op)
         {
             var result = await resultTask;
-            return result.Then(nextStep);
+            return result.AndThen(op);
         }
 
         /// <summary>
         /// Chains an async operation that can fail.
         /// </summary>
         /// <param name="resultTask">The task producing the result.</param>
-        /// <param name="nextStep">The async operation to execute on success.</param>
+        /// <param name="op">The async operation to execute on success.</param>
         /// <returns>A task containing the next result.</returns>
-        /// <example>
-        /// await GetDataAsync()
-        ///     .Then(data => ProcessAsync(data))
-        ///     .Then(processed => SaveAsync(processed));
-        /// </example>
-        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
+        public static async Task<Result<TNew, TError>> AndThen<T, TNew, TError>(
             this Task<Result<T, TError>> resultTask,
-            Func<T, Task<Result<TNew, TError>>> nextStep)
+            Func<T, Task<Result<TNew, TError>>> op)
         {
             var result = await resultTask;
-            return result.IsSuccess
-                ? await nextStep(result.Value)
+            return result.IsOk
+                ? await op(result.Value)
                 : Result<TNew, TError>.Err(result.Error);
         }
 
@@ -542,28 +777,28 @@ namespace Stardust.Utilities
         /// Chains async operations for void Results.
         /// </summary>
         /// <param name="resultTask">The task producing the result.</param>
-        /// <param name="nextStep">The async operation to execute on success.</param>
+        /// <param name="op">The async operation to execute on success.</param>
         /// <returns>A task containing the next result.</returns>
-        public static async Task<Result<TError>> Then<TError>(
+        public static async Task<Result<TError>> AndThen<TError>(
             this Task<Result<TError>> resultTask,
-            Func<Task<Result<TError>>> nextStep)
+            Func<Task<Result<TError>>> op)
         {
             var result = await resultTask;
-            return result.IsSuccess ? await nextStep() : result;
+            return result.IsOk ? await op() : result;
         }
 
         /// <summary>
         /// Chains a sync operation for void Results after an async Result.
         /// </summary>
         /// <param name="resultTask">The task producing the result.</param>
-        /// <param name="nextStep">The operation to execute on success.</param>
+        /// <param name="op">The operation to execute on success.</param>
         /// <returns>A task containing the next result.</returns>
-        public static async Task<Result<TError>> Then<TError>(
+        public static async Task<Result<TError>> AndThen<TError>(
             this Task<Result<TError>> resultTask,
-            Func<Result<TError>> nextStep)
+            Func<Result<TError>> op)
         {
             var result = await resultTask;
-            return result.Then(nextStep);
+            return result.AndThen(op);
         }
 
         /// <summary>
@@ -572,12 +807,123 @@ namespace Stardust.Utilities
         /// <param name="resultTask">The task producing the result.</param>
         /// <param name="transform">The transform applied to the error.</param>
         /// <returns>A task containing the result with a transformed error.</returns>
+        public static async Task<Result<T, TNewError>> MapErr<T, TError, TNewError>(
+            this Task<Result<T, TError>> resultTask,
+            Func<TError, TNewError> transform)
+        {
+            var result = await resultTask;
+            return result.MapErr(transform);
+        }
+
+        // ── Deprecated async methods ─────────────────────────────────
+
+        /// <inheritdoc cref="Map{T, TNew, TError}"/>
+        [Obsolete("Use Map instead.")]
+        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
+            this Task<Result<T, TError>> resultTask,
+            Func<T, TNew> transform)
+        {
+            var result = await resultTask;
+            return result.Map(transform);
+        }
+
+        /// <inheritdoc cref="AndThen{T, TNew, TError}(Task{Result{T, TError}}, Func{T, Result{TNew, TError}})"/>
+        [Obsolete("Use AndThen instead.")]
+        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
+            this Task<Result<T, TError>> resultTask,
+            Func<T, Result<TNew, TError>> nextStep)
+        {
+            var result = await resultTask;
+            return result.AndThen(nextStep);
+        }
+
+        /// <inheritdoc cref="AndThen{T, TNew, TError}(Task{Result{T, TError}}, Func{T, Task{Result{TNew, TError}}})"/>
+        [Obsolete("Use AndThen instead.")]
+        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
+            this Task<Result<T, TError>> resultTask,
+            Func<T, Task<Result<TNew, TError>>> nextStep)
+        {
+            var result = await resultTask;
+            return result.IsOk
+                ? await nextStep(result.Value)
+                : Result<TNew, TError>.Err(result.Error);
+        }
+
+        /// <inheritdoc cref="AndThen{TError}(Task{Result{TError}}, Func{Task{Result{TError}}})"/>
+        [Obsolete("Use AndThen instead.")]
+        public static async Task<Result<TError>> Then<TError>(
+            this Task<Result<TError>> resultTask,
+            Func<Task<Result<TError>>> nextStep)
+        {
+            var result = await resultTask;
+            return result.IsOk ? await nextStep() : result;
+        }
+
+        /// <inheritdoc cref="AndThen{TError}(Task{Result{TError}}, Func{Result{TError}})"/>
+        [Obsolete("Use AndThen instead.")]
+        public static async Task<Result<TError>> Then<TError>(
+            this Task<Result<TError>> resultTask,
+            Func<Result<TError>> nextStep)
+        {
+            var result = await resultTask;
+            return result.AndThen(nextStep);
+        }
+
+        /// <inheritdoc cref="MapErr{T, TError, TNewError}"/>
+        [Obsolete("Use MapErr instead.")]
         public static async Task<Result<T, TNewError>> ThenError<T, TError, TNewError>(
             this Task<Result<T, TError>> resultTask,
             Func<TError, TNewError> transform)
         {
             var result = await resultTask;
-            return result.MapError(transform);
+            return result.MapErr(transform);
         }
+
+        // ── Flatten / Transpose / Conversions ────────────────────────
+
+        /// <summary>
+        /// Flattens a nested <c>Result&lt;Result&lt;T, TError&gt;, TError&gt;</c> into
+        /// <c>Result&lt;T, TError&gt;</c>.
+        /// </summary>
+        /// <param name="result">The nested result.</param>
+        /// <returns>The inner result if Ok; otherwise the outer Err.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Result<T, TError> Flatten<T, TError>(
+            this Result<Result<T, TError>, TError> result) =>
+            result.IsOk ? result.Value : Result<T, TError>.Err(result.Error);
+
+        /// <summary>
+        /// Transposes a <c>Result&lt;Option&lt;T&gt;, TError&gt;</c> into an
+        /// <c>Option&lt;Result&lt;T, TError&gt;&gt;</c>.
+        /// <para>
+        /// <c>Ok(None)</c> becomes <c>None</c>;
+        /// <c>Ok(Some(v))</c> becomes <c>Some(Ok(v))</c>;
+        /// <c>Err(e)</c> becomes <c>Some(Err(e))</c>.
+        /// </para>
+        /// </summary>
+        /// <param name="result">The result wrapping an option.</param>
+        /// <returns>An option wrapping a result.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<Result<T, TError>> Transpose<T, TError>(
+            this Result<Option<T>, TError> result)
+        {
+            if (result.IsErr)
+                return Option<Result<T, TError>>.Some(Result<T, TError>.Err(result.Error));
+
+            var inner = result.Value;
+            return inner.IsSome
+                ? Option<Result<T, TError>>.Some(Result<T, TError>.Ok(inner.Value))
+                : Option<Result<T, TError>>.None;
+        }
+
+        /// <summary>
+        /// Converts the error to an Option: Err becomes Some; Ok becomes None.
+        /// Equivalent to Rust's <c>err()</c> method on Result.
+        /// </summary>
+        /// <param name="result">The result to convert.</param>
+        /// <returns>Some containing the error if Err; otherwise None.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Option<TError> ErrToOption<T, TError>(this Result<T, TError> result) =>
+            result.IsErr ? Option<TError>.Some(result.Error) : Option<TError>.None;
     }
 }

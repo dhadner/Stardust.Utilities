@@ -132,7 +132,7 @@
 
         try
         {
-            if ((await LoadAssembly(e.File)).IsFailure)
+            if ((await LoadAssembly(e.File)).IsErr)
             {
                 return;
             }

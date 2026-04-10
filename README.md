@@ -28,6 +28,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
     - [Pre-Defined Numeric Types](#pre-defined-numeric-types)
     - [RFC Diagram Generator](#rfc-diagram-generator)
   - [Result Types](#result-types)
+  - [Option Types](#option-types)
   - [Endian Types](#endian-types)
   - [Extension Methods](#extension-methods)
 - [Troubleshooting](#troubleshooting)
@@ -1022,7 +1023,7 @@ Result<int, string> Divide(int a, int b)
 // Using the result
 var result = Divide(10, 2);
 
-if (result.IsSuccess)
+if (result.IsOk)
 {
     Console.WriteLine($"Result: {result.Value}");
 }
@@ -1032,17 +1033,17 @@ else
 }
 
 // Pattern matching
-var message = result.Match(
-    onSuccess: value => $"Answer is {value}",
-    onFailure: error => $"Failed: {error}"
+var message = result.MapOrElse(
+    onOk: value => $"Answer is {value}",
+    onErr: error => $"Failed: {error}"
 );
 
 // Chaining operations
 var finalResult = Divide(100, 5)
-    .Then(x => x * 2)                    // Transform value
-    .Then(x => Divide(x, 2))             // Chain another Result
-    .OnSuccess(x => Console.WriteLine(x)) // Side effect on success
-    .OnFailure(e => Log(e));              // Side effect on failure
+    .Map(x => x * 2)                       // Transform value
+    .AndThen(x => Divide(x, 2))            // Chain another Result
+    .Inspect(x => Console.WriteLine(x))     // Side effect on success
+    .InspectErr(e => Log(e));               // Side effect on failure
 ```
 
 #### Void Results
@@ -1070,6 +1071,108 @@ global using static Stardust.Utilities.Result<string>;
 // Then simply:
 return Ok();
 return Err("Something went wrong");
+```
+
+---
+
+### Option Types
+
+Explicit optional values without null. Inspired by Rust's `Option<T>` type.
+
+See [OPTION.md](https://github.com/dhadner/Stardust.Utilities/blob/main/OPTION.md) for comprehensive documentation and examples.
+
+##### Performance
+
+`Option<T>` methods fall into two performance tiers:
+
+- **Zero-cost** -- construction, state checks, and value extraction (`Some`, `IsSome`, `UnwrapOr`, `Or`, `Zip`, etc.) are statistically identical to hand-written `T?` code. No delegates, no overhead.
+- **Delegate-based** -- transform methods (`Map`, `AndThen`, `Filter`, `MapOrElse`, etc.) are ~3-4x slower than a hand-inlined nullable ternary due to the inherent cost of delegate dispatch in .NET. The overhead is 1-2 nanoseconds per call.
+
+**Zero-Cost Tier** (100M iterations, .NET 10):
+
+| Operation | Option&lt;T&gt; | T? | Difference |
+|-----------|------------|------|------------|
+| Create Some | 35 ms | 34 ms | ≈0% (noise) |
+| IsSome check | 46 ms | 49 ms | ≈0% (noise) |
+| UnwrapOr (??) | 122 ms | 127 ms | ≈0% (noise) |
+
+*Use zero-cost methods freely in hot paths. Delegate methods (`Map`, `AndThen`, `Filter`) add ~1-2 ns/call -- negligible outside tight inner loops.*
+
+#### Basic Usage
+
+Use `global using static` to enable cleaner Some() and None syntax:
+
+```csharp
+// In GlobalUsings.cs
+global using static Stardust.Utilities.Option;
+// One import enables Some() and None for ALL Option<T> types.
+
+// In your source files
+Option<int> ParsePositive(string s)
+{
+    if (int.TryParse(s, out var n) && n > 0)
+        return Some(n);
+    return None;
+}
+
+// Ternaries, chains, and method arguments all work
+Option<int> MaybeDouble(int n) => n > 0 ? Some(n * 2) : None;
+var result = Some(3).Map(x => x + 1).Map(x => x * 10);
+```
+
+Without the global using, qualify explicitly:
+
+```csharp
+using Stardust.Utilities;
+
+// Create Some and None
+Option<int> some = Option<int>.Some(42);
+Option<int> none = Option<int>.None;
+
+// Implicit conversions
+Option<int> fromValue = 42;
+Option<int> fromNone = Option.None;
+
+// Safe extraction
+if (some.TryGetValue(out var value))
+    Console.WriteLine($"Got: {value}");
+
+// Default values
+int port = opt.UnwrapOr(8080);
+int computed = opt.UnwrapOrElse(() => ComputeDefault());
+```
+
+#### Transform Chains
+
+```csharp
+// Map, AndThen, and Filter compose naturally
+var result = Option.Some(3)
+    .Map(x => x + 1)
+    .Map(x => x * 10)
+    .Map(x => x.ToString());
+// result == Some("40")
+
+// AndThen for operations that return Option
+Option<string> GetUser(int id) => /* ... */;
+Option<string> GetEmail(string user) => /* ... */;
+
+var email = GetUser(1).AndThen(GetEmail);
+
+// Filter keeps the value only if the predicate passes
+Option<int>.Some(42).Filter(x => x > 0);   // Some(42)
+Option<int>.Some(-1).Filter(x => x > 0);   // None
+```
+
+#### Interop with Result
+
+```csharp
+// Option to Result
+var opt = Option<int>.Some(42);
+Result<int, string> result = opt.OkOr("value was missing");
+
+// Result to Option
+var ok = Result<int, string>.Ok(42);
+Option<int> fromResult = ok.ToOption();  // Some(42)
 ```
 
 ---
@@ -1189,7 +1292,7 @@ to your `[BitField]`/`[BitFlag]` property declarations (see
 **Problem:** You changed your `[BitFields]` struct but the generated code wasn't updated.
 
 **Solution:**
-1. Ensure you're using `partial struct` (not `class` or `record`)
+1. Ensure you're using `partial struct` or `partial record struct` (not `class`)
 2. Check that attributes are spelled correctly: `[BitFields]`, `[BitField]`, `[BitFlag]`
 3. Clean and rebuild the solution
 

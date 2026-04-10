@@ -156,5 +156,7 @@ All methods use `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to hint to 
 ## See Also
 
 - [BITFIELDS.md](BITFIELDS.md) - Source generator for bit field structs and buffer views
-- [ENDIAN.md](ENDIAN.md) - Big-endian primitive types
+- [ENDIAN.md](ENDIAN.md) - Big-endian and little-endian primitive types
+- [OPTION.md](OPTION.md) - Optional values without null
+- [RESULT.md](RESULT.md) - Railway-oriented error handling
 - [README.md](README.md) - Package overview

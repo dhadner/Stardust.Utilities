@@ -376,7 +376,7 @@
         // Build RFC diagram (always from the frame struct itself)
         var diag = new BitFieldDiagram(TelemetryStreamDemo.GetViewType(),
             bitsPerRow: 32, includeDescriptions: true);
-        _diagram = diag.RenderToString().Match(s => s, e => $"Diagram error: {e}");
+        _diagram = diag.RenderToString().MapOrElse(s => s, e => $"Diagram error: {e}");
     }
 
     // ── IEEE editing ────────────────────────────────────────────

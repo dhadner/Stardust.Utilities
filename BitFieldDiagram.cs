@@ -71,7 +71,7 @@ public class BitFieldDiagram
     {
         foreach (var field in structs)
         {
-            AddStruct(field).OnFailure(err => throw new ArgumentException($"Failed to add struct type '{field.Name}': {err}"));
+            AddStruct(field).InspectErr(err => throw new ArgumentException($"Failed to add struct type '{field.Name}': {err}"));
         }
     }
 
@@ -91,7 +91,7 @@ public class BitFieldDiagram
     {
         foreach (var field in structs)
         {
-            AddStruct(field).OnFailure(err => throw new ArgumentException($"Failed to add struct type '{field.Name}': {err}"));
+            AddStruct(field).InspectErr(err => throw new ArgumentException($"Failed to add struct type '{field.Name}': {err}"));
         }
     }
 
@@ -183,7 +183,7 @@ public class BitFieldDiagram
         foreach (var structType in structTypes)
         {
             var result = AddStruct(structType);
-            if (result.IsFailure) return result;
+            if (result.IsErr) return result;
         }
 
         return Ok();
@@ -202,7 +202,7 @@ public class BitFieldDiagram
         foreach (var structType in structTypes)
         {
             var result = AddStruct(structType);
-            if (result.IsFailure) return result;
+            if (result.IsErr) return result;
         }
 
         return Ok();
@@ -219,7 +219,7 @@ public class BitFieldDiagram
         if (!structType.IsBitsType()) return Err($"Struct '{structType.Name}' is not a valid [BitFields] type.");
 
         var fieldInfoResult = structType.GetFieldInfo();
-        if (fieldInfoResult.IsFailure) return Err(fieldInfoResult.Error);
+        if (fieldInfoResult.IsErr) return Err(fieldInfoResult.Error);
         if (fieldInfoResult.Value.Length == 0) return Err($"Struct '{structType.Name}' has no fieldInfos.");
 
         // Add the struct type to the list for later rendering
@@ -234,7 +234,7 @@ public class BitFieldDiagram
     public virtual Result<string, string> RenderToString()
     {
         var result = Render();
-        if (result.IsFailure) return Result<string, string>.Err(result.Error);
+        if (result.IsErr) return Result<string, string>.Err(result.Error);
 
         return Ok(string.Join(Environment.NewLine, result.Value));
     }
@@ -669,7 +669,7 @@ public class BitFieldDiagram
     public static List<string> Render(Type bitFieldsType, int bitsPerRow = 32, bool includeDescriptions = false, bool showByteOffset = true, string? commentPrefix = null)
     {
         var fieldsResult = bitFieldsType.GetFieldInfo();
-        var fields = fieldsResult.IsSuccess ? fieldsResult.Value : [];
+        var fields = fieldsResult.IsOk ? fieldsResult.Value : [];
         // StructDescription is already available in fields[0].StructDescription and
         // emitted by the fields-based Render when includeDescriptions is true.
         return Render(fields, null, bitsPerRow, includeDescriptions, showByteOffset, 0, commentPrefix);
@@ -706,7 +706,7 @@ public class BitFieldDiagram
         for (int i = 0; i < bitFieldsTypes.Length; i++)
         {
             var result = bitFieldsTypes[i].GetFieldInfo();
-            allFields[i] = result.IsSuccess ? result.Value : [];
+            allFields[i] = result.IsOk ? result.Value : [];
             int w = ComputeMinCellWidth(allFields[i], bitsPerRow);
             sharedCellWidth = Math.Max(sharedCellWidth, w);
         }

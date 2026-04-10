@@ -350,7 +350,7 @@ if (value.TryFormat(buffer, out int written, "X8", null))
 
 ## Interface Support
 
-All big-endian types implement:
+All endian types implement:
 
 | Interface | Description |
 |-----------|-------------|
@@ -517,7 +517,9 @@ public class NetworkHandler
 
 ## TypeConverters
 
-Each type has a `TypeConverter` for WinForms PropertyGrid and similar UI scenarios:
+Both big-endian and little-endian types have identical feature parity: the same operators,
+interfaces, span APIs, and `TypeConverter` support. Each type has a `TypeConverter` for
+WinForms PropertyGrid and similar UI scenarios:
 
 | Type | TypeConverter |
 |------|---------------|
@@ -671,3 +673,13 @@ public UInt16Be(ushort num)
 ```
 
 The JIT compiler optimizes this to efficient native instructions on all platforms.
+
+---
+
+## See Also
+
+- [BITFIELDS.md](BITFIELDS.md) - Source generator for bit field structs and buffer views
+- [EXTENSIONS.md](EXTENSIONS.md) - Hi/Lo byte extraction and saturating arithmetic
+- [OPTION.md](OPTION.md) - Optional values without null
+- [RESULT.md](RESULT.md) - Railway-oriented error handling
+- [README.md](README.md) - Package overview

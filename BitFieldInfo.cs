@@ -96,7 +96,7 @@ public sealed record BitFieldInfo(
 
         // Description is the same for either struct or field
         var descRes = type.GetBitsDescription(field, inherit);
-        if (descRes.IsFailure) return Result<BitFieldInfo, string>.Err(descRes.Error);
+        if (descRes.IsErr) return Result<BitFieldInfo, string>.Err(descRes.Error);
         description = descRes.Value.description;
         descriptionResourceType = descRes.Value.descriptionResourceType;
         if (field == null)
@@ -108,24 +108,24 @@ public sealed record BitFieldInfo(
         {
             // For field-level description, get struct-level description separately for convenience
             var fldDescRes = type.GetBitsDescription(null, inherit);
-            if (fldDescRes.IsFailure) return Result<BitFieldInfo, string>.Err(fldDescRes.Error);
+            if (fldDescRes.IsErr) return Result<BitFieldInfo, string>.Err(fldDescRes.Error);
             structDescription = fldDescRes.Value.description;
         }
         var byteOrderRes = type.GetBitAndByteOrder(inherit);
 
         // Undefined bits defined at the struct level.
-        type.GetUndefinedBitsMustBe(inherit).Match(
-            onSuccess: mustBe => structUndefinedMustBe = mustBe,
-            onFailure: _ => structUndefinedMustBe = UndefinedBitsMustBe.Any
+        type.GetUndefinedBitsMustBe(inherit).MapOrElse(
+            onOk: mustBe => structUndefinedMustBe = mustBe,
+            onErr: _ => structUndefinedMustBe = UndefinedBitsMustBe.Any
         );
         var bitLengthRes = type.GetBitLength(field, inherit);
-        if (bitLengthRes.IsFailure) return Result<BitFieldInfo, string>.Err(bitLengthRes.Error);
+        if (bitLengthRes.IsErr) return Result<BitFieldInfo, string>.Err(bitLengthRes.Error);
         bitWidth = bitLengthRes.Value;
 
         if (field != null)
         {
             var structTotalBitsRes = type.GetBitLength(null, inherit);
-            if (structTotalBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(structTotalBitsRes.Error);
+            if (structTotalBitsRes.IsErr) return Result<BitFieldInfo, string>.Err(structTotalBitsRes.Error);
             structTotalBits = structTotalBitsRes.Value;
         }
         else
@@ -139,11 +139,11 @@ public sealed record BitFieldInfo(
             propertyType = fieldInfo!.PropertyType.FullName ?? fieldInfo.PropertyType.Name;
 
             var seBitsRes = type.GetStartAndEndBits(field, inherit);
-            if (seBitsRes.IsFailure) return Result<BitFieldInfo, string>.Err(seBitsRes.Error);
+            if (seBitsRes.IsErr) return Result<BitFieldInfo, string>.Err(seBitsRes.Error);
 
             start = seBitsRes.Value.start;
             bitWidth = seBitsRes.Value.end - start + 1;
-            type.GetFieldValueOverride(field, inherit).OnSuccess(mustBe => fieldMustBe = mustBe);
+            type.GetFieldValueOverride(field, inherit).Inspect(mustBe => fieldMustBe = mustBe);
             var fieldAttr = type.GetAttribute<BitFieldAttribute>(field, inherit);
             if (fieldAttr != null)
             {

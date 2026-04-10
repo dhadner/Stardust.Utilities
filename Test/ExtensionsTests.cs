@@ -147,7 +147,7 @@ public partial class ExtensionsTests
     {
         Assert.Equal(isFlag, bitType.IsBitFlag(propName));
         var result = bitType.GetStartAndEndBits(propName);
-        Assert.True(result.IsSuccess, $"Expected to find bit field or flag '{propName}' in type '{bitType.Name}'");
+        Assert.True(result.IsOk, $"Expected to find bit field or flag '{propName}' in type '{bitType.Name}'");
         Assert.Equal(start, result.Value.start);
         Assert.Equal(end, result.Value.end);
     }
@@ -313,14 +313,14 @@ public partial class ExtensionsTests
     {
         Type? t = null;
         var result = t!.GetFieldInfo();
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsErr);
     }
 
     [Fact]
     public void GetFieldInfo_NonBitsType_ReturnsError()
     {
         var result = typeof(int).GetFieldInfo();
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsErr);
         Assert.Contains("Int32", result.Error);
     }
 
@@ -328,7 +328,7 @@ public partial class ExtensionsTests
     public void GetFieldInfo_BitFieldsStruct_ReturnsSuccess()
     {
         var result = typeof(TcpControlWord).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(4, result.Value.Length);
     }
 
@@ -336,7 +336,7 @@ public partial class ExtensionsTests
     public void GetFieldInfo_RecordStructView_ReturnsSuccess()
     {
         var result = typeof(TcpControlWordView).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(4, result.Value.Length);
     }
 
@@ -344,7 +344,7 @@ public partial class ExtensionsTests
     public void GetFieldInfo_FlagStruct_ReturnsAllFlags()
     {
         var result = typeof(TcpFlags).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(9, result.Value.Length);
         Assert.Contains(result.Value, f => f.Name == "FIN" && f.IsFlag);
     }
@@ -353,7 +353,7 @@ public partial class ExtensionsTests
     public void GetFieldInfo_MatchesGeneratedFields()
     {
         var result = typeof(TcpFlags).GetFieldInfo();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         var fromGenerated = TcpFlags.Fields.ToArray();
         Assert.Equal(fromGenerated.Length, result.Value.Length);
         for (int i = 0; i < fromGenerated.Length; i++)

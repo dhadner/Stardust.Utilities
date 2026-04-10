@@ -11,9 +11,9 @@
 		
 		<!-- Version is specified in the Directory.Build.props file -->
 		<Authors>Dave Hadner</Authors>
-		<Description>Types for bit manipulation, error handling, and big-endian data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
-		<PackageTags>utilities;bitfields;source-generator;result;big-endian;error-handling;endian;monad;result;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>Added optional 'Saturating' parameter on [BitField] properties to limit min/max values to fit the bit width. Removed the deprecated [BitFieldsView] attribute -- use the [BitFields] attribute on 'record struct' types instead. Removed the type.IsBitFieldsViewType()` extension method.</PackageReleaseNotes>
+		<Description>Types for 'BitFields' records and bit manipulation, 'Result&lt;T,E&gt;' error handling, 'Option&lt;T&gt;' values, and endian-aware data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
+		<PackageTags>utilities;bitfields;source-generator;result;option;big-endian;error-handling;endian;monad;optional;net7;net8;net9;net10</PackageTags>
+		<PackageReleaseNotes>Added Option&lt;T&gt; type (Rust-inspired optional values with zero heap allocation). Renamed Result API to Rust-parity conventions (IsOk, IsErr, Map, AndThen, etc.) with deprecated shims for backwards compatibility. Added [BitField] reversed bit-order acceptance and End+Width Start derivation. Added optional 'Saturating' parameter on [BitField] properties to clamp values to fit the bit width. Removed the deprecated [BitFieldsView] attribute -- use the [BitFields] attribute on 'record struct' types instead.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>

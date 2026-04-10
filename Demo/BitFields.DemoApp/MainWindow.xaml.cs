@@ -85,8 +85,8 @@ public partial class MainWindow : Window
 
         // Parse PE headers using Result pipeline
         PeParser.Parse(bytes)
-            .OnSuccess(pe => PopulatePeDisplay(pe))
-            .OnFailure(error => AddInfoCard(PeFieldSummaryPanel, "Error", error, Colors.Red));
+            .Inspect(pe => PopulatePeDisplay(pe))
+            .InspectErr(error => AddInfoCard(PeFieldSummaryPanel, "Error", error, Colors.Red));
     }
 
     private void PopulatePeDisplay(PeParseResult pe)
@@ -466,7 +466,7 @@ public partial class MainWindow : Window
         PopulateBinaryDisplay(FpBinaryBitsPanel, _fpStreamBuffer, _fpStreamBuffer.Length, physicalFields, nameof(_activeFpField));
 
         var diag = new BitFieldDiagram(TelemetryStreamDemo.GetViewType(), bitsPerRow: 32, includeDescriptions: true);
-        FpRfcDiagram.Text = diag.RenderToString().Match(s => s, e => $"Diagram error: {e}");
+        FpRfcDiagram.Text = diag.RenderToString().MapOrElse(s => s, e => $"Diagram error: {e}");
     }
 
     private static string FormatFrameField(TelemetryReadback rb, IEEEReadback ieee, string name)

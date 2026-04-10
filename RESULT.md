@@ -34,7 +34,7 @@ Result<int, string> Divide(int a, int b)
 // Using the result
 var result = Divide(10, 2);
 
-if (result.IsSuccess)
+if (result.IsOk)
     Console.WriteLine($"Result: {result.Value}");
 else
     Console.WriteLine($"Error: {result.Error}");
@@ -80,10 +80,10 @@ var success = Result<int, string>.Ok(42);
 var failure = Result<int, string>.Err("Something went wrong");
 
 // Check status
-if (success.IsSuccess)
+if (success.IsOk)
     Console.WriteLine(success.Value);  // 42
 
-if (failure.IsFailure)
+if (failure.IsErr)
     Console.WriteLine(failure.Error);  // "Something went wrong"
 ```
 
@@ -106,7 +106,7 @@ Result<string> SaveFile(string path, string content)
 }
 
 var result = SaveFile("test.txt", "Hello");
-if (result.IsFailure)
+if (result.IsErr)
     Console.WriteLine($"Save failed: {result.Error}");
 ```
 
@@ -128,10 +128,10 @@ Result<User, ValidationError> ValidateUser(string email, string password)
 {
     if (!email.Contains('@'))
         return Result<User, ValidationError>.Err(ValidationError.InvalidEmail);
-    
+
     if (password.Length < 8)
         return Result<User, ValidationError>.Err(ValidationError.PasswordTooShort);
-    
+
     return Result<User, ValidationError>.Ok(new User(email, password));
 }
 ```
@@ -145,7 +145,7 @@ Result<User, ApiError> GetUser(int id)
 {
     if (id <= 0)
         return Result<User, ApiError>.Err(new ApiError(400, "Invalid ID", $"ID was {id}"));
-    
+
     // ... fetch user
     return Result<User, ApiError>.Ok(user);
 }
@@ -167,7 +167,32 @@ Result<string, Exception> ReadFile(string path)
 }
 
 var result = ReadFile("config.json");
-result.OnFailure(ex => Console.WriteLine($"Failed: {ex.GetType().Name}: {ex.Message}"));
+result.InspectErr(ex => Console.WriteLine($"Failed: {ex.GetType().Name}: {ex.Message}"));
+```
+
+## Querying State
+
+### IsOk / IsErr
+
+```csharp
+var result = Result<int, string>.Ok(42);
+
+result.IsOk;   // true
+result.IsErr;  // false
+```
+
+### IsOkAnd / IsErrAnd
+
+Test the state and a predicate in one call:
+
+```csharp
+var result = Result<int, string>.Ok(42);
+
+result.IsOkAnd(v => v > 0);   // true
+result.IsOkAnd(v => v < 0);   // false
+
+var err = Result<int, string>.Err("not found");
+err.IsErrAnd(e => e.Contains("not found"));  // true
 ```
 
 ## Accessing Values
@@ -178,11 +203,11 @@ result.OnFailure(ex => Console.WriteLine($"Failed: {ex.GetType().Name}: {ex.Mess
 var result = Result<int, string>.Ok(42);
 
 // These throw if called on wrong state
-int value = result.Value;       // Throws if IsFailure
-string error = result.Error;    // Throws if IsSuccess
+int value = result.Value;       // Throws if IsErr
+string error = result.Error;    // Throws if IsOk
 
 // Safe access (returns default if wrong state)
-string? maybeError = result.ErrorOrDefault;  // null if IsSuccess
+string? maybeError = result.ErrorOrDefault;  // null if IsOk
 ```
 
 ### TryGet Pattern
@@ -199,44 +224,29 @@ if (result.TryGetError(out var error))
 }
 ```
 
-### ValueOr - Default Values
+### Unwrap / Expect
 
 ```csharp
-// Return default value if failed
-int value = result.ValueOr(0);
+// Unwrap -- aliases for Value / Error properties
+int value = result.Unwrap();        // Same as .Value, throws if Err
+TError error = result.UnwrapErr();  // Same as .Error, throws if Ok
 
-// Compute default from error
-int value = result.ValueOr(error => error.Length);  // Use error to compute default
+// Expect -- unwrap with a custom error message
+int value = result.Expect("config value must be present");
+TError error = result.ExpectErr("expected an error here");
 ```
 
-### Unwrap
+### UnwrapOr - Default Values
 
 ```csharp
-// Aliases for Value/Error properties
-int value = result.Unwrap();        // Same as .Value
-string error = result.UnwrapError();  // Same as .Error
-```
+// Return default value if Err
+int value = result.UnwrapOr(0);
 
-## Pattern Matching
+// Compute default from error (lazy, only called on Err)
+int value = result.UnwrapOrElse(error => error.Length);
 
-### Match
-
-Transform both success and failure cases into a single result:
-
-```csharp
-var result = Divide(10, 3);
-
-string message = result.Match(
-    onSuccess: value => $"Answer is {value}",
-    onFailure: error => $"Failed: {error}"
-);
-
-// For void results
-var voidResult = SaveFile("test.txt", "data");
-string status = voidResult.Match(
-    onSuccess: () => "Saved successfully",
-    onFailure: error => $"Save failed: {error}"
-);
+// Return default(T) if Err
+int? value = result.UnwrapOrDefault();  // 0 for int, null for reference types
 ```
 
 ### Deconstruction
@@ -256,43 +266,26 @@ var (ok, err) = voidResult;
 ### ToNullable
 
 ```csharp
-int? value = result.ToNullable();  // null if IsFailure
+int? value = result.ToNullable();  // null if IsErr
 ```
 
-## Chaining Operations
+## Transforms
 
-### Then - Transform Success Value
+### Map - Transform Success Value
 
-Chain operations that cannot fail:
+Transform the Ok value. Err values pass through unchanged:
 
 ```csharp
 Result<int, string> result = GetNumber();
 
 // Transform int to string (cannot fail)
-Result<string, string> stringResult = result.Then(x => x.ToString());
+Result<string, string> stringResult = result.Map(x => x.ToString());
 
 // Transform with expression
-var doubled = result.Then(x => x * 2);
+var doubled = result.Map(x => x * 2);
 ```
 
-### Then - Chain Fallible Operations
-
-Chain operations that might fail:
-
-```csharp
-Result<int, string> Parse(string input) { ... }
-Result<int, string> Validate(int value) { ... }
-Result<string, string> Format(int value) { ... }
-
-// Chain multiple fallible operations
-var result = Parse("42")
-    .Then(x => Validate(x))
-    .Then(x => Format(x));
-
-// If any step fails, the error propagates
-```
-
-### MapError - Transform Errors
+### MapErr - Transform Errors
 
 Convert between error types at layer boundaries:
 
@@ -301,24 +294,96 @@ Convert between error types at layer boundaries:
 Result<User, DatabaseError> user = GetUserFromDb(id);
 
 // Convert to API error for response
-Result<User, ApiError> apiResult = user.MapError(dbErr => new ApiError(
+Result<User, ApiError> apiResult = user.MapErr(dbErr => new ApiError(
     Code: 500,
     Message: "Database error",
     Details: dbErr.Message
 ));
 ```
 
-### OnSuccess / OnFailure - Side Effects
+### MapOr / MapOrElse - Pattern Match
 
-Execute actions without changing the result:
+Transform both success and failure cases into a single result:
+
+```csharp
+var result = Divide(10, 3);
+
+// MapOrElse -- lazy None branch
+string message = result.MapOrElse(
+    onOk: value => $"Answer is {value}",
+    onErr: error => $"Failed: {error}"
+);
+
+// MapOr -- eager default
+int doubled = result.MapOr(v => v * 2, defaultValue: -1);
+
+// For void results
+var voidResult = SaveFile("test.txt", "data");
+string status = voidResult.MapOrElse(
+    onOk: () => "Saved successfully",
+    onErr: error => $"Save failed: {error}"
+);
+```
+
+## Side Effects
+
+### Inspect / InspectErr
+
+Execute actions without changing the result. Returns self for chaining:
 
 ```csharp
 var result = GetUser(id)
-    .OnSuccess(user => Console.WriteLine($"Found user: {user.Name}"))
-    .OnFailure(error => Logger.Error($"User lookup failed: {error}"))
-    .Then(user => SendWelcomeEmail(user))
-    .OnSuccess(_ => Console.WriteLine("Email sent"))
-    .OnFailure(error => Logger.Error($"Email failed: {error}"));
+    .Inspect(user => Console.WriteLine($"Found user: {user.Name}"))
+    .InspectErr(error => Logger.Error($"User lookup failed: {error}"))
+    .AndThen(user => SendWelcomeEmail(user))
+    .Inspect(_ => Console.WriteLine("Email sent"))
+    .InspectErr(error => Logger.Error($"Email failed: {error}"));
+```
+
+## Boolean Operators
+
+### And - Require Both
+
+Returns the second result if this is Ok; otherwise returns this Err:
+
+```csharp
+var a = Result<int, string>.Ok(1);
+var b = Result<string, string>.Ok("hello");
+
+a.And(b);  // Ok("hello")
+
+Result<int, string>.Err("fail").And(b);  // Err("fail")
+```
+
+### AndThen - Chain Fallible Operations
+
+Flat-map: if Ok, calls the function with the value; otherwise returns the Err:
+
+```csharp
+Result<int, string> Parse(string input) { ... }
+Result<int, string> Validate(int value) { ... }
+Result<string, string> Format(int value) { ... }
+
+// Chain multiple fallible operations
+var result = Parse("42")
+    .AndThen(x => Validate(x))
+    .AndThen(x => Format(x));
+
+// If any step fails, the error propagates
+```
+
+### Or / OrElse - Fallback
+
+Returns this result if Ok; otherwise returns the fallback:
+
+```csharp
+var a = Result<int, string>.Err("fail");
+var b = Result<int, int>.Ok(99);
+
+a.Or(b);  // Ok(99)
+
+// OrElse -- lazy, receives the error
+a.OrElse(e => Result<int, int>.Ok(e.Length));  // Ok(4)
 ```
 
 ### WithValue - Add Value to Void Result
@@ -344,39 +409,103 @@ var r3 = ValidateUsername(username);
 // Returns first failure, or Ok() if all succeed
 var combined = Result<string>.Combine(r1, r2, r3);
 
-if (combined.IsSuccess)
+if (combined.IsOk)
     CreateUser(email, password, username);
 else
     ShowError(combined.Error);
 ```
 
+## Flatten
+
+Collapses a nested `Result<Result<T, E>, E>` into `Result<T, E>`:
+
+```csharp
+var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Ok(42));
+nested.Flatten();  // Ok(42)
+
+var nestedErr = Result<Result<int, string>, string>.Ok(Result<int, string>.Err("inner"));
+nestedErr.Flatten();  // Err("inner")
+
+var outerErr = Result<Result<int, string>, string>.Err("outer");
+outerErr.Flatten();  // Err("outer")
+```
+
+## Interop with Option
+
+### ToOption
+
+Converts Ok to Some, Err to None (the error is discarded):
+
+```csharp
+var ok = Result<int, string>.Ok(42);
+Option<int> opt = ok.ToOption();  // Some(42)
+
+var err = Result<int, string>.Err("fail");
+Option<int> opt2 = err.ToOption();  // None
+```
+
+### ErrToOption
+
+Converts Err to Some, Ok to None (the value is discarded):
+
+```csharp
+var err = Result<int, string>.Err("fail");
+Option<string> opt = err.ErrToOption();  // Some("fail")
+
+var ok = Result<int, string>.Ok(42);
+ok.ErrToOption();  // None
+```
+
+### Transpose
+
+Swaps the nesting of `Result` and `Option`:
+
+```csharp
+// Result<Option<T>, E> --> Option<Result<T, E>>
+var result = Result<Option<int>, string>.Ok(Option<int>.Some(42));
+Option<Result<int, string>> transposed = result.Transpose();
+// Some(Ok(42))
+
+Result<Option<int>, string>.Ok(Option<int>.None).Transpose();
+// None
+
+Result<Option<int>, string>.Err("fail").Transpose();
+// Some(Err("fail"))
+```
+
+See also [OPTION.md](https://github.com/dhadner/Stardust.Utilities/blob/main/OPTION.md) for the corresponding `Option.OkOr`, `Option.OkOrElse`, and `Option.Transpose` methods.
+
 ## Async Support
 
 Extension methods support async/await patterns:
 
-### Async Transform
+### Async Map
 
 ```csharp
 // Chain async transform
 var result = await GetUserAsync(id)
-    .Then(user => user.Name);  // Sync transform on async result
+    .Map(user => user.Name);  // Sync transform on async result
 ```
 
-### Async Chain
+### Async AndThen
 
 ```csharp
+// Chain sync fallible operation after async result
+var result = await GetUserAsync(id)
+    .AndThen(user => ValidateUser(user));
+
 // Chain async operations
 var result = await GetUserAsync(id)
-    .Then(user => GetOrdersAsync(user.Id))
-    .Then(orders => CalculateTotalAsync(orders));
+    .AndThen(user => GetOrdersAsync(user.Id))
+    .AndThen(orders => CalculateTotalAsync(orders));
 ```
 
-### Async Error Transform
+### Async MapErr
 
 ```csharp
 // Transform error type asynchronously
 var apiResult = await GetUserFromDbAsync(id)
-    .ThenError(dbErr => new ApiError(500, dbErr.Message));
+    .MapErr(dbErr => new ApiError(500, dbErr.Message));
 ```
 
 ## Type Conversions
@@ -448,9 +577,9 @@ public record ValidationError(string Field, string Message);
 Result<User, ValidationError> CreateUser(string email, string password, string name)
 {
     return ValidateEmail(email)
-        .Then(_ => ValidatePassword(password))
-        .Then(_ => ValidateName(name))
-        .Then(_ => new User(email, password, name));
+        .AndThen(_ => ValidatePassword(password))
+        .AndThen(_ => ValidateName(name))
+        .AndThen(_ => Result<User, ValidationError>.Ok(new User(email, password, name)));
 }
 
 Result<string, ValidationError> ValidateEmail(string email)
@@ -472,15 +601,15 @@ Result<T, ApiError> FromApiResponse<T>(ApiResponse<T> response)
 {
     if (response.StatusCode >= 400)
         return Result<T, ApiError>.Err(new ApiError(response.StatusCode, response.Error!));
-    
+
     return Result<T, ApiError>.Ok(response.Data!);
 }
 
 // Usage
 var response = await httpClient.GetAsync<User>("/api/users/1");
 var result = FromApiResponse(response)
-    .OnSuccess(user => cache.Set(user.Id, user))
-    .OnFailure(err => logger.Warn($"API error {err.Code}: {err.Message}"));
+    .Inspect(user => cache.Set(user.Id, user))
+    .InspectErr(err => logger.Warn($"API error {err.Code}: {err.Message}"));
 ```
 
 ### Database Operations
@@ -504,8 +633,8 @@ public async Task<Result<User, DbError>> GetUserAsync(int id)
 public async Task<Result<Order, DbError>> CreateOrderAsync(int userId, OrderRequest request)
 {
     return await GetUserAsync(userId)
-        .Then(user => ValidateOrderRequest(request))
-        .Then(async validated => 
+        .AndThen(user => ValidateOrderRequest(request))
+        .AndThen(async validated => 
         {
             var order = new Order(userId, validated);
             await db.Orders.AddAsync(order);
@@ -523,16 +652,16 @@ public Result<AppConfig, ConfigError> LoadConfig(string path)
     if (!File.Exists(path))
         return Result<AppConfig, ConfigError>.Err(
             ConfigError.FileNotFound(path));
-    
+
     try
     {
         var json = File.ReadAllText(path);
         var config = JsonSerializer.Deserialize<AppConfig>(json);
-        
+
         if (config == null)
             return Result<AppConfig, ConfigError>.Err(
                 ConfigError.InvalidFormat("Deserialization returned null"));
-        
+
         return ValidateConfig(config);
     }
     catch (JsonException ex)
@@ -544,7 +673,7 @@ public Result<AppConfig, ConfigError> LoadConfig(string path)
 
 // Usage with fallback
 var config = LoadConfig("config.json")
-    .ValueOr(error => 
+    .UnwrapOrElse(error => 
     {
         logger.Warn($"Config load failed: {error}, using defaults");
         return AppConfig.Default;
@@ -559,24 +688,33 @@ var config = LoadConfig("config.json")
 |--------|-------------|
 | `Ok(T? value)` | Creates a successful result |
 | `Err(TError error)` | Creates a failed result |
-| `IsSuccess` | True if operation succeeded |
-| `IsFailure` | True if operation failed |
-| `Value` | The success value (throws if failed) |
-| `Error` | The error value (throws if succeeded) |
-| `ErrorOrDefault` | Error or default if succeeded |
+| `IsOk` | True if Ok |
+| `IsErr` | True if Err |
+| `IsOkAnd(Func<T, bool>)` | True if Ok and predicate passes |
+| `IsErrAnd(Func<TError, bool>)` | True if Err and predicate passes |
+| `Value` | The success value (throws if Err) |
+| `Error` | The error value (throws if Ok) |
+| `ErrorOrDefault` | Error or default if Ok |
 | `TryGetValue(out T?)` | Try to get value, returns success status |
 | `TryGetError(out TError?)` | Try to get error, returns failure status |
-| `ValueOr(T)` | Value or default if failed |
-| `ValueOr(Func<TError, T>)` | Value or computed default |
-| `Then<TNew>(Func<T, TNew>)` | Transform value (cannot fail) |
-| `Then<TNew>(Func<T, Result<TNew, TError>>)` | Chain fallible operation |
-| `MapError<TNewError>(Func<TError, TNewError>)` | Transform error type |
-| `OnSuccess(Action<T>)` | Execute action on success |
-| `OnFailure(Action<TError>)` | Execute action on failure |
-| `Match<TResult>(...)` | Pattern match both cases |
-| `ToNullable()` | Convert to nullable (null on failure) |
 | `Unwrap()` | Alias for Value |
-| `UnwrapError()` | Alias for Error |
+| `Expect(string)` | Unwrap with custom error message |
+| `UnwrapErr()` | Alias for Error |
+| `ExpectErr(string)` | Unwrap error with custom message |
+| `UnwrapOr(T)` | Value or default if Err |
+| `UnwrapOrElse(Func<TError, T>)` | Value or computed default |
+| `UnwrapOrDefault()` | Value or default(T) if Err |
+| `Map<TNew>(Func<T, TNew>)` | Transform value (cannot fail) |
+| `MapErr<TNewError>(Func<TError, TNewError>)` | Transform error type |
+| `MapOr<TResult>(Func<T, TResult>, TResult)` | Transform value or return eager default |
+| `MapOrElse<TResult>(Func<T, TResult>, Func<TError, TResult>)` | Pattern match both cases |
+| `Inspect(Action<T>)` | Side-effect on Ok, returns self |
+| `InspectErr(Action<TError>)` | Side-effect on Err, returns self |
+| `And<TNew>(Result<TNew, TError>)` | Return other if Ok |
+| `AndThen<TNew>(Func<T, Result<TNew, TError>>)` | Chain fallible operation |
+| `Or<TNewError>(Result<T, TNewError>)` | Return this if Ok, otherwise other |
+| `OrElse<TNewError>(Func<TError, Result<T, TNewError>>)` | Return this if Ok, otherwise lazy fallback |
+| `ToNullable()` | Convert to nullable (null on Err) |
 | `Deconstruct(...)` | Enables tuple deconstruction |
 
 ### Result<TError>
@@ -586,16 +724,19 @@ var config = LoadConfig("config.json")
 | `Ok()` | Creates a successful void result |
 | `Ok<T>(T value)` | Creates a successful value result (for static import) |
 | `Err(TError? error)` | Creates a failed result |
-| `IsSuccess` | True if operation succeeded |
-| `IsFailure` | True if operation failed |
-| `Error` | The error value (throws if succeeded) |
-| `ErrorOrDefault` | Error or default if succeeded |
+| `IsOk` | True if Ok |
+| `IsErr` | True if Err |
+| `Error` | The error value (throws if Ok) |
+| `ErrorOrDefault` | Error or default if Ok |
 | `TryGetError(out TError?)` | Try to get error |
-| `Then(Func<Result<TError>>)` | Chain another void operation |
-| `MapError<TNewError>(...)` | Transform error type |
-| `OnSuccess(Action)` | Execute action on success |
-| `OnFailure(Action<TError>)` | Execute action on failure |
-| `Match<TResult>(...)` | Pattern match both cases |
+| `MapErr<TNewError>(Func<TError, TNewError>)` | Transform error type |
+| `MapOrElse<TResult>(Func<TResult>, Func<TError, TResult>)` | Pattern match both cases |
+| `Inspect(Action)` | Side-effect on Ok, returns self |
+| `InspectErr(Action<TError>)` | Side-effect on Err, returns self |
+| `And(Result<TError>)` | Return other if Ok |
+| `AndThen(Func<Result<TError>>)` | Chain another void operation |
+| `Or<TNewError>(Result<TNewError>)` | Return this if Ok, otherwise other |
+| `OrElse<TNewError>(Func<TError, Result<TNewError>>)` | Return this if Ok, otherwise lazy fallback |
 | `WithValue<T>(T)` | Convert to value result |
 | `Combine(params Result<TError>[])` | Combine multiple results |
 | `Deconstruct(...)` | Enables tuple deconstruction |
@@ -606,6 +747,33 @@ var config = LoadConfig("config.json")
 |--------|-------------|
 | `ToResult<T, TError>(tuple)` | Convert (error, value) tuple to Result |
 | `ToResult<TError>(error)` | Convert nullable error to Result |
-| `Then<...>(Task, Func)` | Async transform |
-| `Then<...>(Task, Func<..., Task>)` | Async chain |
-| `ThenError<...>(Task, Func)` | Async error transform |
+| `Flatten<T, TError>(Result<Result<T, TError>, TError>)` | Collapse nested result |
+| `Transpose<T, TError>(Result<Option<T>, TError>)` | Swap Result/Option nesting |
+| `ErrToOption<T, TError>(Result<T, TError>)` | Err to Some, Ok to None |
+| `Map<T, TNew, TError>(Task, Func)` | Async Map |
+| `AndThen<T, TNew, TError>(Task, Func)` | Async AndThen (sync transform) |
+| `AndThen<T, TNew, TError>(Task, Func<..., Task>)` | Async AndThen (async transform) |
+| `AndThen<TError>(Task, Func<Task>)` | Async AndThen for void results |
+| `AndThen<TError>(Task, Func)` | Async AndThen for void results (sync) |
+| `MapErr<T, TError, TNewError>(Task, Func)` | Async MapErr |
+
+### Deprecated Members
+
+The following members are deprecated and will be removed in a future release. They still compile but emit `[Obsolete]` warnings:
+
+| Deprecated | Replacement |
+|------------|-------------|
+| `IsSuccess` | `IsOk` |
+| `IsFailure` | `IsErr` |
+| `UnwrapError()` | `UnwrapErr()` |
+| `ValueOr(T)` | `UnwrapOr(T)` |
+| `ValueOr(Func<TError, T>)` | `UnwrapOrElse(Func<TError, T>)` |
+| `Then<TNew>(Func<T, TNew>)` | `Map<TNew>(Func<T, TNew>)` |
+| `Then<TNew>(Func<T, Result<TNew, TError>>)` | `AndThen<TNew>(Func<T, Result<TNew, TError>>)` |
+| `Then(Result)` | `And(Result)` |
+| `MapError<TNewError>(...)` | `MapErr<TNewError>(...)` |
+| `Match<TResult>(...)` | `MapOrElse<TResult>(...)` |
+| `OnSuccess(Action)` | `Inspect(Action)` |
+| `OnFailure(Action)` | `InspectErr(Action)` |
+| Async `Then` overloads | Async `Map` / `AndThen` |
+| Async `ThenError` | Async `MapErr` |

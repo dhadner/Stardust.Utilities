@@ -20,7 +20,7 @@ public sealed class PeParseResult
 }
 
 /// <summary>
-/// Demonstrates <see cref="Result{T, TError}"/> with <c>.Then()</c> chaining
+/// Demonstrates <see cref="Result{T, TError}"/> with <c>.AndThen()</c> chaining
 /// to validate and parse PE file headers in a pipeline style.
 /// Each step either succeeds with progressively richer data
 /// or short-circuits with a descriptive error string.
@@ -37,9 +37,9 @@ public static class PeParser
     public static Result<PeParseResult, string> Parse(byte[] bytes)
     {
         return ValidateDosHeader(bytes)
-            .Then(dos => ValidatePeSignature(bytes, dos))
-            .Then(context => ParseCoffHeader(bytes, context))
-            .Then(context => BuildResult(bytes, context));
+            .AndThen(dos => ValidatePeSignature(bytes, dos))
+            .AndThen(context => ParseCoffHeader(bytes, context))
+            .AndThen(context => BuildResult(bytes, context));
     }
 
     // ── Pipeline stages ──────────────────────────────────────
