@@ -13,7 +13,7 @@
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for 'BitFields' records and bit manipulation, 'Result&lt;T,E&gt;' error handling, 'Option&lt;T&gt;' values, and endian-aware data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
 		<PackageTags>utilities;bitfields;source-generator;result;option;big-endian;error-handling;endian;monad;optional;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>Added Option&lt;T&gt; type (Rust-inspired optional values with zero heap allocation). Renamed Result API to Rust-parity conventions (IsOk, IsErr, Map, AndThen, etc.) with deprecated shims for backwards compatibility. Added [BitField] reversed bit-order acceptance and End+Width Start derivation. Added optional 'Saturating' parameter on [BitField] properties to clamp values to fit the bit width. Removed the deprecated [BitFieldsView] attribute -- use the [BitFields] attribute on 'record struct' types instead.</PackageReleaseNotes>
+		<PackageReleaseNotes>Added ability to infer BitFields struct size based on the declared fields - defaults to smallest unsigned size that can contain all the defined bits. Existing features continue to work as before.</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
@@ -85,9 +85,27 @@
 		<None Include=".github\workflows\dependency-submission.yml" />
 		<None Include=".github\workflows\deploy-demo.yml" />
 		<None Include="DiagramGen\DiagramGen.csproj" />
-		<None Include="PRIVACY.md" />
+		<None Include="BITFIELDS.md" Pack="true" PackagePath="" />
+		<None Include="RESULT.md" Pack="true" PackagePath="" />
+		<None Include="OPTION.md" Pack="true" PackagePath="" />
+		<None Include="ENDIAN.md" Pack="true" PackagePath="" />
+		<None Include="EXTENSIONS.md" Pack="true" PackagePath="" />
+		<None Include="SECURITY.md" Pack="true" PackagePath="" />
+		<None Include="CHANGELOG.md" Pack="true" PackagePath="" />
+		<None Include="PRIVACY.md" Pack="true" PackagePath="" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<!-- Pack screenshot images so README.md relative links resolve inside the NuGet package.
+		 PackagePath matches the repo directory so the same relative paths work on both
+		 GitHub (repo filesystem) and NuGet.org (package contents). -->
+	<ItemGroup>
+		<None Include="Graphics\TCPHeaderDiagram.png" Pack="true" PackagePath="Graphics" />
+		<None Include="Graphics\PEHeaderViewDemo.png" Pack="true" PackagePath="Graphics" />
+		<None Include="Graphics\NetworkPacketViewDemo.png" Pack="true" PackagePath="Graphics" />
+		<None Include="Graphics\CPURegisterLabDemo.png" Pack="true" PackagePath="Graphics" />
+		<None Include="Graphics\FP-Lab-Demo.png" Pack="true" PackagePath="Graphics" />
 	</ItemGroup>
 
 	<!-- Pack the generator DLL as an analyzer (for NuGet package) -->

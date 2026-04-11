@@ -473,7 +473,7 @@ Result<Option<int>, string>.Err("fail").Transpose();
 // Some(Err("fail"))
 ```
 
-See also [OPTION.md](https://github.com/dhadner/Stardust.Utilities/blob/main/OPTION.md) for the corresponding `Option.OkOr`, `Option.OkOrElse`, and `Option.Transpose` methods.
+See also [OPTION.md](OPTION.md) for the corresponding `Option.OkOr`, `Option.OkOrElse`, and `Option.Transpose` methods.
 
 ## Async Support
 

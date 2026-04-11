@@ -38,6 +38,15 @@ namespace Stardust.Utilities;
 /// [BitFields(typeof(ushort), UndefinedBitsMustBe.Zeroes)]
 /// public partial struct ProtocolHeader { ... }
 /// 
+/// // Auto-sized: generator picks the smallest backing type for the declared fields
+/// [BitFields]
+/// public partial struct AutoReg
+/// {
+///     [BitField(0, End = 3)] public partial byte LowNibble { get; set; }
+///     [BitFlag(7)] public partial bool Flag { get; set; }
+/// }
+/// // LowNibble ends at bit 3, Flag at bit 7 → 8 bits needed → byte backing
+/// 
 /// // Arbitrary-size bitfields (multi-word backing store):
 /// [BitFields(200)]  // 200 bits backed by 4 x ulong
 /// public partial struct WideRegister { ... }
@@ -82,8 +91,9 @@ public sealed class BitFieldsAttribute : Attribute
     /// <summary>
     /// Specifies how undefined bits (bits not covered by any field or flag) are handled.
     /// Default is <see cref="UndefinedBitsMustBe.Any"/> which preserves raw data.
+    /// Can be set as a named argument: <c>[BitFields(UndefinedBits = UndefinedBitsMustBe.Zeroes)]</c>.
     /// </summary>
-    public UndefinedBitsMustBe UndefinedBits { get; }
+    public UndefinedBitsMustBe UndefinedBits { get; set; }
 
     /// <summary>
     /// The byte order used for serialization (ReadFrom/WriteTo/ToByteArray).
@@ -130,11 +140,15 @@ public sealed class BitFieldsAttribute : Attribute
     }
 
     /// <summary>
-    /// Creates a BitFields attribute for a zero-copy buffer view (<c>partial record struct</c>).
-    /// When applied to a <c>record struct</c>, the generator produces a view over <c>Memory&lt;byte&gt;</c>
-    /// instead of a value type with inline storage.
+    /// Creates an auto-sized BitFields attribute.
+    /// When applied to a <c>partial struct</c>, the generator automatically selects the smallest
+    /// unsigned primitive (<c>byte</c>, <c>ushort</c>, <c>uint</c>, <c>ulong</c>) that can hold
+    /// all declared <c>[BitField]</c> and <c>[BitFlag]</c> properties. If the fields require more
+    /// than 64 bits, a multi-word backing store is used.
+    /// When applied to a <c>partial record struct</c>, the generator produces a zero-copy view
+    /// over <c>Memory&lt;byte&gt;</c>.
     /// </summary>
-    /// <param name="byteOrder">Byte order for multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
+    /// <param name="byteOrder">Byte order for serialization / multi-byte field access. Defaults to <see cref="ByteOrder.LittleEndian"/>.</param>
     /// <param name="bitOrder">Bit numbering convention. Defaults to <see cref="BitOrder.BitZeroIsLsb"/>.</param>
     public BitFieldsAttribute(ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.BitZeroIsLsb)
     {

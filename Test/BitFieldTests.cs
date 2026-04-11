@@ -1487,6 +1487,291 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+    #region Auto-Sized [BitFields] Tests
+
+    /// <summary>
+    /// Auto-sized struct resolves to byte (max bit = 7).
+    /// Verifies identical behavior to the explicit [BitFields(typeof(byte))] GeneratedStatusReg8.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_GetAndSet()
+    {
+        AutoSizedReg8 reg = 0;
+
+        reg.Ready.Should().BeFalse();
+        reg.Error.Should().BeFalse();
+        reg.Busy.Should().BeFalse();
+        reg.Mode.Should().Be(OpMode.Mode0);
+        reg.Priority.Should().Be(0);
+
+        reg.Ready = true;
+        reg.Error = true;
+        reg.Busy = true;
+        reg.Mode = OpMode.Mode5;
+        reg.Priority = 3;
+
+        reg.Ready.Should().BeTrue();
+        reg.Error.Should().BeTrue();
+        reg.Busy.Should().BeTrue();
+        reg.Mode.Should().Be(OpMode.Mode5);
+        reg.Priority.Should().Be(3);
+
+        // FlagA(0)=1, FlagB(1)=1, Mode(2-4)=5, Priority(5-6)=3, Busy(7)=1
+        // = 0x01 | 0x02 | (5<<2) | (3<<5) | 0x80 = 0x01|0x02|0x14|0x60|0x80 = 0xF7
+        ((byte)reg).Should().Be(0xF7);
+    }
+
+    /// <summary>
+    /// Auto-sized struct resolves to byte when SIZE_IN_BYTES = 1.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_SizeInBytes()
+    {
+        AutoSizedReg8.SIZE_IN_BYTES.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with max bit 15 resolves to ushort.
+    /// </summary>
+    [Fact]
+    public void AutoSized16_GetAndSet()
+    {
+        AutoSizedReg16 reg = 0;
+
+        reg.SecondKeyCode = 0x1A;
+        reg.SecondKeyUp = true;
+        reg.FirstKeyCode = 0x3F;
+        reg.FirstKeyUp = true;
+
+        reg.SecondKeyCode.Should().Be(0x1A);
+        reg.SecondKeyUp.Should().BeTrue();
+        reg.FirstKeyCode.Should().Be(0x3F);
+        reg.FirstKeyUp.Should().BeTrue();
+
+        AutoSizedReg16.SIZE_IN_BYTES.Should().Be(2);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with max bit 29 resolves to uint.
+    /// </summary>
+    [Fact]
+    public void AutoSized32_GetAndSet()
+    {
+        AutoSizedReg32 reg = 0;
+
+        reg.Address = 0xABCDEF;
+        reg.Command = 0xF;
+        reg.Enable = true;
+        reg.Interrupt = true;
+
+        reg.Address.Should().Be(0xABCDEF);
+        reg.Command.Should().Be(0xF);
+        reg.Enable.Should().BeTrue();
+        reg.Interrupt.Should().BeTrue();
+
+        AutoSizedReg32.SIZE_IN_BYTES.Should().Be(4);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with max bit 57 resolves to ulong.
+    /// </summary>
+    [Fact]
+    public void AutoSized64_GetAndSet()
+    {
+        AutoSizedReg64 reg = 0;
+
+        reg.Status = 0xAB;
+        reg.Data = 0x1234;
+        reg.Address = 0xDEADBEEF;
+        reg.Valid = true;
+        reg.Ready = true;
+
+        reg.Status.Should().Be(0xAB);
+        reg.Data.Should().Be(0x1234);
+        reg.Address.Should().Be(0xDEADBEEF);
+        reg.Valid.Should().BeTrue();
+        reg.Ready.Should().BeTrue();
+
+        AutoSizedReg64.SIZE_IN_BYTES.Should().Be(8);
+    }
+
+    /// <summary>
+    /// Auto-sized matches explicit typeof(byte) behavior: same raw value for same field values.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_MatchesExplicit()
+    {
+        GeneratedStatusReg8 explicitReg = 0;
+        AutoSizedReg8 autoReg = 0;
+
+        explicitReg.Ready = true;
+        explicitReg.Mode = OpMode.Mode3;
+        explicitReg.Priority = 2;
+
+        autoReg.Ready = true;
+        autoReg.Mode = OpMode.Mode3;
+        autoReg.Priority = 2;
+
+        ((byte)explicitReg).Should().Be((byte)autoReg);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with 5 bits (bits 0-4) resolves to byte (5 bits fit in 8).
+    /// Verifies right-sized behavior matches [BitFields(5)].
+    /// </summary>
+    [Fact]
+    public void AutoSized5Bits_GetAndSet()
+    {
+        AutoSizedReg5 reg = 0;
+
+        reg.Low = 0x7;  // 3 bits max
+        reg.High = 0x3; // 2 bits max
+
+        reg.Low.Should().Be(0x7);
+        reg.High.Should().Be(0x3);
+
+        // Low(0-2)=7, High(3-4)=3 → 0x07 | (3<<3) = 0x07 | 0x18 = 0x1F
+        ((byte)reg).Should().Be(0x1F);
+        AutoSizedReg5.SIZE_IN_BYTES.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with 10 bits (bits 0-9) resolves to ushort (10 bits > 8 so not byte).
+    /// </summary>
+    [Fact]
+    public void AutoSized10Bits_UsesUshort()
+    {
+        AutoSizedReg10 reg = 0;
+
+        reg.Lo = 0xFF;  // 8-bit field
+        reg.Hi = 0x3;   // 2-bit field
+
+        reg.Lo.Should().Be(0xFF);
+        reg.Hi.Should().Be(0x3);
+
+        AutoSizedReg10.SIZE_IN_BYTES.Should().Be(2);
+    }
+
+    /// <summary>
+    /// Auto-sized struct can use implicit conversion round-trip.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_ImplicitConversion()
+    {
+        AutoSizedReg8 reg = 0xFF;
+        ((byte)reg).Should().Be(0xFF);
+        reg.Ready.Should().BeTrue();
+        reg.Error.Should().BeTrue();
+        reg.Busy.Should().BeTrue();
+
+        byte value = reg;
+        value.Should().Be(0xFF);
+    }
+
+    /// <summary>
+    /// Auto-sized struct JSON round-trips correctly.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_JsonRoundTrip()
+    {
+        AutoSizedReg8 reg = 0;
+        reg.Ready = true;
+        reg.Mode = OpMode.Mode5;
+
+        var json = System.Text.Json.JsonSerializer.Serialize(reg);
+        var deserialized = System.Text.Json.JsonSerializer.Deserialize<AutoSizedReg8>(json);
+
+        ((byte)deserialized).Should().Be((byte)reg);
+    }
+
+    /// <summary>
+    /// Auto-sized struct supports With methods.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_WithMethods()
+    {
+        AutoSizedReg8 reg = 0;
+        var result = reg.WithReady(true).WithMode(OpMode.Mode7).WithBusy(true);
+
+        result.Ready.Should().BeTrue();
+        result.Mode.Should().Be(OpMode.Mode7);
+        result.Busy.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Auto-sized struct with UndefinedBits = Zeroes enforces zeroed undefined bits.
+    /// </summary>
+    [Fact]
+    public void AutoSizedWithUndefinedBitsZeroes_EnforcesZeroes()
+    {
+        // Bits 0-4 are defined, bits 5-7 are undefined.
+        // Assigning 0xFF should clear the undefined bits.
+        AutoSizedUndefinedZeroes reg = 0xFF;
+        ((byte)reg).Should().Be(0x1F); // only bits 0-4 preserved
+        reg.AllDefined.Should().Be(0x1F);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with flags-only (1-bit fields) resolves to byte.
+    /// </summary>
+    [Fact]
+    public void AutoSizedFlagsOnly_GetAndSet()
+    {
+        AutoSizedFlagsOnly reg = 0;
+
+        reg.A.Should().BeFalse();
+        reg.B.Should().BeFalse();
+        reg.C.Should().BeFalse();
+
+        reg.A = true;
+        reg.B = true;
+        reg.C = true;
+
+        reg.A.Should().BeTrue();
+        reg.B.Should().BeTrue();
+        reg.C.Should().BeTrue();
+
+        // A(0)=1, B(3)=1, C(7)=1 → 0x01 | 0x08 | 0x80 = 0x89
+        ((byte)reg).Should().Be(0x89);
+        AutoSizedFlagsOnly.SIZE_IN_BYTES.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Auto-sized struct with 33 bits resolves to ulong (>32 bits).
+    /// </summary>
+    [Fact]
+    public void AutoSized33Bits_UsesUlong()
+    {
+        AutoSizedReg33 reg = 0;
+
+        reg.Lo = 0xFFFFFFFF; // 32-bit field
+        reg.Hi = true;       // bit 32
+
+        reg.Lo.Should().Be(0xFFFFFFFF);
+        reg.Hi.Should().BeTrue();
+
+        AutoSizedReg33.SIZE_IN_BYTES.Should().Be(8);
+    }
+
+    /// <summary>
+    /// Auto-sized struct supports parse/format round-trip.
+    /// </summary>
+    [Fact]
+    public void AutoSized8_ParseRoundTrip()
+    {
+        AutoSizedReg8 reg = 0;
+        reg.Ready = true;
+        reg.Busy = true;
+        reg.Mode = OpMode.Mode3;
+
+        string s = reg.ToString();
+        AutoSizedReg8 parsed = AutoSizedReg8.Parse(s, null);
+
+        ((byte)parsed).Should().Be((byte)reg);
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -1687,6 +1972,112 @@ public partial struct EndAndWidthOnlyReg
 {
     [BitField(End = 7, Width = 4)] public partial byte UpperNibble { get; set; }
     [BitField(End = 3, Width = 4)] public partial byte LowerNibble { get; set; }
+}
+
+// ── Auto-sized [BitFields] test structs ─────────────────────────────
+
+/// <summary>
+/// Auto-sized: max bit = 7 (Busy flag) → byte backing.
+/// Same layout as GeneratedStatusReg8 to verify identical behavior.
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg8
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(1)] public partial bool Error { get; set; }
+    [BitFlag(7)] public partial bool Busy { get; set; }
+    [BitField(2, End = 4)] public partial OpMode Mode { get; set; }    // bits 2..=4 (3 bits)
+    [BitField(5, End = 6)] public partial byte Priority { get; set; }  // bits 5..=6 (2 bits)
+}
+
+/// <summary>
+/// Auto-sized: max bit = 15 (FirstKeyUp flag) → ushort backing.
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg16
+{
+    [BitField(0, End = 6)] public partial byte SecondKeyCode { get; set; }  // bits 0..=6 (7 bits)
+    [BitFlag(7)] public partial bool SecondKeyUp { get; set; }
+    [BitField(8, End = 14)] public partial byte FirstKeyCode { get; set; }  // bits 8..=14 (7 bits)
+    [BitFlag(15)] public partial bool FirstKeyUp { get; set; }
+}
+
+/// <summary>
+/// Auto-sized: max bit = 29 (Interrupt flag) → uint backing.
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg32
+{
+    [BitField(0, End = 23)] public partial uint Address { get; set; }   // bits 0..=23 (24 bits)
+    [BitField(24, End = 27)] public partial byte Command { get; set; }  // bits 24..=27 (4 bits)
+    [BitFlag(28)] public partial bool Enable { get; set; }
+    [BitFlag(29)] public partial bool Interrupt { get; set; }
+}
+
+/// <summary>
+/// Auto-sized: max bit = 57 (Ready flag) → ulong backing.
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg64
+{
+    [BitField(0, End = 7)] public partial byte Status { get; set; }     // bits 0..=7 (8 bits)
+    [BitField(8, End = 23)] public partial ushort Data { get; set; }    // bits 8..=23 (16 bits)
+    [BitField(24, End = 55)] public partial uint Address { get; set; }  // bits 24..=55 (32 bits)
+    [BitFlag(56)] public partial bool Valid { get; set; }
+    [BitFlag(57)] public partial bool Ready { get; set; }
+}
+
+/// <summary>
+/// Auto-sized: max bit = 4 → byte backing (5 bits needed, fits in 8).
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg5
+{
+    [BitField(0, End = 2)] public partial byte Low { get; set; }   // bits 0..=2 (3 bits)
+    [BitField(3, End = 4)] public partial byte High { get; set; }  // bits 3..=4 (2 bits)
+}
+
+/// <summary>
+/// Auto-sized: max bit = 9 → ushort backing (10 bits needed, > 8).
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg10
+{
+    [BitField(0, End = 7)] public partial byte Lo { get; set; }   // bits 0..=7 (8 bits)
+    [BitField(8, End = 9)] public partial byte Hi { get; set; }   // bits 8..=9 (2 bits)
+}
+
+/// <summary>
+/// Auto-sized with UndefinedBits set via named property.
+/// Max bit = 4, undefined bits 5-7 must be zeroes.
+/// </summary>
+[BitFields(UndefinedBits = UndefinedBitsMustBe.Zeroes)]
+public partial struct AutoSizedUndefinedZeroes
+{
+    [BitField(0, End = 2)] public partial byte Low { get; set; }
+    [BitField(3, End = 4)] public partial byte High { get; set; }
+    [BitField(0, End = 4)] public partial byte AllDefined { get; set; }
+}
+
+/// <summary>
+/// Auto-sized with flags only (no multi-bit fields). Max bit = 7 → byte.
+/// </summary>
+[BitFields]
+public partial struct AutoSizedFlagsOnly
+{
+    [BitFlag(0)] public partial bool A { get; set; }
+    [BitFlag(3)] public partial bool B { get; set; }
+    [BitFlag(7)] public partial bool C { get; set; }
+}
+
+/// <summary>
+/// Auto-sized: max bit = 32 → ulong backing (33 bits needed, > 32).
+/// </summary>
+[BitFields]
+public partial struct AutoSizedReg33
+{
+    [BitField(0, End = 31)] public partial uint Lo { get; set; }  // bits 0..=31 (32 bits)
+    [BitFlag(32)] public partial bool Hi { get; set; }            // bit 32
 }
 
 #endregion

@@ -374,7 +374,8 @@ internal static class GeneratorUtils
         var firstArg = bitFieldsAttr.ConstructorArguments[0];
 
         // Int-based constructor: [BitFields(N)] — exact width required
-        if (firstArg.Value is int intValue && firstArg.Type?.Name != "StorageType")
+        // Exclude ByteOrder enum (used by auto-sized/view constructors).
+        if (firstArg.Value is int intValue && firstArg.Type?.Name != "StorageType" && firstArg.Type?.Name != "ByteOrder")
         {
             if (intValue < 1 || intValue > 64) return null;
             string nativeType = intValue <= 8 ? "byte"
@@ -436,7 +437,8 @@ internal static class GeneratorUtils
         var firstArg = bitFieldsAttr.ConstructorArguments[0];
 
         // Int-based constructor: [BitFields(N)] where N > 64
-        if (firstArg.Value is int intValue && firstArg.Type?.Name != "StorageType")
+        // Exclude ByteOrder enum (used by auto-sized/view constructors).
+        if (firstArg.Value is int intValue && firstArg.Type?.Name != "StorageType" && firstArg.Type?.Name != "ByteOrder")
         {
             if (intValue <= 64 || intValue > BitFieldsMultiWordGenerator.MAX_BIT_COUNT)
                 return null;

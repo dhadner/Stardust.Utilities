@@ -802,7 +802,7 @@ To see what the generator produces:
 
 ## Version History
 
-See [CHANGELOG.md](https://github.com/dhadner/Stardust.Utilities/blob/main/CHANGELOG.md) for detailed version history and release notes.
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history and release notes.
 
 ## API Simplification Trade Study (v0.3.0)
 

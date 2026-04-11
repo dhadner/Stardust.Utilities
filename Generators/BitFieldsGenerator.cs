@@ -96,8 +96,9 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         string? storageType = null;
         bool isMultiWord = false;
         int bitCount = 0;
+        bool isAutoSized = false;
 
-        // Detect constructor form: [BitFields(typeof(T))] vs [BitFields(StorageType.X)] vs [BitFields(int)]
+        // Detect constructor form: [BitFields(typeof(T))] vs [BitFields(StorageType.X)] vs [BitFields(int)] vs [BitFields()] (auto-sized)
         if (bitFieldsAttr.ConstructorArguments.Length >= 1)
         {
             var firstArg = bitFieldsAttr.ConstructorArguments[0];
@@ -112,6 +113,11 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 {
                     // Enum-based constructor: [BitFields(StorageType.Byte)]
                     storageType = MapStorageTypeEnum(intValue);
+                }
+                else if (firstArg.Type?.Name == "ByteOrder")
+                {
+                    // (ByteOrder, BitOrder) constructor on a regular struct: auto-size
+                    isAutoSized = true;
                 }
                 else
                 {
@@ -137,7 +143,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             }
         }
 
-        if (storageType == null && !isMultiWord)
+        if (storageType == null && !isMultiWord && !isAutoSized)
             return null;
 
         bool storageTypeIsSigned;
@@ -145,7 +151,14 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         string? floatingPointType = null;
         string? nativeWideType = null;
 
-        if (isMultiWord)
+        if (isAutoSized)
+        {
+            // Placeholders -- will be resolved after field/flag parsing.
+            storageType = "byte";
+            storageTypeIsSigned = false;
+            unsignedStorageType = "byte";
+        }
+        else if (isMultiWord)
         {
             // MultiWord mode: storage is multiple ulongs
             storageTypeIsSigned = false;
@@ -384,6 +397,42 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         if (fields.Count == 0 && flags.Count == 0 && nonPartialProperties.Count == 0 && propertyDiagnostics.Count == 0)
             return null;
 
+        // ?? Auto-size resolution ????????????????????????????????????????
+        // When no storage type was specified on a regular struct, compute
+        // the minimum unsigned primitive that can hold every declared field
+        // and flag, or switch to multi-word if the fields exceed 64 bits.
+        if (isAutoSized)
+        {
+            int maxBit = -1;
+            foreach (var f in fields)
+            {
+                int endBit = f.Shift + f.Width - 1;
+                if (endBit > maxBit) maxBit = endBit;
+            }
+            foreach (var f in flags)
+            {
+                if (f.Bit > maxBit) maxBit = f.Bit;
+            }
+
+            int requiredBits = maxBit + 1;
+            if (requiredBits < 1) requiredBits = 8; // default to byte for diagnostics-only structs
+
+            bitCount = requiredBits;
+
+            if (requiredBits <= 8)       storageType = "byte";
+            else if (requiredBits <= 16) storageType = "ushort";
+            else if (requiredBits <= 32) storageType = "uint";
+            else if (requiredBits <= 64) storageType = "ulong";
+            else
+            {
+                isMultiWord = true;
+                storageType = "ulong";
+            }
+
+            storageTypeIsSigned = false;
+            unsignedStorageType = storageType;
+        }
+
         var ns = structSymbol.ContainingNamespace.IsGlobalNamespace
             ? null
             : structSymbol.ContainingNamespace.ToDisplayString();
@@ -405,27 +454,40 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
 
         // Read UndefinedBitsMustBe from 2nd constructor argument (default is Any = 0)
+        // For auto-sized structs, arg[1] is BitOrder not UndefinedBitsMustBe, so skip.
         var undefinedBitsMode = UndefinedBitsMustBe.Any;
-        if (bitFieldsAttr.ConstructorArguments.Length >= 2 && bitFieldsAttr.ConstructorArguments[1].Value is int modeValue)
+        if (!isAutoSized && bitFieldsAttr.ConstructorArguments.Length >= 2 && bitFieldsAttr.ConstructorArguments[1].Value is int modeValue)
         {
             undefinedBitsMode = (UndefinedBitsMustBe)modeValue;
         }
 
-        // Read BitOrder from 3rd constructor argument (default is BitZeroIsLsb = 1)
+        // Read BitOrder
         var bitOrder = BitOrder.BitZeroIsLsb;
-        if (bitFieldsAttr.ConstructorArguments.Length >= 3 && bitFieldsAttr.ConstructorArguments[2].Value is int bitOrderValue)
+        if (isAutoSized)
+        {
+            // (ByteOrder, BitOrder) constructor: arg[1] is BitOrder
+            if (bitFieldsAttr.ConstructorArguments.Length >= 2 && bitFieldsAttr.ConstructorArguments[1].Value is int autoSizedBitOrderValue)
+                bitOrder = (BitOrder)autoSizedBitOrderValue;
+        }
+        else if (bitFieldsAttr.ConstructorArguments.Length >= 3 && bitFieldsAttr.ConstructorArguments[2].Value is int bitOrderValue)
         {
             bitOrder = (BitOrder)bitOrderValue;
         }
 
-        // Read ByteOrder from 4th constructor argument (default is LittleEndian = 1)
+        // Read ByteOrder
         var byteOrder = ByteOrder.LittleEndian;
-        if (bitFieldsAttr.ConstructorArguments.Length >= 4 && bitFieldsAttr.ConstructorArguments[3].Value is int byteOrderValue)
+        if (isAutoSized)
+        {
+            // (ByteOrder, BitOrder) constructor: arg[0] is ByteOrder
+            if (bitFieldsAttr.ConstructorArguments.Length >= 1 && bitFieldsAttr.ConstructorArguments[0].Value is int autoSizedByteOrderValue)
+                byteOrder = (ByteOrder)autoSizedByteOrderValue;
+        }
+        else if (bitFieldsAttr.ConstructorArguments.Length >= 4 && bitFieldsAttr.ConstructorArguments[3].Value is int byteOrderValue)
         {
             byteOrder = (ByteOrder)byteOrderValue;
         }
 
-        // Read optional struct-level Description from named argument
+        // Read optional struct-level named arguments (Description, DescriptionResourceType, UndefinedBits)
         string? structDescription = null;
         Type? structDescriptionResourceType = null;
         foreach (var named in bitFieldsAttr.NamedArguments)
@@ -434,6 +496,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                 structDescription = sd;
             if (named.Key == "DescriptionResourceType" && named.Value.Value is Type sdResType)
                 structDescriptionResourceType = sdResType;
+            if (named.Key == "UndefinedBits" && named.Value.Value is int undefinedNamedValue)
+                undefinedBitsMode = (UndefinedBitsMustBe)undefinedNamedValue;
         }
 
         // Determine storage mode, word count, and total bits

@@ -16,7 +16,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
 
 ## Table of Contents
 
-[![Stardust Utilities](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
+[![Stardust Utilities](icon.png)](https://github.com/dhadner/Stardust.Utilities)
 
 - [Try It Live](#try-it-live)
 - [Installation](#installation)
@@ -45,22 +45,22 @@ The included demo app is a showcase of the library's capabilities, not a standal
 
 [Watch a video walkthrough of the demo app](https://github.com/dhadner/Stardust.Utilities/blob/main/Graphics/DemoWebVideo.mp4)
 
-![RFC Diagram](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/TCPHeaderDiagram.png)
+![RFC Diagram](Graphics/TCPHeaderDiagram.png)
 
-![PE Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/PEHeaderViewDemo.png)
+![PE Viewer](Graphics/PEHeaderViewDemo.png)
 
-![Network Packet](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/NetworkPacketViewDemo.png)
+![Network Packet](Graphics/NetworkPacketViewDemo.png)
 
-![CPU Register Lab](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/CPURegisterLabDemo.png)
+![CPU Register Lab](Graphics/CPURegisterLabDemo.png)
 
-![Composable FP Stream](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/FP-Lab-Demo.png)
+![Composable FP Stream](Graphics/FP-Lab-Demo.png)
 
 ---
 
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.8" />
+<PackageReference Include="Stardust.Utilities" Version="0.9.9" />
 ```
 
 That's it
@@ -90,7 +90,7 @@ This eliminates boilerplate code and makes working with hardware registers, S/W 
 nested protocol headers, instruction opcodes, file headers, and other bit-packed structures highly
 performant, readable and maintainable.
 
-See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for comprehensive
+See [BITFIELDS.md](BITFIELDS.md) for comprehensive
 documentation and examples.
 
 #### BitFields (Value Types)
@@ -173,6 +173,19 @@ compatibility:
 public partial struct StatusRegister { ... }
 ```
 
+Or let the generator pick the smallest backing type automatically:
+
+```csharp
+// Auto-sized: max bit = 7 (Busy flag) → generator selects byte
+[BitFields]
+public partial struct StatusRegister
+{
+    [BitFlag(0)] public partial bool Ready { get; set; }
+    [BitFlag(7)] public partial bool Busy { get; set; }
+    [BitField(2, End = 4)] public partial byte Mode { get; set; }
+}
+```
+
 The source generator automatically creates the property implementations during build.  The
 property type can be defined in your code.  For example, you can make the property types enums 
 for better readability with no runtime overhead:
@@ -235,7 +248,7 @@ The `[BitField]` and `[BitFlag]` property attributes work on both `struct` and `
 |-----------|------------|-------------|
 | `[BitFields(StorageType.X)]` | `StorageType` enum, optional `UndefinedBitsMustBe`, optional `BitOrder` | Value type (`struct`). Enum provides IntelliSense discovery of all supported types |
 | `[BitFields(typeof(T))]` | `T`: storage type, optional `UndefinedBitsMustBe`, optional `BitOrder` | Value type (`struct`). Equivalent to the enum form; exists for backward compatibility |
-| `[BitFields]` | Optional `ByteOrder`, optional `BitOrder` | Zero-copy view (`record struct`). Generator detects the `record` keyword |
+| `[BitFields]` | Optional `ByteOrder`, optional `BitOrder` | Auto-sized value type (`struct`) or zero-copy view (`record struct`). On a struct, the generator picks the smallest backing type for the declared fields. On a record struct, it produces a `Memory<byte>` view |
 | `[BitFlag(bit)]` | `bit`: 0-based position, optional `MustBe`, optional `Description` | Single-bit boolean flag |
 | `[BitField(start, End = N)]` | Named inclusive end, optional `MustBe`, optional `Description` | Multi-bit field (width = End - start + 1) |
 | `[BitField(start, Width = N)]` | Named bit count, optional `MustBe`, optional `Description` | Multi-bit field (N bits starting at start) |
@@ -270,6 +283,7 @@ the equivalent type-based form:
 | `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
 | `StorageType.Decimal` | `typeof(decimal)` | 128 bits | .NET decimal (96-bit coefficient + scale + sign) |
 | `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits. N <= 64 uses smallest backing type (`byte`/`ushort`/`uint`/`ulong`); N > 64 uses multi-word storage |
+| `[BitFields]` | `[BitFields]` | Auto | Auto-sized: generator computes the minimum bit width from declared fields and selects the smallest unsigned primitive |
 
 ##### Property Types
 
@@ -483,7 +497,7 @@ public partial struct PacketFlags
 }
 ```
 
-See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
+See [BITFIELDS.md](BITFIELDS.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
 
 ##### Nested Structs
 
@@ -709,7 +723,7 @@ generator produces a view over `Memory<byte>` -- reading and writing bits direct
 underlying buffer with no copies. The same `[BitField]` and `[BitFlag]` attributes work
 identically. The `record struct` keyword is all that changes.
 
-See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
+See [BITFIELDS.md](BITFIELDS.md) for
 comprehensive documentation and examples.
 
 ##### Quick Start
@@ -820,7 +834,7 @@ zero-copy on the same underlying buffer.
 > **Note:** The `[BitFieldsView]` attribute has been removed. Use `[BitFields]` on a `partial record struct`
 > instead -- the generator detects the `record` keyword and produces identical code.
 
-See [BITFIELDS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md) for
+See [BITFIELDS.md](BITFIELDS.md) for
 full documentation on nesting, mixed-endian scenarios, and write-through semantics.
 
 #### Pre-Defined Numeric Types
@@ -966,7 +980,7 @@ IEEE754Double d2 = 1.0;
 d2.Exponent = 3;                         // BiasedExponent = 3 + 1023 = 1026
 ```
 
-See [Numeric Decomposition Types](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#numeric-decomposition-types) in BITFIELDS.md for full details, constants, and classification property reference.
+See [Numeric Decomposition Types](BITFIELDS.md#numeric-decomposition-types) in BITFIELDS.md for full details, constants, and classification property reference.
 
 #### RFC Diagram Generator
 
@@ -991,7 +1005,7 @@ var diagram = new BitFieldDiagram(
 string multi = diagram.RenderToString().Value;
 ```
 
-See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/main/BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
+See [RFC Diagram Generator](BITFIELDS.md#rfc-diagram-generator) in BITFIELDS.md for full details.
 
 ---
 
@@ -999,7 +1013,7 @@ See [RFC Diagram Generator](https://github.com/dhadner/Stardust.Utilities/blob/m
 
 Railway-Oriented Programming (ROP) error handling without exceptions. Inspired by Rust's `Result<T, E>` type.
 
-See [RESULT.md](https://github.com/dhadner/Stardust.Utilities/blob/main/RESULT.md) for comprehensive documentation and examples.
+See [RESULT.md](RESULT.md) for comprehensive documentation and examples.
 
 #### Basic Usage
 
@@ -1079,7 +1093,7 @@ return Err("Something went wrong");
 
 Explicit optional values without null. Inspired by Rust's `Option<T>` type.
 
-See [OPTION.md](https://github.com/dhadner/Stardust.Utilities/blob/main/OPTION.md) for comprehensive documentation and examples.
+See [OPTION.md](OPTION.md) for comprehensive documentation and examples.
 
 ##### Performance
 
@@ -1183,7 +1197,7 @@ Option<int> fromResult = ok.ToOption();  // Some(42)
 
 Endian types guarantee byte ordering in memory regardless of host platform. Big-endian types store the most significant byte first (network order), little-endian types store the least significant byte first (x86 native order). These are complete numeric types with arithmetic, bitwise, and comparison operators.
 
-See [ENDIAN.md](https://github.com/dhadner/Stardust.Utilities/blob/main/ENDIAN.md) for comprehensive documentation and examples.
+See [ENDIAN.md](ENDIAN.md) for comprehensive documentation and examples.
 
 #### Available Types
 
@@ -1244,7 +1258,7 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 
 Utility extension methods for bit manipulation.
 
-See [EXTENSIONS.md](https://github.com/dhadner/Stardust.Utilities/blob/main/EXTENSIONS.md) for comprehensive documentation and examples.
+See [EXTENSIONS.md](EXTENSIONS.md) for comprehensive documentation and examples.
 
 ```csharp
 using Stardust.Utilities;
@@ -1281,7 +1295,7 @@ to your `[BitField]`/`[BitFlag]` property declarations (see
 **Solution:** 
 1. Ensure you have the NuGet package installed:
    ```xml
-    <PackageReference Include="Stardust.Utilities" Version="0.9.8" />
+    <PackageReference Include="Stardust.Utilities" Version="0.9.9" />
     ```
 2. Add the `partial` keyword to all `[BitField]` and `[BitFlag]` properties
 3. Clean and rebuild the solution
@@ -1373,7 +1387,7 @@ public partial struct StatusRegister
 
 This applies to both value-type structs and record struct views.
 
-### BitField syntax diagnostics (SD0015--SD0023)
+### BitField syntax diagnostics (SD0015-SD0023)
 
 The source generator validates `[BitField]` attribute usage and emits diagnostics when the
 syntax is ambiguous, redundant, or incomplete:
@@ -1506,7 +1520,7 @@ Contributions are welcome! Please read our guidelines before submitting issues o
 
 To report a security vulnerability, please use GitHub's private vulnerability reporting feature. **Do not report security issues through public GitHub issues.**
 
-See [SECURITY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/SECURITY.md) for details.
+See [SECURITY.md](SECURITY.md) for details.
 
 ---
 
@@ -1514,5 +1528,5 @@ See [SECURITY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/SECURI
 
 Stardust.Utilities does not collect, transmit, or store any personal data, telemetry, or usage information.
 
-See [PRIVACY.md](https://github.com/dhadner/Stardust.Utilities/blob/main/PRIVACY.md) for details.
+See [PRIVACY.md](PRIVACY.md) for details.
 

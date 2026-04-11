@@ -14,8 +14,8 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 ## Table of Contents
 
 **Getting Started**
-- [Quick Start -- Value Type (struct)](#quick-start----value-type-struct)
-- [Quick Start -- Zero-Copy View (record struct)](#quick-start----zero-copy-view-record-struct)
+- [Quick Start: Value Type (struct)](#quick-start-value-type-struct)
+- [Quick Start: Zero-Copy View (record struct)](#quick-start-zero-copy-view-record-struct)
 - [Choosing: struct vs record struct](#choosing-struct-vs-record-struct)
 
 **Shared Concepts**
@@ -26,7 +26,8 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 
 **Value Types (struct)**
 - [Supported Storage Types](#supported-storage-types)
-- [Native Integer Types (nint / nuint)](#native-integer-types-nint--nuint)
+- [Auto-Sized Storage](#auto-sized-storage)
+- [Native Integer Types (nint, nuint)](#native-integer-types-nint-nuint)
 - [Operators](#operators)
 - [Parsing and Formatting](#parsing-and-formatting)
 - [Static Bit and Mask Properties](#static-bit-and-mask-properties)
@@ -72,7 +73,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 
 ---
 
-## Quick Start -- Value Type (struct)
+## Quick Start: Value Type (struct)
 
 ```csharp
 [BitFields(StorageType.UInt16)]  // StorageType enum -- preferred
@@ -106,7 +107,7 @@ public partial struct KeyboardReg { ... }
 `[BitFields]` generates a value type with inline bit manipulation, full operator support,
 parsing, formatting, and implicit conversions. Zero heap allocations, zero abstraction penalty.
 
-## Quick Start -- Zero-Copy View (record struct)
+## Quick Start: Zero-Copy View (record struct)
 
 ```csharp
 [BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
@@ -181,7 +182,7 @@ determines the codegen path; the field attributes are the same either way:
 - `[BitField(4, End = 7)]` -- 4-bit field at bits 4, 5, 6, 7
 - `[BitField(3, Width = 1)]` -- 1-bit field at bit 3 only
 - `[BitField(Start = 0, Width = 8)]` -- fully named, 8-bit field
-- `[BitField(0, 2)]` -- positional syntax; emits SD0015 warning. Suppress globally via `.editorconfig` or `<NoWarn>` (see [BitField Syntax Diagnostics](#bitfield-syntax-diagnostics-sd0015sd0019)).
+- `[BitField(0, 2)]` -- positional syntax; emits SD0015 warning. Suppress globally via `.editorconfig` or `<NoWarn>` (see [BitField Syntax Diagnostics](#bitfield-syntax-diagnostics-sd0015-sd0023)).
 - `[BitField(7, 0)]`, `[BitField(Start = 7, End = 3)]`, `[BitField(7, End = 3)]` -- reversed order; values are swapped silently, identical to canonical order.
 - `[BitField(End = 7, Width = 4)]` -- Start derived as 7 - 4 + 1 = 4; equivalent to `[BitField(4, End = 7)]`.
 
@@ -360,7 +361,7 @@ mistakes before they happen. The `typeof(T)` form is also supported for backward
 | `StorageType.UInt16` / `.Int16` | `typeof(ushort)` / `typeof(short)` | 16 bits | |
 | `StorageType.UInt32` / `.Int32` | `typeof(uint)` / `typeof(int)` | 32 bits | |
 | `StorageType.UInt64` / `.Int64` | `typeof(ulong)` / `typeof(long)` | 64 bits | |
-| `StorageType.NUInt` / `.NInt` | `typeof(nuint)` / `typeof(nint)` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint--nuint) |
+| `StorageType.NUInt` / `.NInt` | `typeof(nuint)` / `typeof(nint)` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint-nuint) |
 | `StorageType.UInt128` / `.Int128` | `typeof(UInt128)` / `typeof(Int128)` | 128 bits | |
 | `StorageType.Half` | `typeof(Half)` | 16 bits | IEEE 754 half-precision |
 | `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
@@ -385,7 +386,64 @@ Using `typeof(T)` with a type not in this table (for example, `typeof(Guid)`) pr
 compiler error **SD0003**, which names the unsupported type and lists all valid alternatives.
 The `StorageType` enum avoids this entirely because only valid values appear in IntelliSense.
 
-## Native Integer Types (nint / nuint)
+## Auto-Sized Storage
+
+When `[BitFields]` is used on a `partial struct` without any storage type or bit count, the
+generator automatically selects the smallest unsigned primitive that can hold all declared
+fields and flags:
+
+```csharp
+[BitFields]   // no storage type -- generator picks byte (max bit = 7)
+public partial struct StatusReg
+{
+    [BitFlag(0)]           public partial bool Ready { get; set; }
+    [BitFlag(1)]           public partial bool Error { get; set; }
+    [BitField(2, End = 4)] public partial byte Mode { get; set; }     // bits 2-4
+    [BitField(5, End = 6)] public partial byte Priority { get; set; } // bits 5-6
+    [BitFlag(7)]           public partial bool Busy { get; set; }
+}
+
+StatusReg reg = 0xFF;   // implicit conversion from byte
+byte raw = reg;         // implicit conversion to byte
+```
+
+The generator scans every `[BitField]` end position and `[BitFlag]` bit position, computes
+`requiredBits = maxBitPosition + 1`, and selects:
+
+| Required Bits | Backing Type | Struct Size |
+|---------------|-------------|-------------|
+| 1--8          | `byte`      | 1 byte      |
+| 9--16         | `ushort`    | 2 bytes     |
+| 17--32        | `uint`      | 4 bytes     |
+| 33--64        | `ulong`     | 8 bytes     |
+| >64           | multi-word  | N/8 rounded up |
+
+All existing features work identically with auto-sized structs: operators, parsing, formatting,
+JSON serialization, `With` methods, implicit conversions, byte order, bit order, and composition.
+
+To specify `UndefinedBitsMustBe` with auto-sizing, use the named argument syntax:
+
+```csharp
+[BitFields(UndefinedBits = UndefinedBitsMustBe.Zeroes)]
+public partial struct StrictReg
+{
+    [BitField(0, End = 4)] public partial byte Data { get; set; }
+    // bits 5-7 are forced to zero
+}
+```
+
+To specify byte/bit order with auto-sizing:
+
+```csharp
+[BitFields(ByteOrder.BigEndian, BitOrder.BitZeroIsMsb)]
+public partial struct BigEndianAutoReg
+{
+    [BitField(0, End = 3)]  public partial byte High { get; set; }
+    [BitField(4, End = 7)]  public partial byte Low { get; set; }
+}
+```
+
+## Native Integer Types (nint, nuint)
 
 `nint` and `nuint` are platform-dependent native integer types: 32 bits wide in a 32-bit process,
 64 bits wide in a 64-bit process. They are useful for memory-mapped registers, pointer-sized
@@ -450,7 +508,7 @@ bit 55, not bit 24).
 Non-native storage types (`byte`, `uint`, `ulong`, etc.) are never affected by these diagnostics.
 Their bit widths are fixed regardless of platform.
 
-### BitField Syntax Diagnostics (SD0015--SD0023)
+### BitField Syntax Diagnostics (SD0015-SD0023)
 
 The source generator validates `[BitField]` attribute usage and emits diagnostics when the
 syntax is ambiguous, redundant, or incomplete:

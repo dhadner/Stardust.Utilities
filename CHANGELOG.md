@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once version 1.0 is released.
 
+## [0.9.9] - Release date TBD
+
+### 🟢 Added
+- **Auto-sized `[BitFields]` on value-type structs** -- `[BitFields]` can now be used on a `partial struct` without specifying a storage type or bit count. The generator examines all declared `[BitField]` and `[BitFlag]` properties, computes the minimum number of bits needed (highest bit position + 1), and selects the smallest unsigned primitive that can hold them: `byte` for 1--8 bits, `ushort` for 9--16, `uint` for 17--32, `ulong` for 33--64, or multi-word storage for >64. For example, a struct with fields spanning bits 0--7 and a flag at bit 15 auto-selects `ushort`. This eliminates the need to manually count bits and choose a storage type -- the generator does it for you. All existing features work identically: operators, parsing, formatting, JSON serialization, `With` methods, implicit conversions, `UndefinedBitsMustBe`, `ByteOrder`, `BitOrder`, and composition. `UndefinedBits` can be set via named argument syntax: `[BitFields(UndefinedBits = UndefinedBitsMustBe.Zeroes)]`. Includes 15 tests covering auto-sized byte/ushort/uint/ulong selection, 5-bit and 10-bit boundary cases, 33-bit promotion to ulong, flags-only structs, `UndefinedBitsMustBe` enforcement, implicit conversions, JSON round-trip, `With` methods, and parse/format round-trip.
+
+### 🟣 Changed
+- **`UndefinedBits` property on `[BitFields]` is now settable** -- the `UndefinedBits` property can now be set as a named argument (e.g., `[BitFields(UndefinedBits = UndefinedBitsMustBe.Zeroes)]`) in addition to the existing constructor parameter. This is especially useful with auto-sized structs where there is no constructor parameter for `UndefinedBitsMustBe`.
+
+### 🟤 Backwards Compatibility
+- Auto-sized `[BitFields]` is entirely additive. Existing code that specifies a storage type or bit count is unaffected.
+- Making `UndefinedBits` settable is a source-compatible change. Existing code that passes `UndefinedBitsMustBe` via constructor parameters continues to work identically.
+
 ## [0.9.8] - 2026-04-10
 
 ### 🟣 Changed
