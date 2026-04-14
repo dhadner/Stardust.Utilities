@@ -20,19 +20,19 @@ namespace Stardust.Utilities.Tests;
 public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEquatable<GuidBits128>,
                              IFormattable, ISpanFormattable, IParsable<GuidBits128>, ISpanParsable<GuidBits128>
 {
-    private ulong _w0; // bits 0-63
-    private ulong _w1; // bits 64-127
+    private ulong __w0; // bits 0-63
+    private ulong __w1; // bits 64-127
 
     /// <summary>Number of conceptual words in the backing store.</summary>
-    private const int WORD_COUNT = 2;
+    private const int __WORD_COUNT = 2;
 
     /// <summary>Total number of defined bits.</summary>
-    private const int TOTAL_BITS = 128;
+    private const int __TOTAL_BITS = 128;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 16;
 
-    private const ulong LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
+    private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
     /// <summary>Returns a GuidBits128 with all bits set to zero.</summary>
     public static GuidBits128 Zero => default;
@@ -42,8 +42,8 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     /// <param name="upper">Bits 64-127 (most significant).</param>
     public GuidBits128(ulong lower, ulong upper)
     {
-        _w0 = lower;
-        _w1 = upper;
+        __w0 = lower;
+        __w1 = upper;
     }
 
     /// <summary>Creates a new GuidBits128 from a ulong value (zero-extended).</summary>
@@ -55,24 +55,24 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     {
         ulong extended = unchecked((ulong)(long)value);
         ulong fill = value < 0 ? ulong.MaxValue : 0UL;
-        _w0 = extended;
-        _w1 = fill;
+        __w0 = extended;
+        __w1 = fill;
     }
 
     public partial ulong Low
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ulong)_w0;
+        get => (ulong)__w0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => _w0 = (ulong)value;
+        set => __w0 = (ulong)value;
     }
 
     public partial ulong High
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ulong)_w1;
+        get => (ulong)__w1;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => _w1 = (ulong)value;
+        set => __w1 = (ulong)value;
     }
 
     /// <summary>Returns a GuidBits128 with the mask for the Low field (bits 0-63).</summary>
@@ -102,23 +102,23 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GuidBits128 operator ~(GuidBits128 a) => new(~a._w0, ~a._w1);
+    public static GuidBits128 operator ~(GuidBits128 a) => new(~a.__w0, ~a.__w1);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GuidBits128 operator |(GuidBits128 a, GuidBits128 b) => new(a._w0 | b._w0, a._w1 | b._w1);
+    public static GuidBits128 operator |(GuidBits128 a, GuidBits128 b) => new(a.__w0 | b.__w0, a.__w1 | b.__w1);
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GuidBits128 operator &(GuidBits128 a, GuidBits128 b) => new(a._w0 & b._w0, a._w1 & b._w1);
+    public static GuidBits128 operator &(GuidBits128 a, GuidBits128 b) => new(a.__w0 & b.__w0, a.__w1 & b.__w1);
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GuidBits128 operator ^(GuidBits128 a, GuidBits128 b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1);
+    public static GuidBits128 operator ^(GuidBits128 a, GuidBits128 b) => new(a.__w0 ^ b.__w0, a.__w1 ^ b.__w1);
 
     /// <summary>Bitwise AND operator with ulong (applied to lowest word).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GuidBits128 operator &(GuidBits128 a, ulong b) => new(a._w0 & b, 0UL);
+    public static GuidBits128 operator &(GuidBits128 a, ulong b) => new(a.__w0 & b, 0UL);
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -131,9 +131,9 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     /// <summary>Addition operator with carry propagation.</summary>
     public static GuidBits128 operator +(GuidBits128 a, GuidBits128 b)
     {
-        ulong w0 = a._w0 + b._w0;
-        ulong c0 = (w0 < a._w0) ? 1UL : 0UL;
-        ulong w1 = a._w1 + b._w1 + c0;
+        ulong w0 = a.__w0 + b.__w0;
+        ulong c0 = (w0 < a.__w0) ? 1UL : 0UL;
+        ulong w1 = a.__w1 + b.__w1 + c0;
         return new(w0, w1);
     }
 
@@ -144,9 +144,9 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     /// <summary>Subtraction operator with borrow propagation.</summary>
     public static GuidBits128 operator -(GuidBits128 a, GuidBits128 b)
     {
-        ulong w0 = a._w0 - b._w0;
-        ulong borrow0 = (a._w0 < b._w0) ? 1UL : 0UL;
-        ulong diff1 = a._w1 - b._w1;
+        ulong w0 = a.__w0 - b.__w0;
+        ulong borrow0 = (a.__w0 < b.__w0) ? 1UL : 0UL;
+        ulong diff1 = a.__w1 - b.__w1;
         ulong w1 = diff1 - borrow0;
         return new(w0, w1);
     }
@@ -180,11 +180,11 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     public static GuidBits128 operator <<(GuidBits128 a, int amount)
     {
         if (amount <= 0) return a;
-        if (amount >= TOTAL_BITS) return default;
+        if (amount >= __TOTAL_BITS) return default;
         int wordShift = amount / 64;
         int bitShift = amount % 64;
         var result = default(GuidBits128);
-        for (int dst = WORD_COUNT - 1; dst >= 0; dst--)
+        for (int dst = __WORD_COUNT - 1; dst >= 0; dst--)
         {
             int src = dst - wordShift;
             if (src < 0) continue;
@@ -205,21 +205,21 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     public static GuidBits128 operator >>(GuidBits128 a, int amount)
     {
         if (amount <= 0) return a;
-        if (amount >= TOTAL_BITS) return default;
+        if (amount >= __TOTAL_BITS) return default;
         int wordShift = amount / 64;
         int bitShift = amount % 64;
         var result = default(GuidBits128);
-        for (int dst = 0; dst < WORD_COUNT; dst++)
+        for (int dst = 0; dst < __WORD_COUNT; dst++)
         {
             int src = dst + wordShift;
-            if (src >= WORD_COUNT) break;
+            if (src >= __WORD_COUNT) break;
             ulong val = GetWord(a, src);
             if (bitShift == 0)
                 SetWord(ref result, dst, val);
             else
             {
                 SetWord(ref result, dst, val >> bitShift);
-                if (src + 1 < WORD_COUNT)
+                if (src + 1 < __WORD_COUNT)
                     SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));
             }
         }
@@ -235,8 +235,8 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     {
         return index switch
         {
-            0 => v._w0,
-            1 => v._w1,
+            0 => v.__w0,
+            1 => v.__w1,
             _ => 0UL,
         };
     }
@@ -246,16 +246,16 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     {
         switch (index)
         {
-            case 0: v._w0 = value; break;
-            case 1: v._w1 = value; break;
+            case 0: v.__w0 = value; break;
+            case 1: v.__w1 = value; break;
         }
     }
 
     /// <summary>Less than operator.</summary>
     public static bool operator <(GuidBits128 a, GuidBits128 b)
     {
-        if (a._w1 != b._w1) return a._w1 < b._w1;
-        if (a._w0 != b._w0) return a._w0 < b._w0;
+        if (a.__w1 != b.__w1) return a.__w1 < b.__w1;
+        if (a.__w0 != b.__w0) return a.__w0 < b.__w0;
         return false;
     }
 
@@ -273,7 +273,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(GuidBits128 a, GuidBits128 b) => a._w0 == b._w0 && a._w1 == b._w1;
+    public static bool operator ==(GuidBits128 a, GuidBits128 b) => a.__w0 == b.__w0 && a.__w1 == b.__w1;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -285,7 +285,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode()
     {
-        return HashCode.Combine(_w0, _w1);
+        return HashCode.Combine(__w0, __w1);
     }
 
     /// <summary>Returns a hex string representation of the value.</summary>
@@ -309,7 +309,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
 
     /// <summary>Implicit conversion to UInt128.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator UInt128(GuidBits128 value) => ((UInt128)value._w1 << 64) | value._w0;
+    public static implicit operator UInt128(GuidBits128 value) => ((UInt128)value.__w1 << 64) | value.__w0;
 
     /// <summary>Implicit conversion from UInt128.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -318,15 +318,15 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     /// <summary>Converts this value to a BigInteger.</summary>
     public BigInteger ToBigInteger()
     {
-        BigInteger result = _w1;
-        result = (result << 64) | _w0;
+        BigInteger result = __w1;
+        result = (result << 64) | __w0;
         return result;
     }
 
     /// <summary>Creates a GuidBits128 from a BigInteger (truncated to 128 bits).</summary>
     public static GuidBits128 FromBigInteger(BigInteger value)
     {
-        if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
+        if (value.Sign < 0) value = (BigInteger.One << __TOTAL_BITS) + value;
         ulong w0 = (ulong)(value & ulong.MaxValue);
         value >>= 64;
         ulong w1 = (ulong)(value & ulong.MaxValue);
@@ -340,8 +340,8 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     {
         if (bytes.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-        _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
-        _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
+        __w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
+        __w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
     }
 
     /// <summary>Creates a new GuidBits128 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
@@ -357,8 +357,8 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), __w0);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), __w1);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -466,8 +466,8 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     /// <summary>Compares this instance to another GuidBits128.</summary>
     public int CompareTo(GuidBits128 other)
     {
-        if (_w1 != other._w1) return _w1.CompareTo(other._w1);
-        if (_w0 != other._w0) return _w0.CompareTo(other._w0);
+        if (__w1 != other.__w1) return __w1.CompareTo(other.__w1);
+        if (__w0 != other.__w0) return __w0.CompareTo(other.__w0);
         return 0;
     }
 

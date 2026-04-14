@@ -16,8 +16,8 @@ public partial class FloatingPointPropertyNonAlignedTests
     [JsonConverter(typeof(BigEndianOddViewJsonConverter))]
     public partial record struct BigEndianOddView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 10;
@@ -30,8 +30,8 @@ public partial class FloatingPointPropertyNonAlignedTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class FloatingPointPropertyNonAlignedTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal BigEndianOddView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial global::System.Half HalfVal
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return BitConverter.UInt16BitsToHalf((ushort)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(0)) >> 15) & 0xFFFFU));
                 }
-                int ep = 1 + _bitOffset;
+                int ep = 1 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -71,8 +71,8 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(0);
                     uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
@@ -81,7 +81,7 @@ public partial class FloatingPointPropertyNonAlignedTests
                 }
                 else
                 {
-                    int ep = 1 + _bitOffset;
+                    int ep = 1 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 15) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -99,12 +99,12 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((s[2] >> 5) & 0x03);
                 }
-                int ep = 17 + _bitOffset;
+                int ep = 17 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 1) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -113,14 +113,14 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[2] = (byte)((s[2] & 0x9F) | (((byte)value << 5) & 0x60));
                 }
                 else
                 {
-                    int ep = 17 + _bitOffset;
+                    int ep = 17 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 1) - bi * 8;
                     int sh = 16 - 1 - endInWindow;
@@ -138,12 +138,12 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return BitConverter.UInt32BitsToSingle((uint)((BinaryPrimitives.ReadUInt64BigEndian(s.Slice(2)) >> 29) & 0xFFFFFFFFUL));
                 }
-                int ep = 19 + _bitOffset;
+                int ep = 19 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -152,8 +152,8 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(2);
                     ulong raw = BinaryPrimitives.ReadUInt64BigEndian(slice);
@@ -162,7 +162,7 @@ public partial class FloatingPointPropertyNonAlignedTests
                 }
                 else
                 {
-                    int ep = 19 + _bitOffset;
+                    int ep = 19 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 31) - bi * 8;
                     int sh = 64 - 1 - endInWindow;
@@ -180,12 +180,12 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6)) & 0x1FFF);
                 }
-                int ep = 51 + _bitOffset;
+                int ep = 51 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 12) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -194,8 +194,8 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(6);
                     ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
@@ -204,7 +204,7 @@ public partial class FloatingPointPropertyNonAlignedTests
                 }
                 else
                 {
-                    int ep = 51 + _bitOffset;
+                    int ep = 51 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 12) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -222,21 +222,21 @@ public partial class FloatingPointPropertyNonAlignedTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x80) != 0;
-                int ep = 0 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x80) != 0;
+                int ep = 0 + __bitOffset;
                 return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x80) : (byte)(s[0] & 0x7F);
                     return;
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (7 - (ep & 7));
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -279,7 +279,7 @@ public partial class FloatingPointPropertyNonAlignedTests
             /// <summary>Writes a BigEndianOddView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, BigEndianOddView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

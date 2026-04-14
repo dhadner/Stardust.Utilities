@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWithNarrowFields>, IEquatable<PacketWithNarrowFields>,
                              IFormattable, ISpanFormattable, IParsable<PacketWithNarrowFields>, ISpanParsable<PacketWithNarrowFields>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,59 +27,59 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
 
     // --- Bit field mask constants ---
     // Status: bits [0..4], width 5
-    private const int STATUS_START_BIT = 0;
-    private const uint STATUS_MASK = 0x0000001FU;
-    private const uint STATUS_INVERTED_MASK = 0xFFFFFFE0U;  // ~STATUS_MASK
+    private const int __STATUS_START_BIT = 0;
+    private const uint __STATUS_MASK = 0x0000001FU;
+    private const uint __STATUS_INVERTED_MASK = 0xFFFFFFE0U;  // ~__STATUS_MASK
     // Sensor: bits [5..16], width 12
-    private const int SENSOR_START_BIT = 5;
-    private const uint SENSOR_MASK = 0x00000FFFU;
-    private const uint SENSOR_SHIFTED_MASK = 0x0001FFE0U;  // SENSOR_MASK << SENSOR_START_BIT
-    private const uint SENSOR_INVERTED_MASK = 0xFFFE001FU;  // ~SENSOR_SHIFTED_MASK
+    private const int __SENSOR_START_BIT = 5;
+    private const uint __SENSOR_MASK = 0x00000FFFU;
+    private const uint __SENSOR_SHIFTED_MASK = 0x0001FFE0U;  // __SENSOR_MASK << __SENSOR_START_BIT
+    private const uint __SENSOR_INVERTED_MASK = 0xFFFE001FU;  // ~__SENSOR_SHIFTED_MASK
     // SequenceNum: bits [17..31], width 15
-    private const int SEQUENCE_NUM_START_BIT = 17;
-    private const uint SEQUENCE_NUM_MASK = 0x00007FFFU;
-    private const uint SEQUENCE_NUM_SHIFTED_MASK = 0xFFFE0000U;  // SEQUENCE_NUM_MASK << SEQUENCE_NUM_START_BIT
-    private const uint SEQUENCE_NUM_INVERTED_MASK = 0x0001FFFFU;  // ~SEQUENCE_NUM_SHIFTED_MASK
+    private const int __SEQUENCE_NUM_START_BIT = 17;
+    private const uint __SEQUENCE_NUM_MASK = 0x00007FFFU;
+    private const uint __SEQUENCE_NUM_SHIFTED_MASK = 0xFFFE0000U;  // __SEQUENCE_NUM_MASK << __SEQUENCE_NUM_START_BIT
+    private const uint __SEQUENCE_NUM_INVERTED_MASK = 0x0001FFFFU;  // ~__SEQUENCE_NUM_SHIFTED_MASK
 
     /// <summary>Creates a new PacketWithNarrowFields with the specified raw bits value.</summary>
-    public PacketWithNarrowFields(uint value) { Value = value; }
+    public PacketWithNarrowFields(uint value) { __value = value; }
 
     public partial global::Stardust.Utilities.Tests.StatusCode5 Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusCode5)((byte)(Value & STATUS_MASK));
+        get => (global::Stardust.Utilities.Tests.StatusCode5)((byte)(__value & __STATUS_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set { var __ev = (byte)value;
-            Value = (uint)((Value & STATUS_INVERTED_MASK) | (((uint)__ev) & STATUS_MASK));
+            __value = (uint)((__value & __STATUS_INVERTED_MASK) | (((uint)__ev) & __STATUS_MASK));
         }
     }
 
     public partial global::Stardust.Utilities.Tests.SensorReading12 Sensor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.SensorReading12)((ushort)((Value >> SENSOR_START_BIT) & SENSOR_MASK));
+        get => (global::Stardust.Utilities.Tests.SensorReading12)((ushort)((__value >> __SENSOR_START_BIT) & __SENSOR_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set { var __ev = (ushort)value;
-            Value = (uint)((Value & SENSOR_INVERTED_MASK) | ((((uint)__ev) << SENSOR_START_BIT) & SENSOR_SHIFTED_MASK));
+            __value = (uint)((__value & __SENSOR_INVERTED_MASK) | ((((uint)__ev) << __SENSOR_START_BIT) & __SENSOR_SHIFTED_MASK));
         }
     }
 
     public partial ushort SequenceNum
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> SEQUENCE_NUM_START_BIT) & SEQUENCE_NUM_MASK);
+        get => (ushort)((__value >> __SEQUENCE_NUM_START_BIT) & __SEQUENCE_NUM_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & SEQUENCE_NUM_INVERTED_MASK) | ((((uint)value) << SEQUENCE_NUM_START_BIT) & SEQUENCE_NUM_SHIFTED_MASK));
+        set => __value = (uint)((__value & __SEQUENCE_NUM_INVERTED_MASK) | ((((uint)value) << __SEQUENCE_NUM_START_BIT) & __SEQUENCE_NUM_SHIFTED_MASK));
     }
 
     /// <summary>Returns a PacketWithNarrowFields with the mask for the Status field (bits 0-4).</summary>
-    public static PacketWithNarrowFields StatusMask => new(STATUS_MASK);
+    public static PacketWithNarrowFields StatusMask => new(__STATUS_MASK);
 
     /// <summary>Returns a PacketWithNarrowFields with the mask for the Sensor field (bits 5-16).</summary>
-    public static PacketWithNarrowFields SensorMask => new(SENSOR_SHIFTED_MASK);
+    public static PacketWithNarrowFields SensorMask => new(__SENSOR_SHIFTED_MASK);
 
     /// <summary>Returns a PacketWithNarrowFields with the mask for the SequenceNum field (bits 17-31).</summary>
-    public static PacketWithNarrowFields SequenceNumMask => new(SEQUENCE_NUM_SHIFTED_MASK);
+    public static PacketWithNarrowFields SequenceNumMask => new(__SEQUENCE_NUM_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -95,79 +95,79 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
 
     /// <summary>Returns a new PacketWithNarrowFields with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PacketWithNarrowFields WithStatus(global::Stardust.Utilities.Tests.StatusCode5 value) => new((uint)((Value & STATUS_INVERTED_MASK) | ((uint)value & STATUS_MASK)));
+    public PacketWithNarrowFields WithStatus(global::Stardust.Utilities.Tests.StatusCode5 value) => new((uint)((__value & __STATUS_INVERTED_MASK) | ((uint)value & __STATUS_MASK)));
 
     /// <summary>Returns a new PacketWithNarrowFields with the Sensor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PacketWithNarrowFields WithSensor(global::Stardust.Utilities.Tests.SensorReading12 value) => new((uint)((Value & SENSOR_INVERTED_MASK) | (((uint)value << SENSOR_START_BIT) & SENSOR_SHIFTED_MASK)));
+    public PacketWithNarrowFields WithSensor(global::Stardust.Utilities.Tests.SensorReading12 value) => new((uint)((__value & __SENSOR_INVERTED_MASK) | (((uint)value << __SENSOR_START_BIT) & __SENSOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new PacketWithNarrowFields with the SequenceNum field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PacketWithNarrowFields WithSequenceNum(ushort value) => new((uint)((Value & SEQUENCE_NUM_INVERTED_MASK) | (((uint)value << SEQUENCE_NUM_START_BIT) & SEQUENCE_NUM_SHIFTED_MASK)));
+    public PacketWithNarrowFields WithSequenceNum(ushort value) => new((uint)((__value & __SEQUENCE_NUM_INVERTED_MASK) | (((uint)value << __SEQUENCE_NUM_START_BIT) & __SEQUENCE_NUM_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator ~(PacketWithNarrowFields a) => new((uint)~a.Value);
+    public static PacketWithNarrowFields operator ~(PacketWithNarrowFields a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator |(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value | b.Value));
+    public static PacketWithNarrowFields operator |(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator &(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value & b.Value));
+    public static PacketWithNarrowFields operator &(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator ^(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value ^ b.Value));
+    public static PacketWithNarrowFields operator ^(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator &(PacketWithNarrowFields a, uint b) => new(a.Value & b);
+    public static PacketWithNarrowFields operator &(PacketWithNarrowFields a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator &(uint a, PacketWithNarrowFields b) => new(a & b.Value);
+    public static PacketWithNarrowFields operator &(uint a, PacketWithNarrowFields b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator |(PacketWithNarrowFields a, uint b) => new(a.Value | b);
+    public static PacketWithNarrowFields operator |(PacketWithNarrowFields a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator |(uint a, PacketWithNarrowFields b) => new(a | b.Value);
+    public static PacketWithNarrowFields operator |(uint a, PacketWithNarrowFields b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator ^(PacketWithNarrowFields a, uint b) => new(a.Value ^ b);
+    public static PacketWithNarrowFields operator ^(PacketWithNarrowFields a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator ^(uint a, PacketWithNarrowFields b) => new(a ^ b.Value);
+    public static PacketWithNarrowFields operator ^(uint a, PacketWithNarrowFields b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(PacketWithNarrowFields a, int b) => a.Value & (long)b;
+    public static long operator &(PacketWithNarrowFields a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, PacketWithNarrowFields b) => (long)a & b.Value;
+    public static long operator &(int a, PacketWithNarrowFields b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(PacketWithNarrowFields a, int b) => a.Value | (long)b;
+    public static long operator |(PacketWithNarrowFields a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, PacketWithNarrowFields b) => (long)a | b.Value;
+    public static long operator |(int a, PacketWithNarrowFields b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(PacketWithNarrowFields a, int b) => a.Value ^ (long)b;
+    public static long operator ^(PacketWithNarrowFields a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, PacketWithNarrowFields b) => (long)a ^ b.Value;
+    public static long operator ^(int a, PacketWithNarrowFields b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -175,115 +175,115 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a) => new(unchecked((uint)(0 - a.Value)));
+    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static PacketWithNarrowFields operator +(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator +(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a + b.Value)));
+    public static PacketWithNarrowFields operator +(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static PacketWithNarrowFields operator -(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator -(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a - b.Value)));
+    public static PacketWithNarrowFields operator -(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator *(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static PacketWithNarrowFields operator *(PacketWithNarrowFields a, PacketWithNarrowFields b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator *(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static PacketWithNarrowFields operator *(PacketWithNarrowFields a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator *(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a * b.Value)));
+    public static PacketWithNarrowFields operator *(uint a, PacketWithNarrowFields b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator /(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value / b.Value));
+    public static PacketWithNarrowFields operator /(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator /(PacketWithNarrowFields a, uint b) => new((uint)(a.Value / b));
+    public static PacketWithNarrowFields operator /(PacketWithNarrowFields a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator /(uint a, PacketWithNarrowFields b) => new((uint)(a / b.Value));
+    public static PacketWithNarrowFields operator /(uint a, PacketWithNarrowFields b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator %(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.Value % b.Value));
+    public static PacketWithNarrowFields operator %(PacketWithNarrowFields a, PacketWithNarrowFields b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator %(PacketWithNarrowFields a, uint b) => new((uint)(a.Value % b));
+    public static PacketWithNarrowFields operator %(PacketWithNarrowFields a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator %(uint a, PacketWithNarrowFields b) => new((uint)(a % b.Value));
+    public static PacketWithNarrowFields operator %(uint a, PacketWithNarrowFields b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator <<(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static PacketWithNarrowFields operator <<(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator >>(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static PacketWithNarrowFields operator >>(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PacketWithNarrowFields operator >>>(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static PacketWithNarrowFields operator >>>(PacketWithNarrowFields a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value < b.Value;
+    public static bool operator <(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value > b.Value;
+    public static bool operator >(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value <= b.Value;
+    public static bool operator <=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value >= b.Value;
+    public static bool operator >=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value == b.Value;
+    public static bool operator ==(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.Value != b.Value;
+    public static bool operator !=(PacketWithNarrowFields a, PacketWithNarrowFields b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is PacketWithNarrowFields other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is PacketWithNarrowFields other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(PacketWithNarrowFields value) => value.Value;
+    public static implicit operator uint(PacketWithNarrowFields value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator PacketWithNarrowFields(uint value) => new(value);
@@ -311,7 +311,7 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -495,7 +495,7 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -504,7 +504,7 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -521,13 +521,13 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     /// <param name="other">A PacketWithNarrowFields to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(PacketWithNarrowFields other) => Value.CompareTo(other.Value);
+    public int CompareTo(PacketWithNarrowFields other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another PacketWithNarrowFields.</summary>
     /// <param name="other">A PacketWithNarrowFields to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(PacketWithNarrowFields other) => Value == other.Value;
+    public bool Equals(PacketWithNarrowFields other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes PacketWithNarrowFields as a string.</summary>
     private sealed class PacketWithNarrowFieldsJsonConverter : JsonConverter<PacketWithNarrowFields>

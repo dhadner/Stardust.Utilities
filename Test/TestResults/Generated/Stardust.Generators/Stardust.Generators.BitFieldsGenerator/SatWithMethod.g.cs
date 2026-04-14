@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, IEquatable<SatWithMethod>,
                              IFormattable, ISpanFormattable, IParsable<SatWithMethod>, ISpanParsable<SatWithMethod>
 {
-    private short Value;
+    private short __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
@@ -27,29 +27,29 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
 
     // --- Bit field mask constants ---
     // Clamped: bits [0..5], width 6
-    private const int CLAMPED_START_BIT = 0;
-    private const ushort CLAMPED_MASK = 0x003F;
-    private const ushort CLAMPED_INVERTED_MASK = 0xFFC0;  // ~CLAMPED_MASK
-    private const short CLAMPED_SAT_MIN = -32;  // saturating: min for 6-bit signed field
-    private const short CLAMPED_SAT_MAX = 31;  // saturating: max for 6-bit signed field
+    private const int __CLAMPED_START_BIT = 0;
+    private const ushort __CLAMPED_MASK = 0x003F;
+    private const ushort __CLAMPED_INVERTED_MASK = 0xFFC0;  // ~__CLAMPED_MASK
+    private const short __CLAMPED_SAT_MIN = -32;  // saturating: min for 6-bit signed field
+    private const short __CLAMPED_SAT_MAX = 31;  // saturating: max for 6-bit signed field
 
     /// <summary>Creates a new SatWithMethod with the specified raw bits value.</summary>
-    public SatWithMethod(short value) { Value = value; }
+    public SatWithMethod(short value) { __value = value; }
 
     public partial short Clamped
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (short)(((int)(((ushort)Value) & CLAMPED_MASK) << 26) >> 26);
+        get => (short)(((int)(((ushort)__value) & __CLAMPED_MASK) << 26) >> 26);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var __sat = value < CLAMPED_SAT_MIN ? CLAMPED_SAT_MIN : value > CLAMPED_SAT_MAX ? CLAMPED_SAT_MAX : value;
-            Value = (short)((((ushort)Value) & CLAMPED_INVERTED_MASK) | (((ushort)__sat) & CLAMPED_MASK));
+            var __sat = value < __CLAMPED_SAT_MIN ? __CLAMPED_SAT_MIN : value > __CLAMPED_SAT_MAX ? __CLAMPED_SAT_MAX : value;
+            __value = (short)((((ushort)__value) & __CLAMPED_INVERTED_MASK) | (((ushort)__sat) & __CLAMPED_MASK));
         }
     }
 
     /// <summary>Returns a SatWithMethod with the mask for the Clamped field (bits 0-5).</summary>
-    public static SatWithMethod ClampedMask => new(unchecked((short)CLAMPED_MASK));
+    public static SatWithMethod ClampedMask => new(unchecked((short)__CLAMPED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -65,25 +65,25 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SatWithMethod WithClamped(short value)
     {
-        var __sat = value < CLAMPED_SAT_MIN ? CLAMPED_SAT_MIN : value > CLAMPED_SAT_MAX ? CLAMPED_SAT_MAX : value;
-        return new((short)((((ushort)Value) & CLAMPED_INVERTED_MASK) | ((ushort)__sat & CLAMPED_MASK)));
+        var __sat = value < __CLAMPED_SAT_MIN ? __CLAMPED_SAT_MIN : value > __CLAMPED_SAT_MAX ? __CLAMPED_SAT_MAX : value;
+        return new((short)((((ushort)__value) & __CLAMPED_INVERTED_MASK) | ((ushort)__sat & __CLAMPED_MASK)));
     }
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator ~(SatWithMethod a) => new((short)~a.Value);
+    public static SatWithMethod operator ~(SatWithMethod a) => new((short)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator |(SatWithMethod a, SatWithMethod b) => new((short)(a.Value | b.Value));
+    public static SatWithMethod operator |(SatWithMethod a, SatWithMethod b) => new((short)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator &(SatWithMethod a, SatWithMethod b) => new((short)(a.Value & b.Value));
+    public static SatWithMethod operator &(SatWithMethod a, SatWithMethod b) => new((short)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator ^(SatWithMethod a, SatWithMethod b) => new((short)(a.Value ^ b.Value));
+    public static SatWithMethod operator ^(SatWithMethod a, SatWithMethod b) => new((short)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,115 +91,115 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator -(SatWithMethod a) => new(unchecked((short)(-a.Value)));
+    public static SatWithMethod operator -(SatWithMethod a) => new(unchecked((short)(-a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator +(SatWithMethod a, SatWithMethod b) => new(unchecked((short)(a.Value + b.Value)));
+    public static SatWithMethod operator +(SatWithMethod a, SatWithMethod b) => new(unchecked((short)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator +(SatWithMethod a, short b) => new(unchecked((short)(a.Value + b)));
+    public static SatWithMethod operator +(SatWithMethod a, short b) => new(unchecked((short)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator +(short a, SatWithMethod b) => new(unchecked((short)(a + b.Value)));
+    public static SatWithMethod operator +(short a, SatWithMethod b) => new(unchecked((short)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator -(SatWithMethod a, SatWithMethod b) => new(unchecked((short)(a.Value - b.Value)));
+    public static SatWithMethod operator -(SatWithMethod a, SatWithMethod b) => new(unchecked((short)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator -(SatWithMethod a, short b) => new(unchecked((short)(a.Value - b)));
+    public static SatWithMethod operator -(SatWithMethod a, short b) => new(unchecked((short)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator -(short a, SatWithMethod b) => new(unchecked((short)(a - b.Value)));
+    public static SatWithMethod operator -(short a, SatWithMethod b) => new(unchecked((short)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator *(SatWithMethod a, SatWithMethod b) => new(unchecked((short)(a.Value * b.Value)));
+    public static SatWithMethod operator *(SatWithMethod a, SatWithMethod b) => new(unchecked((short)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator *(SatWithMethod a, short b) => new(unchecked((short)(a.Value * b)));
+    public static SatWithMethod operator *(SatWithMethod a, short b) => new(unchecked((short)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator *(short a, SatWithMethod b) => new(unchecked((short)(a * b.Value)));
+    public static SatWithMethod operator *(short a, SatWithMethod b) => new(unchecked((short)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator /(SatWithMethod a, SatWithMethod b) => new((short)(a.Value / b.Value));
+    public static SatWithMethod operator /(SatWithMethod a, SatWithMethod b) => new((short)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator /(SatWithMethod a, short b) => new((short)(a.Value / b));
+    public static SatWithMethod operator /(SatWithMethod a, short b) => new((short)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator /(short a, SatWithMethod b) => new((short)(a / b.Value));
+    public static SatWithMethod operator /(short a, SatWithMethod b) => new((short)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator %(SatWithMethod a, SatWithMethod b) => new((short)(a.Value % b.Value));
+    public static SatWithMethod operator %(SatWithMethod a, SatWithMethod b) => new((short)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator %(SatWithMethod a, short b) => new((short)(a.Value % b));
+    public static SatWithMethod operator %(SatWithMethod a, short b) => new((short)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatWithMethod operator %(short a, SatWithMethod b) => new((short)(a % b.Value));
+    public static SatWithMethod operator %(short a, SatWithMethod b) => new((short)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SatWithMethod a, int b) => a.Value << b;
+    public static int operator <<(SatWithMethod a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SatWithMethod a, int b) => a.Value >> b;
+    public static int operator >>(SatWithMethod a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SatWithMethod a, int b) => a.Value >>> b;
+    public static int operator >>>(SatWithMethod a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SatWithMethod a, SatWithMethod b) => a.Value < b.Value;
+    public static bool operator <(SatWithMethod a, SatWithMethod b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SatWithMethod a, SatWithMethod b) => a.Value > b.Value;
+    public static bool operator >(SatWithMethod a, SatWithMethod b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SatWithMethod a, SatWithMethod b) => a.Value <= b.Value;
+    public static bool operator <=(SatWithMethod a, SatWithMethod b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SatWithMethod a, SatWithMethod b) => a.Value >= b.Value;
+    public static bool operator >=(SatWithMethod a, SatWithMethod b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SatWithMethod a, SatWithMethod b) => a.Value == b.Value;
+    public static bool operator ==(SatWithMethod a, SatWithMethod b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SatWithMethod a, SatWithMethod b) => a.Value != b.Value;
+    public static bool operator !=(SatWithMethod a, SatWithMethod b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SatWithMethod other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SatWithMethod other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator short(SatWithMethod value) => value.Value;
+    public static implicit operator short(SatWithMethod value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SatWithMethod(short value) => new(value);
@@ -231,7 +231,7 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteInt16LittleEndian(destination, Value);
+        BinaryPrimitives.WriteInt16LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -415,7 +415,7 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -424,7 +424,7 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -441,13 +441,13 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     /// <param name="other">A SatWithMethod to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SatWithMethod other) => Value.CompareTo(other.Value);
+    public int CompareTo(SatWithMethod other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SatWithMethod.</summary>
     /// <param name="other">A SatWithMethod to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SatWithMethod other) => Value == other.Value;
+    public bool Equals(SatWithMethod other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SatWithMethod as a string.</summary>
     private sealed class SatWithMethodJsonConverter : JsonConverter<SatWithMethod>

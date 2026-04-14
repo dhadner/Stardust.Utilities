@@ -16,8 +16,8 @@ public partial class ExtensionsTests
     [JsonConverter(typeof(TcpControlWordViewJsonConverter))]
     public partial record struct TcpControlWordView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 4;
@@ -30,8 +30,8 @@ public partial class ExtensionsTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class ExtensionsTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal TcpControlWordView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial byte DataOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((s[3] >> 4) & 0x0F);
                 }
-                int ep = 28 + _bitOffset;
+                int ep = 28 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x000F);
@@ -70,14 +70,14 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[3] = (byte)((s[3] & 0x0F) | (((byte)value << 4) & 0xF0));
                 }
                 else
                 {
-                    int ep = 28 + _bitOffset;
+                    int ep = 28 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -94,12 +94,12 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((s[3] >> 1) & 0x07);
                 }
-                int ep = 25 + _bitOffset;
+                int ep = 25 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x0007);
@@ -107,14 +107,14 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[3] = (byte)((s[3] & 0xF1) | (((byte)value << 1) & 0x0E));
                 }
                 else
                 {
-                    int ep = 25 + _bitOffset;
+                    int ep = 25 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -131,12 +131,12 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.Tests.ExtensionsTests.TcpFlags)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(2)) & 0x01FF);
                 }
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (global::Stardust.Utilities.Tests.ExtensionsTests.TcpFlags)(ushort)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x01FF);
@@ -144,8 +144,8 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(2);
                     ushort raw = BinaryPrimitives.ReadUInt16LittleEndian(slice);
@@ -154,7 +154,7 @@ public partial class ExtensionsTests
                 }
                 else
                 {
-                    int ep = 16 + _bitOffset;
+                    int ep = 16 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -171,12 +171,12 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (ushort)BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0));
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU);
@@ -184,15 +184,15 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(0);
                     BinaryPrimitives.WriteUInt16LittleEndian(slice, (ushort)value);
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -239,7 +239,7 @@ public partial class ExtensionsTests
             /// <summary>Writes a TcpControlWordView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, TcpControlWordView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

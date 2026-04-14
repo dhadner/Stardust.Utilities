@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, IEquatable<SatMultiField>,
                              IFormattable, ISpanFormattable, IParsable<SatMultiField>, ISpanParsable<SatMultiField>
 {
-    private ushort Value;
+    private ushort __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
@@ -27,65 +27,65 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
 
     // --- Bit field mask constants ---
     // FieldA: bits [0..3], width 4
-    private const int FIELD_A_START_BIT = 0;
-    private const ushort FIELD_A_MASK = 0x000F;
-    private const ushort FIELD_A_INVERTED_MASK = 0xFFF0;  // ~FIELD_A_MASK
-    private const byte FIELD_A_SAT_MAX = 0xF;  // saturating: max for 4-bit unsigned field
+    private const int __FIELD_A_START_BIT = 0;
+    private const ushort __FIELD_A_MASK = 0x000F;
+    private const ushort __FIELD_A_INVERTED_MASK = 0xFFF0;  // ~__FIELD_A_MASK
+    private const byte __FIELD_A_SAT_MAX = 0xF;  // saturating: max for 4-bit unsigned field
     // FieldB: bits [4..7], width 4
-    private const int FIELD_B_START_BIT = 4;
-    private const ushort FIELD_B_MASK = 0x000F;
-    private const ushort FIELD_B_SHIFTED_MASK = 0x00F0;  // FIELD_B_MASK << FIELD_B_START_BIT
-    private const ushort FIELD_B_INVERTED_MASK = 0xFF0F;  // ~FIELD_B_SHIFTED_MASK
-    private const byte FIELD_B_SAT_MAX = 0xF;  // saturating: max for 4-bit unsigned field
+    private const int __FIELD_B_START_BIT = 4;
+    private const ushort __FIELD_B_MASK = 0x000F;
+    private const ushort __FIELD_B_SHIFTED_MASK = 0x00F0;  // __FIELD_B_MASK << __FIELD_B_START_BIT
+    private const ushort __FIELD_B_INVERTED_MASK = 0xFF0F;  // ~__FIELD_B_SHIFTED_MASK
+    private const byte __FIELD_B_SAT_MAX = 0xF;  // saturating: max for 4-bit unsigned field
     // FieldC: bits [8..11], width 4
-    private const int FIELD_C_START_BIT = 8;
-    private const ushort FIELD_C_MASK = 0x000F;
-    private const ushort FIELD_C_SHIFTED_MASK = 0x0F00;  // FIELD_C_MASK << FIELD_C_START_BIT
-    private const ushort FIELD_C_INVERTED_MASK = 0xF0FF;  // ~FIELD_C_SHIFTED_MASK
+    private const int __FIELD_C_START_BIT = 8;
+    private const ushort __FIELD_C_MASK = 0x000F;
+    private const ushort __FIELD_C_SHIFTED_MASK = 0x0F00;  // __FIELD_C_MASK << __FIELD_C_START_BIT
+    private const ushort __FIELD_C_INVERTED_MASK = 0xF0FF;  // ~__FIELD_C_SHIFTED_MASK
 
     /// <summary>Creates a new SatMultiField with the specified raw bits value.</summary>
-    public SatMultiField(ushort value) { Value = value; }
+    public SatMultiField(ushort value) { __value = value; }
 
     public partial byte FieldA
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & FIELD_A_MASK);
+        get => (byte)(__value & __FIELD_A_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var __sat = value > FIELD_A_SAT_MAX ? FIELD_A_SAT_MAX : value;
-            Value = (ushort)((Value & FIELD_A_INVERTED_MASK) | (((ushort)__sat) & FIELD_A_MASK));
+            var __sat = value > __FIELD_A_SAT_MAX ? __FIELD_A_SAT_MAX : value;
+            __value = (ushort)((__value & __FIELD_A_INVERTED_MASK) | (((ushort)__sat) & __FIELD_A_MASK));
         }
     }
 
     public partial byte FieldB
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> FIELD_B_START_BIT) & FIELD_B_MASK);
+        get => (byte)((__value >> __FIELD_B_START_BIT) & __FIELD_B_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var __sat = value > FIELD_B_SAT_MAX ? FIELD_B_SAT_MAX : value;
-            Value = (ushort)((Value & FIELD_B_INVERTED_MASK) | ((((ushort)__sat) << FIELD_B_START_BIT) & FIELD_B_SHIFTED_MASK));
+            var __sat = value > __FIELD_B_SAT_MAX ? __FIELD_B_SAT_MAX : value;
+            __value = (ushort)((__value & __FIELD_B_INVERTED_MASK) | ((((ushort)__sat) << __FIELD_B_START_BIT) & __FIELD_B_SHIFTED_MASK));
         }
     }
 
     public partial byte FieldC
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> FIELD_C_START_BIT) & FIELD_C_MASK);
+        get => (byte)((__value >> __FIELD_C_START_BIT) & __FIELD_C_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & FIELD_C_INVERTED_MASK) | ((((ushort)value) << FIELD_C_START_BIT) & FIELD_C_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __FIELD_C_INVERTED_MASK) | ((((ushort)value) << __FIELD_C_START_BIT) & __FIELD_C_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SatMultiField with the mask for the FieldA field (bits 0-3).</summary>
-    public static SatMultiField FieldAMask => new(FIELD_A_MASK);
+    public static SatMultiField FieldAMask => new(__FIELD_A_MASK);
 
     /// <summary>Returns a SatMultiField with the mask for the FieldB field (bits 4-7).</summary>
-    public static SatMultiField FieldBMask => new(FIELD_B_SHIFTED_MASK);
+    public static SatMultiField FieldBMask => new(__FIELD_B_SHIFTED_MASK);
 
     /// <summary>Returns a SatMultiField with the mask for the FieldC field (bits 8-11).</summary>
-    public static SatMultiField FieldCMask => new(FIELD_C_SHIFTED_MASK);
+    public static SatMultiField FieldCMask => new(__FIELD_C_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -103,37 +103,37 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SatMultiField WithFieldA(byte value)
     {
-        var __sat = value > FIELD_A_SAT_MAX ? FIELD_A_SAT_MAX : value;
-        return new((ushort)((Value & FIELD_A_INVERTED_MASK) | ((ushort)__sat & FIELD_A_MASK)));
+        var __sat = value > __FIELD_A_SAT_MAX ? __FIELD_A_SAT_MAX : value;
+        return new((ushort)((__value & __FIELD_A_INVERTED_MASK) | ((ushort)__sat & __FIELD_A_MASK)));
     }
 
     /// <summary>Returns a new SatMultiField with the FieldB field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SatMultiField WithFieldB(byte value)
     {
-        var __sat = value > FIELD_B_SAT_MAX ? FIELD_B_SAT_MAX : value;
-        return new((ushort)((Value & FIELD_B_INVERTED_MASK) | (((ushort)__sat << FIELD_B_START_BIT) & FIELD_B_SHIFTED_MASK)));
+        var __sat = value > __FIELD_B_SAT_MAX ? __FIELD_B_SAT_MAX : value;
+        return new((ushort)((__value & __FIELD_B_INVERTED_MASK) | (((ushort)__sat << __FIELD_B_START_BIT) & __FIELD_B_SHIFTED_MASK)));
     }
 
     /// <summary>Returns a new SatMultiField with the FieldC field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SatMultiField WithFieldC(byte value) => new((ushort)((Value & FIELD_C_INVERTED_MASK) | (((ushort)value << FIELD_C_START_BIT) & FIELD_C_SHIFTED_MASK)));
+    public SatMultiField WithFieldC(byte value) => new((ushort)((__value & __FIELD_C_INVERTED_MASK) | (((ushort)value << __FIELD_C_START_BIT) & __FIELD_C_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator ~(SatMultiField a) => new((ushort)~a.Value);
+    public static SatMultiField operator ~(SatMultiField a) => new((ushort)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator |(SatMultiField a, SatMultiField b) => new((ushort)(a.Value | b.Value));
+    public static SatMultiField operator |(SatMultiField a, SatMultiField b) => new((ushort)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator &(SatMultiField a, SatMultiField b) => new((ushort)(a.Value & b.Value));
+    public static SatMultiField operator &(SatMultiField a, SatMultiField b) => new((ushort)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator ^(SatMultiField a, SatMultiField b) => new((ushort)(a.Value ^ b.Value));
+    public static SatMultiField operator ^(SatMultiField a, SatMultiField b) => new((ushort)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -141,115 +141,115 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator -(SatMultiField a) => new(unchecked((ushort)(0 - a.Value)));
+    public static SatMultiField operator -(SatMultiField a) => new(unchecked((ushort)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator +(SatMultiField a, SatMultiField b) => new(unchecked((ushort)(a.Value + b.Value)));
+    public static SatMultiField operator +(SatMultiField a, SatMultiField b) => new(unchecked((ushort)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator +(SatMultiField a, ushort b) => new(unchecked((ushort)(a.Value + b)));
+    public static SatMultiField operator +(SatMultiField a, ushort b) => new(unchecked((ushort)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator +(ushort a, SatMultiField b) => new(unchecked((ushort)(a + b.Value)));
+    public static SatMultiField operator +(ushort a, SatMultiField b) => new(unchecked((ushort)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator -(SatMultiField a, SatMultiField b) => new(unchecked((ushort)(a.Value - b.Value)));
+    public static SatMultiField operator -(SatMultiField a, SatMultiField b) => new(unchecked((ushort)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator -(SatMultiField a, ushort b) => new(unchecked((ushort)(a.Value - b)));
+    public static SatMultiField operator -(SatMultiField a, ushort b) => new(unchecked((ushort)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator -(ushort a, SatMultiField b) => new(unchecked((ushort)(a - b.Value)));
+    public static SatMultiField operator -(ushort a, SatMultiField b) => new(unchecked((ushort)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator *(SatMultiField a, SatMultiField b) => new(unchecked((ushort)(a.Value * b.Value)));
+    public static SatMultiField operator *(SatMultiField a, SatMultiField b) => new(unchecked((ushort)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator *(SatMultiField a, ushort b) => new(unchecked((ushort)(a.Value * b)));
+    public static SatMultiField operator *(SatMultiField a, ushort b) => new(unchecked((ushort)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator *(ushort a, SatMultiField b) => new(unchecked((ushort)(a * b.Value)));
+    public static SatMultiField operator *(ushort a, SatMultiField b) => new(unchecked((ushort)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator /(SatMultiField a, SatMultiField b) => new((ushort)(a.Value / b.Value));
+    public static SatMultiField operator /(SatMultiField a, SatMultiField b) => new((ushort)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator /(SatMultiField a, ushort b) => new((ushort)(a.Value / b));
+    public static SatMultiField operator /(SatMultiField a, ushort b) => new((ushort)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator /(ushort a, SatMultiField b) => new((ushort)(a / b.Value));
+    public static SatMultiField operator /(ushort a, SatMultiField b) => new((ushort)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator %(SatMultiField a, SatMultiField b) => new((ushort)(a.Value % b.Value));
+    public static SatMultiField operator %(SatMultiField a, SatMultiField b) => new((ushort)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator %(SatMultiField a, ushort b) => new((ushort)(a.Value % b));
+    public static SatMultiField operator %(SatMultiField a, ushort b) => new((ushort)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatMultiField operator %(ushort a, SatMultiField b) => new((ushort)(a % b.Value));
+    public static SatMultiField operator %(ushort a, SatMultiField b) => new((ushort)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SatMultiField a, int b) => a.Value << b;
+    public static int operator <<(SatMultiField a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SatMultiField a, int b) => a.Value >> b;
+    public static int operator >>(SatMultiField a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SatMultiField a, int b) => a.Value >>> b;
+    public static int operator >>>(SatMultiField a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SatMultiField a, SatMultiField b) => a.Value < b.Value;
+    public static bool operator <(SatMultiField a, SatMultiField b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SatMultiField a, SatMultiField b) => a.Value > b.Value;
+    public static bool operator >(SatMultiField a, SatMultiField b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SatMultiField a, SatMultiField b) => a.Value <= b.Value;
+    public static bool operator <=(SatMultiField a, SatMultiField b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SatMultiField a, SatMultiField b) => a.Value >= b.Value;
+    public static bool operator >=(SatMultiField a, SatMultiField b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SatMultiField a, SatMultiField b) => a.Value == b.Value;
+    public static bool operator ==(SatMultiField a, SatMultiField b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SatMultiField a, SatMultiField b) => a.Value != b.Value;
+    public static bool operator !=(SatMultiField a, SatMultiField b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SatMultiField other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SatMultiField other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(SatMultiField value) => value.Value;
+    public static implicit operator ushort(SatMultiField value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SatMultiField(ushort value) => new(value);
@@ -281,7 +281,7 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -465,7 +465,7 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -474,7 +474,7 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -491,13 +491,13 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <param name="other">A SatMultiField to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SatMultiField other) => Value.CompareTo(other.Value);
+    public int CompareTo(SatMultiField other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SatMultiField.</summary>
     /// <param name="other">A SatMultiField to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SatMultiField other) => Value == other.Value;
+    public bool Equals(SatMultiField other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SatMultiField as a string.</summary>
     private sealed class SatMultiFieldJsonConverter : JsonConverter<SatMultiField>

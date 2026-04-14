@@ -19,7 +19,7 @@ public partial class ExtensionsTests
     public partial struct IPv4Flags : IComparable, IComparable<IPv4Flags>, IEquatable<IPv4Flags>,
                                  IFormattable, ISpanFormattable, IParsable<IPv4Flags>, ISpanParsable<IPv4Flags>
     {
-        private byte Value;
+        private byte __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 1;
@@ -29,38 +29,38 @@ public partial class ExtensionsTests
 
         // --- Bit field mask constants ---
         // MoreFragments: bit 0
-        private const int MORE_FRAGMENTS_BIT = 0;
-        private const byte MORE_FRAGMENTS_MASK = 0x01;  // 1 << MORE_FRAGMENTS_BIT
-        private const byte MORE_FRAGMENTS_INVERTED_MASK = 0xFE;  // ~MORE_FRAGMENTS_MASK
+        private const int __MORE_FRAGMENTS_BIT = 0;
+        private const byte __MORE_FRAGMENTS_MASK = 0x01;  // 1 << __MORE_FRAGMENTS_BIT
+        private const byte __MORE_FRAGMENTS_INVERTED_MASK = 0xFE;  // ~__MORE_FRAGMENTS_MASK
         // DontFragment: bit 1
-        private const int DONT_FRAGMENT_BIT = 1;
-        private const byte DONT_FRAGMENT_MASK = 0x02;  // 1 << DONT_FRAGMENT_BIT
-        private const byte DONT_FRAGMENT_INVERTED_MASK = 0xFD;  // ~DONT_FRAGMENT_MASK
+        private const int __DONT_FRAGMENT_BIT = 1;
+        private const byte __DONT_FRAGMENT_MASK = 0x02;  // 1 << __DONT_FRAGMENT_BIT
+        private const byte __DONT_FRAGMENT_INVERTED_MASK = 0xFD;  // ~__DONT_FRAGMENT_MASK
         // Reserved: bit 2
-        private const int RESERVED_BIT = 2;
-        private const byte RESERVED_MASK = 0x04;  // 1 << RESERVED_BIT
-        private const byte RESERVED_INVERTED_MASK = 0xFB;  // ~RESERVED_MASK
+        private const int __RESERVED_BIT = 2;
+        private const byte __RESERVED_MASK = 0x04;  // 1 << __RESERVED_BIT
+        private const byte __RESERVED_INVERTED_MASK = 0xFB;  // ~__RESERVED_MASK
 
         // --- Constructor normalization masks ---
-        private const byte NORMALIZATION_AND_MASK = 0x03;  // Clears: Reserved (MustBe.Zero), undefined bits (UndefinedBitsMustBe.Zeroes)
+        private const byte __NORMALIZATION_AND_MASK = 0x03;  // Clears: Reserved (MustBe.Zero), undefined bits (UndefinedBitsMustBe.Zeroes)
 
         /// <summary>Creates a new IPv4Flags with the specified raw bits value.</summary>
-        public IPv4Flags(byte value) { Value = (byte)(value & NORMALIZATION_AND_MASK); }
+        public IPv4Flags(byte value) { __value = (byte)(value & __NORMALIZATION_AND_MASK); }
 
         public partial bool MoreFragments
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & MORE_FRAGMENTS_MASK) != 0;
+            get => (__value & __MORE_FRAGMENTS_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | MORE_FRAGMENTS_MASK) : (byte)(Value & MORE_FRAGMENTS_INVERTED_MASK);
+            set => __value = value ? (byte)(__value | __MORE_FRAGMENTS_MASK) : (byte)(__value & __MORE_FRAGMENTS_INVERTED_MASK);
         }
 
         public partial bool DontFragment
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & DONT_FRAGMENT_MASK) != 0;
+            get => (__value & __DONT_FRAGMENT_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | DONT_FRAGMENT_MASK) : (byte)(Value & DONT_FRAGMENT_INVERTED_MASK);
+            set => __value = value ? (byte)(__value | __DONT_FRAGMENT_MASK) : (byte)(__value & __DONT_FRAGMENT_INVERTED_MASK);
         }
 
         public partial bool Reserved
@@ -68,17 +68,17 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => false;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)(Value & RESERVED_INVERTED_MASK);
+            set => __value = (byte)(__value & __RESERVED_INVERTED_MASK);
         }
 
         /// <summary>Returns a IPv4Flags with only the MoreFragments bit set.</summary>
-        public static IPv4Flags MoreFragmentsBit => new(MORE_FRAGMENTS_MASK);
+        public static IPv4Flags MoreFragmentsBit => new(__MORE_FRAGMENTS_MASK);
 
         /// <summary>Returns a IPv4Flags with only the DontFragment bit set.</summary>
-        public static IPv4Flags DontFragmentBit => new(DONT_FRAGMENT_MASK);
+        public static IPv4Flags DontFragmentBit => new(__DONT_FRAGMENT_MASK);
 
         /// <summary>Returns a IPv4Flags with only the Reserved bit set.</summary>
-        public static IPv4Flags ReservedBit => new(RESERVED_MASK);
+        public static IPv4Flags ReservedBit => new(__RESERVED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -94,31 +94,31 @@ public partial class ExtensionsTests
 
         /// <summary>Returns a new IPv4Flags with the MoreFragments flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4Flags WithMoreFragments(bool value) => new(value ? (byte)(Value | MORE_FRAGMENTS_MASK) : (byte)(Value & MORE_FRAGMENTS_INVERTED_MASK));
+        public IPv4Flags WithMoreFragments(bool value) => new(value ? (byte)(__value | __MORE_FRAGMENTS_MASK) : (byte)(__value & __MORE_FRAGMENTS_INVERTED_MASK));
 
         /// <summary>Returns a new IPv4Flags with the DontFragment flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4Flags WithDontFragment(bool value) => new(value ? (byte)(Value | DONT_FRAGMENT_MASK) : (byte)(Value & DONT_FRAGMENT_INVERTED_MASK));
+        public IPv4Flags WithDontFragment(bool value) => new(value ? (byte)(__value | __DONT_FRAGMENT_MASK) : (byte)(__value & __DONT_FRAGMENT_INVERTED_MASK));
 
         /// <summary>Returns a new IPv4Flags with the Reserved flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4Flags WithReserved(bool value) => new(value ? (byte)(Value | RESERVED_MASK) : (byte)(Value & RESERVED_INVERTED_MASK));
+        public IPv4Flags WithReserved(bool value) => new(value ? (byte)(__value | __RESERVED_MASK) : (byte)(__value & __RESERVED_INVERTED_MASK));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator ~(IPv4Flags a) => new((byte)~a.Value);
+        public static IPv4Flags operator ~(IPv4Flags a) => new((byte)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator |(IPv4Flags a, IPv4Flags b) => new((byte)(a.Value | b.Value));
+        public static IPv4Flags operator |(IPv4Flags a, IPv4Flags b) => new((byte)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator &(IPv4Flags a, IPv4Flags b) => new((byte)(a.Value & b.Value));
+        public static IPv4Flags operator &(IPv4Flags a, IPv4Flags b) => new((byte)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator ^(IPv4Flags a, IPv4Flags b) => new((byte)(a.Value ^ b.Value));
+        public static IPv4Flags operator ^(IPv4Flags a, IPv4Flags b) => new((byte)(a.__value ^ b.__value));
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -126,115 +126,115 @@ public partial class ExtensionsTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator -(IPv4Flags a) => new(unchecked((byte)(0 - a.Value)));
+        public static IPv4Flags operator -(IPv4Flags a) => new(unchecked((byte)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator +(IPv4Flags a, IPv4Flags b) => new(unchecked((byte)(a.Value + b.Value)));
+        public static IPv4Flags operator +(IPv4Flags a, IPv4Flags b) => new(unchecked((byte)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator +(IPv4Flags a, byte b) => new(unchecked((byte)(a.Value + b)));
+        public static IPv4Flags operator +(IPv4Flags a, byte b) => new(unchecked((byte)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator +(byte a, IPv4Flags b) => new(unchecked((byte)(a + b.Value)));
+        public static IPv4Flags operator +(byte a, IPv4Flags b) => new(unchecked((byte)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator -(IPv4Flags a, IPv4Flags b) => new(unchecked((byte)(a.Value - b.Value)));
+        public static IPv4Flags operator -(IPv4Flags a, IPv4Flags b) => new(unchecked((byte)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator -(IPv4Flags a, byte b) => new(unchecked((byte)(a.Value - b)));
+        public static IPv4Flags operator -(IPv4Flags a, byte b) => new(unchecked((byte)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator -(byte a, IPv4Flags b) => new(unchecked((byte)(a - b.Value)));
+        public static IPv4Flags operator -(byte a, IPv4Flags b) => new(unchecked((byte)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator *(IPv4Flags a, IPv4Flags b) => new(unchecked((byte)(a.Value * b.Value)));
+        public static IPv4Flags operator *(IPv4Flags a, IPv4Flags b) => new(unchecked((byte)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator *(IPv4Flags a, byte b) => new(unchecked((byte)(a.Value * b)));
+        public static IPv4Flags operator *(IPv4Flags a, byte b) => new(unchecked((byte)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator *(byte a, IPv4Flags b) => new(unchecked((byte)(a * b.Value)));
+        public static IPv4Flags operator *(byte a, IPv4Flags b) => new(unchecked((byte)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator /(IPv4Flags a, IPv4Flags b) => new((byte)(a.Value / b.Value));
+        public static IPv4Flags operator /(IPv4Flags a, IPv4Flags b) => new((byte)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator /(IPv4Flags a, byte b) => new((byte)(a.Value / b));
+        public static IPv4Flags operator /(IPv4Flags a, byte b) => new((byte)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator /(byte a, IPv4Flags b) => new((byte)(a / b.Value));
+        public static IPv4Flags operator /(byte a, IPv4Flags b) => new((byte)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator %(IPv4Flags a, IPv4Flags b) => new((byte)(a.Value % b.Value));
+        public static IPv4Flags operator %(IPv4Flags a, IPv4Flags b) => new((byte)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator %(IPv4Flags a, byte b) => new((byte)(a.Value % b));
+        public static IPv4Flags operator %(IPv4Flags a, byte b) => new((byte)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4Flags operator %(byte a, IPv4Flags b) => new((byte)(a % b.Value));
+        public static IPv4Flags operator %(byte a, IPv4Flags b) => new((byte)(a % b.__value));
 
         /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(IPv4Flags a, int b) => a.Value << b;
+        public static int operator <<(IPv4Flags a, int b) => a.__value << b;
 
         /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(IPv4Flags a, int b) => a.Value >> b;
+        public static int operator >>(IPv4Flags a, int b) => a.__value >> b;
 
         /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(IPv4Flags a, int b) => a.Value >>> b;
+        public static int operator >>>(IPv4Flags a, int b) => a.__value >>> b;
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(IPv4Flags a, IPv4Flags b) => a.Value < b.Value;
+        public static bool operator <(IPv4Flags a, IPv4Flags b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(IPv4Flags a, IPv4Flags b) => a.Value > b.Value;
+        public static bool operator >(IPv4Flags a, IPv4Flags b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(IPv4Flags a, IPv4Flags b) => a.Value <= b.Value;
+        public static bool operator <=(IPv4Flags a, IPv4Flags b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(IPv4Flags a, IPv4Flags b) => a.Value >= b.Value;
+        public static bool operator >=(IPv4Flags a, IPv4Flags b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(IPv4Flags a, IPv4Flags b) => a.Value == b.Value;
+        public static bool operator ==(IPv4Flags a, IPv4Flags b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(IPv4Flags a, IPv4Flags b) => a.Value != b.Value;
+        public static bool operator !=(IPv4Flags a, IPv4Flags b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is IPv4Flags other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is IPv4Flags other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator byte(IPv4Flags value) => value.Value;
+        public static implicit operator byte(IPv4Flags value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator IPv4Flags(byte value) => new(value);
@@ -266,7 +266,7 @@ public partial class ExtensionsTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            destination[0] = unchecked((byte)Value);
+            destination[0] = unchecked((byte)__value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -450,7 +450,7 @@ public partial class ExtensionsTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -459,7 +459,7 @@ public partial class ExtensionsTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -476,13 +476,13 @@ public partial class ExtensionsTests
         /// <param name="other">A IPv4Flags to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(IPv4Flags other) => Value.CompareTo(other.Value);
+        public int CompareTo(IPv4Flags other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another IPv4Flags.</summary>
         /// <param name="other">A IPv4Flags to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(IPv4Flags other) => Value == other.Value;
+        public bool Equals(IPv4Flags other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes IPv4Flags as a string.</summary>
         private sealed class IPv4FlagsJsonConverter : JsonConverter<IPv4Flags>

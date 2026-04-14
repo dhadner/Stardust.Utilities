@@ -38,10 +38,10 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}/// <summary>Implicit conversion to decimal.</summary>");
                 sb.AppendLine($"{ind}public static implicit operator decimal({t} value)");
                 sb.AppendLine($"{ind}{{");
-                sb.AppendLine($"{ind}    int lo = (int)(uint)value._w0;");
-                sb.AppendLine($"{ind}    int mid = (int)(uint)(value._w0 >> 32);");
-                sb.AppendLine($"{ind}    int hi = (int)(uint)value._w1;");
-                sb.AppendLine($"{ind}    int flags = (int)(uint)(value._w1 >> 32);");
+                sb.AppendLine($"{ind}    int lo = (int)(uint)value.__w0;");
+                sb.AppendLine($"{ind}    int mid = (int)(uint)(value.__w0 >> 32);");
+                sb.AppendLine($"{ind}    int hi = (int)(uint)value.__w1;");
+                sb.AppendLine($"{ind}    int flags = (int)(uint)(value.__w1 >> 32);");
                 sb.AppendLine($"{ind}    bool isNegative = (flags & unchecked((int)0x80000000)) != 0;");
                 sb.AppendLine($"{ind}    byte scale = (byte)((flags >> 16) & 0x7F);");
                 sb.AppendLine($"{ind}    return new decimal(lo, mid, hi, isNegative, scale);");
@@ -61,7 +61,7 @@ internal static partial class BitFieldsMultiWordGenerator
 
                 sb.AppendLine($"{ind}/// <summary>Explicit conversion to raw bits (UInt128).</summary>");
                 sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{ind}public static explicit operator UInt128({t} value) => ((UInt128)value._w1 << 64) | value._w0;");
+                sb.AppendLine($"{ind}public static explicit operator UInt128({t} value) => ((UInt128)value.__w1 << 64) | value.__w0;");
                 sb.AppendLine();
 
                 sb.AppendLine($"{ind}/// <summary>Explicit conversion from raw bits (UInt128).</summary>");
@@ -74,9 +74,9 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}/// <summary>Implicit conversion to {wt}.</summary>");
                 sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
                 if (isSigned)
-                    sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => (Int128)(((UInt128)value._w1 << 64) | value._w0);");
+                    sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => (Int128)(((UInt128)value.__w1 << 64) | value.__w0);");
                 else
-                    sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => ((UInt128)value._w1 << 64) | value._w0;");
+                    sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => ((UInt128)value.__w1 << 64) | value.__w0;");
                 sb.AppendLine();
 
                 sb.AppendLine($"{ind}/// <summary>Implicit conversion from {wt}.</summary>");
@@ -100,7 +100,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    BigInteger result = {layout.Read("", wc - 1)};");
         for (int i = wc - 2; i >= 0; i--)
-            sb.AppendLine($"{ind}    result = (result << 64) | _w{i};");
+            sb.AppendLine($"{ind}    result = (result << 64) | __w{i};");
         sb.AppendLine($"{ind}    return result;");
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
@@ -108,7 +108,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}/// <summary>Creates a {t} from a BigInteger (truncated to {info.TotalBits} bits).</summary>");
         sb.AppendLine($"{ind}public static {t} FromBigInteger(BigInteger value)");
         sb.AppendLine($"{ind}{{");
-        sb.AppendLine($"{ind}    if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;");
+        sb.AppendLine($"{ind}    if (value.Sign < 0) value = (BigInteger.One << __TOTAL_BITS) + value;");
         for (int i = 0; i < wc; i++)
         {
             if (i == 0)
@@ -378,11 +378,11 @@ internal static partial class BitFieldsMultiWordGenerator
 
             // Apply UndefinedBitsMustBe masking on last word
             if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} & LAST_WORD_MASK")};");
+                sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, $"(ulong){readExpr} & __LAST_WORD_MASK")};");
             else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){readExpr} | ~LAST_WORD_MASK")};");
+                sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, $"(ulong){readExpr} | ~__LAST_WORD_MASK")};");
             else
-                sb.AppendLine($"{ind}    _w{i} = {readExpr};");
+                sb.AppendLine($"{ind}    __w{i} = {readExpr};");
         }
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
@@ -411,22 +411,22 @@ internal static partial class BitFieldsMultiWordGenerator
                 switch (layout.RemainderType)
                 {
                     case "byte":
-                        sb.AppendLine($"{ind}    destination[{offset}] = _w{i};");
+                        sb.AppendLine($"{ind}    destination[{offset}] = __w{i};");
                         break;
                     case "ushort":
-                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU16}(destination.Slice({offset}), _w{i});");
+                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU16}(destination.Slice({offset}), __w{i});");
                         break;
                     case "uint":
-                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU32}(destination.Slice({offset}), _w{i});");
+                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU32}(destination.Slice({offset}), __w{i});");
                         break;
                     default:
-                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU64}(destination.Slice({offset}), _w{i});");
+                        sb.AppendLine($"{ind}    BinaryPrimitives.{writeU64}(destination.Slice({offset}), __w{i});");
                         break;
                 }
             }
             else
             {
-                sb.AppendLine($"{ind}    BinaryPrimitives.{writeU64}(destination.Slice({offset}), _w{i});");
+                sb.AppendLine($"{ind}    BinaryPrimitives.{writeU64}(destination.Slice({offset}), __w{i});");
             }
         }
         sb.AppendLine($"{ind}}}");

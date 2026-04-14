@@ -16,8 +16,8 @@ public partial class ExtensionsTests
     [JsonConverter(typeof(TcpFlagsViewJsonConverter))]
     public partial record struct TcpFlagsView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 2;
@@ -30,8 +30,8 @@ public partial class ExtensionsTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,33 +45,33 @@ public partial class ExtensionsTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal TcpFlagsView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial bool FIN
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x01) != 0;
-                int ep = 0 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x01) != 0;
+                int ep = 0 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x01) : (byte)(s[0] & 0xFE);
                     return;
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -83,21 +83,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x02) != 0;
-                int ep = 1 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x02) != 0;
+                int ep = 1 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x02) : (byte)(s[0] & 0xFD);
                     return;
                 }
-                int ep = 1 + _bitOffset;
+                int ep = 1 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -109,21 +109,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x04) != 0;
-                int ep = 2 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x04) != 0;
+                int ep = 2 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x04) : (byte)(s[0] & 0xFB);
                     return;
                 }
-                int ep = 2 + _bitOffset;
+                int ep = 2 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -135,21 +135,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x08) != 0;
-                int ep = 3 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x08) != 0;
+                int ep = 3 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x08) : (byte)(s[0] & 0xF7);
                     return;
                 }
-                int ep = 3 + _bitOffset;
+                int ep = 3 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -161,21 +161,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x10) != 0;
-                int ep = 4 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x10) != 0;
+                int ep = 4 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x10) : (byte)(s[0] & 0xEF);
                     return;
                 }
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -187,21 +187,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x20) != 0;
-                int ep = 5 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x20) != 0;
+                int ep = 5 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x20) : (byte)(s[0] & 0xDF);
                     return;
                 }
-                int ep = 5 + _bitOffset;
+                int ep = 5 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -213,21 +213,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x40) != 0;
-                int ep = 6 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x40) != 0;
+                int ep = 6 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x40) : (byte)(s[0] & 0xBF);
                     return;
                 }
-                int ep = 6 + _bitOffset;
+                int ep = 6 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -239,21 +239,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[0] & 0x80) != 0;
-                int ep = 7 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[0] & 0x80) != 0;
+                int ep = 7 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = value ? (byte)(s[0] | 0x80) : (byte)(s[0] & 0x7F);
                     return;
                 }
-                int ep = 7 + _bitOffset;
+                int ep = 7 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -265,21 +265,21 @@ public partial class ExtensionsTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0) return (s[1] & 0x01) != 0;
-                int ep = 8 + _bitOffset;
+                var s = __data.Span;
+                if (__bitOffset == 0) return (s[1] & 0x01) != 0;
+                int ep = 8 + __bitOffset;
                 return (s[ep >> 3] & (1 << (ep & 7))) != 0;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[1] = value ? (byte)(s[1] | 0x01) : (byte)(s[1] & 0xFE);
                     return;
                 }
-                int ep = 8 + _bitOffset;
+                int ep = 8 + __bitOffset;
                 int bi = ep >> 3;
                 int m = 1 << (ep & 7);
                 s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -326,7 +326,7 @@ public partial class ExtensionsTests
             /// <summary>Writes a TcpFlagsView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, TcpFlagsView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

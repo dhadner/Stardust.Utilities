@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>, IEquatable<AutoSizedReg33>,
                              IFormattable, ISpanFormattable, IParsable<AutoSizedReg33>, ISpanParsable<AutoSizedReg33>
 {
-    private ulong Value;
+    private ulong __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
@@ -27,38 +27,38 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
 
     // --- Bit field mask constants ---
     // Lo: bits [0..31], width 32
-    private const int LO_START_BIT = 0;
-    private const ulong LO_MASK = 0x00000000FFFFFFFFUL;
-    private const ulong LO_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~LO_MASK
+    private const int __LO_START_BIT = 0;
+    private const ulong __LO_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong __LO_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~__LO_MASK
     // Hi: bit 32
-    private const int HI_BIT = 32;
-    private const ulong HI_MASK = 0x0000000100000000UL;  // 1 << HI_BIT
-    private const ulong HI_INVERTED_MASK = 0xFFFFFFFEFFFFFFFFUL;  // ~HI_MASK
+    private const int __HI_BIT = 32;
+    private const ulong __HI_MASK = 0x0000000100000000UL;  // 1 << __HI_BIT
+    private const ulong __HI_INVERTED_MASK = 0xFFFFFFFEFFFFFFFFUL;  // ~__HI_MASK
 
     /// <summary>Creates a new AutoSizedReg33 with the specified raw bits value.</summary>
-    public AutoSizedReg33(ulong value) { Value = value; }
+    public AutoSizedReg33(ulong value) { __value = value; }
 
     public partial uint Lo
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)(Value & LO_MASK);
+        get => (uint)(__value & __LO_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & LO_INVERTED_MASK) | (((ulong)value) & LO_MASK));
+        set => __value = (ulong)((__value & __LO_INVERTED_MASK) | (((ulong)value) & __LO_MASK));
     }
 
     public partial bool Hi
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & HI_MASK) != 0;
+        get => (__value & __HI_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ulong)(Value | HI_MASK) : (ulong)(Value & HI_INVERTED_MASK);
+        set => __value = value ? (ulong)(__value | __HI_MASK) : (ulong)(__value & __HI_INVERTED_MASK);
     }
 
     /// <summary>Returns a AutoSizedReg33 with only the Hi bit set.</summary>
-    public static AutoSizedReg33 HiBit => new(HI_MASK);
+    public static AutoSizedReg33 HiBit => new(__HI_MASK);
 
     /// <summary>Returns a AutoSizedReg33 with the mask for the Lo field (bits 0-31).</summary>
-    public static AutoSizedReg33 LoMask => new(LO_MASK);
+    public static AutoSizedReg33 LoMask => new(__LO_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -73,75 +73,75 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
 
     /// <summary>Returns a new AutoSizedReg33 with the Hi flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedReg33 WithHi(bool value) => new(value ? (ulong)(Value | HI_MASK) : (ulong)(Value & HI_INVERTED_MASK));
+    public AutoSizedReg33 WithHi(bool value) => new(value ? (ulong)(__value | __HI_MASK) : (ulong)(__value & __HI_INVERTED_MASK));
 
     /// <summary>Returns a new AutoSizedReg33 with the Lo field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedReg33 WithLo(uint value) => new((ulong)((Value & LO_INVERTED_MASK) | ((ulong)value & LO_MASK)));
+    public AutoSizedReg33 WithLo(uint value) => new((ulong)((__value & __LO_INVERTED_MASK) | ((ulong)value & __LO_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator ~(AutoSizedReg33 a) => new((ulong)~a.Value);
+    public static AutoSizedReg33 operator ~(AutoSizedReg33 a) => new((ulong)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator |(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.Value | b.Value));
+    public static AutoSizedReg33 operator |(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator &(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.Value & b.Value));
+    public static AutoSizedReg33 operator &(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator ^(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.Value ^ b.Value));
+    public static AutoSizedReg33 operator ^(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator &(AutoSizedReg33 a, ulong b) => new(a.Value & b);
+    public static AutoSizedReg33 operator &(AutoSizedReg33 a, ulong b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator &(ulong a, AutoSizedReg33 b) => new(a & b.Value);
+    public static AutoSizedReg33 operator &(ulong a, AutoSizedReg33 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator |(AutoSizedReg33 a, ulong b) => new(a.Value | b);
+    public static AutoSizedReg33 operator |(AutoSizedReg33 a, ulong b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator |(ulong a, AutoSizedReg33 b) => new(a | b.Value);
+    public static AutoSizedReg33 operator |(ulong a, AutoSizedReg33 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator ^(AutoSizedReg33 a, ulong b) => new(a.Value ^ b);
+    public static AutoSizedReg33 operator ^(AutoSizedReg33 a, ulong b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator ^(ulong a, AutoSizedReg33 b) => new(a ^ b.Value);
+    public static AutoSizedReg33 operator ^(ulong a, AutoSizedReg33 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(AutoSizedReg33 a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(AutoSizedReg33 a, int b) => a.__value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, AutoSizedReg33 b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, AutoSizedReg33 b) => (ulong)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(AutoSizedReg33 a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(AutoSizedReg33 a, int b) => a.__value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, AutoSizedReg33 b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, AutoSizedReg33 b) => (ulong)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(AutoSizedReg33 a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(AutoSizedReg33 a, int b) => a.__value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, AutoSizedReg33 b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, AutoSizedReg33 b) => (ulong)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -149,115 +149,115 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator -(AutoSizedReg33 a) => new(unchecked((ulong)(0 - a.Value)));
+    public static AutoSizedReg33 operator -(AutoSizedReg33 a) => new(unchecked((ulong)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator +(AutoSizedReg33 a, AutoSizedReg33 b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static AutoSizedReg33 operator +(AutoSizedReg33 a, AutoSizedReg33 b) => new(unchecked((ulong)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator +(AutoSizedReg33 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static AutoSizedReg33 operator +(AutoSizedReg33 a, ulong b) => new(unchecked((ulong)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator +(ulong a, AutoSizedReg33 b) => new(unchecked((ulong)(a + b.Value)));
+    public static AutoSizedReg33 operator +(ulong a, AutoSizedReg33 b) => new(unchecked((ulong)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator -(AutoSizedReg33 a, AutoSizedReg33 b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static AutoSizedReg33 operator -(AutoSizedReg33 a, AutoSizedReg33 b) => new(unchecked((ulong)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator -(AutoSizedReg33 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static AutoSizedReg33 operator -(AutoSizedReg33 a, ulong b) => new(unchecked((ulong)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator -(ulong a, AutoSizedReg33 b) => new(unchecked((ulong)(a - b.Value)));
+    public static AutoSizedReg33 operator -(ulong a, AutoSizedReg33 b) => new(unchecked((ulong)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator *(AutoSizedReg33 a, AutoSizedReg33 b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static AutoSizedReg33 operator *(AutoSizedReg33 a, AutoSizedReg33 b) => new(unchecked((ulong)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator *(AutoSizedReg33 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static AutoSizedReg33 operator *(AutoSizedReg33 a, ulong b) => new(unchecked((ulong)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator *(ulong a, AutoSizedReg33 b) => new(unchecked((ulong)(a * b.Value)));
+    public static AutoSizedReg33 operator *(ulong a, AutoSizedReg33 b) => new(unchecked((ulong)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator /(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.Value / b.Value));
+    public static AutoSizedReg33 operator /(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator /(AutoSizedReg33 a, ulong b) => new((ulong)(a.Value / b));
+    public static AutoSizedReg33 operator /(AutoSizedReg33 a, ulong b) => new((ulong)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator /(ulong a, AutoSizedReg33 b) => new((ulong)(a / b.Value));
+    public static AutoSizedReg33 operator /(ulong a, AutoSizedReg33 b) => new((ulong)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator %(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.Value % b.Value));
+    public static AutoSizedReg33 operator %(AutoSizedReg33 a, AutoSizedReg33 b) => new((ulong)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator %(AutoSizedReg33 a, ulong b) => new((ulong)(a.Value % b));
+    public static AutoSizedReg33 operator %(AutoSizedReg33 a, ulong b) => new((ulong)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator %(ulong a, AutoSizedReg33 b) => new((ulong)(a % b.Value));
+    public static AutoSizedReg33 operator %(ulong a, AutoSizedReg33 b) => new((ulong)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator <<(AutoSizedReg33 a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static AutoSizedReg33 operator <<(AutoSizedReg33 a, int b) => new(unchecked((ulong)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator >>(AutoSizedReg33 a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static AutoSizedReg33 operator >>(AutoSizedReg33 a, int b) => new(unchecked((ulong)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg33 operator >>>(AutoSizedReg33 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static AutoSizedReg33 operator >>>(AutoSizedReg33 a, int b) => new(unchecked((ulong)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(AutoSizedReg33 a, AutoSizedReg33 b) => a.Value < b.Value;
+    public static bool operator <(AutoSizedReg33 a, AutoSizedReg33 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(AutoSizedReg33 a, AutoSizedReg33 b) => a.Value > b.Value;
+    public static bool operator >(AutoSizedReg33 a, AutoSizedReg33 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(AutoSizedReg33 a, AutoSizedReg33 b) => a.Value <= b.Value;
+    public static bool operator <=(AutoSizedReg33 a, AutoSizedReg33 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(AutoSizedReg33 a, AutoSizedReg33 b) => a.Value >= b.Value;
+    public static bool operator >=(AutoSizedReg33 a, AutoSizedReg33 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(AutoSizedReg33 a, AutoSizedReg33 b) => a.Value == b.Value;
+    public static bool operator ==(AutoSizedReg33 a, AutoSizedReg33 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(AutoSizedReg33 a, AutoSizedReg33 b) => a.Value != b.Value;
+    public static bool operator !=(AutoSizedReg33 a, AutoSizedReg33 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is AutoSizedReg33 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is AutoSizedReg33 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(AutoSizedReg33 value) => value.Value;
+    public static implicit operator ulong(AutoSizedReg33 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AutoSizedReg33(ulong value) => new(value);
@@ -285,7 +285,7 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -469,7 +469,7 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -478,7 +478,7 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -495,13 +495,13 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     /// <param name="other">A AutoSizedReg33 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(AutoSizedReg33 other) => Value.CompareTo(other.Value);
+    public int CompareTo(AutoSizedReg33 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another AutoSizedReg33.</summary>
     /// <param name="other">A AutoSizedReg33 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(AutoSizedReg33 other) => Value == other.Value;
+    public bool Equals(AutoSizedReg33 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes AutoSizedReg33 as a string.</summary>
     private sealed class AutoSizedReg33JsonConverter : JsonConverter<AutoSizedReg33>

@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRegister>, IEquatable<DescEscapeRegister>,
                              IFormattable, ISpanFormattable, IParsable<DescEscapeRegister>, ISpanParsable<DescEscapeRegister>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,129 +27,129 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
 
     // --- Bit field mask constants ---
     // AllAtOnce: bits [7..7], width 1
-    private const int ALL_AT_ONCE_START_BIT = 7;
-    private const byte ALL_AT_ONCE_MASK = 0x01;
-    private const byte ALL_AT_ONCE_SHIFTED_MASK = 0x80;  // ALL_AT_ONCE_MASK << ALL_AT_ONCE_START_BIT
-    private const byte ALL_AT_ONCE_INVERTED_MASK = 0x7F;  // ~ALL_AT_ONCE_SHIFTED_MASK
+    private const int __ALL_AT_ONCE_START_BIT = 7;
+    private const byte __ALL_AT_ONCE_MASK = 0x01;
+    private const byte __ALL_AT_ONCE_SHIFTED_MASK = 0x80;  // __ALL_AT_ONCE_MASK << __ALL_AT_ONCE_START_BIT
+    private const byte __ALL_AT_ONCE_INVERTED_MASK = 0x7F;  // ~__ALL_AT_ONCE_SHIFTED_MASK
     // Newline: bit 0
-    private const int NEWLINE_BIT = 0;
-    private const byte NEWLINE_MASK = 0x01;  // 1 << NEWLINE_BIT
-    private const byte NEWLINE_INVERTED_MASK = 0xFE;  // ~NEWLINE_MASK
+    private const int __NEWLINE_BIT = 0;
+    private const byte __NEWLINE_MASK = 0x01;  // 1 << __NEWLINE_BIT
+    private const byte __NEWLINE_INVERTED_MASK = 0xFE;  // ~__NEWLINE_MASK
     // Tab: bit 1
-    private const int TAB_BIT = 1;
-    private const byte TAB_MASK = 0x02;  // 1 << TAB_BIT
-    private const byte TAB_INVERTED_MASK = 0xFD;  // ~TAB_MASK
+    private const int __TAB_BIT = 1;
+    private const byte __TAB_MASK = 0x02;  // 1 << __TAB_BIT
+    private const byte __TAB_INVERTED_MASK = 0xFD;  // ~__TAB_MASK
     // Quotes: bit 2
-    private const int QUOTES_BIT = 2;
-    private const byte QUOTES_MASK = 0x04;  // 1 << QUOTES_BIT
-    private const byte QUOTES_INVERTED_MASK = 0xFB;  // ~QUOTES_MASK
+    private const int __QUOTES_BIT = 2;
+    private const byte __QUOTES_MASK = 0x04;  // 1 << __QUOTES_BIT
+    private const byte __QUOTES_INVERTED_MASK = 0xFB;  // ~__QUOTES_MASK
     // Backslash: bit 3
-    private const int BACKSLASH_BIT = 3;
-    private const byte BACKSLASH_MASK = 0x08;  // 1 << BACKSLASH_BIT
-    private const byte BACKSLASH_INVERTED_MASK = 0xF7;  // ~BACKSLASH_MASK
+    private const int __BACKSLASH_BIT = 3;
+    private const byte __BACKSLASH_MASK = 0x08;  // 1 << __BACKSLASH_BIT
+    private const byte __BACKSLASH_INVERTED_MASK = 0xF7;  // ~__BACKSLASH_MASK
     // CarriageReturn: bit 4
-    private const int CARRIAGE_RETURN_BIT = 4;
-    private const byte CARRIAGE_RETURN_MASK = 0x10;  // 1 << CARRIAGE_RETURN_BIT
-    private const byte CARRIAGE_RETURN_INVERTED_MASK = 0xEF;  // ~CARRIAGE_RETURN_MASK
+    private const int __CARRIAGE_RETURN_BIT = 4;
+    private const byte __CARRIAGE_RETURN_MASK = 0x10;  // 1 << __CARRIAGE_RETURN_BIT
+    private const byte __CARRIAGE_RETURN_INVERTED_MASK = 0xEF;  // ~__CARRIAGE_RETURN_MASK
     // NullChar: bit 5
-    private const int NULL_CHAR_BIT = 5;
-    private const byte NULL_CHAR_MASK = 0x20;  // 1 << NULL_CHAR_BIT
-    private const byte NULL_CHAR_INVERTED_MASK = 0xDF;  // ~NULL_CHAR_MASK
+    private const int __NULL_CHAR_BIT = 5;
+    private const byte __NULL_CHAR_MASK = 0x20;  // 1 << __NULL_CHAR_BIT
+    private const byte __NULL_CHAR_INVERTED_MASK = 0xDF;  // ~__NULL_CHAR_MASK
     // ControlChars: bit 6
-    private const int CONTROL_CHARS_BIT = 6;
-    private const byte CONTROL_CHARS_MASK = 0x40;  // 1 << CONTROL_CHARS_BIT
-    private const byte CONTROL_CHARS_INVERTED_MASK = 0xBF;  // ~CONTROL_CHARS_MASK
+    private const int __CONTROL_CHARS_BIT = 6;
+    private const byte __CONTROL_CHARS_MASK = 0x40;  // 1 << __CONTROL_CHARS_BIT
+    private const byte __CONTROL_CHARS_INVERTED_MASK = 0xBF;  // ~__CONTROL_CHARS_MASK
 
     /// <summary>Creates a new DescEscapeRegister with the specified raw bits value.</summary>
-    public DescEscapeRegister(byte value) { Value = value; }
+    public DescEscapeRegister(byte value) { __value = value; }
 
     public partial byte AllAtOnce
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> ALL_AT_ONCE_START_BIT) & ALL_AT_ONCE_MASK);
+        get => (byte)((__value >> __ALL_AT_ONCE_START_BIT) & __ALL_AT_ONCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | ((((byte)value) << ALL_AT_ONCE_START_BIT) & ALL_AT_ONCE_SHIFTED_MASK));
+        set => __value = (byte)((__value & __ALL_AT_ONCE_INVERTED_MASK) | ((((byte)value) << __ALL_AT_ONCE_START_BIT) & __ALL_AT_ONCE_SHIFTED_MASK));
     }
 
     public partial bool Newline
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & NEWLINE_MASK) != 0;
+        get => (__value & __NEWLINE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | NEWLINE_MASK) : (byte)(Value & NEWLINE_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __NEWLINE_MASK) : (byte)(__value & __NEWLINE_INVERTED_MASK);
     }
 
     public partial bool Tab
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & TAB_MASK) != 0;
+        get => (__value & __TAB_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | TAB_MASK) : (byte)(Value & TAB_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __TAB_MASK) : (byte)(__value & __TAB_INVERTED_MASK);
     }
 
     public partial bool Quotes
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & QUOTES_MASK) != 0;
+        get => (__value & __QUOTES_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | QUOTES_MASK) : (byte)(Value & QUOTES_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __QUOTES_MASK) : (byte)(__value & __QUOTES_INVERTED_MASK);
     }
 
     public partial bool Backslash
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & BACKSLASH_MASK) != 0;
+        get => (__value & __BACKSLASH_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | BACKSLASH_MASK) : (byte)(Value & BACKSLASH_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __BACKSLASH_MASK) : (byte)(__value & __BACKSLASH_INVERTED_MASK);
     }
 
     public partial bool CarriageReturn
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & CARRIAGE_RETURN_MASK) != 0;
+        get => (__value & __CARRIAGE_RETURN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | CARRIAGE_RETURN_MASK) : (byte)(Value & CARRIAGE_RETURN_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __CARRIAGE_RETURN_MASK) : (byte)(__value & __CARRIAGE_RETURN_INVERTED_MASK);
     }
 
     public partial bool NullChar
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & NULL_CHAR_MASK) != 0;
+        get => (__value & __NULL_CHAR_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | NULL_CHAR_MASK) : (byte)(Value & NULL_CHAR_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __NULL_CHAR_MASK) : (byte)(__value & __NULL_CHAR_INVERTED_MASK);
     }
 
     public partial bool ControlChars
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & CONTROL_CHARS_MASK) != 0;
+        get => (__value & __CONTROL_CHARS_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | CONTROL_CHARS_MASK) : (byte)(Value & CONTROL_CHARS_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __CONTROL_CHARS_MASK) : (byte)(__value & __CONTROL_CHARS_INVERTED_MASK);
     }
 
     /// <summary>Returns a DescEscapeRegister with only the Newline bit set.</summary>
-    public static DescEscapeRegister NewlineBit => new(NEWLINE_MASK);
+    public static DescEscapeRegister NewlineBit => new(__NEWLINE_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the Tab bit set.</summary>
-    public static DescEscapeRegister TabBit => new(TAB_MASK);
+    public static DescEscapeRegister TabBit => new(__TAB_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the Quotes bit set.</summary>
-    public static DescEscapeRegister QuotesBit => new(QUOTES_MASK);
+    public static DescEscapeRegister QuotesBit => new(__QUOTES_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the Backslash bit set.</summary>
-    public static DescEscapeRegister BackslashBit => new(BACKSLASH_MASK);
+    public static DescEscapeRegister BackslashBit => new(__BACKSLASH_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the CarriageReturn bit set.</summary>
-    public static DescEscapeRegister CarriageReturnBit => new(CARRIAGE_RETURN_MASK);
+    public static DescEscapeRegister CarriageReturnBit => new(__CARRIAGE_RETURN_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the NullChar bit set.</summary>
-    public static DescEscapeRegister NullCharBit => new(NULL_CHAR_MASK);
+    public static DescEscapeRegister NullCharBit => new(__NULL_CHAR_MASK);
 
     /// <summary>Returns a DescEscapeRegister with only the ControlChars bit set.</summary>
-    public static DescEscapeRegister ControlCharsBit => new(CONTROL_CHARS_MASK);
+    public static DescEscapeRegister ControlCharsBit => new(__CONTROL_CHARS_MASK);
 
     /// <summary>Returns a DescEscapeRegister with the mask for the AllAtOnce field (bits 7-7).</summary>
-    public static DescEscapeRegister AllAtOnceMask => new(ALL_AT_ONCE_SHIFTED_MASK);
+    public static DescEscapeRegister AllAtOnceMask => new(__ALL_AT_ONCE_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -170,51 +170,51 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
 
     /// <summary>Returns a new DescEscapeRegister with the Newline flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithNewline(bool value) => new(value ? (byte)(Value | NEWLINE_MASK) : (byte)(Value & NEWLINE_INVERTED_MASK));
+    public DescEscapeRegister WithNewline(bool value) => new(value ? (byte)(__value | __NEWLINE_MASK) : (byte)(__value & __NEWLINE_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the Tab flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithTab(bool value) => new(value ? (byte)(Value | TAB_MASK) : (byte)(Value & TAB_INVERTED_MASK));
+    public DescEscapeRegister WithTab(bool value) => new(value ? (byte)(__value | __TAB_MASK) : (byte)(__value & __TAB_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the Quotes flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithQuotes(bool value) => new(value ? (byte)(Value | QUOTES_MASK) : (byte)(Value & QUOTES_INVERTED_MASK));
+    public DescEscapeRegister WithQuotes(bool value) => new(value ? (byte)(__value | __QUOTES_MASK) : (byte)(__value & __QUOTES_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the Backslash flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithBackslash(bool value) => new(value ? (byte)(Value | BACKSLASH_MASK) : (byte)(Value & BACKSLASH_INVERTED_MASK));
+    public DescEscapeRegister WithBackslash(bool value) => new(value ? (byte)(__value | __BACKSLASH_MASK) : (byte)(__value & __BACKSLASH_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the CarriageReturn flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithCarriageReturn(bool value) => new(value ? (byte)(Value | CARRIAGE_RETURN_MASK) : (byte)(Value & CARRIAGE_RETURN_INVERTED_MASK));
+    public DescEscapeRegister WithCarriageReturn(bool value) => new(value ? (byte)(__value | __CARRIAGE_RETURN_MASK) : (byte)(__value & __CARRIAGE_RETURN_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the NullChar flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithNullChar(bool value) => new(value ? (byte)(Value | NULL_CHAR_MASK) : (byte)(Value & NULL_CHAR_INVERTED_MASK));
+    public DescEscapeRegister WithNullChar(bool value) => new(value ? (byte)(__value | __NULL_CHAR_MASK) : (byte)(__value & __NULL_CHAR_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the ControlChars flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithControlChars(bool value) => new(value ? (byte)(Value | CONTROL_CHARS_MASK) : (byte)(Value & CONTROL_CHARS_INVERTED_MASK));
+    public DescEscapeRegister WithControlChars(bool value) => new(value ? (byte)(__value | __CONTROL_CHARS_MASK) : (byte)(__value & __CONTROL_CHARS_INVERTED_MASK));
 
     /// <summary>Returns a new DescEscapeRegister with the AllAtOnce field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescEscapeRegister WithAllAtOnce(byte value) => new((byte)((Value & ALL_AT_ONCE_INVERTED_MASK) | (((byte)value << ALL_AT_ONCE_START_BIT) & ALL_AT_ONCE_SHIFTED_MASK)));
+    public DescEscapeRegister WithAllAtOnce(byte value) => new((byte)((__value & __ALL_AT_ONCE_INVERTED_MASK) | (((byte)value << __ALL_AT_ONCE_START_BIT) & __ALL_AT_ONCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator ~(DescEscapeRegister a) => new((byte)~a.Value);
+    public static DescEscapeRegister operator ~(DescEscapeRegister a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator |(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.Value | b.Value));
+    public static DescEscapeRegister operator |(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator &(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.Value & b.Value));
+    public static DescEscapeRegister operator &(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator ^(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.Value ^ b.Value));
+    public static DescEscapeRegister operator ^(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,115 +222,115 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator -(DescEscapeRegister a) => new(unchecked((byte)(0 - a.Value)));
+    public static DescEscapeRegister operator -(DescEscapeRegister a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator +(DescEscapeRegister a, DescEscapeRegister b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static DescEscapeRegister operator +(DescEscapeRegister a, DescEscapeRegister b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator +(DescEscapeRegister a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static DescEscapeRegister operator +(DescEscapeRegister a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator +(byte a, DescEscapeRegister b) => new(unchecked((byte)(a + b.Value)));
+    public static DescEscapeRegister operator +(byte a, DescEscapeRegister b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator -(DescEscapeRegister a, DescEscapeRegister b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static DescEscapeRegister operator -(DescEscapeRegister a, DescEscapeRegister b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator -(DescEscapeRegister a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static DescEscapeRegister operator -(DescEscapeRegister a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator -(byte a, DescEscapeRegister b) => new(unchecked((byte)(a - b.Value)));
+    public static DescEscapeRegister operator -(byte a, DescEscapeRegister b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator *(DescEscapeRegister a, DescEscapeRegister b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static DescEscapeRegister operator *(DescEscapeRegister a, DescEscapeRegister b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator *(DescEscapeRegister a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static DescEscapeRegister operator *(DescEscapeRegister a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator *(byte a, DescEscapeRegister b) => new(unchecked((byte)(a * b.Value)));
+    public static DescEscapeRegister operator *(byte a, DescEscapeRegister b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator /(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.Value / b.Value));
+    public static DescEscapeRegister operator /(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator /(DescEscapeRegister a, byte b) => new((byte)(a.Value / b));
+    public static DescEscapeRegister operator /(DescEscapeRegister a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator /(byte a, DescEscapeRegister b) => new((byte)(a / b.Value));
+    public static DescEscapeRegister operator /(byte a, DescEscapeRegister b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator %(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.Value % b.Value));
+    public static DescEscapeRegister operator %(DescEscapeRegister a, DescEscapeRegister b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator %(DescEscapeRegister a, byte b) => new((byte)(a.Value % b));
+    public static DescEscapeRegister operator %(DescEscapeRegister a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescEscapeRegister operator %(byte a, DescEscapeRegister b) => new((byte)(a % b.Value));
+    public static DescEscapeRegister operator %(byte a, DescEscapeRegister b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(DescEscapeRegister a, int b) => a.Value << b;
+    public static int operator <<(DescEscapeRegister a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(DescEscapeRegister a, int b) => a.Value >> b;
+    public static int operator >>(DescEscapeRegister a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(DescEscapeRegister a, int b) => a.Value >>> b;
+    public static int operator >>>(DescEscapeRegister a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(DescEscapeRegister a, DescEscapeRegister b) => a.Value < b.Value;
+    public static bool operator <(DescEscapeRegister a, DescEscapeRegister b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(DescEscapeRegister a, DescEscapeRegister b) => a.Value > b.Value;
+    public static bool operator >(DescEscapeRegister a, DescEscapeRegister b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(DescEscapeRegister a, DescEscapeRegister b) => a.Value <= b.Value;
+    public static bool operator <=(DescEscapeRegister a, DescEscapeRegister b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(DescEscapeRegister a, DescEscapeRegister b) => a.Value >= b.Value;
+    public static bool operator >=(DescEscapeRegister a, DescEscapeRegister b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DescEscapeRegister a, DescEscapeRegister b) => a.Value == b.Value;
+    public static bool operator ==(DescEscapeRegister a, DescEscapeRegister b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(DescEscapeRegister a, DescEscapeRegister b) => a.Value != b.Value;
+    public static bool operator !=(DescEscapeRegister a, DescEscapeRegister b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is DescEscapeRegister other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is DescEscapeRegister other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(DescEscapeRegister value) => value.Value;
+    public static implicit operator byte(DescEscapeRegister value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator DescEscapeRegister(byte value) => new(value);
@@ -362,7 +362,7 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -546,7 +546,7 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -555,7 +555,7 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -572,13 +572,13 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <param name="other">A DescEscapeRegister to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(DescEscapeRegister other) => Value.CompareTo(other.Value);
+    public int CompareTo(DescEscapeRegister other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another DescEscapeRegister.</summary>
     /// <param name="other">A DescEscapeRegister to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(DescEscapeRegister other) => Value == other.Value;
+    public bool Equals(DescEscapeRegister other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes DescEscapeRegister as a string.</summary>
     private sealed class DescEscapeRegisterJsonConverter : JsonConverter<DescEscapeRegister>

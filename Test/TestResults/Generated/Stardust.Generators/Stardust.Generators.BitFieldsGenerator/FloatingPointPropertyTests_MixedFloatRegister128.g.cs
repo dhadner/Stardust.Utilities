@@ -22,19 +22,19 @@ public partial class FloatingPointPropertyTests
     public partial struct MixedFloatRegister128 : IComparable, IComparable<MixedFloatRegister128>, IEquatable<MixedFloatRegister128>,
                                  IFormattable, ISpanFormattable, IParsable<MixedFloatRegister128>, ISpanParsable<MixedFloatRegister128>
     {
-        private ulong _w0; // bits 0-63
-        private ulong _w1; // bits 64-127
+        private ulong __w0; // bits 0-63
+        private ulong __w1; // bits 64-127
 
         /// <summary>Number of conceptual words in the backing store.</summary>
-        private const int WORD_COUNT = 2;
+        private const int __WORD_COUNT = 2;
 
         /// <summary>Total number of defined bits.</summary>
-        private const int TOTAL_BITS = 128;
+        private const int __TOTAL_BITS = 128;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 16;
 
-        private const ulong LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
+        private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
         /// <summary>Returns a MixedFloatRegister128 with all bits set to zero.</summary>
         public static MixedFloatRegister128 Zero => default;
@@ -44,8 +44,8 @@ public partial class FloatingPointPropertyTests
         /// <param name="upper">Bits 64-127 (most significant).</param>
         public MixedFloatRegister128(ulong lower, ulong upper)
         {
-            _w0 = lower;
-            _w1 = upper;
+            __w0 = lower;
+            __w1 = upper;
         }
 
         /// <summary>Creates a new MixedFloatRegister128 from a ulong value (zero-extended).</summary>
@@ -57,48 +57,48 @@ public partial class FloatingPointPropertyTests
         {
             ulong extended = unchecked((ulong)(long)value);
             ulong fill = value < 0 ? ulong.MaxValue : 0UL;
-            _w0 = extended;
-            _w1 = fill;
+            __w0 = extended;
+            __w1 = fill;
         }
 
         public partial double DoubleVal
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => BitConverter.UInt64BitsToDouble((ulong)_w0);
+            get => BitConverter.UInt64BitsToDouble((ulong)__w0);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w0 = (ulong)BitConverter.DoubleToUInt64Bits(value);
+            set => __w0 = (ulong)BitConverter.DoubleToUInt64Bits(value);
         }
 
         public partial float FloatVal
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => BitConverter.UInt32BitsToSingle((uint)(_w1 & 0xFFFFFFFFUL));
+            get => BitConverter.UInt32BitsToSingle((uint)(__w1 & 0xFFFFFFFFUL));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w1 = (_w1 & 0xFFFFFFFF00000000UL) | ((ulong)BitConverter.SingleToUInt32Bits(value) & 0x00000000FFFFFFFFUL);
+            set => __w1 = (__w1 & 0xFFFFFFFF00000000UL) | ((ulong)BitConverter.SingleToUInt32Bits(value) & 0x00000000FFFFFFFFUL);
         }
 
         public partial global::System.Half HalfVal
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => BitConverter.UInt16BitsToHalf((ushort)((_w1 >> 32) & 0xFFFFUL));
+            get => BitConverter.UInt16BitsToHalf((ushort)((__w1 >> 32) & 0xFFFFUL));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w1 = (_w1 & 0xFFFF0000FFFFFFFFUL) | (((ulong)BitConverter.HalfToUInt16Bits(value) << 32) & 0x0000FFFF00000000UL);
+            set => __w1 = (__w1 & 0xFFFF0000FFFFFFFFUL) | (((ulong)BitConverter.HalfToUInt16Bits(value) << 32) & 0x0000FFFF00000000UL);
         }
 
         public partial bool PadFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_w1 & 0x4000000000000000UL) != 0;
+            get => (__w1 & 0x4000000000000000UL) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w1 = value ? (_w1 | 0x4000000000000000UL) : (_w1 & 0xBFFFFFFFFFFFFFFFUL);
+            set => __w1 = value ? (__w1 | 0x4000000000000000UL) : (__w1 & 0xBFFFFFFFFFFFFFFFUL);
         }
 
         public partial bool SignFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_w1 & 0x8000000000000000UL) != 0;
+            get => (__w1 & 0x8000000000000000UL) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w1 = value ? (_w1 | 0x8000000000000000UL) : (_w1 & 0x7FFFFFFFFFFFFFFFUL);
+            set => __w1 = value ? (__w1 | 0x8000000000000000UL) : (__w1 & 0x7FFFFFFFFFFFFFFFUL);
         }
 
         /// <summary>Returns a MixedFloatRegister128 with only the PadFlag bit set.</summary>
@@ -118,11 +118,11 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Returns a new MixedFloatRegister128 with the PadFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public MixedFloatRegister128 WithPadFlag(bool value) => new(_w0, value ? (_w1 | 0x4000000000000000UL) : (_w1 & 0xBFFFFFFFFFFFFFFFUL));
+        public MixedFloatRegister128 WithPadFlag(bool value) => new(__w0, value ? (__w1 | 0x4000000000000000UL) : (__w1 & 0xBFFFFFFFFFFFFFFFUL));
 
         /// <summary>Returns a new MixedFloatRegister128 with the SignFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public MixedFloatRegister128 WithSignFlag(bool value) => new(_w0, value ? (_w1 | 0x8000000000000000UL) : (_w1 & 0x7FFFFFFFFFFFFFFFUL));
+        public MixedFloatRegister128 WithSignFlag(bool value) => new(__w0, value ? (__w1 | 0x8000000000000000UL) : (__w1 & 0x7FFFFFFFFFFFFFFFUL));
 
         /// <summary>Returns a new MixedFloatRegister128 with the DoubleVal field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -152,23 +152,23 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MixedFloatRegister128 operator ~(MixedFloatRegister128 a) => new(~a._w0, ~a._w1);
+        public static MixedFloatRegister128 operator ~(MixedFloatRegister128 a) => new(~a.__w0, ~a.__w1);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MixedFloatRegister128 operator |(MixedFloatRegister128 a, MixedFloatRegister128 b) => new(a._w0 | b._w0, a._w1 | b._w1);
+        public static MixedFloatRegister128 operator |(MixedFloatRegister128 a, MixedFloatRegister128 b) => new(a.__w0 | b.__w0, a.__w1 | b.__w1);
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MixedFloatRegister128 operator &(MixedFloatRegister128 a, MixedFloatRegister128 b) => new(a._w0 & b._w0, a._w1 & b._w1);
+        public static MixedFloatRegister128 operator &(MixedFloatRegister128 a, MixedFloatRegister128 b) => new(a.__w0 & b.__w0, a.__w1 & b.__w1);
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MixedFloatRegister128 operator ^(MixedFloatRegister128 a, MixedFloatRegister128 b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1);
+        public static MixedFloatRegister128 operator ^(MixedFloatRegister128 a, MixedFloatRegister128 b) => new(a.__w0 ^ b.__w0, a.__w1 ^ b.__w1);
 
         /// <summary>Bitwise AND operator with ulong (applied to lowest word).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MixedFloatRegister128 operator &(MixedFloatRegister128 a, ulong b) => new(a._w0 & b, 0UL);
+        public static MixedFloatRegister128 operator &(MixedFloatRegister128 a, ulong b) => new(a.__w0 & b, 0UL);
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -181,9 +181,9 @@ public partial class FloatingPointPropertyTests
         /// <summary>Addition operator with carry propagation.</summary>
         public static MixedFloatRegister128 operator +(MixedFloatRegister128 a, MixedFloatRegister128 b)
         {
-            ulong w0 = a._w0 + b._w0;
-            ulong c0 = (w0 < a._w0) ? 1UL : 0UL;
-            ulong w1 = a._w1 + b._w1 + c0;
+            ulong w0 = a.__w0 + b.__w0;
+            ulong c0 = (w0 < a.__w0) ? 1UL : 0UL;
+            ulong w1 = a.__w1 + b.__w1 + c0;
             return new(w0, w1);
         }
 
@@ -194,9 +194,9 @@ public partial class FloatingPointPropertyTests
         /// <summary>Subtraction operator with borrow propagation.</summary>
         public static MixedFloatRegister128 operator -(MixedFloatRegister128 a, MixedFloatRegister128 b)
         {
-            ulong w0 = a._w0 - b._w0;
-            ulong borrow0 = (a._w0 < b._w0) ? 1UL : 0UL;
-            ulong diff1 = a._w1 - b._w1;
+            ulong w0 = a.__w0 - b.__w0;
+            ulong borrow0 = (a.__w0 < b.__w0) ? 1UL : 0UL;
+            ulong diff1 = a.__w1 - b.__w1;
             ulong w1 = diff1 - borrow0;
             return new(w0, w1);
         }
@@ -230,11 +230,11 @@ public partial class FloatingPointPropertyTests
         public static MixedFloatRegister128 operator <<(MixedFloatRegister128 a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TOTAL_BITS) return default;
+            if (amount >= __TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(MixedFloatRegister128);
-            for (int dst = WORD_COUNT - 1; dst >= 0; dst--)
+            for (int dst = __WORD_COUNT - 1; dst >= 0; dst--)
             {
                 int src = dst - wordShift;
                 if (src < 0) continue;
@@ -255,21 +255,21 @@ public partial class FloatingPointPropertyTests
         public static MixedFloatRegister128 operator >>(MixedFloatRegister128 a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TOTAL_BITS) return default;
+            if (amount >= __TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(MixedFloatRegister128);
-            for (int dst = 0; dst < WORD_COUNT; dst++)
+            for (int dst = 0; dst < __WORD_COUNT; dst++)
             {
                 int src = dst + wordShift;
-                if (src >= WORD_COUNT) break;
+                if (src >= __WORD_COUNT) break;
                 ulong val = GetWord(a, src);
                 if (bitShift == 0)
                     SetWord(ref result, dst, val);
                 else
                 {
                     SetWord(ref result, dst, val >> bitShift);
-                    if (src + 1 < WORD_COUNT)
+                    if (src + 1 < __WORD_COUNT)
                         SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));
                 }
             }
@@ -285,8 +285,8 @@ public partial class FloatingPointPropertyTests
         {
             return index switch
             {
-                0 => v._w0,
-                1 => v._w1,
+                0 => v.__w0,
+                1 => v.__w1,
                 _ => 0UL,
             };
         }
@@ -296,16 +296,16 @@ public partial class FloatingPointPropertyTests
         {
             switch (index)
             {
-                case 0: v._w0 = value; break;
-                case 1: v._w1 = value; break;
+                case 0: v.__w0 = value; break;
+                case 1: v.__w1 = value; break;
             }
         }
 
         /// <summary>Less than operator.</summary>
         public static bool operator <(MixedFloatRegister128 a, MixedFloatRegister128 b)
         {
-            if (a._w1 != b._w1) return a._w1 < b._w1;
-            if (a._w0 != b._w0) return a._w0 < b._w0;
+            if (a.__w1 != b.__w1) return a.__w1 < b.__w1;
+            if (a.__w0 != b.__w0) return a.__w0 < b.__w0;
             return false;
         }
 
@@ -323,7 +323,7 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(MixedFloatRegister128 a, MixedFloatRegister128 b) => a._w0 == b._w0 && a._w1 == b._w1;
+        public static bool operator ==(MixedFloatRegister128 a, MixedFloatRegister128 b) => a.__w0 == b.__w0 && a.__w1 == b.__w1;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -335,7 +335,7 @@ public partial class FloatingPointPropertyTests
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
         {
-            return HashCode.Combine(_w0, _w1);
+            return HashCode.Combine(__w0, __w1);
         }
 
         /// <summary>Returns a hex string representation of the value.</summary>
@@ -359,7 +359,7 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Implicit conversion to UInt128.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator UInt128(MixedFloatRegister128 value) => ((UInt128)value._w1 << 64) | value._w0;
+        public static implicit operator UInt128(MixedFloatRegister128 value) => ((UInt128)value.__w1 << 64) | value.__w0;
 
         /// <summary>Implicit conversion from UInt128.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -368,15 +368,15 @@ public partial class FloatingPointPropertyTests
         /// <summary>Converts this value to a BigInteger.</summary>
         public BigInteger ToBigInteger()
         {
-            BigInteger result = _w1;
-            result = (result << 64) | _w0;
+            BigInteger result = __w1;
+            result = (result << 64) | __w0;
             return result;
         }
 
         /// <summary>Creates a MixedFloatRegister128 from a BigInteger (truncated to 128 bits).</summary>
         public static MixedFloatRegister128 FromBigInteger(BigInteger value)
         {
-            if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
+            if (value.Sign < 0) value = (BigInteger.One << __TOTAL_BITS) + value;
             ulong w0 = (ulong)(value & ulong.MaxValue);
             value >>= 64;
             ulong w1 = (ulong)(value & ulong.MaxValue);
@@ -390,8 +390,8 @@ public partial class FloatingPointPropertyTests
         {
             if (bytes.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-            _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
-            _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
+            __w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
+            __w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
         }
 
         /// <summary>Creates a new MixedFloatRegister128 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
@@ -407,8 +407,8 @@ public partial class FloatingPointPropertyTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), __w0);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), __w1);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -516,8 +516,8 @@ public partial class FloatingPointPropertyTests
         /// <summary>Compares this instance to another MixedFloatRegister128.</summary>
         public int CompareTo(MixedFloatRegister128 other)
         {
-            if (_w1 != other._w1) return _w1.CompareTo(other._w1);
-            if (_w0 != other._w0) return _w0.CompareTo(other._w0);
+            if (__w1 != other.__w1) return __w1.CompareTo(other.__w1);
+            if (__w0 != other.__w0) return __w0.CompareTo(other.__w0);
             return 0;
         }
 

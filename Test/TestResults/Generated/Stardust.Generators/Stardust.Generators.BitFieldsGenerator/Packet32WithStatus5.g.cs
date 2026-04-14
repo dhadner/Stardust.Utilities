@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32WithStatus5>, IEquatable<Packet32WithStatus5>,
                              IFormattable, ISpanFormattable, IParsable<Packet32WithStatus5>, ISpanParsable<Packet32WithStatus5>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,57 +27,57 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
 
     // --- Bit field mask constants ---
     // Status: bits [0..4], width 5
-    private const int STATUS_START_BIT = 0;
-    private const uint STATUS_MASK = 0x0000001FU;
-    private const uint STATUS_INVERTED_MASK = 0xFFFFFFE0U;  // ~STATUS_MASK
+    private const int __STATUS_START_BIT = 0;
+    private const uint __STATUS_MASK = 0x0000001FU;
+    private const uint __STATUS_INVERTED_MASK = 0xFFFFFFE0U;  // ~__STATUS_MASK
     // DataField: bits [5..15], width 11
-    private const int DATA_FIELD_START_BIT = 5;
-    private const uint DATA_FIELD_MASK = 0x000007FFU;
-    private const uint DATA_FIELD_SHIFTED_MASK = 0x0000FFE0U;  // DATA_FIELD_MASK << DATA_FIELD_START_BIT
-    private const uint DATA_FIELD_INVERTED_MASK = 0xFFFF001FU;  // ~DATA_FIELD_SHIFTED_MASK
+    private const int __DATA_FIELD_START_BIT = 5;
+    private const uint __DATA_FIELD_MASK = 0x000007FFU;
+    private const uint __DATA_FIELD_SHIFTED_MASK = 0x0000FFE0U;  // __DATA_FIELD_MASK << __DATA_FIELD_START_BIT
+    private const uint __DATA_FIELD_INVERTED_MASK = 0xFFFF001FU;  // ~__DATA_FIELD_SHIFTED_MASK
     // Checksum: bits [16..31], width 16
-    private const int CHECKSUM_START_BIT = 16;
-    private const uint CHECKSUM_MASK = 0x0000FFFFU;
-    private const uint CHECKSUM_SHIFTED_MASK = 0xFFFF0000U;  // CHECKSUM_MASK << CHECKSUM_START_BIT
-    private const uint CHECKSUM_INVERTED_MASK = 0x0000FFFFU;  // ~CHECKSUM_SHIFTED_MASK
+    private const int __CHECKSUM_START_BIT = 16;
+    private const uint __CHECKSUM_MASK = 0x0000FFFFU;
+    private const uint __CHECKSUM_SHIFTED_MASK = 0xFFFF0000U;  // __CHECKSUM_MASK << __CHECKSUM_START_BIT
+    private const uint __CHECKSUM_INVERTED_MASK = 0x0000FFFFU;  // ~__CHECKSUM_SHIFTED_MASK
 
     /// <summary>Creates a new Packet32WithStatus5 with the specified raw bits value.</summary>
-    public Packet32WithStatus5(uint value) { Value = value; }
+    public Packet32WithStatus5(uint value) { __value = value; }
 
     public partial global::Stardust.Utilities.Tests.StatusCode5 Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusCode5)((byte)(Value & STATUS_MASK));
+        get => (global::Stardust.Utilities.Tests.StatusCode5)((byte)(__value & __STATUS_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set { var __ev = (byte)value;
-            Value = (uint)((Value & STATUS_INVERTED_MASK) | (((uint)__ev) & STATUS_MASK));
+            __value = (uint)((__value & __STATUS_INVERTED_MASK) | (((uint)__ev) & __STATUS_MASK));
         }
     }
 
     public partial ushort DataField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> DATA_FIELD_START_BIT) & DATA_FIELD_MASK);
+        get => (ushort)((__value >> __DATA_FIELD_START_BIT) & __DATA_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & DATA_FIELD_INVERTED_MASK) | ((((uint)value) << DATA_FIELD_START_BIT) & DATA_FIELD_SHIFTED_MASK));
+        set => __value = (uint)((__value & __DATA_FIELD_INVERTED_MASK) | ((((uint)value) << __DATA_FIELD_START_BIT) & __DATA_FIELD_SHIFTED_MASK));
     }
 
     public partial ushort Checksum
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> CHECKSUM_START_BIT) & CHECKSUM_MASK);
+        get => (ushort)((__value >> __CHECKSUM_START_BIT) & __CHECKSUM_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & CHECKSUM_INVERTED_MASK) | ((((uint)value) << CHECKSUM_START_BIT) & CHECKSUM_SHIFTED_MASK));
+        set => __value = (uint)((__value & __CHECKSUM_INVERTED_MASK) | ((((uint)value) << __CHECKSUM_START_BIT) & __CHECKSUM_SHIFTED_MASK));
     }
 
     /// <summary>Returns a Packet32WithStatus5 with the mask for the Status field (bits 0-4).</summary>
-    public static Packet32WithStatus5 StatusMask => new(STATUS_MASK);
+    public static Packet32WithStatus5 StatusMask => new(__STATUS_MASK);
 
     /// <summary>Returns a Packet32WithStatus5 with the mask for the DataField field (bits 5-15).</summary>
-    public static Packet32WithStatus5 DataFieldMask => new(DATA_FIELD_SHIFTED_MASK);
+    public static Packet32WithStatus5 DataFieldMask => new(__DATA_FIELD_SHIFTED_MASK);
 
     /// <summary>Returns a Packet32WithStatus5 with the mask for the Checksum field (bits 16-31).</summary>
-    public static Packet32WithStatus5 ChecksumMask => new(CHECKSUM_SHIFTED_MASK);
+    public static Packet32WithStatus5 ChecksumMask => new(__CHECKSUM_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -93,79 +93,79 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
 
     /// <summary>Returns a new Packet32WithStatus5 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Packet32WithStatus5 WithStatus(global::Stardust.Utilities.Tests.StatusCode5 value) => new((uint)((Value & STATUS_INVERTED_MASK) | ((uint)value & STATUS_MASK)));
+    public Packet32WithStatus5 WithStatus(global::Stardust.Utilities.Tests.StatusCode5 value) => new((uint)((__value & __STATUS_INVERTED_MASK) | ((uint)value & __STATUS_MASK)));
 
     /// <summary>Returns a new Packet32WithStatus5 with the DataField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Packet32WithStatus5 WithDataField(ushort value) => new((uint)((Value & DATA_FIELD_INVERTED_MASK) | (((uint)value << DATA_FIELD_START_BIT) & DATA_FIELD_SHIFTED_MASK)));
+    public Packet32WithStatus5 WithDataField(ushort value) => new((uint)((__value & __DATA_FIELD_INVERTED_MASK) | (((uint)value << __DATA_FIELD_START_BIT) & __DATA_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new Packet32WithStatus5 with the Checksum field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Packet32WithStatus5 WithChecksum(ushort value) => new((uint)((Value & CHECKSUM_INVERTED_MASK) | (((uint)value << CHECKSUM_START_BIT) & CHECKSUM_SHIFTED_MASK)));
+    public Packet32WithStatus5 WithChecksum(ushort value) => new((uint)((__value & __CHECKSUM_INVERTED_MASK) | (((uint)value << __CHECKSUM_START_BIT) & __CHECKSUM_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator ~(Packet32WithStatus5 a) => new((uint)~a.Value);
+    public static Packet32WithStatus5 operator ~(Packet32WithStatus5 a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator |(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.Value | b.Value));
+    public static Packet32WithStatus5 operator |(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator &(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.Value & b.Value));
+    public static Packet32WithStatus5 operator &(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator ^(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.Value ^ b.Value));
+    public static Packet32WithStatus5 operator ^(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator &(Packet32WithStatus5 a, uint b) => new(a.Value & b);
+    public static Packet32WithStatus5 operator &(Packet32WithStatus5 a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator &(uint a, Packet32WithStatus5 b) => new(a & b.Value);
+    public static Packet32WithStatus5 operator &(uint a, Packet32WithStatus5 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator |(Packet32WithStatus5 a, uint b) => new(a.Value | b);
+    public static Packet32WithStatus5 operator |(Packet32WithStatus5 a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator |(uint a, Packet32WithStatus5 b) => new(a | b.Value);
+    public static Packet32WithStatus5 operator |(uint a, Packet32WithStatus5 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator ^(Packet32WithStatus5 a, uint b) => new(a.Value ^ b);
+    public static Packet32WithStatus5 operator ^(Packet32WithStatus5 a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator ^(uint a, Packet32WithStatus5 b) => new(a ^ b.Value);
+    public static Packet32WithStatus5 operator ^(uint a, Packet32WithStatus5 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(Packet32WithStatus5 a, int b) => a.Value & (long)b;
+    public static long operator &(Packet32WithStatus5 a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, Packet32WithStatus5 b) => (long)a & b.Value;
+    public static long operator &(int a, Packet32WithStatus5 b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(Packet32WithStatus5 a, int b) => a.Value | (long)b;
+    public static long operator |(Packet32WithStatus5 a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, Packet32WithStatus5 b) => (long)a | b.Value;
+    public static long operator |(int a, Packet32WithStatus5 b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(Packet32WithStatus5 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(Packet32WithStatus5 a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, Packet32WithStatus5 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, Packet32WithStatus5 b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -173,115 +173,115 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator -(Packet32WithStatus5 a) => new(unchecked((uint)(0 - a.Value)));
+    public static Packet32WithStatus5 operator -(Packet32WithStatus5 a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator +(Packet32WithStatus5 a, Packet32WithStatus5 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static Packet32WithStatus5 operator +(Packet32WithStatus5 a, Packet32WithStatus5 b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator +(Packet32WithStatus5 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static Packet32WithStatus5 operator +(Packet32WithStatus5 a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator +(uint a, Packet32WithStatus5 b) => new(unchecked((uint)(a + b.Value)));
+    public static Packet32WithStatus5 operator +(uint a, Packet32WithStatus5 b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator -(Packet32WithStatus5 a, Packet32WithStatus5 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static Packet32WithStatus5 operator -(Packet32WithStatus5 a, Packet32WithStatus5 b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator -(Packet32WithStatus5 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static Packet32WithStatus5 operator -(Packet32WithStatus5 a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator -(uint a, Packet32WithStatus5 b) => new(unchecked((uint)(a - b.Value)));
+    public static Packet32WithStatus5 operator -(uint a, Packet32WithStatus5 b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator *(Packet32WithStatus5 a, Packet32WithStatus5 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static Packet32WithStatus5 operator *(Packet32WithStatus5 a, Packet32WithStatus5 b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator *(Packet32WithStatus5 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static Packet32WithStatus5 operator *(Packet32WithStatus5 a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator *(uint a, Packet32WithStatus5 b) => new(unchecked((uint)(a * b.Value)));
+    public static Packet32WithStatus5 operator *(uint a, Packet32WithStatus5 b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator /(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.Value / b.Value));
+    public static Packet32WithStatus5 operator /(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator /(Packet32WithStatus5 a, uint b) => new((uint)(a.Value / b));
+    public static Packet32WithStatus5 operator /(Packet32WithStatus5 a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator /(uint a, Packet32WithStatus5 b) => new((uint)(a / b.Value));
+    public static Packet32WithStatus5 operator /(uint a, Packet32WithStatus5 b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator %(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.Value % b.Value));
+    public static Packet32WithStatus5 operator %(Packet32WithStatus5 a, Packet32WithStatus5 b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator %(Packet32WithStatus5 a, uint b) => new((uint)(a.Value % b));
+    public static Packet32WithStatus5 operator %(Packet32WithStatus5 a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator %(uint a, Packet32WithStatus5 b) => new((uint)(a % b.Value));
+    public static Packet32WithStatus5 operator %(uint a, Packet32WithStatus5 b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator <<(Packet32WithStatus5 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static Packet32WithStatus5 operator <<(Packet32WithStatus5 a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator >>(Packet32WithStatus5 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static Packet32WithStatus5 operator >>(Packet32WithStatus5 a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Packet32WithStatus5 operator >>>(Packet32WithStatus5 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static Packet32WithStatus5 operator >>>(Packet32WithStatus5 a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.Value < b.Value;
+    public static bool operator <(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.Value > b.Value;
+    public static bool operator >(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.Value <= b.Value;
+    public static bool operator <=(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.Value >= b.Value;
+    public static bool operator >=(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.Value == b.Value;
+    public static bool operator ==(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.Value != b.Value;
+    public static bool operator !=(Packet32WithStatus5 a, Packet32WithStatus5 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is Packet32WithStatus5 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is Packet32WithStatus5 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(Packet32WithStatus5 value) => value.Value;
+    public static implicit operator uint(Packet32WithStatus5 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Packet32WithStatus5(uint value) => new(value);
@@ -309,7 +309,7 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -493,7 +493,7 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -502,7 +502,7 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -519,13 +519,13 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     /// <param name="other">A Packet32WithStatus5 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Packet32WithStatus5 other) => Value.CompareTo(other.Value);
+    public int CompareTo(Packet32WithStatus5 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another Packet32WithStatus5.</summary>
     /// <param name="other">A Packet32WithStatus5 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Packet32WithStatus5 other) => Value == other.Value;
+    public bool Equals(Packet32WithStatus5 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes Packet32WithStatus5 as a string.</summary>
     private sealed class Packet32WithStatus5JsonConverter : JsonConverter<Packet32WithStatus5>

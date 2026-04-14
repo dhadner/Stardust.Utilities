@@ -63,11 +63,11 @@ internal static partial class BitFieldsMultiWordGenerator
             // Enforce MustBe constraints
             if (field.ValueOverride == MustBe.Zero)
             {
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL)")};" );
+                sb.AppendLine($"{ind}    set => __w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL)")};" );
             }
             else if (field.ValueOverride == MustBe.One)
             {
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} | 0x{shiftedMask:X16}UL)")};" );
+                sb.AppendLine($"{ind}    set => __w{startWord} = {layout.Store(startWord, $"({rd} | 0x{shiftedMask:X16}UL)")};" );
             }
             else if (canSaturate)
             {
@@ -94,19 +94,19 @@ internal static partial class BitFieldsMultiWordGenerator
                 }
                 string satOpen = "(ulong)__sat";
                 if (localShift == 0 && width == 64)
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, satOpen)};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, satOpen)};");
                 else if (localShift == 0)
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ({satOpen} & 0x{shiftedMask:X16}UL)")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ({satOpen} & 0x{shiftedMask:X16}UL)")};");
                 else
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (({satOpen} << {localShift}) & 0x{shiftedMask:X16}UL)")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (({satOpen} << {localShift}) & 0x{shiftedMask:X16}UL)")};");
                 sb.AppendLine($"{ind}    }}");
             }
             else if (localShift == 0 && width == 64)
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, setterOpen)};");
+                sb.AppendLine($"{ind}    set => __w{startWord} = {layout.Store(startWord, setterOpen)};");
             else if (localShift == 0)
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ({setterOpen} & 0x{shiftedMask:X16}UL)")};");
+                sb.AppendLine($"{ind}    set => __w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | ({setterOpen} & 0x{shiftedMask:X16}UL)")};");
             else
-                sb.AppendLine($"{ind}    set => _w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (({setterOpen} << {localShift}) & 0x{shiftedMask:X16}UL)")};");
+                sb.AppendLine($"{ind}    set => __w{startWord} = {layout.Store(startWord, $"({rd} & 0x{~shiftedMask:X16}UL) | (({setterOpen} << {localShift}) & 0x{shiftedMask:X16}UL)")};");
         }
         else if (isWideFloat)
         {
@@ -142,8 +142,8 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}    {{");
                 if (localShift == 0)
                 {
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, "0UL")};");
-                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, "0UL")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, "0UL")};");
+                    sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, "0UL")};");
                 }
                 else
                 {
@@ -151,9 +151,9 @@ internal static partial class BitFieldsMultiWordGenerator
                     ulong clearS = (1UL << localShift) - 1;
                     int bitsHigh = width - (64 - localShift) - 64;
                     ulong clearE = (bitsHigh >= 64) ? 0UL : ~((1UL << bitsHigh) - 1);
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{clearS:X16}UL)")};");
-                    sb.AppendLine($"{ind}        _w{midWord} = {layout.Store(midWord, "0UL")};");
-                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{clearE:X16}UL)")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{clearS:X16}UL)")};");
+                    sb.AppendLine($"{ind}        __w{midWord} = {layout.Store(midWord, "0UL")};");
+                    sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{clearE:X16}UL)")};");
                 }
                 sb.AppendLine($"{ind}    }}");
             }
@@ -163,8 +163,8 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}    {{");
                 if (localShift == 0)
                 {
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, "0xFFFFFFFFFFFFFFFFUL")};");
-                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, "0xFFFFFFFFFFFFFFFFUL")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, "0xFFFFFFFFFFFFFFFFUL")};");
+                    sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, "0xFFFFFFFFFFFFFFFFUL")};");
                 }
                 else
                 {
@@ -172,9 +172,9 @@ internal static partial class BitFieldsMultiWordGenerator
                     ulong setS = ~((1UL << localShift) - 1);
                     int bitsHigh = width - (64 - localShift) - 64;
                     ulong setE = (bitsHigh >= 64) ? ulong.MaxValue : (1UL << bitsHigh) - 1;
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{setS:X16}UL)")};");
-                    sb.AppendLine($"{ind}        _w{midWord} = {layout.Store(midWord, "0xFFFFFFFFFFFFFFFFUL")};");
-                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{setE:X16}UL)")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{setS:X16}UL)")};");
+                    sb.AppendLine($"{ind}        __w{midWord} = {layout.Store(midWord, "0xFFFFFFFFFFFFFFFFUL")};");
+                    sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{setE:X16}UL)")};");
                 }
                 sb.AppendLine($"{ind}    }}");
             }
@@ -185,8 +185,8 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}        UInt128 __bits = {toBits}(value);");
                 if (localShift == 0)
                 {
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, "(ulong)__bits")};");
-                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, "(ulong)(__bits >> 64)")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, "(ulong)__bits")};");
+                    sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, "(ulong)(__bits >> 64)")};");
                 }
                 else
                 {
@@ -194,9 +194,9 @@ internal static partial class BitFieldsMultiWordGenerator
                     int bitsHigh = width - (64 - localShift) - 64;
                     ulong keepLow = (1UL << localShift) - 1;
                     ulong clearHigh = (bitsHigh >= 64) ? 0UL : ~((1UL << bitsHigh) - 1);
-                    sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{keepLow:X16}UL) | ((ulong)__bits << {localShift})")};");
-                    sb.AppendLine($"{ind}        _w{midWord} = {layout.Store(midWord, $"(ulong)(__bits >> {64 - localShift})")};");
-                    sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{clearHigh:X16}UL) | (ulong)(__bits >> {128 - bitsHigh})")};");
+                    sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{keepLow:X16}UL) | ((ulong)__bits << {localShift})")};");
+                    sb.AppendLine($"{ind}        __w{midWord} = {layout.Store(midWord, $"(ulong)(__bits >> {64 - localShift})")};");
+                    sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{clearHigh:X16}UL) | (ulong)(__bits >> {128 - bitsHigh})")};");
                 }
                 sb.AppendLine($"{ind}    }}");
             }
@@ -217,16 +217,16 @@ internal static partial class BitFieldsMultiWordGenerator
             {
                 sb.AppendLine($"{ind}    set");
                 sb.AppendLine($"{ind}    {{");
-                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{~maskStartShifted:X16}UL)")};" );
-                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL)")};" );
+                sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{~maskStartShifted:X16}UL)")};" );
+                sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL)")};" );
                 sb.AppendLine($"{ind}    }}");
             }
             else if (field.ValueOverride == MustBe.One)
             {
                 sb.AppendLine($"{ind}    set");
                 sb.AppendLine($"{ind}    {{");
-                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{maskStartShifted:X16}UL)")};" );
-                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{maskEnd:X16}UL)")};" );
+                sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} | 0x{maskStartShifted:X16}UL)")};" );
+                sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} | 0x{maskEnd:X16}UL)")};" );
                 sb.AppendLine($"{ind}    }}");
             }
             else if (canSaturate)
@@ -254,8 +254,8 @@ internal static partial class BitFieldsMultiWordGenerator
                 }
                 string satOpen = "(ulong)__sat";
                 ulong maskStart = (1UL << bitsInStart) - 1;
-                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (({satOpen} & 0x{maskStart:X}UL) << {localShift})")};");
-                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (({satOpen} >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
+                sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (({satOpen} & 0x{maskStart:X}UL) << {localShift})")};");
+                sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (({satOpen} >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
                 sb.AppendLine($"{ind}    }}");
             }
             else
@@ -263,8 +263,8 @@ internal static partial class BitFieldsMultiWordGenerator
                 sb.AppendLine($"{ind}    set");
                 sb.AppendLine($"{ind}    {{");
                 ulong maskStart = (1UL << bitsInStart) - 1;
-                sb.AppendLine($"{ind}        _w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (({setterOpen} & 0x{maskStart:X}UL) << {localShift})")};");
-                sb.AppendLine($"{ind}        _w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (({setterOpen} >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
+                sb.AppendLine($"{ind}        __w{startWord} = {layout.Store(startWord, $"({rdS} & 0x{(1UL << localShift) - 1:X16}UL) | (({setterOpen} & 0x{maskStart:X}UL) << {localShift})")};");
+                sb.AppendLine($"{ind}        __w{endWord} = {layout.Store(endWord, $"({rdE} & 0x{~maskEnd:X16}UL) | (({setterOpen} >> {bitsInStart}) & 0x{maskEnd:X}UL)")};");
                 sb.AppendLine($"{ind}    }}");
             }
         }
@@ -288,19 +288,19 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             sb.AppendLine($"{ind}    get => false;");
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"({rd} & 0x{~mask:X16}UL)")};");
+            sb.AppendLine($"{ind}    set => __w{wi} = {layout.Store(wi, $"({rd} & 0x{~mask:X16}UL)")};");
         }
         else if (flag.ValueOverride == MustBe.One)
         {
             sb.AppendLine($"{ind}    get => true;");
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"({rd} | 0x{mask:X}UL)")};");
+            sb.AppendLine($"{ind}    set => __w{wi} = {layout.Store(wi, $"({rd} | 0x{mask:X}UL)")};");
         }
         else
         {
             sb.AppendLine($"{ind}    get => ({rd} & 0x{mask:X}UL) != 0;");
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}    set => _w{wi} = {layout.Store(wi, $"value ? ({rd} | 0x{mask:X}UL) : ({rd} & 0x{~mask:X16}UL)")};");
+            sb.AppendLine($"{ind}    set => __w{wi} = {layout.Store(wi, $"value ? ({rd} | 0x{mask:X}UL) : ({rd} & 0x{~mask:X16}UL)")};");
         }
 
         sb.AppendLine($"{ind}}}");
@@ -438,7 +438,7 @@ internal static partial class BitFieldsMultiWordGenerator
 
         var wordExprs = Enumerable.Range(0, wc).Select(i =>
         {
-            if (i != wi) return $"_w{i}";
+            if (i != wi) return $"__w{i}";
             string rd = layout.Read("", i);
             return layout.Store(i, $"value ? ({rd} | 0x{mask:X}UL) : ({rd} & 0x{~mask:X16}UL)");
         }).ToArray();

@@ -22,25 +22,25 @@ public partial class BitFieldMultiWordTests
     public partial struct Bits512 : IComparable, IComparable<Bits512>, IEquatable<Bits512>,
                                  IFormattable, ISpanFormattable, IParsable<Bits512>, ISpanParsable<Bits512>
     {
-        private ulong _w0; // bits 0-63
-        private ulong _w1; // bits 64-127
-        private ulong _w2; // bits 128-191
-        private ulong _w3; // bits 192-255
-        private ulong _w4; // bits 256-319
-        private ulong _w5; // bits 320-383
-        private ulong _w6; // bits 384-447
-        private ulong _w7; // bits 448-511
+        private ulong __w0; // bits 0-63
+        private ulong __w1; // bits 64-127
+        private ulong __w2; // bits 128-191
+        private ulong __w3; // bits 192-255
+        private ulong __w4; // bits 256-319
+        private ulong __w5; // bits 320-383
+        private ulong __w6; // bits 384-447
+        private ulong __w7; // bits 448-511
 
         /// <summary>Number of conceptual words in the backing store.</summary>
-        private const int WORD_COUNT = 8;
+        private const int __WORD_COUNT = 8;
 
         /// <summary>Total number of defined bits.</summary>
-        private const int TOTAL_BITS = 512;
+        private const int __TOTAL_BITS = 512;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 64;
 
-        private const ulong LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
+        private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
         /// <summary>Returns a Bits512 with all bits set to zero.</summary>
         public static Bits512 Zero => default;
@@ -49,7 +49,7 @@ public partial class BitFieldMultiWordTests
         public Bits512(ulong value)
         {
             this = default;
-            _w0 = value;
+            __w0 = value;
         }
 
         /// <summary>Creates a new Bits512 from an int value. Negative values are sign-extended
@@ -58,46 +58,46 @@ public partial class BitFieldMultiWordTests
         {
             ulong extended = unchecked((ulong)(long)value);
             ulong fill = value < 0 ? ulong.MaxValue : 0UL;
-            _w0 = extended;
-            _w1 = fill;
-            _w2 = fill;
-            _w3 = fill;
-            _w4 = fill;
-            _w5 = fill;
-            _w6 = fill;
-            _w7 = fill;
+            __w0 = extended;
+            __w1 = fill;
+            __w2 = fill;
+            __w3 = fill;
+            __w4 = fill;
+            __w5 = fill;
+            __w6 = fill;
+            __w7 = fill;
         }
 
         public partial ulong W0
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ulong)_w0;
+            get => (ulong)__w0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w0 = (ulong)value;
+            set => __w0 = (ulong)value;
         }
 
         public partial ulong W1
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ulong)_w1;
+            get => (ulong)__w1;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w1 = (ulong)value;
+            set => __w1 = (ulong)value;
         }
 
         public partial ulong W7
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ulong)_w7;
+            get => (ulong)__w7;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w7 = (ulong)value;
+            set => __w7 = (ulong)value;
         }
 
         public partial bool MidFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_w4 & 0x1UL) != 0;
+            get => (__w4 & 0x1UL) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _w4 = value ? (_w4 | 0x1UL) : (_w4 & 0xFFFFFFFFFFFFFFFEUL);
+            set => __w4 = value ? (__w4 | 0x1UL) : (__w4 & 0xFFFFFFFFFFFFFFFEUL);
         }
 
         /// <summary>Returns a Bits512 with only the MidFlag bit set.</summary>
@@ -106,14 +106,14 @@ public partial class BitFieldMultiWordTests
             get
             {
                 var result = default(Bits512);
-                result._w0 = 0UL;
-                result._w1 = 0UL;
-                result._w2 = 0UL;
-                result._w3 = 0UL;
-                result._w4 = 0x1UL;
-                result._w5 = 0UL;
-                result._w6 = 0UL;
-                result._w7 = 0UL;
+                result.__w0 = 0UL;
+                result.__w1 = 0UL;
+                result.__w2 = 0UL;
+                result.__w3 = 0UL;
+                result.__w4 = 0x1UL;
+                result.__w5 = 0UL;
+                result.__w6 = 0UL;
+                result.__w7 = 0UL;
                 return result;
             }
         }
@@ -124,14 +124,14 @@ public partial class BitFieldMultiWordTests
             get
             {
                 var result = default(Bits512);
-                result._w0 = 0xFFFFFFFFFFFFFFFFUL;
-                result._w1 = 0UL;
-                result._w2 = 0UL;
-                result._w3 = 0UL;
-                result._w4 = 0UL;
-                result._w5 = 0UL;
-                result._w6 = 0UL;
-                result._w7 = 0UL;
+                result.__w0 = 0xFFFFFFFFFFFFFFFFUL;
+                result.__w1 = 0UL;
+                result.__w2 = 0UL;
+                result.__w3 = 0UL;
+                result.__w4 = 0UL;
+                result.__w5 = 0UL;
+                result.__w6 = 0UL;
+                result.__w7 = 0UL;
                 return result;
             }
         }
@@ -142,14 +142,14 @@ public partial class BitFieldMultiWordTests
             get
             {
                 var result = default(Bits512);
-                result._w0 = 0UL;
-                result._w1 = 0xFFFFFFFFFFFFFFFFUL;
-                result._w2 = 0UL;
-                result._w3 = 0UL;
-                result._w4 = 0UL;
-                result._w5 = 0UL;
-                result._w6 = 0UL;
-                result._w7 = 0UL;
+                result.__w0 = 0UL;
+                result.__w1 = 0xFFFFFFFFFFFFFFFFUL;
+                result.__w2 = 0UL;
+                result.__w3 = 0UL;
+                result.__w4 = 0UL;
+                result.__w5 = 0UL;
+                result.__w6 = 0UL;
+                result.__w7 = 0UL;
                 return result;
             }
         }
@@ -160,14 +160,14 @@ public partial class BitFieldMultiWordTests
             get
             {
                 var result = default(Bits512);
-                result._w0 = 0UL;
-                result._w1 = 0UL;
-                result._w2 = 0UL;
-                result._w3 = 0UL;
-                result._w4 = 0UL;
-                result._w5 = 0UL;
-                result._w6 = 0UL;
-                result._w7 = 0xFFFFFFFFFFFFFFFFUL;
+                result.__w0 = 0UL;
+                result.__w1 = 0UL;
+                result.__w2 = 0UL;
+                result.__w3 = 0UL;
+                result.__w4 = 0UL;
+                result.__w5 = 0UL;
+                result.__w6 = 0UL;
+                result.__w7 = 0xFFFFFFFFFFFFFFFFUL;
                 return result;
             }
         }
@@ -206,14 +206,14 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator ~(Bits512 a)
         {
             var result = default(Bits512);
-            result._w0 = ~a._w0;
-            result._w1 = ~a._w1;
-            result._w2 = ~a._w2;
-            result._w3 = ~a._w3;
-            result._w4 = ~a._w4;
-            result._w5 = ~a._w5;
-            result._w6 = ~a._w6;
-            result._w7 = ~a._w7;
+            result.__w0 = ~a.__w0;
+            result.__w1 = ~a.__w1;
+            result.__w2 = ~a.__w2;
+            result.__w3 = ~a.__w3;
+            result.__w4 = ~a.__w4;
+            result.__w5 = ~a.__w5;
+            result.__w6 = ~a.__w6;
+            result.__w7 = ~a.__w7;
             return result;
         }
 
@@ -222,14 +222,14 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator |(Bits512 a, Bits512 b)
         {
             var result = default(Bits512);
-            result._w0 = a._w0 | b._w0;
-            result._w1 = a._w1 | b._w1;
-            result._w2 = a._w2 | b._w2;
-            result._w3 = a._w3 | b._w3;
-            result._w4 = a._w4 | b._w4;
-            result._w5 = a._w5 | b._w5;
-            result._w6 = a._w6 | b._w6;
-            result._w7 = a._w7 | b._w7;
+            result.__w0 = a.__w0 | b.__w0;
+            result.__w1 = a.__w1 | b.__w1;
+            result.__w2 = a.__w2 | b.__w2;
+            result.__w3 = a.__w3 | b.__w3;
+            result.__w4 = a.__w4 | b.__w4;
+            result.__w5 = a.__w5 | b.__w5;
+            result.__w6 = a.__w6 | b.__w6;
+            result.__w7 = a.__w7 | b.__w7;
             return result;
         }
 
@@ -238,14 +238,14 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator &(Bits512 a, Bits512 b)
         {
             var result = default(Bits512);
-            result._w0 = a._w0 & b._w0;
-            result._w1 = a._w1 & b._w1;
-            result._w2 = a._w2 & b._w2;
-            result._w3 = a._w3 & b._w3;
-            result._w4 = a._w4 & b._w4;
-            result._w5 = a._w5 & b._w5;
-            result._w6 = a._w6 & b._w6;
-            result._w7 = a._w7 & b._w7;
+            result.__w0 = a.__w0 & b.__w0;
+            result.__w1 = a.__w1 & b.__w1;
+            result.__w2 = a.__w2 & b.__w2;
+            result.__w3 = a.__w3 & b.__w3;
+            result.__w4 = a.__w4 & b.__w4;
+            result.__w5 = a.__w5 & b.__w5;
+            result.__w6 = a.__w6 & b.__w6;
+            result.__w7 = a.__w7 & b.__w7;
             return result;
         }
 
@@ -254,14 +254,14 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator ^(Bits512 a, Bits512 b)
         {
             var result = default(Bits512);
-            result._w0 = a._w0 ^ b._w0;
-            result._w1 = a._w1 ^ b._w1;
-            result._w2 = a._w2 ^ b._w2;
-            result._w3 = a._w3 ^ b._w3;
-            result._w4 = a._w4 ^ b._w4;
-            result._w5 = a._w5 ^ b._w5;
-            result._w6 = a._w6 ^ b._w6;
-            result._w7 = a._w7 ^ b._w7;
+            result.__w0 = a.__w0 ^ b.__w0;
+            result.__w1 = a.__w1 ^ b.__w1;
+            result.__w2 = a.__w2 ^ b.__w2;
+            result.__w3 = a.__w3 ^ b.__w3;
+            result.__w4 = a.__w4 ^ b.__w4;
+            result.__w5 = a.__w5 ^ b.__w5;
+            result.__w6 = a.__w6 ^ b.__w6;
+            result.__w7 = a.__w7 ^ b.__w7;
             return result;
         }
 
@@ -270,14 +270,14 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator &(Bits512 a, ulong b)
         {
             var result = default(Bits512);
-            result._w0 = a._w0 & b;
-            result._w1 = 0UL;
-            result._w2 = 0UL;
-            result._w3 = 0UL;
-            result._w4 = 0UL;
-            result._w5 = 0UL;
-            result._w6 = 0UL;
-            result._w7 = 0UL;
+            result.__w0 = a.__w0 & b;
+            result.__w1 = 0UL;
+            result.__w2 = 0UL;
+            result.__w3 = 0UL;
+            result.__w4 = 0UL;
+            result.__w5 = 0UL;
+            result.__w6 = 0UL;
+            result.__w7 = 0UL;
             return result;
         }
 
@@ -292,30 +292,30 @@ public partial class BitFieldMultiWordTests
         /// <summary>Addition operator with carry propagation.</summary>
         public static Bits512 operator +(Bits512 a, Bits512 b)
         {
-            ulong w0 = a._w0 + b._w0;
-            ulong c0 = (w0 < a._w0) ? 1UL : 0UL;
-            ulong w1 = a._w1 + b._w1 + c0;
-            ulong c1 = (w1 < a._w1 || (c0 != 0 && w1 == a._w1)) ? 1UL : 0UL;
-            ulong w2 = a._w2 + b._w2 + c1;
-            ulong c2 = (w2 < a._w2 || (c1 != 0 && w2 == a._w2)) ? 1UL : 0UL;
-            ulong w3 = a._w3 + b._w3 + c2;
-            ulong c3 = (w3 < a._w3 || (c2 != 0 && w3 == a._w3)) ? 1UL : 0UL;
-            ulong w4 = a._w4 + b._w4 + c3;
-            ulong c4 = (w4 < a._w4 || (c3 != 0 && w4 == a._w4)) ? 1UL : 0UL;
-            ulong w5 = a._w5 + b._w5 + c4;
-            ulong c5 = (w5 < a._w5 || (c4 != 0 && w5 == a._w5)) ? 1UL : 0UL;
-            ulong w6 = a._w6 + b._w6 + c5;
-            ulong c6 = (w6 < a._w6 || (c5 != 0 && w6 == a._w6)) ? 1UL : 0UL;
-            ulong w7 = a._w7 + b._w7 + c6;
+            ulong w0 = a.__w0 + b.__w0;
+            ulong c0 = (w0 < a.__w0) ? 1UL : 0UL;
+            ulong w1 = a.__w1 + b.__w1 + c0;
+            ulong c1 = (w1 < a.__w1 || (c0 != 0 && w1 == a.__w1)) ? 1UL : 0UL;
+            ulong w2 = a.__w2 + b.__w2 + c1;
+            ulong c2 = (w2 < a.__w2 || (c1 != 0 && w2 == a.__w2)) ? 1UL : 0UL;
+            ulong w3 = a.__w3 + b.__w3 + c2;
+            ulong c3 = (w3 < a.__w3 || (c2 != 0 && w3 == a.__w3)) ? 1UL : 0UL;
+            ulong w4 = a.__w4 + b.__w4 + c3;
+            ulong c4 = (w4 < a.__w4 || (c3 != 0 && w4 == a.__w4)) ? 1UL : 0UL;
+            ulong w5 = a.__w5 + b.__w5 + c4;
+            ulong c5 = (w5 < a.__w5 || (c4 != 0 && w5 == a.__w5)) ? 1UL : 0UL;
+            ulong w6 = a.__w6 + b.__w6 + c5;
+            ulong c6 = (w6 < a.__w6 || (c5 != 0 && w6 == a.__w6)) ? 1UL : 0UL;
+            ulong w7 = a.__w7 + b.__w7 + c6;
             var result = default(Bits512);
-            result._w0 = w0;
-            result._w1 = w1;
-            result._w2 = w2;
-            result._w3 = w3;
-            result._w4 = w4;
-            result._w5 = w5;
-            result._w6 = w6;
-            result._w7 = w7;
+            result.__w0 = w0;
+            result.__w1 = w1;
+            result.__w2 = w2;
+            result.__w3 = w3;
+            result.__w4 = w4;
+            result.__w5 = w5;
+            result.__w6 = w6;
+            result.__w7 = w7;
             return result;
         }
 
@@ -326,37 +326,37 @@ public partial class BitFieldMultiWordTests
         /// <summary>Subtraction operator with borrow propagation.</summary>
         public static Bits512 operator -(Bits512 a, Bits512 b)
         {
-            ulong w0 = a._w0 - b._w0;
-            ulong borrow0 = (a._w0 < b._w0) ? 1UL : 0UL;
-            ulong diff1 = a._w1 - b._w1;
+            ulong w0 = a.__w0 - b.__w0;
+            ulong borrow0 = (a.__w0 < b.__w0) ? 1UL : 0UL;
+            ulong diff1 = a.__w1 - b.__w1;
             ulong w1 = diff1 - borrow0;
-            ulong borrow1 = (a._w1 < b._w1 || (borrow0 != 0 && diff1 == 0)) ? 1UL : 0UL;
-            ulong diff2 = a._w2 - b._w2;
+            ulong borrow1 = (a.__w1 < b.__w1 || (borrow0 != 0 && diff1 == 0)) ? 1UL : 0UL;
+            ulong diff2 = a.__w2 - b.__w2;
             ulong w2 = diff2 - borrow1;
-            ulong borrow2 = (a._w2 < b._w2 || (borrow1 != 0 && diff2 == 0)) ? 1UL : 0UL;
-            ulong diff3 = a._w3 - b._w3;
+            ulong borrow2 = (a.__w2 < b.__w2 || (borrow1 != 0 && diff2 == 0)) ? 1UL : 0UL;
+            ulong diff3 = a.__w3 - b.__w3;
             ulong w3 = diff3 - borrow2;
-            ulong borrow3 = (a._w3 < b._w3 || (borrow2 != 0 && diff3 == 0)) ? 1UL : 0UL;
-            ulong diff4 = a._w4 - b._w4;
+            ulong borrow3 = (a.__w3 < b.__w3 || (borrow2 != 0 && diff3 == 0)) ? 1UL : 0UL;
+            ulong diff4 = a.__w4 - b.__w4;
             ulong w4 = diff4 - borrow3;
-            ulong borrow4 = (a._w4 < b._w4 || (borrow3 != 0 && diff4 == 0)) ? 1UL : 0UL;
-            ulong diff5 = a._w5 - b._w5;
+            ulong borrow4 = (a.__w4 < b.__w4 || (borrow3 != 0 && diff4 == 0)) ? 1UL : 0UL;
+            ulong diff5 = a.__w5 - b.__w5;
             ulong w5 = diff5 - borrow4;
-            ulong borrow5 = (a._w5 < b._w5 || (borrow4 != 0 && diff5 == 0)) ? 1UL : 0UL;
-            ulong diff6 = a._w6 - b._w6;
+            ulong borrow5 = (a.__w5 < b.__w5 || (borrow4 != 0 && diff5 == 0)) ? 1UL : 0UL;
+            ulong diff6 = a.__w6 - b.__w6;
             ulong w6 = diff6 - borrow5;
-            ulong borrow6 = (a._w6 < b._w6 || (borrow5 != 0 && diff6 == 0)) ? 1UL : 0UL;
-            ulong diff7 = a._w7 - b._w7;
+            ulong borrow6 = (a.__w6 < b.__w6 || (borrow5 != 0 && diff6 == 0)) ? 1UL : 0UL;
+            ulong diff7 = a.__w7 - b.__w7;
             ulong w7 = diff7 - borrow6;
             var result = default(Bits512);
-            result._w0 = w0;
-            result._w1 = w1;
-            result._w2 = w2;
-            result._w3 = w3;
-            result._w4 = w4;
-            result._w5 = w5;
-            result._w6 = w6;
-            result._w7 = w7;
+            result.__w0 = w0;
+            result.__w1 = w1;
+            result.__w2 = w2;
+            result.__w3 = w3;
+            result.__w4 = w4;
+            result.__w5 = w5;
+            result.__w6 = w6;
+            result.__w7 = w7;
             return result;
         }
 
@@ -389,11 +389,11 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator <<(Bits512 a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TOTAL_BITS) return default;
+            if (amount >= __TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(Bits512);
-            for (int dst = WORD_COUNT - 1; dst >= 0; dst--)
+            for (int dst = __WORD_COUNT - 1; dst >= 0; dst--)
             {
                 int src = dst - wordShift;
                 if (src < 0) continue;
@@ -414,21 +414,21 @@ public partial class BitFieldMultiWordTests
         public static Bits512 operator >>(Bits512 a, int amount)
         {
             if (amount <= 0) return a;
-            if (amount >= TOTAL_BITS) return default;
+            if (amount >= __TOTAL_BITS) return default;
             int wordShift = amount / 64;
             int bitShift = amount % 64;
             var result = default(Bits512);
-            for (int dst = 0; dst < WORD_COUNT; dst++)
+            for (int dst = 0; dst < __WORD_COUNT; dst++)
             {
                 int src = dst + wordShift;
-                if (src >= WORD_COUNT) break;
+                if (src >= __WORD_COUNT) break;
                 ulong val = GetWord(a, src);
                 if (bitShift == 0)
                     SetWord(ref result, dst, val);
                 else
                 {
                     SetWord(ref result, dst, val >> bitShift);
-                    if (src + 1 < WORD_COUNT)
+                    if (src + 1 < __WORD_COUNT)
                         SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));
                 }
             }
@@ -444,14 +444,14 @@ public partial class BitFieldMultiWordTests
         {
             return index switch
             {
-                0 => v._w0,
-                1 => v._w1,
-                2 => v._w2,
-                3 => v._w3,
-                4 => v._w4,
-                5 => v._w5,
-                6 => v._w6,
-                7 => v._w7,
+                0 => v.__w0,
+                1 => v.__w1,
+                2 => v.__w2,
+                3 => v.__w3,
+                4 => v.__w4,
+                5 => v.__w5,
+                6 => v.__w6,
+                7 => v.__w7,
                 _ => 0UL,
             };
         }
@@ -461,28 +461,28 @@ public partial class BitFieldMultiWordTests
         {
             switch (index)
             {
-                case 0: v._w0 = value; break;
-                case 1: v._w1 = value; break;
-                case 2: v._w2 = value; break;
-                case 3: v._w3 = value; break;
-                case 4: v._w4 = value; break;
-                case 5: v._w5 = value; break;
-                case 6: v._w6 = value; break;
-                case 7: v._w7 = value; break;
+                case 0: v.__w0 = value; break;
+                case 1: v.__w1 = value; break;
+                case 2: v.__w2 = value; break;
+                case 3: v.__w3 = value; break;
+                case 4: v.__w4 = value; break;
+                case 5: v.__w5 = value; break;
+                case 6: v.__w6 = value; break;
+                case 7: v.__w7 = value; break;
             }
         }
 
         /// <summary>Less than operator.</summary>
         public static bool operator <(Bits512 a, Bits512 b)
         {
-            if (a._w7 != b._w7) return a._w7 < b._w7;
-            if (a._w6 != b._w6) return a._w6 < b._w6;
-            if (a._w5 != b._w5) return a._w5 < b._w5;
-            if (a._w4 != b._w4) return a._w4 < b._w4;
-            if (a._w3 != b._w3) return a._w3 < b._w3;
-            if (a._w2 != b._w2) return a._w2 < b._w2;
-            if (a._w1 != b._w1) return a._w1 < b._w1;
-            if (a._w0 != b._w0) return a._w0 < b._w0;
+            if (a.__w7 != b.__w7) return a.__w7 < b.__w7;
+            if (a.__w6 != b.__w6) return a.__w6 < b.__w6;
+            if (a.__w5 != b.__w5) return a.__w5 < b.__w5;
+            if (a.__w4 != b.__w4) return a.__w4 < b.__w4;
+            if (a.__w3 != b.__w3) return a.__w3 < b.__w3;
+            if (a.__w2 != b.__w2) return a.__w2 < b.__w2;
+            if (a.__w1 != b.__w1) return a.__w1 < b.__w1;
+            if (a.__w0 != b.__w0) return a.__w0 < b.__w0;
             return false;
         }
 
@@ -500,7 +500,7 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(Bits512 a, Bits512 b) => a._w0 == b._w0 && a._w1 == b._w1 && a._w2 == b._w2 && a._w3 == b._w3 && a._w4 == b._w4 && a._w5 == b._w5 && a._w6 == b._w6 && a._w7 == b._w7;
+        public static bool operator ==(Bits512 a, Bits512 b) => a.__w0 == b.__w0 && a.__w1 == b.__w1 && a.__w2 == b.__w2 && a.__w3 == b.__w3 && a.__w4 == b.__w4 && a.__w5 == b.__w5 && a.__w6 == b.__w6 && a.__w7 == b.__w7;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -512,7 +512,7 @@ public partial class BitFieldMultiWordTests
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
         {
-            return HashCode.Combine(_w0, _w1, _w2, _w3, _w4, _w5, _w6, _w7);
+            return HashCode.Combine(__w0, __w1, __w2, __w3, __w4, __w5, __w6, __w7);
         }
 
         /// <summary>Returns a hex string representation of the value.</summary>
@@ -537,21 +537,21 @@ public partial class BitFieldMultiWordTests
         /// <summary>Converts this value to a BigInteger.</summary>
         public BigInteger ToBigInteger()
         {
-            BigInteger result = _w7;
-            result = (result << 64) | _w6;
-            result = (result << 64) | _w5;
-            result = (result << 64) | _w4;
-            result = (result << 64) | _w3;
-            result = (result << 64) | _w2;
-            result = (result << 64) | _w1;
-            result = (result << 64) | _w0;
+            BigInteger result = __w7;
+            result = (result << 64) | __w6;
+            result = (result << 64) | __w5;
+            result = (result << 64) | __w4;
+            result = (result << 64) | __w3;
+            result = (result << 64) | __w2;
+            result = (result << 64) | __w1;
+            result = (result << 64) | __w0;
             return result;
         }
 
         /// <summary>Creates a Bits512 from a BigInteger (truncated to 512 bits).</summary>
         public static Bits512 FromBigInteger(BigInteger value)
         {
-            if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
+            if (value.Sign < 0) value = (BigInteger.One << __TOTAL_BITS) + value;
             ulong w0 = (ulong)(value & ulong.MaxValue);
             value >>= 64;
             ulong w1 = (ulong)(value & ulong.MaxValue);
@@ -568,14 +568,14 @@ public partial class BitFieldMultiWordTests
             value >>= 64;
             ulong w7 = (ulong)(value & ulong.MaxValue);
             var result = default(Bits512);
-            result._w0 = w0;
-            result._w1 = w1;
-            result._w2 = w2;
-            result._w3 = w3;
-            result._w4 = w4;
-            result._w5 = w5;
-            result._w6 = w6;
-            result._w7 = w7;
+            result.__w0 = w0;
+            result.__w1 = w1;
+            result.__w2 = w2;
+            result.__w3 = w3;
+            result.__w4 = w4;
+            result.__w5 = w5;
+            result.__w6 = w6;
+            result.__w7 = w7;
             return result;
         }
 
@@ -586,14 +586,14 @@ public partial class BitFieldMultiWordTests
         {
             if (bytes.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-            _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
-            _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
-            _w2 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(16));
-            _w3 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(24));
-            _w4 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(32));
-            _w5 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(40));
-            _w6 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(48));
-            _w7 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(56));
+            __w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
+            __w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
+            __w2 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(16));
+            __w3 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(24));
+            __w4 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(32));
+            __w5 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(40));
+            __w6 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(48));
+            __w7 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(56));
         }
 
         /// <summary>Creates a new Bits512 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
@@ -609,14 +609,14 @@ public partial class BitFieldMultiWordTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16), _w2);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(24), _w3);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(32), _w4);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(40), _w5);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(48), _w6);
-            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(56), _w7);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), __w0);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), __w1);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16), __w2);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(24), __w3);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(32), __w4);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(40), __w5);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(48), __w6);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(56), __w7);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -724,14 +724,14 @@ public partial class BitFieldMultiWordTests
         /// <summary>Compares this instance to another Bits512.</summary>
         public int CompareTo(Bits512 other)
         {
-            if (_w7 != other._w7) return _w7.CompareTo(other._w7);
-            if (_w6 != other._w6) return _w6.CompareTo(other._w6);
-            if (_w5 != other._w5) return _w5.CompareTo(other._w5);
-            if (_w4 != other._w4) return _w4.CompareTo(other._w4);
-            if (_w3 != other._w3) return _w3.CompareTo(other._w3);
-            if (_w2 != other._w2) return _w2.CompareTo(other._w2);
-            if (_w1 != other._w1) return _w1.CompareTo(other._w1);
-            if (_w0 != other._w0) return _w0.CompareTo(other._w0);
+            if (__w7 != other.__w7) return __w7.CompareTo(other.__w7);
+            if (__w6 != other.__w6) return __w6.CompareTo(other.__w6);
+            if (__w5 != other.__w5) return __w5.CompareTo(other.__w5);
+            if (__w4 != other.__w4) return __w4.CompareTo(other.__w4);
+            if (__w3 != other.__w3) return __w3.CompareTo(other.__w3);
+            if (__w2 != other.__w2) return __w2.CompareTo(other.__w2);
+            if (__w1 != other.__w1) return __w1.CompareTo(other.__w1);
+            if (__w0 != other.__w0) return __w0.CompareTo(other.__w0);
             return 0;
         }
 

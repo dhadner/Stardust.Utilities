@@ -19,7 +19,7 @@ public partial class BitFieldProtocolTests
     public partial struct IPv4VersionWord : IComparable, IComparable<IPv4VersionWord>, IEquatable<IPv4VersionWord>,
                                  IFormattable, ISpanFormattable, IParsable<IPv4VersionWord>, ISpanParsable<IPv4VersionWord>
     {
-        private uint Value;
+        private uint __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 4;
@@ -29,87 +29,87 @@ public partial class BitFieldProtocolTests
 
         // --- Bit field mask constants ---
         // Version: bits [28..31], width 4
-        private const int VERSION_START_BIT = 28;
-        private const uint VERSION_MASK = 0x0000000FU;
-        private const uint VERSION_SHIFTED_MASK = 0xF0000000U;  // VERSION_MASK << VERSION_START_BIT
-        private const uint VERSION_INVERTED_MASK = 0x0FFFFFFFU;  // ~VERSION_SHIFTED_MASK
+        private const int __VERSION_START_BIT = 28;
+        private const uint __VERSION_MASK = 0x0000000FU;
+        private const uint __VERSION_SHIFTED_MASK = 0xF0000000U;  // __VERSION_MASK << __VERSION_START_BIT
+        private const uint __VERSION_INVERTED_MASK = 0x0FFFFFFFU;  // ~__VERSION_SHIFTED_MASK
         // IHL: bits [24..27], width 4
-        private const int IHL_START_BIT = 24;
-        private const uint IHL_MASK = 0x0000000FU;
-        private const uint IHL_SHIFTED_MASK = 0x0F000000U;  // IHL_MASK << IHL_START_BIT
-        private const uint IHL_INVERTED_MASK = 0xF0FFFFFFU;  // ~IHL_SHIFTED_MASK
+        private const int __IHL_START_BIT = 24;
+        private const uint __IHL_MASK = 0x0000000FU;
+        private const uint __IHL_SHIFTED_MASK = 0x0F000000U;  // __IHL_MASK << __IHL_START_BIT
+        private const uint __IHL_INVERTED_MASK = 0xF0FFFFFFU;  // ~__IHL_SHIFTED_MASK
         // DSCP: bits [18..23], width 6
-        private const int DSCP_START_BIT = 18;
-        private const uint DSCP_MASK = 0x0000003FU;
-        private const uint DSCP_SHIFTED_MASK = 0x00FC0000U;  // DSCP_MASK << DSCP_START_BIT
-        private const uint DSCP_INVERTED_MASK = 0xFF03FFFFU;  // ~DSCP_SHIFTED_MASK
+        private const int __DSCP_START_BIT = 18;
+        private const uint __DSCP_MASK = 0x0000003FU;
+        private const uint __DSCP_SHIFTED_MASK = 0x00FC0000U;  // __DSCP_MASK << __DSCP_START_BIT
+        private const uint __DSCP_INVERTED_MASK = 0xFF03FFFFU;  // ~__DSCP_SHIFTED_MASK
         // ECN: bits [16..17], width 2
-        private const int ECN_START_BIT = 16;
-        private const uint ECN_MASK = 0x00000003U;
-        private const uint ECN_SHIFTED_MASK = 0x00030000U;  // ECN_MASK << ECN_START_BIT
-        private const uint ECN_INVERTED_MASK = 0xFFFCFFFFU;  // ~ECN_SHIFTED_MASK
+        private const int __ECN_START_BIT = 16;
+        private const uint __ECN_MASK = 0x00000003U;
+        private const uint __ECN_SHIFTED_MASK = 0x00030000U;  // __ECN_MASK << __ECN_START_BIT
+        private const uint __ECN_INVERTED_MASK = 0xFFFCFFFFU;  // ~__ECN_SHIFTED_MASK
         // TotalLength: bits [0..15], width 16
-        private const int TOTAL_LENGTH_START_BIT = 0;
-        private const uint TOTAL_LENGTH_MASK = 0x0000FFFFU;
-        private const uint TOTAL_LENGTH_INVERTED_MASK = 0xFFFF0000U;  // ~TOTAL_LENGTH_MASK
+        private const int __TOTAL_LENGTH_START_BIT = 0;
+        private const uint __TOTAL_LENGTH_MASK = 0x0000FFFFU;
+        private const uint __TOTAL_LENGTH_INVERTED_MASK = 0xFFFF0000U;  // ~__TOTAL_LENGTH_MASK
 
         /// <summary>Creates a new IPv4VersionWord with the specified raw bits value.</summary>
-        public IPv4VersionWord(uint value) { Value = value; }
+        public IPv4VersionWord(uint value) { __value = value; }
 
         public partial byte Version
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> VERSION_START_BIT) & VERSION_MASK);
+            get => (byte)((__value >> __VERSION_START_BIT) & __VERSION_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & VERSION_INVERTED_MASK) | ((((uint)value) << VERSION_START_BIT) & VERSION_SHIFTED_MASK));
+            set => __value = (uint)((__value & __VERSION_INVERTED_MASK) | ((((uint)value) << __VERSION_START_BIT) & __VERSION_SHIFTED_MASK));
         }
 
         public partial byte IHL
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> IHL_START_BIT) & IHL_MASK);
+            get => (byte)((__value >> __IHL_START_BIT) & __IHL_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & IHL_INVERTED_MASK) | ((((uint)value) << IHL_START_BIT) & IHL_SHIFTED_MASK));
+            set => __value = (uint)((__value & __IHL_INVERTED_MASK) | ((((uint)value) << __IHL_START_BIT) & __IHL_SHIFTED_MASK));
         }
 
         public partial byte DSCP
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> DSCP_START_BIT) & DSCP_MASK);
+            get => (byte)((__value >> __DSCP_START_BIT) & __DSCP_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & DSCP_INVERTED_MASK) | ((((uint)value) << DSCP_START_BIT) & DSCP_SHIFTED_MASK));
+            set => __value = (uint)((__value & __DSCP_INVERTED_MASK) | ((((uint)value) << __DSCP_START_BIT) & __DSCP_SHIFTED_MASK));
         }
 
         public partial byte ECN
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> ECN_START_BIT) & ECN_MASK);
+            get => (byte)((__value >> __ECN_START_BIT) & __ECN_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & ECN_INVERTED_MASK) | ((((uint)value) << ECN_START_BIT) & ECN_SHIFTED_MASK));
+            set => __value = (uint)((__value & __ECN_INVERTED_MASK) | ((((uint)value) << __ECN_START_BIT) & __ECN_SHIFTED_MASK));
         }
 
         public partial ushort TotalLength
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & TOTAL_LENGTH_MASK);
+            get => (ushort)(__value & __TOTAL_LENGTH_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & TOTAL_LENGTH_INVERTED_MASK) | (((uint)value) & TOTAL_LENGTH_MASK));
+            set => __value = (uint)((__value & __TOTAL_LENGTH_INVERTED_MASK) | (((uint)value) & __TOTAL_LENGTH_MASK));
         }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the Version field (bits 28-31).</summary>
-        public static IPv4VersionWord VersionMask => new(VERSION_SHIFTED_MASK);
+        public static IPv4VersionWord VersionMask => new(__VERSION_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the IHL field (bits 24-27).</summary>
-        public static IPv4VersionWord IHLMask => new(IHL_SHIFTED_MASK);
+        public static IPv4VersionWord IHLMask => new(__IHL_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the DSCP field (bits 18-23).</summary>
-        public static IPv4VersionWord DSCPMask => new(DSCP_SHIFTED_MASK);
+        public static IPv4VersionWord DSCPMask => new(__DSCP_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the ECN field (bits 16-17).</summary>
-        public static IPv4VersionWord ECNMask => new(ECN_SHIFTED_MASK);
+        public static IPv4VersionWord ECNMask => new(__ECN_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4VersionWord with the mask for the TotalLength field (bits 0-15).</summary>
-        public static IPv4VersionWord TotalLengthMask => new(TOTAL_LENGTH_MASK);
+        public static IPv4VersionWord TotalLengthMask => new(__TOTAL_LENGTH_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -127,87 +127,87 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new IPv4VersionWord with the Version field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithVersion(byte value) => new((uint)((Value & VERSION_INVERTED_MASK) | (((uint)value << VERSION_START_BIT) & VERSION_SHIFTED_MASK)));
+        public IPv4VersionWord WithVersion(byte value) => new((uint)((__value & __VERSION_INVERTED_MASK) | (((uint)value << __VERSION_START_BIT) & __VERSION_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the IHL field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithIHL(byte value) => new((uint)((Value & IHL_INVERTED_MASK) | (((uint)value << IHL_START_BIT) & IHL_SHIFTED_MASK)));
+        public IPv4VersionWord WithIHL(byte value) => new((uint)((__value & __IHL_INVERTED_MASK) | (((uint)value << __IHL_START_BIT) & __IHL_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the DSCP field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithDSCP(byte value) => new((uint)((Value & DSCP_INVERTED_MASK) | (((uint)value << DSCP_START_BIT) & DSCP_SHIFTED_MASK)));
+        public IPv4VersionWord WithDSCP(byte value) => new((uint)((__value & __DSCP_INVERTED_MASK) | (((uint)value << __DSCP_START_BIT) & __DSCP_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the ECN field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithECN(byte value) => new((uint)((Value & ECN_INVERTED_MASK) | (((uint)value << ECN_START_BIT) & ECN_SHIFTED_MASK)));
+        public IPv4VersionWord WithECN(byte value) => new((uint)((__value & __ECN_INVERTED_MASK) | (((uint)value << __ECN_START_BIT) & __ECN_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4VersionWord with the TotalLength field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4VersionWord WithTotalLength(ushort value) => new((uint)((Value & TOTAL_LENGTH_INVERTED_MASK) | ((uint)value & TOTAL_LENGTH_MASK)));
+        public IPv4VersionWord WithTotalLength(ushort value) => new((uint)((__value & __TOTAL_LENGTH_INVERTED_MASK) | ((uint)value & __TOTAL_LENGTH_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator ~(IPv4VersionWord a) => new((uint)~a.Value);
+        public static IPv4VersionWord operator ~(IPv4VersionWord a) => new((uint)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator |(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.Value | b.Value));
+        public static IPv4VersionWord operator |(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator &(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.Value & b.Value));
+        public static IPv4VersionWord operator &(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator ^(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.Value ^ b.Value));
+        public static IPv4VersionWord operator ^(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.__value ^ b.__value));
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator &(IPv4VersionWord a, uint b) => new(a.Value & b);
+        public static IPv4VersionWord operator &(IPv4VersionWord a, uint b) => new(a.__value & b);
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator &(uint a, IPv4VersionWord b) => new(a & b.Value);
+        public static IPv4VersionWord operator &(uint a, IPv4VersionWord b) => new(a & b.__value);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator |(IPv4VersionWord a, uint b) => new(a.Value | b);
+        public static IPv4VersionWord operator |(IPv4VersionWord a, uint b) => new(a.__value | b);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator |(uint a, IPv4VersionWord b) => new(a | b.Value);
+        public static IPv4VersionWord operator |(uint a, IPv4VersionWord b) => new(a | b.__value);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator ^(IPv4VersionWord a, uint b) => new(a.Value ^ b);
+        public static IPv4VersionWord operator ^(IPv4VersionWord a, uint b) => new(a.__value ^ b);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator ^(uint a, IPv4VersionWord b) => new(a ^ b.Value);
+        public static IPv4VersionWord operator ^(uint a, IPv4VersionWord b) => new(a ^ b.__value);
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(IPv4VersionWord a, int b) => a.Value & (long)b;
+        public static long operator &(IPv4VersionWord a, int b) => a.__value & (long)b;
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(int a, IPv4VersionWord b) => (long)a & b.Value;
+        public static long operator &(int a, IPv4VersionWord b) => (long)a & b.__value;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(IPv4VersionWord a, int b) => a.Value | (long)b;
+        public static long operator |(IPv4VersionWord a, int b) => a.__value | (long)b;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(int a, IPv4VersionWord b) => (long)a | b.Value;
+        public static long operator |(int a, IPv4VersionWord b) => (long)a | b.__value;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(IPv4VersionWord a, int b) => a.Value ^ (long)b;
+        public static long operator ^(IPv4VersionWord a, int b) => a.__value ^ (long)b;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(int a, IPv4VersionWord b) => (long)a ^ b.Value;
+        public static long operator ^(int a, IPv4VersionWord b) => (long)a ^ b.__value;
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -215,115 +215,115 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator -(IPv4VersionWord a) => new(unchecked((uint)(0 - a.Value)));
+        public static IPv4VersionWord operator -(IPv4VersionWord a) => new(unchecked((uint)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator +(IPv4VersionWord a, IPv4VersionWord b) => new(unchecked((uint)(a.Value + b.Value)));
+        public static IPv4VersionWord operator +(IPv4VersionWord a, IPv4VersionWord b) => new(unchecked((uint)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator +(IPv4VersionWord a, uint b) => new(unchecked((uint)(a.Value + b)));
+        public static IPv4VersionWord operator +(IPv4VersionWord a, uint b) => new(unchecked((uint)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator +(uint a, IPv4VersionWord b) => new(unchecked((uint)(a + b.Value)));
+        public static IPv4VersionWord operator +(uint a, IPv4VersionWord b) => new(unchecked((uint)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator -(IPv4VersionWord a, IPv4VersionWord b) => new(unchecked((uint)(a.Value - b.Value)));
+        public static IPv4VersionWord operator -(IPv4VersionWord a, IPv4VersionWord b) => new(unchecked((uint)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator -(IPv4VersionWord a, uint b) => new(unchecked((uint)(a.Value - b)));
+        public static IPv4VersionWord operator -(IPv4VersionWord a, uint b) => new(unchecked((uint)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator -(uint a, IPv4VersionWord b) => new(unchecked((uint)(a - b.Value)));
+        public static IPv4VersionWord operator -(uint a, IPv4VersionWord b) => new(unchecked((uint)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator *(IPv4VersionWord a, IPv4VersionWord b) => new(unchecked((uint)(a.Value * b.Value)));
+        public static IPv4VersionWord operator *(IPv4VersionWord a, IPv4VersionWord b) => new(unchecked((uint)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator *(IPv4VersionWord a, uint b) => new(unchecked((uint)(a.Value * b)));
+        public static IPv4VersionWord operator *(IPv4VersionWord a, uint b) => new(unchecked((uint)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator *(uint a, IPv4VersionWord b) => new(unchecked((uint)(a * b.Value)));
+        public static IPv4VersionWord operator *(uint a, IPv4VersionWord b) => new(unchecked((uint)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator /(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.Value / b.Value));
+        public static IPv4VersionWord operator /(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator /(IPv4VersionWord a, uint b) => new((uint)(a.Value / b));
+        public static IPv4VersionWord operator /(IPv4VersionWord a, uint b) => new((uint)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator /(uint a, IPv4VersionWord b) => new((uint)(a / b.Value));
+        public static IPv4VersionWord operator /(uint a, IPv4VersionWord b) => new((uint)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator %(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.Value % b.Value));
+        public static IPv4VersionWord operator %(IPv4VersionWord a, IPv4VersionWord b) => new((uint)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator %(IPv4VersionWord a, uint b) => new((uint)(a.Value % b));
+        public static IPv4VersionWord operator %(IPv4VersionWord a, uint b) => new((uint)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator %(uint a, IPv4VersionWord b) => new((uint)(a % b.Value));
+        public static IPv4VersionWord operator %(uint a, IPv4VersionWord b) => new((uint)(a % b.__value));
 
         /// <summary>Left shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator <<(IPv4VersionWord a, int b) => new(unchecked((uint)(a.Value << b)));
+        public static IPv4VersionWord operator <<(IPv4VersionWord a, int b) => new(unchecked((uint)(a.__value << b)));
 
         /// <summary>Right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator >>(IPv4VersionWord a, int b) => new(unchecked((uint)(a.Value >> b)));
+        public static IPv4VersionWord operator >>(IPv4VersionWord a, int b) => new(unchecked((uint)(a.__value >> b)));
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4VersionWord operator >>>(IPv4VersionWord a, int b) => new(unchecked((uint)(a.Value >>> b)));
+        public static IPv4VersionWord operator >>>(IPv4VersionWord a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(IPv4VersionWord a, IPv4VersionWord b) => a.Value < b.Value;
+        public static bool operator <(IPv4VersionWord a, IPv4VersionWord b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(IPv4VersionWord a, IPv4VersionWord b) => a.Value > b.Value;
+        public static bool operator >(IPv4VersionWord a, IPv4VersionWord b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(IPv4VersionWord a, IPv4VersionWord b) => a.Value <= b.Value;
+        public static bool operator <=(IPv4VersionWord a, IPv4VersionWord b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(IPv4VersionWord a, IPv4VersionWord b) => a.Value >= b.Value;
+        public static bool operator >=(IPv4VersionWord a, IPv4VersionWord b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(IPv4VersionWord a, IPv4VersionWord b) => a.Value == b.Value;
+        public static bool operator ==(IPv4VersionWord a, IPv4VersionWord b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(IPv4VersionWord a, IPv4VersionWord b) => a.Value != b.Value;
+        public static bool operator !=(IPv4VersionWord a, IPv4VersionWord b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is IPv4VersionWord other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is IPv4VersionWord other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator uint(IPv4VersionWord value) => value.Value;
+        public static implicit operator uint(IPv4VersionWord value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator IPv4VersionWord(uint value) => new(value);
@@ -351,7 +351,7 @@ public partial class BitFieldProtocolTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -535,7 +535,7 @@ public partial class BitFieldProtocolTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -544,7 +544,7 @@ public partial class BitFieldProtocolTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -561,13 +561,13 @@ public partial class BitFieldProtocolTests
         /// <param name="other">A IPv4VersionWord to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(IPv4VersionWord other) => Value.CompareTo(other.Value);
+        public int CompareTo(IPv4VersionWord other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another IPv4VersionWord.</summary>
         /// <param name="other">A IPv4VersionWord to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(IPv4VersionWord other) => Value == other.Value;
+        public bool Equals(IPv4VersionWord other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes IPv4VersionWord as a string.</summary>
         private sealed class IPv4VersionWordJsonConverter : JsonConverter<IPv4VersionWord>

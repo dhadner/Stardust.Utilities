@@ -19,7 +19,7 @@ public partial class BitFieldProtocolTests
     public partial struct IPv4FragmentWord : IComparable, IComparable<IPv4FragmentWord>, IEquatable<IPv4FragmentWord>,
                                  IFormattable, ISpanFormattable, IParsable<IPv4FragmentWord>, ISpanParsable<IPv4FragmentWord>
     {
-        private uint Value;
+        private uint __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 4;
@@ -29,57 +29,57 @@ public partial class BitFieldProtocolTests
 
         // --- Bit field mask constants ---
         // Identification: bits [16..31], width 16
-        private const int IDENTIFICATION_START_BIT = 16;
-        private const uint IDENTIFICATION_MASK = 0x0000FFFFU;
-        private const uint IDENTIFICATION_SHIFTED_MASK = 0xFFFF0000U;  // IDENTIFICATION_MASK << IDENTIFICATION_START_BIT
-        private const uint IDENTIFICATION_INVERTED_MASK = 0x0000FFFFU;  // ~IDENTIFICATION_SHIFTED_MASK
+        private const int __IDENTIFICATION_START_BIT = 16;
+        private const uint __IDENTIFICATION_MASK = 0x0000FFFFU;
+        private const uint __IDENTIFICATION_SHIFTED_MASK = 0xFFFF0000U;  // __IDENTIFICATION_MASK << __IDENTIFICATION_START_BIT
+        private const uint __IDENTIFICATION_INVERTED_MASK = 0x0000FFFFU;  // ~__IDENTIFICATION_SHIFTED_MASK
         // Flags: bits [13..15], width 3
-        private const int FLAGS_START_BIT = 13;
-        private const uint FLAGS_MASK = 0x00000007U;
-        private const uint FLAGS_SHIFTED_MASK = 0x0000E000U;  // FLAGS_MASK << FLAGS_START_BIT
-        private const uint FLAGS_INVERTED_MASK = 0xFFFF1FFFU;  // ~FLAGS_SHIFTED_MASK
+        private const int __FLAGS_START_BIT = 13;
+        private const uint __FLAGS_MASK = 0x00000007U;
+        private const uint __FLAGS_SHIFTED_MASK = 0x0000E000U;  // __FLAGS_MASK << __FLAGS_START_BIT
+        private const uint __FLAGS_INVERTED_MASK = 0xFFFF1FFFU;  // ~__FLAGS_SHIFTED_MASK
         // FragmentOffset: bits [0..12], width 13
-        private const int FRAGMENT_OFFSET_START_BIT = 0;
-        private const uint FRAGMENT_OFFSET_MASK = 0x00001FFFU;
-        private const uint FRAGMENT_OFFSET_INVERTED_MASK = 0xFFFFE000U;  // ~FRAGMENT_OFFSET_MASK
+        private const int __FRAGMENT_OFFSET_START_BIT = 0;
+        private const uint __FRAGMENT_OFFSET_MASK = 0x00001FFFU;
+        private const uint __FRAGMENT_OFFSET_INVERTED_MASK = 0xFFFFE000U;  // ~__FRAGMENT_OFFSET_MASK
 
         /// <summary>Creates a new IPv4FragmentWord with the specified raw bits value.</summary>
-        public IPv4FragmentWord(uint value) { Value = value; }
+        public IPv4FragmentWord(uint value) { __value = value; }
 
         public partial ushort Identification
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> IDENTIFICATION_START_BIT) & IDENTIFICATION_MASK);
+            get => (ushort)((__value >> __IDENTIFICATION_START_BIT) & __IDENTIFICATION_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & IDENTIFICATION_INVERTED_MASK) | ((((uint)value) << IDENTIFICATION_START_BIT) & IDENTIFICATION_SHIFTED_MASK));
+            set => __value = (uint)((__value & __IDENTIFICATION_INVERTED_MASK) | ((((uint)value) << __IDENTIFICATION_START_BIT) & __IDENTIFICATION_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK));
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags)((byte)((__value >> __FLAGS_START_BIT) & __FLAGS_MASK));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { var __ev = (byte)value;
-                Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)__ev) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
+                __value = (uint)((__value & __FLAGS_INVERTED_MASK) | ((((uint)__ev) << __FLAGS_START_BIT) & __FLAGS_SHIFTED_MASK));
             }
         }
 
         public partial ushort FragmentOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & FRAGMENT_OFFSET_MASK);
+            get => (ushort)(__value & __FRAGMENT_OFFSET_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & FRAGMENT_OFFSET_INVERTED_MASK) | (((uint)value) & FRAGMENT_OFFSET_MASK));
+            set => __value = (uint)((__value & __FRAGMENT_OFFSET_INVERTED_MASK) | (((uint)value) & __FRAGMENT_OFFSET_MASK));
         }
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the Identification field (bits 16-31).</summary>
-        public static IPv4FragmentWord IdentificationMask => new(IDENTIFICATION_SHIFTED_MASK);
+        public static IPv4FragmentWord IdentificationMask => new(__IDENTIFICATION_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the Flags field (bits 13-15).</summary>
-        public static IPv4FragmentWord FlagsMask => new(FLAGS_SHIFTED_MASK);
+        public static IPv4FragmentWord FlagsMask => new(__FLAGS_SHIFTED_MASK);
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the FragmentOffset field (bits 0-12).</summary>
-        public static IPv4FragmentWord FragmentOffsetMask => new(FRAGMENT_OFFSET_MASK);
+        public static IPv4FragmentWord FragmentOffsetMask => new(__FRAGMENT_OFFSET_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -95,79 +95,79 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new IPv4FragmentWord with the Identification field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((Value & IDENTIFICATION_INVERTED_MASK) | (((uint)value << IDENTIFICATION_START_BIT) & IDENTIFICATION_SHIFTED_MASK)));
+        public IPv4FragmentWord WithIdentification(ushort value) => new((uint)((__value & __IDENTIFICATION_INVERTED_MASK) | (((uint)value << __IDENTIFICATION_START_BIT) & __IDENTIFICATION_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4FragmentWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
+        public IPv4FragmentWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.IPv4Flags value) => new((uint)((__value & __FLAGS_INVERTED_MASK) | (((uint)value << __FLAGS_START_BIT) & __FLAGS_SHIFTED_MASK)));
 
         /// <summary>Returns a new IPv4FragmentWord with the FragmentOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPv4FragmentWord WithFragmentOffset(ushort value) => new((uint)((Value & FRAGMENT_OFFSET_INVERTED_MASK) | ((uint)value & FRAGMENT_OFFSET_MASK)));
+        public IPv4FragmentWord WithFragmentOffset(ushort value) => new((uint)((__value & __FRAGMENT_OFFSET_INVERTED_MASK) | ((uint)value & __FRAGMENT_OFFSET_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator ~(IPv4FragmentWord a) => new((uint)~a.Value);
+        public static IPv4FragmentWord operator ~(IPv4FragmentWord a) => new((uint)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator |(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.Value | b.Value));
+        public static IPv4FragmentWord operator |(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator &(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.Value & b.Value));
+        public static IPv4FragmentWord operator &(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator ^(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.Value ^ b.Value));
+        public static IPv4FragmentWord operator ^(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.__value ^ b.__value));
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator &(IPv4FragmentWord a, uint b) => new(a.Value & b);
+        public static IPv4FragmentWord operator &(IPv4FragmentWord a, uint b) => new(a.__value & b);
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator &(uint a, IPv4FragmentWord b) => new(a & b.Value);
+        public static IPv4FragmentWord operator &(uint a, IPv4FragmentWord b) => new(a & b.__value);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator |(IPv4FragmentWord a, uint b) => new(a.Value | b);
+        public static IPv4FragmentWord operator |(IPv4FragmentWord a, uint b) => new(a.__value | b);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator |(uint a, IPv4FragmentWord b) => new(a | b.Value);
+        public static IPv4FragmentWord operator |(uint a, IPv4FragmentWord b) => new(a | b.__value);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator ^(IPv4FragmentWord a, uint b) => new(a.Value ^ b);
+        public static IPv4FragmentWord operator ^(IPv4FragmentWord a, uint b) => new(a.__value ^ b);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator ^(uint a, IPv4FragmentWord b) => new(a ^ b.Value);
+        public static IPv4FragmentWord operator ^(uint a, IPv4FragmentWord b) => new(a ^ b.__value);
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(IPv4FragmentWord a, int b) => a.Value & (long)b;
+        public static long operator &(IPv4FragmentWord a, int b) => a.__value & (long)b;
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(int a, IPv4FragmentWord b) => (long)a & b.Value;
+        public static long operator &(int a, IPv4FragmentWord b) => (long)a & b.__value;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(IPv4FragmentWord a, int b) => a.Value | (long)b;
+        public static long operator |(IPv4FragmentWord a, int b) => a.__value | (long)b;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(int a, IPv4FragmentWord b) => (long)a | b.Value;
+        public static long operator |(int a, IPv4FragmentWord b) => (long)a | b.__value;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(IPv4FragmentWord a, int b) => a.Value ^ (long)b;
+        public static long operator ^(IPv4FragmentWord a, int b) => a.__value ^ (long)b;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(int a, IPv4FragmentWord b) => (long)a ^ b.Value;
+        public static long operator ^(int a, IPv4FragmentWord b) => (long)a ^ b.__value;
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -175,115 +175,115 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator -(IPv4FragmentWord a) => new(unchecked((uint)(0 - a.Value)));
+        public static IPv4FragmentWord operator -(IPv4FragmentWord a) => new(unchecked((uint)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator +(IPv4FragmentWord a, IPv4FragmentWord b) => new(unchecked((uint)(a.Value + b.Value)));
+        public static IPv4FragmentWord operator +(IPv4FragmentWord a, IPv4FragmentWord b) => new(unchecked((uint)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator +(IPv4FragmentWord a, uint b) => new(unchecked((uint)(a.Value + b)));
+        public static IPv4FragmentWord operator +(IPv4FragmentWord a, uint b) => new(unchecked((uint)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator +(uint a, IPv4FragmentWord b) => new(unchecked((uint)(a + b.Value)));
+        public static IPv4FragmentWord operator +(uint a, IPv4FragmentWord b) => new(unchecked((uint)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator -(IPv4FragmentWord a, IPv4FragmentWord b) => new(unchecked((uint)(a.Value - b.Value)));
+        public static IPv4FragmentWord operator -(IPv4FragmentWord a, IPv4FragmentWord b) => new(unchecked((uint)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator -(IPv4FragmentWord a, uint b) => new(unchecked((uint)(a.Value - b)));
+        public static IPv4FragmentWord operator -(IPv4FragmentWord a, uint b) => new(unchecked((uint)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator -(uint a, IPv4FragmentWord b) => new(unchecked((uint)(a - b.Value)));
+        public static IPv4FragmentWord operator -(uint a, IPv4FragmentWord b) => new(unchecked((uint)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator *(IPv4FragmentWord a, IPv4FragmentWord b) => new(unchecked((uint)(a.Value * b.Value)));
+        public static IPv4FragmentWord operator *(IPv4FragmentWord a, IPv4FragmentWord b) => new(unchecked((uint)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator *(IPv4FragmentWord a, uint b) => new(unchecked((uint)(a.Value * b)));
+        public static IPv4FragmentWord operator *(IPv4FragmentWord a, uint b) => new(unchecked((uint)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator *(uint a, IPv4FragmentWord b) => new(unchecked((uint)(a * b.Value)));
+        public static IPv4FragmentWord operator *(uint a, IPv4FragmentWord b) => new(unchecked((uint)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator /(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.Value / b.Value));
+        public static IPv4FragmentWord operator /(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator /(IPv4FragmentWord a, uint b) => new((uint)(a.Value / b));
+        public static IPv4FragmentWord operator /(IPv4FragmentWord a, uint b) => new((uint)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator /(uint a, IPv4FragmentWord b) => new((uint)(a / b.Value));
+        public static IPv4FragmentWord operator /(uint a, IPv4FragmentWord b) => new((uint)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator %(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.Value % b.Value));
+        public static IPv4FragmentWord operator %(IPv4FragmentWord a, IPv4FragmentWord b) => new((uint)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator %(IPv4FragmentWord a, uint b) => new((uint)(a.Value % b));
+        public static IPv4FragmentWord operator %(IPv4FragmentWord a, uint b) => new((uint)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator %(uint a, IPv4FragmentWord b) => new((uint)(a % b.Value));
+        public static IPv4FragmentWord operator %(uint a, IPv4FragmentWord b) => new((uint)(a % b.__value));
 
         /// <summary>Left shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator <<(IPv4FragmentWord a, int b) => new(unchecked((uint)(a.Value << b)));
+        public static IPv4FragmentWord operator <<(IPv4FragmentWord a, int b) => new(unchecked((uint)(a.__value << b)));
 
         /// <summary>Right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator >>(IPv4FragmentWord a, int b) => new(unchecked((uint)(a.Value >> b)));
+        public static IPv4FragmentWord operator >>(IPv4FragmentWord a, int b) => new(unchecked((uint)(a.__value >> b)));
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IPv4FragmentWord operator >>>(IPv4FragmentWord a, int b) => new(unchecked((uint)(a.Value >>> b)));
+        public static IPv4FragmentWord operator >>>(IPv4FragmentWord a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(IPv4FragmentWord a, IPv4FragmentWord b) => a.Value < b.Value;
+        public static bool operator <(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(IPv4FragmentWord a, IPv4FragmentWord b) => a.Value > b.Value;
+        public static bool operator >(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(IPv4FragmentWord a, IPv4FragmentWord b) => a.Value <= b.Value;
+        public static bool operator <=(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(IPv4FragmentWord a, IPv4FragmentWord b) => a.Value >= b.Value;
+        public static bool operator >=(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(IPv4FragmentWord a, IPv4FragmentWord b) => a.Value == b.Value;
+        public static bool operator ==(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(IPv4FragmentWord a, IPv4FragmentWord b) => a.Value != b.Value;
+        public static bool operator !=(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is IPv4FragmentWord other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is IPv4FragmentWord other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator uint(IPv4FragmentWord value) => value.Value;
+        public static implicit operator uint(IPv4FragmentWord value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator IPv4FragmentWord(uint value) => new(value);
@@ -311,7 +311,7 @@ public partial class BitFieldProtocolTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -495,7 +495,7 @@ public partial class BitFieldProtocolTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -504,7 +504,7 @@ public partial class BitFieldProtocolTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -521,13 +521,13 @@ public partial class BitFieldProtocolTests
         /// <param name="other">A IPv4FragmentWord to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(IPv4FragmentWord other) => Value.CompareTo(other.Value);
+        public int CompareTo(IPv4FragmentWord other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another IPv4FragmentWord.</summary>
         /// <param name="other">A IPv4FragmentWord to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(IPv4FragmentWord other) => Value == other.Value;
+        public bool Equals(IPv4FragmentWord other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes IPv4FragmentWord as a string.</summary>
         private sealed class IPv4FragmentWordJsonConverter : JsonConverter<IPv4FragmentWord>

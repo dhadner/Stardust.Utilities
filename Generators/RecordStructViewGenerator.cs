@@ -400,8 +400,8 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}{{");
 
         // Backing field
-        sb.AppendLine($"{mind}private readonly Memory<byte> _data;");
-        sb.AppendLine($"{mind}private readonly byte _bitOffset;");
+        sb.AppendLine($"{mind}private readonly Memory<byte> __data;");
+        sb.AppendLine($"{mind}private readonly byte __bitOffset;");
         sb.AppendLine();
 
         // SIZE_IN_BYTES constant (accounts for read widths, not just field byte spans)
@@ -419,8 +419,8 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{mind}{{");
         sb.AppendLine($"{mind}    if (data.Length < SIZE_IN_BYTES)");
         sb.AppendLine($"{mind}        throw new ArgumentException($\"Buffer must contain at least {{SIZE_IN_BYTES}} bytes, but was {{data.Length}}.\", nameof(data));");
-        sb.AppendLine($"{mind}    _data = data;");
-        sb.AppendLine($"{mind}    _bitOffset = 0;");
+        sb.AppendLine($"{mind}    __data = data;");
+        sb.AppendLine($"{mind}    __bitOffset = 0;");
         sb.AppendLine($"{mind}}}");
         sb.AppendLine();
 
@@ -438,14 +438,14 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{mind}/// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>");
         sb.AppendLine($"{mind}internal {t}(Memory<byte> data, int bitOffset)");
         sb.AppendLine($"{mind}{{");
-        sb.AppendLine($"{mind}    _data = data;");
-        sb.AppendLine($"{mind}    _bitOffset = (byte)bitOffset;");
+        sb.AppendLine($"{mind}    __data = data;");
+        sb.AppendLine($"{mind}    __bitOffset = (byte)bitOffset;");
         sb.AppendLine($"{mind}}}");
         sb.AppendLine();
 
         // Data property
         sb.AppendLine($"{mind}/// <summary>Gets the underlying memory buffer.</summary>");
-        sb.AppendLine($"{mind}public Memory<byte> Data => _data;");
+        sb.AppendLine($"{mind}public Memory<byte> Data => __data;");
         sb.AppendLine();
 
         // Generate properties
@@ -538,7 +538,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Generates a property accessor for a multi-bit field.
-    /// Emits a fast path when _bitOffset == 0 (compile-time constants) and a
+    /// Emits a fast path when __bitOffset == 0 (compile-time constants) and a
     /// general path with runtime bit offset for nested sub-view scenarios.
     /// </summary>
     private static void GenerateFieldProperty(StringBuilder sb, RecordStructViewInfo info, BitFieldInfo field, string ind)
@@ -555,7 +555,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         int end = start + width - 1;
         ulong mask = (width >= 64) ? ulong.MaxValue : (1UL << width) - 1;
 
-        // === Compute values for the fast path (_bitOffset == 0) ===
+        // === Compute values for the fast path (__bitOffset == 0) ===
         int firstByte = start / 8;
         int lastByte = end / 8;
         int byteSpan = lastByte - firstByte + 1;
@@ -594,8 +594,8 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{ind}    get");
         sb.AppendLine($"{ind}    {{");
-        sb.AppendLine($"{ind}        var s = _data.Span;");
-        sb.AppendLine($"{ind}        if (_bitOffset == 0)");
+        sb.AppendLine($"{ind}        var s = __data.Span;");
+        sb.AppendLine($"{ind}        if (__bitOffset == 0)");
         sb.AppendLine($"{ind}        {{");
         // Fast path (existing compile-time code)
         EmitFastGetter(sb, info, field, ind + "            ", firstByte, rightShift, readWidth, readType, readMethod, maskLiteral, width, byteSpan);
@@ -638,8 +638,8 @@ public class RecordStructViewGenerator : IIncrementalGenerator
             }
         }
 
-        sb.AppendLine($"{ind}        var s = _data.Span;");
-        sb.AppendLine($"{ind}        if (_bitOffset == 0)");
+        sb.AppendLine($"{ind}        var s = __data.Span;");
+        sb.AppendLine($"{ind}        if (__bitOffset == 0)");
         sb.AppendLine($"{ind}        {{");
         EmitFastSetter(sb, info, field, ind + "            ", firstByte, rightShift, readWidth, readType, readMethod, writeMethod, mask, maskLiteral, width, byteSpan);
         sb.AppendLine($"{ind}        }}");
@@ -689,7 +689,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         string cast = GetterCast(field);
         string gSuffix = GetterSuffix(field);
 
-        sb.AppendLine($"{ind}int ep = {start} + _bitOffset;");
+        sb.AppendLine($"{ind}int ep = {start} + __bitOffset;");
         sb.AppendLine($"{ind}int bi = ep >> 3;");
 
         if (oReadWidth == 1)
@@ -781,7 +781,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         int oReadBits = oReadWidth * 8;
         string vSuffix = SetterValueSuffix(field);
 
-        sb.AppendLine($"{ind}int ep = {start} + _bitOffset;");
+        sb.AppendLine($"{ind}int ep = {start} + __bitOffset;");
         sb.AppendLine($"{ind}int bi = ep >> 3;");
 
         if (oReadWidth == 1)
@@ -838,9 +838,9 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         if (aligned)
         {
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}    get => {field.PropertyType}.ReadFrom(_data.Span.Slice({startByte}, {sizeBytes}));");
+            sb.AppendLine($"{ind}    get => {field.PropertyType}.ReadFrom(__data.Span.Slice({startByte}, {sizeBytes}));");
             sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}    set => value.WriteTo(_data.Span.Slice({startByte}, {sizeBytes}));");
+            sb.AppendLine($"{ind}    set => value.WriteTo(__data.Span.Slice({startByte}, {sizeBytes}));");
         }
         else
         {
@@ -850,7 +850,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
             // Getter: extract bits with byte-level shifting
             sb.AppendLine($"{ind}    get");
             sb.AppendLine($"{ind}    {{");
-            sb.AppendLine($"{ind}        ReadOnlySpan<byte> __src = _data.Span;");
+            sb.AppendLine($"{ind}        ReadOnlySpan<byte> __src = __data.Span;");
             sb.AppendLine($"{ind}        Span<byte> __ebuf = stackalloc byte[{sizeBytes}];");
             sb.AppendLine($"{ind}        for (int __i = 0; __i < {sizeBytes}; __i++)");
             sb.AppendLine($"{ind}            __ebuf[__i] = (byte)((__src[{startByte} + __i] >> {bitOffset}) | (({startByte} + __i + 1 < __src.Length) ? (__src[{startByte} + __i + 1] << {8 - bitOffset}) : 0));");
@@ -860,7 +860,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
             // Setter: insert bits with byte-level shifting
             sb.AppendLine($"{ind}    set");
             sb.AppendLine($"{ind}    {{");
-            sb.AppendLine($"{ind}        Span<byte> __dst = _data.Span;");
+            sb.AppendLine($"{ind}        Span<byte> __dst = __data.Span;");
             sb.AppendLine($"{ind}        Span<byte> __ebuf = stackalloc byte[{sizeBytes}];");
             sb.AppendLine($"{ind}        value.WriteTo(__ebuf);");
             sb.AppendLine($"{ind}        for (int __i = 0; __i < {sizeBytes}; __i++)");
@@ -878,7 +878,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Generates a property accessor for a single-bit boolean flag.
-    /// Fast path for _bitOffset == 0, offset-aware path for nested views.
+    /// Fast path for __bitOffset == 0, offset-aware path for nested views.
     /// </summary>
     private static void GenerateFlagProperty(StringBuilder sb, RecordStructViewInfo info, BitFlagInfo flag, string ind)
     {
@@ -896,9 +896,9 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{ind}    get");
         sb.AppendLine($"{ind}    {{");
-        sb.AppendLine($"{ind}        var s = _data.Span;");
-        sb.AppendLine($"{ind}        if (_bitOffset == 0) return (s[{byteIdx}] & 0x{mask:X2}) != 0;");
-        sb.AppendLine($"{ind}        int ep = {bitPos} + _bitOffset;");
+        sb.AppendLine($"{ind}        var s = __data.Span;");
+        sb.AppendLine($"{ind}        if (__bitOffset == 0) return (s[{byteIdx}] & 0x{mask:X2}) != 0;");
+        sb.AppendLine($"{ind}        int ep = {bitPos} + __bitOffset;");
         if (isMsb)
             sb.AppendLine($"{ind}        return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;");
         else
@@ -909,13 +909,13 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{ind}    set");
         sb.AppendLine($"{ind}    {{");
-        sb.AppendLine($"{ind}        var s = _data.Span;");
-        sb.AppendLine($"{ind}        if (_bitOffset == 0)");
+        sb.AppendLine($"{ind}        var s = __data.Span;");
+        sb.AppendLine($"{ind}        if (__bitOffset == 0)");
         sb.AppendLine($"{ind}        {{");
         sb.AppendLine($"{ind}            s[{byteIdx}] = value ? (byte)(s[{byteIdx}] | 0x{mask:X2}) : (byte)(s[{byteIdx}] & 0x{(byte)~mask & 0xFF:X2});");
         sb.AppendLine($"{ind}            return;");
         sb.AppendLine($"{ind}        }}");
-        sb.AppendLine($"{ind}        int ep = {bitPos} + _bitOffset;");
+        sb.AppendLine($"{ind}        int ep = {bitPos} + __bitOffset;");
         sb.AppendLine($"{ind}        int bi = ep >> 3;");
         if (isMsb)
             sb.AppendLine($"{ind}        int m = 1 << (7 - (ep & 7));");
@@ -945,11 +945,11 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         if (bitOff == 0)
         {
-            sb.AppendLine($"{ind}    get => new {sv.ViewTypeName}(_data.Slice({byteOff}));");
+            sb.AppendLine($"{ind}    get => new {sv.ViewTypeName}(__data.Slice({byteOff}));");
         }
         else
         {
-            sb.AppendLine($"{ind}    get => new {sv.ViewTypeName}(_data.Slice({byteOff}), {bitOff});");
+            sb.AppendLine($"{ind}    get => new {sv.ViewTypeName}(__data.Slice({byteOff}), {bitOff});");
         }
 
         // Setter: copy bytes from value into our buffer
@@ -957,7 +957,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         if (bitOff == 0)
         {
             // Byte-aligned: straight copy
-            sb.AppendLine($"{ind}    set {{ value.Data.Span.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(_data.Span.Slice({byteOff})); }}");
+            sb.AppendLine($"{ind}    set {{ value.Data.Span.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(__data.Span.Slice({byteOff})); }}");
         }
         else
         {
@@ -965,12 +965,12 @@ public class RecordStructViewGenerator : IIncrementalGenerator
             sb.AppendLine($"{ind}    set");
             sb.AppendLine($"{ind}    {{");
             sb.AppendLine($"{ind}        var src = value.Data.Span;");
-            sb.AppendLine($"{ind}        var dst = new {sv.ViewTypeName}(_data.Slice({byteOff}), {bitOff});");
+            sb.AppendLine($"{ind}        var dst = new {sv.ViewTypeName}(__data.Slice({byteOff}), {bitOff});");
             sb.AppendLine($"{ind}        // Copy field-by-field through the offset view would be ideal,");
             sb.AppendLine($"{ind}        // but for raw byte semantics, copy the source bytes into a temp");
             sb.AppendLine($"{ind}        // buffer, create a view, and read/write through it.");
             sb.AppendLine($"{ind}        // For now, copy the source bytes directly (byte-aligned portion).");
-            sb.AppendLine($"{ind}        src.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(_data.Span.Slice({byteOff}));");
+            sb.AppendLine($"{ind}        src.Slice(0, {sv.ViewTypeName}.SIZE_IN_BYTES).CopyTo(__data.Span.Slice({byteOff}));");
             sb.AppendLine($"{ind}    }}");
         }
 
@@ -1370,7 +1370,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         sb.AppendLine($"{ind}    /// <summary>Writes a {t} to JSON as a hex string.</summary>");
         sb.AppendLine($"{ind}    public override void Write(Utf8JsonWriter writer, {t} value, JsonSerializerOptions options)");
         sb.AppendLine($"{ind}    {{");
-        sb.AppendLine($"{ind}        var s = value._data.Span;");
+        sb.AppendLine($"{ind}        var s = value.__data.Span;");
         sb.AppendLine($"{ind}        // Find highest non-zero byte for minimal hex output");
         sb.AppendLine($"{ind}        int top = SIZE_IN_BYTES - 1;");
         sb.AppendLine($"{ind}        while (top > 0 && s[top] == 0) top--;");

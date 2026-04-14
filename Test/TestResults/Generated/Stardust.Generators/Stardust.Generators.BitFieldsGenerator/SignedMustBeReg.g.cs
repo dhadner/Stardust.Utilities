@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg>, IEquatable<SignedMustBeReg>,
                              IFormattable, ISpanFormattable, IParsable<SignedMustBeReg>, ISpanParsable<SignedMustBeReg>
 {
-    private sbyte Value;
+    private sbyte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,40 +27,40 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
 
     // --- Bit field mask constants ---
     // Data: bits [0..2], width 3
-    private const int DATA_START_BIT = 0;
-    private const byte DATA_MASK = 0x07;
-    private const byte DATA_INVERTED_MASK = 0xF8;  // ~DATA_MASK
+    private const int __DATA_START_BIT = 0;
+    private const byte __DATA_MASK = 0x07;
+    private const byte __DATA_INVERTED_MASK = 0xF8;  // ~__DATA_MASK
     // Rsvd: bits [4..5], width 2
-    private const int RSVD_START_BIT = 4;
-    private const byte RSVD_MASK = 0x03;
-    private const byte RSVD_SHIFTED_MASK = 0x30;  // RSVD_MASK << RSVD_START_BIT
-    private const byte RSVD_INVERTED_MASK = 0xCF;  // ~RSVD_SHIFTED_MASK
+    private const int __RSVD_START_BIT = 4;
+    private const byte __RSVD_MASK = 0x03;
+    private const byte __RSVD_SHIFTED_MASK = 0x30;  // __RSVD_MASK << __RSVD_START_BIT
+    private const byte __RSVD_INVERTED_MASK = 0xCF;  // ~__RSVD_SHIFTED_MASK
     // MustBeSet: bit 3
-    private const int MUST_BE_SET_BIT = 3;
-    private const byte MUST_BE_SET_MASK = 0x08;  // 1 << MUST_BE_SET_BIT
-    private const byte MUST_BE_SET_INVERTED_MASK = 0xF7;  // ~MUST_BE_SET_MASK
+    private const int __MUST_BE_SET_BIT = 3;
+    private const byte __MUST_BE_SET_MASK = 0x08;  // 1 << __MUST_BE_SET_BIT
+    private const byte __MUST_BE_SET_INVERTED_MASK = 0xF7;  // ~__MUST_BE_SET_MASK
 
     // --- Constructor normalization masks ---
-    private const byte NORMALIZATION_AND_MASK = 0x0F;  // Clears: Rsvd (MustBe.Zero), undefined bits (UndefinedBitsMustBe.Zeroes)
-    private const byte NORMALIZATION_OR_MASK = 0x08;  // Sets: MustBeSet (MustBe.One)
+    private const byte __NORMALIZATION_AND_MASK = 0x0F;  // Clears: Rsvd (MustBe.Zero), undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const byte __NORMALIZATION_OR_MASK = 0x08;  // Sets: MustBeSet (MustBe.One)
 
     /// <summary>Creates a new SignedMustBeReg with the specified raw bits value.</summary>
-    public SignedMustBeReg(sbyte value) { Value = (sbyte)((((byte)value) & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }
+    public SignedMustBeReg(sbyte value) { __value = (sbyte)((((byte)value) & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }
 
     public partial byte Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(((byte)Value) & DATA_MASK);
+        get => (byte)(((byte)__value) & __DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)((((byte)Value) & DATA_INVERTED_MASK) | (((byte)value) & DATA_MASK));
+        set => __value = (sbyte)((((byte)__value) & __DATA_INVERTED_MASK) | (((byte)value) & __DATA_MASK));
     }
 
     public partial byte Rsvd
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((byte)Value) >> RSVD_START_BIT) & RSVD_MASK);
+        get => (byte)((((byte)__value) >> __RSVD_START_BIT) & __RSVD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)(((byte)Value) & RSVD_INVERTED_MASK);
+        set => __value = (sbyte)(((byte)__value) & __RSVD_INVERTED_MASK);
     }
 
     public partial bool MustBeSet
@@ -68,17 +68,17 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => true;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (sbyte)(((byte)Value) | MUST_BE_SET_MASK);
+        set => __value = (sbyte)(((byte)__value) | __MUST_BE_SET_MASK);
     }
 
     /// <summary>Returns a SignedMustBeReg with only the MustBeSet bit set.</summary>
-    public static SignedMustBeReg MustBeSetBit => new(unchecked((sbyte)MUST_BE_SET_MASK));
+    public static SignedMustBeReg MustBeSetBit => new(unchecked((sbyte)__MUST_BE_SET_MASK));
 
     /// <summary>Returns a SignedMustBeReg with the mask for the Data field (bits 0-2).</summary>
-    public static SignedMustBeReg DataMask => new(unchecked((sbyte)DATA_MASK));
+    public static SignedMustBeReg DataMask => new(unchecked((sbyte)__DATA_MASK));
 
     /// <summary>Returns a SignedMustBeReg with the mask for the Rsvd field (bits 4-5).</summary>
-    public static SignedMustBeReg RsvdMask => new(unchecked((sbyte)RSVD_SHIFTED_MASK));
+    public static SignedMustBeReg RsvdMask => new(unchecked((sbyte)__RSVD_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -94,31 +94,31 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
 
     /// <summary>Returns a new SignedMustBeReg with the MustBeSet flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithMustBeSet(bool value) => new(value ? (sbyte)(((byte)Value) | MUST_BE_SET_MASK) : (sbyte)(((byte)Value) & MUST_BE_SET_INVERTED_MASK));
+    public SignedMustBeReg WithMustBeSet(bool value) => new(value ? (sbyte)(((byte)__value) | __MUST_BE_SET_MASK) : (sbyte)(((byte)__value) & __MUST_BE_SET_INVERTED_MASK));
 
     /// <summary>Returns a new SignedMustBeReg with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithData(byte value) => new((sbyte)((((byte)Value) & DATA_INVERTED_MASK) | ((byte)value & DATA_MASK)));
+    public SignedMustBeReg WithData(byte value) => new((sbyte)((((byte)__value) & __DATA_INVERTED_MASK) | ((byte)value & __DATA_MASK)));
 
     /// <summary>Returns a new SignedMustBeReg with the Rsvd field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedMustBeReg WithRsvd(byte value) => new((sbyte)((((byte)Value) & RSVD_INVERTED_MASK) | ((((byte)value) << RSVD_START_BIT) & RSVD_SHIFTED_MASK)));
+    public SignedMustBeReg WithRsvd(byte value) => new((sbyte)((((byte)__value) & __RSVD_INVERTED_MASK) | ((((byte)value) << __RSVD_START_BIT) & __RSVD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator ~(SignedMustBeReg a) => new((sbyte)~a.Value);
+    public static SignedMustBeReg operator ~(SignedMustBeReg a) => new((sbyte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator |(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.Value | b.Value));
+    public static SignedMustBeReg operator |(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator &(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.Value & b.Value));
+    public static SignedMustBeReg operator &(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator ^(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.Value ^ b.Value));
+    public static SignedMustBeReg operator ^(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -126,115 +126,115 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator -(SignedMustBeReg a) => new(unchecked((sbyte)(-a.Value)));
+    public static SignedMustBeReg operator -(SignedMustBeReg a) => new(unchecked((sbyte)(-a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator +(SignedMustBeReg a, SignedMustBeReg b) => new(unchecked((sbyte)(a.Value + b.Value)));
+    public static SignedMustBeReg operator +(SignedMustBeReg a, SignedMustBeReg b) => new(unchecked((sbyte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator +(SignedMustBeReg a, sbyte b) => new(unchecked((sbyte)(a.Value + b)));
+    public static SignedMustBeReg operator +(SignedMustBeReg a, sbyte b) => new(unchecked((sbyte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator +(sbyte a, SignedMustBeReg b) => new(unchecked((sbyte)(a + b.Value)));
+    public static SignedMustBeReg operator +(sbyte a, SignedMustBeReg b) => new(unchecked((sbyte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator -(SignedMustBeReg a, SignedMustBeReg b) => new(unchecked((sbyte)(a.Value - b.Value)));
+    public static SignedMustBeReg operator -(SignedMustBeReg a, SignedMustBeReg b) => new(unchecked((sbyte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator -(SignedMustBeReg a, sbyte b) => new(unchecked((sbyte)(a.Value - b)));
+    public static SignedMustBeReg operator -(SignedMustBeReg a, sbyte b) => new(unchecked((sbyte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator -(sbyte a, SignedMustBeReg b) => new(unchecked((sbyte)(a - b.Value)));
+    public static SignedMustBeReg operator -(sbyte a, SignedMustBeReg b) => new(unchecked((sbyte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator *(SignedMustBeReg a, SignedMustBeReg b) => new(unchecked((sbyte)(a.Value * b.Value)));
+    public static SignedMustBeReg operator *(SignedMustBeReg a, SignedMustBeReg b) => new(unchecked((sbyte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator *(SignedMustBeReg a, sbyte b) => new(unchecked((sbyte)(a.Value * b)));
+    public static SignedMustBeReg operator *(SignedMustBeReg a, sbyte b) => new(unchecked((sbyte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator *(sbyte a, SignedMustBeReg b) => new(unchecked((sbyte)(a * b.Value)));
+    public static SignedMustBeReg operator *(sbyte a, SignedMustBeReg b) => new(unchecked((sbyte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator /(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.Value / b.Value));
+    public static SignedMustBeReg operator /(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator /(SignedMustBeReg a, sbyte b) => new((sbyte)(a.Value / b));
+    public static SignedMustBeReg operator /(SignedMustBeReg a, sbyte b) => new((sbyte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator /(sbyte a, SignedMustBeReg b) => new((sbyte)(a / b.Value));
+    public static SignedMustBeReg operator /(sbyte a, SignedMustBeReg b) => new((sbyte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator %(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.Value % b.Value));
+    public static SignedMustBeReg operator %(SignedMustBeReg a, SignedMustBeReg b) => new((sbyte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator %(SignedMustBeReg a, sbyte b) => new((sbyte)(a.Value % b));
+    public static SignedMustBeReg operator %(SignedMustBeReg a, sbyte b) => new((sbyte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedMustBeReg operator %(sbyte a, SignedMustBeReg b) => new((sbyte)(a % b.Value));
+    public static SignedMustBeReg operator %(sbyte a, SignedMustBeReg b) => new((sbyte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SignedMustBeReg a, int b) => a.Value << b;
+    public static int operator <<(SignedMustBeReg a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SignedMustBeReg a, int b) => a.Value >> b;
+    public static int operator >>(SignedMustBeReg a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SignedMustBeReg a, int b) => a.Value >>> b;
+    public static int operator >>>(SignedMustBeReg a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SignedMustBeReg a, SignedMustBeReg b) => a.Value < b.Value;
+    public static bool operator <(SignedMustBeReg a, SignedMustBeReg b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SignedMustBeReg a, SignedMustBeReg b) => a.Value > b.Value;
+    public static bool operator >(SignedMustBeReg a, SignedMustBeReg b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SignedMustBeReg a, SignedMustBeReg b) => a.Value <= b.Value;
+    public static bool operator <=(SignedMustBeReg a, SignedMustBeReg b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SignedMustBeReg a, SignedMustBeReg b) => a.Value >= b.Value;
+    public static bool operator >=(SignedMustBeReg a, SignedMustBeReg b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SignedMustBeReg a, SignedMustBeReg b) => a.Value == b.Value;
+    public static bool operator ==(SignedMustBeReg a, SignedMustBeReg b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SignedMustBeReg a, SignedMustBeReg b) => a.Value != b.Value;
+    public static bool operator !=(SignedMustBeReg a, SignedMustBeReg b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SignedMustBeReg other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedMustBeReg other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator sbyte(SignedMustBeReg value) => value.Value;
+    public static implicit operator sbyte(SignedMustBeReg value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedMustBeReg(sbyte value) => new(value);
@@ -266,7 +266,7 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -450,7 +450,7 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -459,7 +459,7 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -476,13 +476,13 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     /// <param name="other">A SignedMustBeReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SignedMustBeReg other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedMustBeReg other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SignedMustBeReg.</summary>
     /// <param name="other">A SignedMustBeReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SignedMustBeReg other) => Value == other.Value;
+    public bool Equals(SignedMustBeReg other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SignedMustBeReg as a string.</summary>
     private sealed class SignedMustBeRegJsonConverter : JsonConverter<SignedMustBeReg>

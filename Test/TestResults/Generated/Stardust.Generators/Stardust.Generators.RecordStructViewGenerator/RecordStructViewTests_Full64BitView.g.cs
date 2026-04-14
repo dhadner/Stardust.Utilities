@@ -16,8 +16,8 @@ public partial class RecordStructViewTests
     [JsonConverter(typeof(Full64BitViewJsonConverter))]
     public partial record struct Full64BitView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 8;
@@ -30,8 +30,8 @@ public partial class RecordStructViewTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class RecordStructViewTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal Full64BitView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial ulong Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(0));
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -71,15 +71,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(0);
                     BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 63) - bi * 8;
                     int sh = 128 - 1 - endInWindow;
@@ -124,7 +124,7 @@ public partial class RecordStructViewTests
             /// <summary>Writes a Full64BitView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, Full64BitView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

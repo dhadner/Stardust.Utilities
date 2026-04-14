@@ -61,7 +61,7 @@ internal static partial class BitFieldsMultiWordGenerator
         // & with ulong (applied to lowest word only)
         {
             var wordExprs = new string[wc];
-            wordExprs[0] = "a._w0 & b";
+            wordExprs[0] = "a.__w0 & b";
             for (int i = 1; i < wc; i++) wordExprs[i] = layout.Zero(i);
             var inline = InlineNew(layout, wordExprs);
             sb.AppendLine($"{ind}/// <summary>Bitwise AND operator with ulong (applied to lowest word).</summary>");
@@ -230,11 +230,11 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}public static {t} operator <<({t} a, int amount)");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    if (amount <= 0) return a;");
-        sb.AppendLine($"{ind}    if (amount >= TOTAL_BITS) return default;");
+        sb.AppendLine($"{ind}    if (amount >= __TOTAL_BITS) return default;");
         sb.AppendLine($"{ind}    int wordShift = amount / 64;");
         sb.AppendLine($"{ind}    int bitShift = amount % 64;");
         sb.AppendLine($"{ind}    var result = default({t});");
-        sb.AppendLine($"{ind}    for (int dst = WORD_COUNT - 1; dst >= 0; dst--)");
+        sb.AppendLine($"{ind}    for (int dst = __WORD_COUNT - 1; dst >= 0; dst--)");
         sb.AppendLine($"{ind}    {{");
         sb.AppendLine($"{ind}        int src = dst - wordShift;");
         sb.AppendLine($"{ind}        if (src < 0) continue;");
@@ -257,21 +257,21 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}public static {t} operator >>({t} a, int amount)");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    if (amount <= 0) return a;");
-        sb.AppendLine($"{ind}    if (amount >= TOTAL_BITS) return default;");
+        sb.AppendLine($"{ind}    if (amount >= __TOTAL_BITS) return default;");
         sb.AppendLine($"{ind}    int wordShift = amount / 64;");
         sb.AppendLine($"{ind}    int bitShift = amount % 64;");
         sb.AppendLine($"{ind}    var result = default({t});");
-        sb.AppendLine($"{ind}    for (int dst = 0; dst < WORD_COUNT; dst++)");
+        sb.AppendLine($"{ind}    for (int dst = 0; dst < __WORD_COUNT; dst++)");
         sb.AppendLine($"{ind}    {{");
         sb.AppendLine($"{ind}        int src = dst + wordShift;");
-        sb.AppendLine($"{ind}        if (src >= WORD_COUNT) break;");
+        sb.AppendLine($"{ind}        if (src >= __WORD_COUNT) break;");
         sb.AppendLine($"{ind}        ulong val = GetWord(a, src);");
         sb.AppendLine($"{ind}        if (bitShift == 0)");
         sb.AppendLine($"{ind}            SetWord(ref result, dst, val);");
         sb.AppendLine($"{ind}        else");
         sb.AppendLine($"{ind}        {{");
         sb.AppendLine($"{ind}            SetWord(ref result, dst, val >> bitShift);");
-        sb.AppendLine($"{ind}            if (src + 1 < WORD_COUNT)");
+        sb.AppendLine($"{ind}            if (src + 1 < __WORD_COUNT)");
         sb.AppendLine($"{ind}                SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));");
         sb.AppendLine($"{ind}        }}");
         sb.AppendLine($"{ind}    }}");
@@ -305,7 +305,7 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}    switch (index)");
         sb.AppendLine($"{ind}    {{");
         for (int i = 0; i < wc; i++)
-            sb.AppendLine($"{ind}        case {i}: v._w{i} = {layout.Store(i, "value")}; break;");
+            sb.AppendLine($"{ind}        case {i}: v.__w{i} = {layout.Store(i, "value")}; break;");
         sb.AppendLine($"{ind}    }}");
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();
@@ -370,7 +370,7 @@ internal static partial class BitFieldsMultiWordGenerator
         string t = info.TypeName;
         int wc = layout.WordCount;
 
-        var eqExpr = string.Join(" && ", Enumerable.Range(0, wc).Select(i => $"a._w{i} == b._w{i}"));
+        var eqExpr = string.Join(" && ", Enumerable.Range(0, wc).Select(i => $"a.__w{i} == b.__w{i}"));
         sb.AppendLine($"{ind}/// <summary>Equality operator.</summary>");
         sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{ind}public static bool operator ==({t} a, {t} b) => {eqExpr};");
@@ -389,14 +389,14 @@ internal static partial class BitFieldsMultiWordGenerator
         if (wc <= 8)
         {
             sb.Append($"{ind}    return HashCode.Combine(");
-            sb.Append(string.Join(", ", Enumerable.Range(0, wc).Select(i => $"_w{i}")));
+            sb.Append(string.Join(", ", Enumerable.Range(0, wc).Select(i => $"__w{i}")));
             sb.AppendLine(");");
         }
         else
         {
             sb.AppendLine($"{ind}    var hash = new HashCode();");
             for (int i = 0; i < wc; i++)
-                sb.AppendLine($"{ind}    hash.Add(_w{i});");
+                sb.AppendLine($"{ind}    hash.Add(__w{i});");
             sb.AppendLine($"{ind}    return hash.ToHashCode();");
         }
         sb.AppendLine($"{ind}}}");

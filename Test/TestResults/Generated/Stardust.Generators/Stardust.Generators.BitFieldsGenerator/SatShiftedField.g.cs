@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField>, IEquatable<SatShiftedField>,
                              IFormattable, ISpanFormattable, IParsable<SatShiftedField>, ISpanParsable<SatShiftedField>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,44 +27,44 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
 
     // --- Bit field mask constants ---
     // Prefix: bits [0..3], width 4
-    private const int PREFIX_START_BIT = 0;
-    private const uint PREFIX_MASK = 0x0000000FU;
-    private const uint PREFIX_INVERTED_MASK = 0xFFFFFFF0U;  // ~PREFIX_MASK
+    private const int __PREFIX_START_BIT = 0;
+    private const uint __PREFIX_MASK = 0x0000000FU;
+    private const uint __PREFIX_INVERTED_MASK = 0xFFFFFFF0U;  // ~__PREFIX_MASK
     // Clamped: bits [4..8], width 5
-    private const int CLAMPED_START_BIT = 4;
-    private const uint CLAMPED_MASK = 0x0000001FU;
-    private const uint CLAMPED_SHIFTED_MASK = 0x000001F0U;  // CLAMPED_MASK << CLAMPED_START_BIT
-    private const uint CLAMPED_INVERTED_MASK = 0xFFFFFE0FU;  // ~CLAMPED_SHIFTED_MASK
-    private const byte CLAMPED_SAT_MAX = 0x1F;  // saturating: max for 5-bit unsigned field
+    private const int __CLAMPED_START_BIT = 4;
+    private const uint __CLAMPED_MASK = 0x0000001FU;
+    private const uint __CLAMPED_SHIFTED_MASK = 0x000001F0U;  // __CLAMPED_MASK << __CLAMPED_START_BIT
+    private const uint __CLAMPED_INVERTED_MASK = 0xFFFFFE0FU;  // ~__CLAMPED_SHIFTED_MASK
+    private const byte __CLAMPED_SAT_MAX = 0x1F;  // saturating: max for 5-bit unsigned field
 
     /// <summary>Creates a new SatShiftedField with the specified raw bits value.</summary>
-    public SatShiftedField(uint value) { Value = value; }
+    public SatShiftedField(uint value) { __value = value; }
 
     public partial byte Prefix
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & PREFIX_MASK);
+        get => (byte)(__value & __PREFIX_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & PREFIX_INVERTED_MASK) | (((uint)value) & PREFIX_MASK));
+        set => __value = (uint)((__value & __PREFIX_INVERTED_MASK) | (((uint)value) & __PREFIX_MASK));
     }
 
     public partial byte Clamped
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> CLAMPED_START_BIT) & CLAMPED_MASK);
+        get => (byte)((__value >> __CLAMPED_START_BIT) & __CLAMPED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var __sat = value > CLAMPED_SAT_MAX ? CLAMPED_SAT_MAX : value;
-            Value = (uint)((Value & CLAMPED_INVERTED_MASK) | ((((uint)__sat) << CLAMPED_START_BIT) & CLAMPED_SHIFTED_MASK));
+            var __sat = value > __CLAMPED_SAT_MAX ? __CLAMPED_SAT_MAX : value;
+            __value = (uint)((__value & __CLAMPED_INVERTED_MASK) | ((((uint)__sat) << __CLAMPED_START_BIT) & __CLAMPED_SHIFTED_MASK));
         }
     }
 
     /// <summary>Returns a SatShiftedField with the mask for the Prefix field (bits 0-3).</summary>
-    public static SatShiftedField PrefixMask => new(PREFIX_MASK);
+    public static SatShiftedField PrefixMask => new(__PREFIX_MASK);
 
     /// <summary>Returns a SatShiftedField with the mask for the Clamped field (bits 4-8).</summary>
-    public static SatShiftedField ClampedMask => new(CLAMPED_SHIFTED_MASK);
+    public static SatShiftedField ClampedMask => new(__CLAMPED_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -79,79 +79,79 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
 
     /// <summary>Returns a new SatShiftedField with the Prefix field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SatShiftedField WithPrefix(byte value) => new((uint)((Value & PREFIX_INVERTED_MASK) | ((uint)value & PREFIX_MASK)));
+    public SatShiftedField WithPrefix(byte value) => new((uint)((__value & __PREFIX_INVERTED_MASK) | ((uint)value & __PREFIX_MASK)));
 
     /// <summary>Returns a new SatShiftedField with the Clamped field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SatShiftedField WithClamped(byte value)
     {
-        var __sat = value > CLAMPED_SAT_MAX ? CLAMPED_SAT_MAX : value;
-        return new((uint)((Value & CLAMPED_INVERTED_MASK) | (((uint)__sat << CLAMPED_START_BIT) & CLAMPED_SHIFTED_MASK)));
+        var __sat = value > __CLAMPED_SAT_MAX ? __CLAMPED_SAT_MAX : value;
+        return new((uint)((__value & __CLAMPED_INVERTED_MASK) | (((uint)__sat << __CLAMPED_START_BIT) & __CLAMPED_SHIFTED_MASK)));
     }
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator ~(SatShiftedField a) => new((uint)~a.Value);
+    public static SatShiftedField operator ~(SatShiftedField a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator |(SatShiftedField a, SatShiftedField b) => new((uint)(a.Value | b.Value));
+    public static SatShiftedField operator |(SatShiftedField a, SatShiftedField b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator &(SatShiftedField a, SatShiftedField b) => new((uint)(a.Value & b.Value));
+    public static SatShiftedField operator &(SatShiftedField a, SatShiftedField b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator ^(SatShiftedField a, SatShiftedField b) => new((uint)(a.Value ^ b.Value));
+    public static SatShiftedField operator ^(SatShiftedField a, SatShiftedField b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator &(SatShiftedField a, uint b) => new(a.Value & b);
+    public static SatShiftedField operator &(SatShiftedField a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator &(uint a, SatShiftedField b) => new(a & b.Value);
+    public static SatShiftedField operator &(uint a, SatShiftedField b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator |(SatShiftedField a, uint b) => new(a.Value | b);
+    public static SatShiftedField operator |(SatShiftedField a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator |(uint a, SatShiftedField b) => new(a | b.Value);
+    public static SatShiftedField operator |(uint a, SatShiftedField b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator ^(SatShiftedField a, uint b) => new(a.Value ^ b);
+    public static SatShiftedField operator ^(SatShiftedField a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator ^(uint a, SatShiftedField b) => new(a ^ b.Value);
+    public static SatShiftedField operator ^(uint a, SatShiftedField b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(SatShiftedField a, int b) => a.Value & (long)b;
+    public static long operator &(SatShiftedField a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, SatShiftedField b) => (long)a & b.Value;
+    public static long operator &(int a, SatShiftedField b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(SatShiftedField a, int b) => a.Value | (long)b;
+    public static long operator |(SatShiftedField a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, SatShiftedField b) => (long)a | b.Value;
+    public static long operator |(int a, SatShiftedField b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(SatShiftedField a, int b) => a.Value ^ (long)b;
+    public static long operator ^(SatShiftedField a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, SatShiftedField b) => (long)a ^ b.Value;
+    public static long operator ^(int a, SatShiftedField b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -159,115 +159,115 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator -(SatShiftedField a) => new(unchecked((uint)(0 - a.Value)));
+    public static SatShiftedField operator -(SatShiftedField a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator +(SatShiftedField a, SatShiftedField b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static SatShiftedField operator +(SatShiftedField a, SatShiftedField b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator +(SatShiftedField a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static SatShiftedField operator +(SatShiftedField a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator +(uint a, SatShiftedField b) => new(unchecked((uint)(a + b.Value)));
+    public static SatShiftedField operator +(uint a, SatShiftedField b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator -(SatShiftedField a, SatShiftedField b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static SatShiftedField operator -(SatShiftedField a, SatShiftedField b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator -(SatShiftedField a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static SatShiftedField operator -(SatShiftedField a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator -(uint a, SatShiftedField b) => new(unchecked((uint)(a - b.Value)));
+    public static SatShiftedField operator -(uint a, SatShiftedField b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator *(SatShiftedField a, SatShiftedField b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static SatShiftedField operator *(SatShiftedField a, SatShiftedField b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator *(SatShiftedField a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static SatShiftedField operator *(SatShiftedField a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator *(uint a, SatShiftedField b) => new(unchecked((uint)(a * b.Value)));
+    public static SatShiftedField operator *(uint a, SatShiftedField b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator /(SatShiftedField a, SatShiftedField b) => new((uint)(a.Value / b.Value));
+    public static SatShiftedField operator /(SatShiftedField a, SatShiftedField b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator /(SatShiftedField a, uint b) => new((uint)(a.Value / b));
+    public static SatShiftedField operator /(SatShiftedField a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator /(uint a, SatShiftedField b) => new((uint)(a / b.Value));
+    public static SatShiftedField operator /(uint a, SatShiftedField b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator %(SatShiftedField a, SatShiftedField b) => new((uint)(a.Value % b.Value));
+    public static SatShiftedField operator %(SatShiftedField a, SatShiftedField b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator %(SatShiftedField a, uint b) => new((uint)(a.Value % b));
+    public static SatShiftedField operator %(SatShiftedField a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator %(uint a, SatShiftedField b) => new((uint)(a % b.Value));
+    public static SatShiftedField operator %(uint a, SatShiftedField b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator <<(SatShiftedField a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static SatShiftedField operator <<(SatShiftedField a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator >>(SatShiftedField a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static SatShiftedField operator >>(SatShiftedField a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatShiftedField operator >>>(SatShiftedField a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static SatShiftedField operator >>>(SatShiftedField a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SatShiftedField a, SatShiftedField b) => a.Value < b.Value;
+    public static bool operator <(SatShiftedField a, SatShiftedField b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SatShiftedField a, SatShiftedField b) => a.Value > b.Value;
+    public static bool operator >(SatShiftedField a, SatShiftedField b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SatShiftedField a, SatShiftedField b) => a.Value <= b.Value;
+    public static bool operator <=(SatShiftedField a, SatShiftedField b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SatShiftedField a, SatShiftedField b) => a.Value >= b.Value;
+    public static bool operator >=(SatShiftedField a, SatShiftedField b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SatShiftedField a, SatShiftedField b) => a.Value == b.Value;
+    public static bool operator ==(SatShiftedField a, SatShiftedField b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SatShiftedField a, SatShiftedField b) => a.Value != b.Value;
+    public static bool operator !=(SatShiftedField a, SatShiftedField b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SatShiftedField other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SatShiftedField other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(SatShiftedField value) => value.Value;
+    public static implicit operator uint(SatShiftedField value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SatShiftedField(uint value) => new(value);
@@ -295,7 +295,7 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -479,7 +479,7 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -488,7 +488,7 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -505,13 +505,13 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     /// <param name="other">A SatShiftedField to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SatShiftedField other) => Value.CompareTo(other.Value);
+    public int CompareTo(SatShiftedField other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SatShiftedField.</summary>
     /// <param name="other">A SatShiftedField to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SatShiftedField other) => Value == other.Value;
+    public bool Equals(SatShiftedField other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SatShiftedField as a string.</summary>
     private sealed class SatShiftedFieldJsonConverter : JsonConverter<SatShiftedField>

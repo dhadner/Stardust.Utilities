@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Protocols;
 [JsonConverter(typeof(IPv4HeaderViewJsonConverter))]
 public partial record struct IPv4HeaderView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 20;
@@ -28,8 +28,8 @@ public partial record struct IPv4HeaderView
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct IPv4HeaderView
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal IPv4HeaderView(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[0] >> 4) & 0x0F);
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -69,14 +69,14 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0x0F) | (((byte)value << 4) & 0xF0));
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -94,12 +94,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)(s[0] & 0x0F);
             }
-            int ep = 4 + _bitOffset;
+            int ep = 4 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -108,14 +108,14 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0xF0) | ((byte)value & 0x0F));
             }
             else
             {
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -133,12 +133,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[1] >> 2) & 0x3F);
             }
-            int ep = 8 + _bitOffset;
+            int ep = 8 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 5) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -147,14 +147,14 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[1] = (byte)((s[1] & 0x03) | (((byte)value << 2) & 0xFC));
             }
             else
             {
-                int ep = 8 + _bitOffset;
+                int ep = 8 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 5) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -172,12 +172,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)(s[1] & 0x03);
             }
-            int ep = 14 + _bitOffset;
+            int ep = 14 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 1) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -186,14 +186,14 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[1] = (byte)((s[1] & 0xFC) | ((byte)value & 0x03));
             }
             else
             {
-                int ep = 14 + _bitOffset;
+                int ep = 14 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 1) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -211,12 +211,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
-            int ep = 16 + _bitOffset;
+            int ep = 16 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -225,15 +225,15 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(2);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -251,12 +251,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4));
             }
-            int ep = 32 + _bitOffset;
+            int ep = 32 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -265,15 +265,15 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(4);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 32 + _bitOffset;
+                int ep = 32 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -291,12 +291,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)(BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6)) & 0x1FFF);
             }
-            int ep = 51 + _bitOffset;
+            int ep = 51 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 12) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -305,8 +305,8 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(6);
                 ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
@@ -315,7 +315,7 @@ public partial record struct IPv4HeaderView
             }
             else
             {
-                int ep = 51 + _bitOffset;
+                int ep = 51 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 12) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -333,12 +333,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)s[8];
             }
-            int ep = 64 + _bitOffset;
+            int ep = 64 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 7) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -347,14 +347,14 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[8] = (byte)value;
             }
             else
             {
-                int ep = 64 + _bitOffset;
+                int ep = 64 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -372,12 +372,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)s[9];
             }
-            int ep = 72 + _bitOffset;
+            int ep = 72 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 7) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -386,14 +386,14 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[9] = (byte)value;
             }
             else
             {
-                int ep = 72 + _bitOffset;
+                int ep = 72 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -411,12 +411,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(10));
             }
-            int ep = 80 + _bitOffset;
+            int ep = 80 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -425,15 +425,15 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(10);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 80 + _bitOffset;
+                int ep = 80 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -451,12 +451,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(12));
             }
-            int ep = 96 + _bitOffset;
+            int ep = 96 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 31) - bi * 8;
             int sh = 64 - 1 - endInWindow;
@@ -465,15 +465,15 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(12);
                 BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
-                int ep = 96 + _bitOffset;
+                int ep = 96 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -491,12 +491,12 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(16));
             }
-            int ep = 128 + _bitOffset;
+            int ep = 128 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 31) - bi * 8;
             int sh = 64 - 1 - endInWindow;
@@ -505,15 +505,15 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(16);
                 BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
-                int ep = 128 + _bitOffset;
+                int ep = 128 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -531,21 +531,21 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[6] & 0x80) != 0;
-            int ep = 48 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[6] & 0x80) != 0;
+            int ep = 48 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[6] = value ? (byte)(s[6] | 0x80) : (byte)(s[6] & 0x7F);
                 return;
             }
-            int ep = 48 + _bitOffset;
+            int ep = 48 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -557,21 +557,21 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[6] & 0x40) != 0;
-            int ep = 49 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[6] & 0x40) != 0;
+            int ep = 49 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[6] = value ? (byte)(s[6] | 0x40) : (byte)(s[6] & 0xBF);
                 return;
             }
-            int ep = 49 + _bitOffset;
+            int ep = 49 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -583,21 +583,21 @@ public partial record struct IPv4HeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[6] & 0x20) != 0;
-            int ep = 50 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[6] & 0x20) != 0;
+            int ep = 50 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[6] = value ? (byte)(s[6] | 0x20) : (byte)(s[6] & 0xDF);
                 return;
             }
-            int ep = 50 + _bitOffset;
+            int ep = 50 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -650,7 +650,7 @@ public partial record struct IPv4HeaderView
         /// <summary>Writes a IPv4HeaderView to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, IPv4HeaderView value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

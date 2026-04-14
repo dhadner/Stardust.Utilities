@@ -18,7 +18,7 @@ public partial class BitFieldsGenerator
             // Implicit float/double/Half conversions
             sb.AppendLine($"{indent}/// <summary>Implicit conversion to {fp}.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static implicit operator {fp}({info.TypeName} value) => {fromBits}(value.Value);");
+            sb.AppendLine($"{indent}public static implicit operator {fp}({info.TypeName} value) => {fromBits}(value.__value);");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Implicit conversion from {fp}.</summary>");
@@ -29,7 +29,7 @@ public partial class BitFieldsGenerator
             // Explicit raw-bits conversions (for low-level access)
             sb.AppendLine($"{indent}/// <summary>Explicit conversion to raw bits ({info.StorageType}).</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static explicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
+            sb.AppendLine($"{indent}public static explicit operator {info.StorageType}({info.TypeName} value) => value.__value;");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Explicit conversion from raw bits ({info.StorageType}).</summary>");
@@ -42,7 +42,7 @@ public partial class BitFieldsGenerator
             // NativeInteger: standard implicit conversions
             // Note: The constructor handles undefined bits masking, so conversions just call new()
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.Value;");
+            sb.AppendLine($"{indent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.__value;");
             sb.AppendLine();
             
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
@@ -307,8 +307,8 @@ public partial class BitFieldsGenerator
 
         // For NativeFloat, format the floating-point value rather than raw bits
         string fmtExpr = info.Mode == StorageMode.NativeFloat
-            ? $"{FromBitsMethod(info.FloatingPointType!)}(Value)"
-            : "Value";
+            ? $"{FromBitsMethod(info.FloatingPointType!)}(__value)"
+            : "__value";
 
         sb.AppendLine($"{indent}/// <summary>Formats the value using the specified format and format provider.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"format\">The format to use, or null for the default format.</param>");
@@ -324,7 +324,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <param name=\"provider\">The provider to use for culture-specific formatting.</param>");
         sb.AppendLine($"{indent}/// <returns>true if the formatting was successful; otherwise, false.</returns>");
         sb.AppendLine($"{indent}public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)");
-        sb.AppendLine($"{indent}    => Value.TryFormat(destination, out charsWritten, format, provider);");
+        sb.AppendLine($"{indent}    => __value.TryFormat(destination, out charsWritten, format, provider);");
         sb.AppendLine();
     }
 
@@ -354,11 +354,11 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fromBits = FromBitsMethod(info.FloatingPointType!);
-            sb.AppendLine($"{indent}public int CompareTo({t} other) => {fromBits}(Value).CompareTo({fromBits}(other.Value));");
+            sb.AppendLine($"{indent}public int CompareTo({t} other) => {fromBits}(__value).CompareTo({fromBits}(other.__value));");
         }
         else
         {
-            sb.AppendLine($"{indent}public int CompareTo({t} other) => Value.CompareTo(other.Value);");
+            sb.AppendLine($"{indent}public int CompareTo({t} other) => __value.CompareTo(other.__value);");
         }
         sb.AppendLine();
 
@@ -366,7 +366,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <param name=\"other\">A {t} to compare with this instance.</param>");
         sb.AppendLine($"{indent}/// <returns>true if the two instances are equal; otherwise, false.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public bool Equals({t} other) => Value == other.Value;");
+        sb.AppendLine($"{indent}public bool Equals({t} other) => __value == other.__value;");
         sb.AppendLine();
     }
 
@@ -440,7 +440,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}    if (destination.Length < SIZE_IN_BYTES)");
         sb.AppendLine($"{indent}        throw new ArgumentException($\"Span must contain at least {{SIZE_IN_BYTES}} bytes.\", nameof(destination));");
         if (isByte)
-            sb.AppendLine($"{indent}    destination[0] = unchecked((byte)Value);");
+            sb.AppendLine($"{indent}    destination[0] = unchecked((byte)__value);");
         else if (isNativeInt)
         {
             string writeU32 = isBE ? "WriteUInt32BigEndian" : "WriteUInt32LittleEndian";
@@ -449,17 +449,17 @@ public partial class BitFieldsGenerator
             string writeI64 = isBE ? "WriteInt64BigEndian" : "WriteInt64LittleEndian";
             if (s == "nint")
             {
-                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeI64}(destination, (long)Value);");
-                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeI32}(destination, (int)Value);");
+                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeI64}(destination, (long)__value);");
+                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeI32}(destination, (int)__value);");
             }
             else
             {
-                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeU64}(destination, (ulong)Value);");
-                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeU32}(destination, (uint)Value);");
+                sb.AppendLine($"{indent}    if (nint.Size == 8) BinaryPrimitives.{writeU64}(destination, (ulong)__value);");
+                sb.AppendLine($"{indent}    else BinaryPrimitives.{writeU32}(destination, (uint)__value);");
             }
         }
         else
-            sb.AppendLine($"{indent}    BinaryPrimitives.{writeMethod}(destination, Value);");
+            sb.AppendLine($"{indent}    BinaryPrimitives.{writeMethod}(destination, __value);");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 

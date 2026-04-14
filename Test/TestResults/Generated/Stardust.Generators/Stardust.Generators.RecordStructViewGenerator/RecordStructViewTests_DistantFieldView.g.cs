@@ -16,8 +16,8 @@ public partial class RecordStructViewTests
     [JsonConverter(typeof(DistantFieldViewJsonConverter))]
     public partial record struct DistantFieldView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 102;
@@ -30,8 +30,8 @@ public partial class RecordStructViewTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class RecordStructViewTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal DistantFieldView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial byte First
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)s[0];
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -71,14 +71,14 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = (byte)value;
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 7) - bi * 8;
                     int sh = 16 - 1 - endInWindow;
@@ -96,12 +96,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(100));
                 }
-                int ep = 800 + _bitOffset;
+                int ep = 800 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -110,15 +110,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(100);
                     BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
                 }
                 else
                 {
-                    int ep = 800 + _bitOffset;
+                    int ep = 800 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 15) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -164,7 +164,7 @@ public partial class RecordStructViewTests
             /// <summary>Writes a DistantFieldView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, DistantFieldView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquatable<FileHeader>,
                              IFormattable, ISpanFormattable, IParsable<FileHeader>, ISpanParsable<FileHeader>
 {
-    private ulong Value;
+    private ulong __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
@@ -27,89 +27,89 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     // --- Bit field mask constants ---
     // Magic: bits [0..15], width 16
-    private const int MAGIC_START_BIT = 0;
-    private const ulong MAGIC_MASK = 0x000000000000FFFFUL;
-    private const ulong MAGIC_INVERTED_MASK = 0xFFFFFFFFFFFF0000UL;  // ~MAGIC_MASK
+    private const int __MAGIC_START_BIT = 0;
+    private const ulong __MAGIC_MASK = 0x000000000000FFFFUL;
+    private const ulong __MAGIC_INVERTED_MASK = 0xFFFFFFFFFFFF0000UL;  // ~__MAGIC_MASK
     // Flags: bits [16..23], width 8
-    private const int FLAGS_START_BIT = 16;
-    private const ulong FLAGS_MASK = 0x00000000000000FFUL;
-    private const ulong FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // FLAGS_MASK << FLAGS_START_BIT
-    private const ulong FLAGS_INVERTED_MASK = 0xFFFFFFFFFF00FFFFUL;  // ~FLAGS_SHIFTED_MASK
+    private const int __FLAGS_START_BIT = 16;
+    private const ulong __FLAGS_MASK = 0x00000000000000FFUL;
+    private const ulong __FLAGS_SHIFTED_MASK = 0x0000000000FF0000UL;  // __FLAGS_MASK << __FLAGS_START_BIT
+    private const ulong __FLAGS_INVERTED_MASK = 0xFFFFFFFFFF00FFFFUL;  // ~__FLAGS_SHIFTED_MASK
     // VersionMajor: bits [24..31], width 8
-    private const int VERSION_MAJOR_START_BIT = 24;
-    private const ulong VERSION_MAJOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // VERSION_MAJOR_MASK << VERSION_MAJOR_START_BIT
-    private const ulong VERSION_MAJOR_INVERTED_MASK = 0xFFFFFFFF00FFFFFFUL;  // ~VERSION_MAJOR_SHIFTED_MASK
+    private const int __VERSION_MAJOR_START_BIT = 24;
+    private const ulong __VERSION_MAJOR_MASK = 0x00000000000000FFUL;
+    private const ulong __VERSION_MAJOR_SHIFTED_MASK = 0x00000000FF000000UL;  // __VERSION_MAJOR_MASK << __VERSION_MAJOR_START_BIT
+    private const ulong __VERSION_MAJOR_INVERTED_MASK = 0xFFFFFFFF00FFFFFFUL;  // ~__VERSION_MAJOR_SHIFTED_MASK
     // VersionMinor: bits [32..39], width 8
-    private const int VERSION_MINOR_START_BIT = 32;
-    private const ulong VERSION_MINOR_MASK = 0x00000000000000FFUL;
-    private const ulong VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // VERSION_MINOR_MASK << VERSION_MINOR_START_BIT
-    private const ulong VERSION_MINOR_INVERTED_MASK = 0xFFFFFF00FFFFFFFFUL;  // ~VERSION_MINOR_SHIFTED_MASK
+    private const int __VERSION_MINOR_START_BIT = 32;
+    private const ulong __VERSION_MINOR_MASK = 0x00000000000000FFUL;
+    private const ulong __VERSION_MINOR_SHIFTED_MASK = 0x000000FF00000000UL;  // __VERSION_MINOR_MASK << __VERSION_MINOR_START_BIT
+    private const ulong __VERSION_MINOR_INVERTED_MASK = 0xFFFFFF00FFFFFFFFUL;  // ~__VERSION_MINOR_SHIFTED_MASK
     // Reserved: bits [40..63], width 24
-    private const int RESERVED_START_BIT = 40;
-    private const ulong RESERVED_MASK = 0x0000000000FFFFFFUL;
-    private const ulong RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // RESERVED_MASK << RESERVED_START_BIT
-    private const ulong RESERVED_INVERTED_MASK = 0x000000FFFFFFFFFFUL;  // ~RESERVED_SHIFTED_MASK
+    private const int __RESERVED_START_BIT = 40;
+    private const ulong __RESERVED_MASK = 0x0000000000FFFFFFUL;
+    private const ulong __RESERVED_SHIFTED_MASK = 0xFFFFFF0000000000UL;  // __RESERVED_MASK << __RESERVED_START_BIT
+    private const ulong __RESERVED_INVERTED_MASK = 0x000000FFFFFFFFFFUL;  // ~__RESERVED_SHIFTED_MASK
 
     /// <summary>Creates a new FileHeader with the specified raw bits value.</summary>
-    public FileHeader(ulong value) { Value = value; }
+    public FileHeader(ulong value) { __value = value; }
 
     public partial ushort Magic
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)(Value & MAGIC_MASK);
+        get => (ushort)(__value & __MAGIC_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & MAGIC_INVERTED_MASK) | (((ulong)value) & MAGIC_MASK));
+        set => __value = (ulong)((__value & __MAGIC_INVERTED_MASK) | (((ulong)value) & __MAGIC_MASK));
     }
 
     public partial global::Stardust.Utilities.Tests.StatusFlags Flags
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.StatusFlags)((byte)((Value >> FLAGS_START_BIT) & FLAGS_MASK));
+        get => (global::Stardust.Utilities.Tests.StatusFlags)((byte)((__value >> __FLAGS_START_BIT) & __FLAGS_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set { var __ev = (byte)value;
-            Value = (ulong)((Value & FLAGS_INVERTED_MASK) | ((((ulong)__ev) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
+            __value = (ulong)((__value & __FLAGS_INVERTED_MASK) | ((((ulong)__ev) << __FLAGS_START_BIT) & __FLAGS_SHIFTED_MASK));
         }
     }
 
     public partial byte VersionMajor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_MAJOR_START_BIT) & VERSION_MAJOR_MASK);
+        get => (byte)((__value >> __VERSION_MAJOR_START_BIT) & __VERSION_MAJOR_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK));
+        set => __value = (ulong)((__value & __VERSION_MAJOR_INVERTED_MASK) | ((((ulong)value) << __VERSION_MAJOR_START_BIT) & __VERSION_MAJOR_SHIFTED_MASK));
     }
 
     public partial byte VersionMinor
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_MINOR_START_BIT) & VERSION_MINOR_MASK);
+        get => (byte)((__value >> __VERSION_MINOR_START_BIT) & __VERSION_MINOR_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK));
+        set => __value = (ulong)((__value & __VERSION_MINOR_INVERTED_MASK) | ((((ulong)value) << __VERSION_MINOR_START_BIT) & __VERSION_MINOR_SHIFTED_MASK));
     }
 
     public partial uint Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
+        get => (uint)((__value >> __RESERVED_START_BIT) & __RESERVED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & RESERVED_INVERTED_MASK) | ((((ulong)value) << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK));
+        set => __value = (ulong)((__value & __RESERVED_INVERTED_MASK) | ((((ulong)value) << __RESERVED_START_BIT) & __RESERVED_SHIFTED_MASK));
     }
 
     /// <summary>Returns a FileHeader with the mask for the Magic field (bits 0-15).</summary>
-    public static FileHeader MagicMask => new(MAGIC_MASK);
+    public static FileHeader MagicMask => new(__MAGIC_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the Flags field (bits 16-23).</summary>
-    public static FileHeader FlagsMask => new(FLAGS_SHIFTED_MASK);
+    public static FileHeader FlagsMask => new(__FLAGS_SHIFTED_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the VersionMajor field (bits 24-31).</summary>
-    public static FileHeader VersionMajorMask => new(VERSION_MAJOR_SHIFTED_MASK);
+    public static FileHeader VersionMajorMask => new(__VERSION_MAJOR_SHIFTED_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the VersionMinor field (bits 32-39).</summary>
-    public static FileHeader VersionMinorMask => new(VERSION_MINOR_SHIFTED_MASK);
+    public static FileHeader VersionMinorMask => new(__VERSION_MINOR_SHIFTED_MASK);
 
     /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
-    public static FileHeader ReservedMask => new(RESERVED_SHIFTED_MASK);
+    public static FileHeader ReservedMask => new(__RESERVED_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -127,87 +127,87 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     /// <summary>Returns a new FileHeader with the Magic field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithMagic(ushort value) => new((ulong)((Value & MAGIC_INVERTED_MASK) | ((ulong)value & MAGIC_MASK)));
+    public FileHeader WithMagic(ushort value) => new((ulong)((__value & __MAGIC_INVERTED_MASK) | ((ulong)value & __MAGIC_MASK)));
 
     /// <summary>Returns a new FileHeader with the Flags field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((Value & FLAGS_INVERTED_MASK) | (((ulong)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
+    public FileHeader WithFlags(global::Stardust.Utilities.Tests.StatusFlags value) => new((ulong)((__value & __FLAGS_INVERTED_MASK) | (((ulong)value << __FLAGS_START_BIT) & __FLAGS_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the VersionMajor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMajor(byte value) => new((ulong)((Value & VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << VERSION_MAJOR_START_BIT) & VERSION_MAJOR_SHIFTED_MASK)));
+    public FileHeader WithVersionMajor(byte value) => new((ulong)((__value & __VERSION_MAJOR_INVERTED_MASK) | (((ulong)value << __VERSION_MAJOR_START_BIT) & __VERSION_MAJOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the VersionMinor field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithVersionMinor(byte value) => new((ulong)((Value & VERSION_MINOR_INVERTED_MASK) | (((ulong)value << VERSION_MINOR_START_BIT) & VERSION_MINOR_SHIFTED_MASK)));
+    public FileHeader WithVersionMinor(byte value) => new((ulong)((__value & __VERSION_MINOR_INVERTED_MASK) | (((ulong)value << __VERSION_MINOR_START_BIT) & __VERSION_MINOR_SHIFTED_MASK)));
 
     /// <summary>Returns a new FileHeader with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FileHeader WithReserved(uint value) => new((ulong)((Value & RESERVED_INVERTED_MASK) | (((ulong)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
+    public FileHeader WithReserved(uint value) => new((ulong)((__value & __RESERVED_INVERTED_MASK) | (((ulong)value << __RESERVED_START_BIT) & __RESERVED_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ~(FileHeader a) => new((ulong)~a.Value);
+    public static FileHeader operator ~(FileHeader a) => new((ulong)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(FileHeader a, FileHeader b) => new((ulong)(a.Value | b.Value));
+    public static FileHeader operator |(FileHeader a, FileHeader b) => new((ulong)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(FileHeader a, FileHeader b) => new((ulong)(a.Value & b.Value));
+    public static FileHeader operator &(FileHeader a, FileHeader b) => new((ulong)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(FileHeader a, FileHeader b) => new((ulong)(a.Value ^ b.Value));
+    public static FileHeader operator ^(FileHeader a, FileHeader b) => new((ulong)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(FileHeader a, ulong b) => new(a.Value & b);
+    public static FileHeader operator &(FileHeader a, ulong b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator &(ulong a, FileHeader b) => new(a & b.Value);
+    public static FileHeader operator &(ulong a, FileHeader b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(FileHeader a, ulong b) => new(a.Value | b);
+    public static FileHeader operator |(FileHeader a, ulong b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator |(ulong a, FileHeader b) => new(a | b.Value);
+    public static FileHeader operator |(ulong a, FileHeader b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(FileHeader a, ulong b) => new(a.Value ^ b);
+    public static FileHeader operator ^(FileHeader a, ulong b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator ^(ulong a, FileHeader b) => new(a ^ b.Value);
+    public static FileHeader operator ^(ulong a, FileHeader b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(FileHeader a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(FileHeader a, int b) => a.__value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, FileHeader b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, FileHeader b) => (ulong)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(FileHeader a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(FileHeader a, int b) => a.__value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, FileHeader b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, FileHeader b) => (ulong)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(FileHeader a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(FileHeader a, int b) => a.__value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, FileHeader b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, FileHeader b) => (ulong)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -215,115 +215,115 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a) => new(unchecked((ulong)(0 - a.Value)));
+    public static FileHeader operator -(FileHeader a) => new(unchecked((ulong)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static FileHeader operator +(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static FileHeader operator +(FileHeader a, ulong b) => new(unchecked((ulong)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator +(ulong a, FileHeader b) => new(unchecked((ulong)(a + b.Value)));
+    public static FileHeader operator +(ulong a, FileHeader b) => new(unchecked((ulong)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static FileHeader operator -(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static FileHeader operator -(FileHeader a, ulong b) => new(unchecked((ulong)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator -(ulong a, FileHeader b) => new(unchecked((ulong)(a - b.Value)));
+    public static FileHeader operator -(ulong a, FileHeader b) => new(unchecked((ulong)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static FileHeader operator *(FileHeader a, FileHeader b) => new(unchecked((ulong)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(FileHeader a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static FileHeader operator *(FileHeader a, ulong b) => new(unchecked((ulong)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator *(ulong a, FileHeader b) => new(unchecked((ulong)(a * b.Value)));
+    public static FileHeader operator *(ulong a, FileHeader b) => new(unchecked((ulong)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(FileHeader a, FileHeader b) => new((ulong)(a.Value / b.Value));
+    public static FileHeader operator /(FileHeader a, FileHeader b) => new((ulong)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(FileHeader a, ulong b) => new((ulong)(a.Value / b));
+    public static FileHeader operator /(FileHeader a, ulong b) => new((ulong)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator /(ulong a, FileHeader b) => new((ulong)(a / b.Value));
+    public static FileHeader operator /(ulong a, FileHeader b) => new((ulong)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(FileHeader a, FileHeader b) => new((ulong)(a.Value % b.Value));
+    public static FileHeader operator %(FileHeader a, FileHeader b) => new((ulong)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(FileHeader a, ulong b) => new((ulong)(a.Value % b));
+    public static FileHeader operator %(FileHeader a, ulong b) => new((ulong)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator %(ulong a, FileHeader b) => new((ulong)(a % b.Value));
+    public static FileHeader operator %(ulong a, FileHeader b) => new((ulong)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator <<(FileHeader a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static FileHeader operator <<(FileHeader a, int b) => new(unchecked((ulong)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator >>(FileHeader a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static FileHeader operator >>(FileHeader a, int b) => new(unchecked((ulong)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static FileHeader operator >>>(FileHeader a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static FileHeader operator >>>(FileHeader a, int b) => new(unchecked((ulong)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(FileHeader a, FileHeader b) => a.Value < b.Value;
+    public static bool operator <(FileHeader a, FileHeader b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(FileHeader a, FileHeader b) => a.Value > b.Value;
+    public static bool operator >(FileHeader a, FileHeader b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(FileHeader a, FileHeader b) => a.Value <= b.Value;
+    public static bool operator <=(FileHeader a, FileHeader b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(FileHeader a, FileHeader b) => a.Value >= b.Value;
+    public static bool operator >=(FileHeader a, FileHeader b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(FileHeader a, FileHeader b) => a.Value == b.Value;
+    public static bool operator ==(FileHeader a, FileHeader b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(FileHeader a, FileHeader b) => a.Value != b.Value;
+    public static bool operator !=(FileHeader a, FileHeader b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is FileHeader other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is FileHeader other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(FileHeader value) => value.Value;
+    public static implicit operator ulong(FileHeader value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator FileHeader(ulong value) => new(value);
@@ -351,7 +351,7 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -535,7 +535,7 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -544,7 +544,7 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -561,13 +561,13 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <param name="other">A FileHeader to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(FileHeader other) => Value.CompareTo(other.Value);
+    public int CompareTo(FileHeader other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another FileHeader.</summary>
     /// <param name="other">A FileHeader to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(FileHeader other) => Value == other.Value;
+    public bool Equals(FileHeader other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes FileHeader as a string.</summary>
     private sealed class FileHeaderJsonConverter : JsonConverter<FileHeader>

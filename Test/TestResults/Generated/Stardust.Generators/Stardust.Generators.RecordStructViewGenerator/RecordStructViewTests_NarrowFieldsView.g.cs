@@ -16,8 +16,8 @@ public partial class RecordStructViewTests
     [JsonConverter(typeof(NarrowFieldsViewJsonConverter))]
     public partial record struct NarrowFieldsView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 1;
@@ -30,8 +30,8 @@ public partial class RecordStructViewTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class RecordStructViewTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal NarrowFieldsView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial byte ThreeBit
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)(s[0] & 0x07);
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x0007);
@@ -70,14 +70,14 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = (byte)((s[0] & 0xF8) | ((byte)value & 0x07));
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -94,12 +94,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((s[0] >> 3) & 0x01);
                 }
-                int ep = 3 + _bitOffset;
+                int ep = 3 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((s[bi] >> sh) & 0x01);
@@ -107,14 +107,14 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = (byte)((s[0] & 0xF7) | (((byte)value << 3) & 0x08));
                 }
                 else
                 {
-                    int ep = 3 + _bitOffset;
+                    int ep = 3 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     int m = 0x01 << sh;
@@ -128,12 +128,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((s[0] >> 4) & 0x0F);
                 }
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x000F);
@@ -141,14 +141,14 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = (byte)((s[0] & 0x0F) | (((byte)value << 4) & 0xF0));
                 }
                 else
                 {
-                    int ep = 4 + _bitOffset;
+                    int ep = 4 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -194,7 +194,7 @@ public partial class RecordStructViewTests
             /// <summary>Writes a NarrowFieldsView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, NarrowFieldsView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

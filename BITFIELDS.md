@@ -924,7 +924,7 @@ For each record struct view, the generator produces:
 
 | Member | Description |
 |--------|-------------|
-| `_data` | Private `Memory<byte>` field |
+| `__data` | Private `Memory<byte>` field |
 | Constructors | `Memory<byte>`, `byte[]`, `byte[] + offset` |
 | `Data` property | Exposes the underlying `Memory<byte>` |
 | `SizeInBytes` constant | Minimum buffer size required |
@@ -2146,20 +2146,20 @@ The generator creates (abbreviated -- the full output also includes parsing, for
 public partial struct StatusRegister : IComparable, IComparable<StatusRegister>, IEquatable<StatusRegister>,
                                       IFormattable, ISpanFormattable, IParsable<StatusRegister>, ISpanParsable<StatusRegister>
 {
-    private byte Value;
+    private byte __value;
 
     public const int SizeInBytes = 1;
     public static StatusRegister Zero => default;
 
-    public StatusRegister(byte value) { Value = value; }
+    public StatusRegister(byte value) { __value = value; }
 
     // ── BitFlag properties ──────────────────────────────────────
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & 0x01) != 0;
+        get => (__value & 0x01) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE);
+        set => __value = value ? (byte)(__value | 0x01) : (byte)(__value & 0xFE);
     }
 
     // ── BitField properties ─────────────────────────────────────
@@ -2168,9 +2168,9 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
     public partial byte Mode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> 2) & 0x07);
+        get => (byte)((__value >> 2) & 0x07);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & 0xE3) | ((((byte)value) << 2) & 0x1C));
+        set => __value = (byte)((__value & 0xE3) | ((((byte)value) << 2) & 0x1C));
     }
 
     // ── Static Bit and Mask properties ──────────────────────────
@@ -2191,36 +2191,36 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
     // ── Fluent With methods ─────────────────────────────────────
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StatusRegister WithReady(bool value) =>
-        new(value ? (byte)(Value | 0x01) : (byte)(Value & 0xFE));
+        new(value ? (byte)(__value | 0x01) : (byte)(__value & 0xFE));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StatusRegister WithMode(byte value) =>
-        new((byte)((Value & 0xE3) | (((byte)value << 2) & 0x1C)));
+        new((byte)((__value & 0xE3) | (((byte)value << 2) & 0x1C)));
 
     // ── Operators (all AggressiveInlining) ──────────────────────
-    public static StatusRegister operator ~(StatusRegister a) => new((byte)~a.Value);
-    public static StatusRegister operator |(StatusRegister a, StatusRegister b) => new((byte)(a.Value | b.Value));
-    public static StatusRegister operator &(StatusRegister a, StatusRegister b) => new((byte)(a.Value & b.Value));
-    public static StatusRegister operator ^(StatusRegister a, StatusRegister b) => new((byte)(a.Value ^ b.Value));
-    public static StatusRegister operator +(StatusRegister a, StatusRegister b) => new(unchecked((byte)(a.Value + b.Value)));
-    public static StatusRegister operator -(StatusRegister a, StatusRegister b) => new(unchecked((byte)(a.Value - b.Value)));
-    public static StatusRegister operator -(StatusRegister a) => new(unchecked((byte)(0 - a.Value)));
+    public static StatusRegister operator ~(StatusRegister a) => new((byte)~a.__value);
+    public static StatusRegister operator |(StatusRegister a, StatusRegister b) => new((byte)(a.__value | b.__value));
+    public static StatusRegister operator &(StatusRegister a, StatusRegister b) => new((byte)(a.__value & b.__value));
+    public static StatusRegister operator ^(StatusRegister a, StatusRegister b) => new((byte)(a.__value ^ b.__value));
+    public static StatusRegister operator +(StatusRegister a, StatusRegister b) => new(unchecked((byte)(a.__value + b.__value)));
+    public static StatusRegister operator -(StatusRegister a, StatusRegister b) => new(unchecked((byte)(a.__value - b.__value)));
+    public static StatusRegister operator -(StatusRegister a) => new(unchecked((byte)(0 - a.__value)));
     // ... plus +, -, *, /, % with storage-type operand on either side
 
     // Small types return int so (bits >> n) & 1 works without casting
-    public static int operator <<(StatusRegister a, int b) => a.Value << b;
-    public static int operator >>(StatusRegister a, int b) => a.Value >> b;
-    public static int operator >>>(StatusRegister a, int b) => a.Value >>> b;
+    public static int operator <<(StatusRegister a, int b) => a.__value << b;
+    public static int operator >>(StatusRegister a, int b) => a.__value >> b;
+    public static int operator >>>(StatusRegister a, int b) => a.__value >>> b;
 
-    public static bool operator <(StatusRegister a, StatusRegister b) => a.Value < b.Value;
-    public static bool operator >(StatusRegister a, StatusRegister b) => a.Value > b.Value;
-    public static bool operator <=(StatusRegister a, StatusRegister b) => a.Value <= b.Value;
-    public static bool operator >=(StatusRegister a, StatusRegister b) => a.Value >= b.Value;
-    public static bool operator ==(StatusRegister a, StatusRegister b) => a.Value == b.Value;
-    public static bool operator !=(StatusRegister a, StatusRegister b) => a.Value != b.Value;
+    public static bool operator <(StatusRegister a, StatusRegister b) => a.__value < b.__value;
+    public static bool operator >(StatusRegister a, StatusRegister b) => a.__value > b.__value;
+    public static bool operator <=(StatusRegister a, StatusRegister b) => a.__value <= b.__value;
+    public static bool operator >=(StatusRegister a, StatusRegister b) => a.__value >= b.__value;
+    public static bool operator ==(StatusRegister a, StatusRegister b) => a.__value == b.__value;
+    public static bool operator !=(StatusRegister a, StatusRegister b) => a.__value != b.__value;
 
     // ── Conversions ─────────────────────────────────────────────
-    public static implicit operator byte(StatusRegister value) => value.Value;
+    public static implicit operator byte(StatusRegister value) => value.__value;
     public static implicit operator StatusRegister(byte value) => new(value);
     public static implicit operator StatusRegister(int value) => new(unchecked((byte)value));
 
@@ -2232,9 +2232,9 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
     public byte[] ToByteArray() { /* ... */ }
 
     // ── Equality, hashing, formatting ───────────────────────────
-    public override bool Equals(object? obj) => obj is StatusRegister other && Value == other.Value;
-    public override int GetHashCode() => Value.GetHashCode();
-    public override string ToString() => $"0x{Value:X}";
+    public override bool Equals(object? obj) => obj is StatusRegister other && __value == other.__value;
+    public override int GetHashCode() => __value.GetHashCode();
+    public override string ToString() => $"0x{__value:X}";
 
     // ── Interface implementations (IComparable, IEquatable, IParsable, etc.) ──
     // ── JSON converter (reads/writes as string) ──
@@ -2260,19 +2260,19 @@ The generator creates:
 ```csharp
 public partial record struct ByteFlagsView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     public const int SizeInBytes = 1;
     public const int BitWidth = 8;
 
     // ── Constructors ────────────────────────────────────────────
-    public ByteFlagsView(Memory<byte> data) { /* validates length */ _data = data; _bitOffset = 0; }
+    public ByteFlagsView(Memory<byte> data) { /* validates length */ __data = data; __bitOffset = 0; }
     public ByteFlagsView(byte[] data) : this(data.AsMemory()) { }
     public ByteFlagsView(byte[] data, int offset) : this(data.AsMemory(offset)) { }
     internal ByteFlagsView(Memory<byte> data, int bitOffset) { /* for nested views */ }
 
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     // ── Property accessors (read/write directly to buffer) ──────
     // Fast path when bitOffset == 0, fallback path for sub-byte nesting.
@@ -2281,11 +2281,11 @@ public partial record struct ByteFlagsView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
                 return (byte)((s[0] >> 3) & 0x0F);
             // Fallback: BinaryPrimitives read with bit offset calculation
-            int ep = 1 + _bitOffset;
+            int ep = 1 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -2294,15 +2294,15 @@ public partial record struct ByteFlagsView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0x87) | (((byte)value << 3) & 0x78));
             }
             else
             {
                 // Fallback: read-modify-write via BinaryPrimitives
-                int ep = 1 + _bitOffset;
+                int ep = 1 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -2320,21 +2320,21 @@ public partial record struct ByteFlagsView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[0] & 0x80) != 0;
-            int ep = 0 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[0] & 0x80) != 0;
+            int ep = 0 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = value ? (byte)(s[0] | 0x80) : (byte)(s[0] & 0x7F);
                 return;
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -2357,7 +2357,7 @@ public partial record struct ByteFlagsView
         }
         public override void Write(Utf8JsonWriter writer, ByteFlagsView value, JsonSerializerOptions options)
         {
-            // Encode _data.Span bytes as "0x..." hex string
+            // Encode __data.Span bytes as "0x..." hex string
             /* ... */
         }
     }

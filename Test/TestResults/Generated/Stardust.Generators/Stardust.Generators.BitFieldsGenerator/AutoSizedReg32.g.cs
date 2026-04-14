@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>, IEquatable<AutoSizedReg32>,
                              IFormattable, ISpanFormattable, IParsable<AutoSizedReg32>, ISpanParsable<AutoSizedReg32>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,69 +27,69 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
 
     // --- Bit field mask constants ---
     // Address: bits [0..23], width 24
-    private const int ADDRESS_START_BIT = 0;
-    private const uint ADDRESS_MASK = 0x00FFFFFFU;
-    private const uint ADDRESS_INVERTED_MASK = 0xFF000000U;  // ~ADDRESS_MASK
+    private const int __ADDRESS_START_BIT = 0;
+    private const uint __ADDRESS_MASK = 0x00FFFFFFU;
+    private const uint __ADDRESS_INVERTED_MASK = 0xFF000000U;  // ~__ADDRESS_MASK
     // Command: bits [24..27], width 4
-    private const int COMMAND_START_BIT = 24;
-    private const uint COMMAND_MASK = 0x0000000FU;
-    private const uint COMMAND_SHIFTED_MASK = 0x0F000000U;  // COMMAND_MASK << COMMAND_START_BIT
-    private const uint COMMAND_INVERTED_MASK = 0xF0FFFFFFU;  // ~COMMAND_SHIFTED_MASK
+    private const int __COMMAND_START_BIT = 24;
+    private const uint __COMMAND_MASK = 0x0000000FU;
+    private const uint __COMMAND_SHIFTED_MASK = 0x0F000000U;  // __COMMAND_MASK << __COMMAND_START_BIT
+    private const uint __COMMAND_INVERTED_MASK = 0xF0FFFFFFU;  // ~__COMMAND_SHIFTED_MASK
     // Enable: bit 28
-    private const int ENABLE_BIT = 28;
-    private const uint ENABLE_MASK = 0x10000000U;  // 1 << ENABLE_BIT
-    private const uint ENABLE_INVERTED_MASK = 0xEFFFFFFFU;  // ~ENABLE_MASK
+    private const int __ENABLE_BIT = 28;
+    private const uint __ENABLE_MASK = 0x10000000U;  // 1 << __ENABLE_BIT
+    private const uint __ENABLE_INVERTED_MASK = 0xEFFFFFFFU;  // ~__ENABLE_MASK
     // Interrupt: bit 29
-    private const int INTERRUPT_BIT = 29;
-    private const uint INTERRUPT_MASK = 0x20000000U;  // 1 << INTERRUPT_BIT
-    private const uint INTERRUPT_INVERTED_MASK = 0xDFFFFFFFU;  // ~INTERRUPT_MASK
+    private const int __INTERRUPT_BIT = 29;
+    private const uint __INTERRUPT_MASK = 0x20000000U;  // 1 << __INTERRUPT_BIT
+    private const uint __INTERRUPT_INVERTED_MASK = 0xDFFFFFFFU;  // ~__INTERRUPT_MASK
 
     /// <summary>Creates a new AutoSizedReg32 with the specified raw bits value.</summary>
-    public AutoSizedReg32(uint value) { Value = value; }
+    public AutoSizedReg32(uint value) { __value = value; }
 
     public partial uint Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)(Value & ADDRESS_MASK);
+        get => (uint)(__value & __ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & ADDRESS_INVERTED_MASK) | (((uint)value) & ADDRESS_MASK));
+        set => __value = (uint)((__value & __ADDRESS_INVERTED_MASK) | (((uint)value) & __ADDRESS_MASK));
     }
 
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> COMMAND_START_BIT) & COMMAND_MASK);
+        get => (byte)((__value >> __COMMAND_START_BIT) & __COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & COMMAND_INVERTED_MASK) | ((((uint)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
+        set => __value = (uint)((__value & __COMMAND_INVERTED_MASK) | ((((uint)value) << __COMMAND_START_BIT) & __COMMAND_SHIFTED_MASK));
     }
 
     public partial bool Enable
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & ENABLE_MASK) != 0;
+        get => (__value & __ENABLE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (uint)(Value | ENABLE_MASK) : (uint)(Value & ENABLE_INVERTED_MASK);
+        set => __value = value ? (uint)(__value | __ENABLE_MASK) : (uint)(__value & __ENABLE_INVERTED_MASK);
     }
 
     public partial bool Interrupt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & INTERRUPT_MASK) != 0;
+        get => (__value & __INTERRUPT_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (uint)(Value | INTERRUPT_MASK) : (uint)(Value & INTERRUPT_INVERTED_MASK);
+        set => __value = value ? (uint)(__value | __INTERRUPT_MASK) : (uint)(__value & __INTERRUPT_INVERTED_MASK);
     }
 
     /// <summary>Returns a AutoSizedReg32 with only the Enable bit set.</summary>
-    public static AutoSizedReg32 EnableBit => new(ENABLE_MASK);
+    public static AutoSizedReg32 EnableBit => new(__ENABLE_MASK);
 
     /// <summary>Returns a AutoSizedReg32 with only the Interrupt bit set.</summary>
-    public static AutoSizedReg32 InterruptBit => new(INTERRUPT_MASK);
+    public static AutoSizedReg32 InterruptBit => new(__INTERRUPT_MASK);
 
     /// <summary>Returns a AutoSizedReg32 with the mask for the Address field (bits 0-23).</summary>
-    public static AutoSizedReg32 AddressMask => new(ADDRESS_MASK);
+    public static AutoSizedReg32 AddressMask => new(__ADDRESS_MASK);
 
     /// <summary>Returns a AutoSizedReg32 with the mask for the Command field (bits 24-27).</summary>
-    public static AutoSizedReg32 CommandMask => new(COMMAND_SHIFTED_MASK);
+    public static AutoSizedReg32 CommandMask => new(__COMMAND_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -106,83 +106,83 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
 
     /// <summary>Returns a new AutoSizedReg32 with the Enable flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedReg32 WithEnable(bool value) => new(value ? (uint)(Value | ENABLE_MASK) : (uint)(Value & ENABLE_INVERTED_MASK));
+    public AutoSizedReg32 WithEnable(bool value) => new(value ? (uint)(__value | __ENABLE_MASK) : (uint)(__value & __ENABLE_INVERTED_MASK));
 
     /// <summary>Returns a new AutoSizedReg32 with the Interrupt flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedReg32 WithInterrupt(bool value) => new(value ? (uint)(Value | INTERRUPT_MASK) : (uint)(Value & INTERRUPT_INVERTED_MASK));
+    public AutoSizedReg32 WithInterrupt(bool value) => new(value ? (uint)(__value | __INTERRUPT_MASK) : (uint)(__value & __INTERRUPT_INVERTED_MASK));
 
     /// <summary>Returns a new AutoSizedReg32 with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedReg32 WithAddress(uint value) => new((uint)((Value & ADDRESS_INVERTED_MASK) | ((uint)value & ADDRESS_MASK)));
+    public AutoSizedReg32 WithAddress(uint value) => new((uint)((__value & __ADDRESS_INVERTED_MASK) | ((uint)value & __ADDRESS_MASK)));
 
     /// <summary>Returns a new AutoSizedReg32 with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedReg32 WithCommand(byte value) => new((uint)((Value & COMMAND_INVERTED_MASK) | (((uint)value << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK)));
+    public AutoSizedReg32 WithCommand(byte value) => new((uint)((__value & __COMMAND_INVERTED_MASK) | (((uint)value << __COMMAND_START_BIT) & __COMMAND_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator ~(AutoSizedReg32 a) => new((uint)~a.Value);
+    public static AutoSizedReg32 operator ~(AutoSizedReg32 a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator |(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.Value | b.Value));
+    public static AutoSizedReg32 operator |(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator &(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.Value & b.Value));
+    public static AutoSizedReg32 operator &(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator ^(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.Value ^ b.Value));
+    public static AutoSizedReg32 operator ^(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator &(AutoSizedReg32 a, uint b) => new(a.Value & b);
+    public static AutoSizedReg32 operator &(AutoSizedReg32 a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator &(uint a, AutoSizedReg32 b) => new(a & b.Value);
+    public static AutoSizedReg32 operator &(uint a, AutoSizedReg32 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator |(AutoSizedReg32 a, uint b) => new(a.Value | b);
+    public static AutoSizedReg32 operator |(AutoSizedReg32 a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator |(uint a, AutoSizedReg32 b) => new(a | b.Value);
+    public static AutoSizedReg32 operator |(uint a, AutoSizedReg32 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator ^(AutoSizedReg32 a, uint b) => new(a.Value ^ b);
+    public static AutoSizedReg32 operator ^(AutoSizedReg32 a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator ^(uint a, AutoSizedReg32 b) => new(a ^ b.Value);
+    public static AutoSizedReg32 operator ^(uint a, AutoSizedReg32 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(AutoSizedReg32 a, int b) => a.Value & (long)b;
+    public static long operator &(AutoSizedReg32 a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, AutoSizedReg32 b) => (long)a & b.Value;
+    public static long operator &(int a, AutoSizedReg32 b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(AutoSizedReg32 a, int b) => a.Value | (long)b;
+    public static long operator |(AutoSizedReg32 a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, AutoSizedReg32 b) => (long)a | b.Value;
+    public static long operator |(int a, AutoSizedReg32 b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(AutoSizedReg32 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(AutoSizedReg32 a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, AutoSizedReg32 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, AutoSizedReg32 b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -190,115 +190,115 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator -(AutoSizedReg32 a) => new(unchecked((uint)(0 - a.Value)));
+    public static AutoSizedReg32 operator -(AutoSizedReg32 a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator +(AutoSizedReg32 a, AutoSizedReg32 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static AutoSizedReg32 operator +(AutoSizedReg32 a, AutoSizedReg32 b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator +(AutoSizedReg32 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static AutoSizedReg32 operator +(AutoSizedReg32 a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator +(uint a, AutoSizedReg32 b) => new(unchecked((uint)(a + b.Value)));
+    public static AutoSizedReg32 operator +(uint a, AutoSizedReg32 b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator -(AutoSizedReg32 a, AutoSizedReg32 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static AutoSizedReg32 operator -(AutoSizedReg32 a, AutoSizedReg32 b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator -(AutoSizedReg32 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static AutoSizedReg32 operator -(AutoSizedReg32 a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator -(uint a, AutoSizedReg32 b) => new(unchecked((uint)(a - b.Value)));
+    public static AutoSizedReg32 operator -(uint a, AutoSizedReg32 b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator *(AutoSizedReg32 a, AutoSizedReg32 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static AutoSizedReg32 operator *(AutoSizedReg32 a, AutoSizedReg32 b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator *(AutoSizedReg32 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static AutoSizedReg32 operator *(AutoSizedReg32 a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator *(uint a, AutoSizedReg32 b) => new(unchecked((uint)(a * b.Value)));
+    public static AutoSizedReg32 operator *(uint a, AutoSizedReg32 b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator /(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.Value / b.Value));
+    public static AutoSizedReg32 operator /(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator /(AutoSizedReg32 a, uint b) => new((uint)(a.Value / b));
+    public static AutoSizedReg32 operator /(AutoSizedReg32 a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator /(uint a, AutoSizedReg32 b) => new((uint)(a / b.Value));
+    public static AutoSizedReg32 operator /(uint a, AutoSizedReg32 b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator %(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.Value % b.Value));
+    public static AutoSizedReg32 operator %(AutoSizedReg32 a, AutoSizedReg32 b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator %(AutoSizedReg32 a, uint b) => new((uint)(a.Value % b));
+    public static AutoSizedReg32 operator %(AutoSizedReg32 a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator %(uint a, AutoSizedReg32 b) => new((uint)(a % b.Value));
+    public static AutoSizedReg32 operator %(uint a, AutoSizedReg32 b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator <<(AutoSizedReg32 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static AutoSizedReg32 operator <<(AutoSizedReg32 a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator >>(AutoSizedReg32 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static AutoSizedReg32 operator >>(AutoSizedReg32 a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedReg32 operator >>>(AutoSizedReg32 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static AutoSizedReg32 operator >>>(AutoSizedReg32 a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(AutoSizedReg32 a, AutoSizedReg32 b) => a.Value < b.Value;
+    public static bool operator <(AutoSizedReg32 a, AutoSizedReg32 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(AutoSizedReg32 a, AutoSizedReg32 b) => a.Value > b.Value;
+    public static bool operator >(AutoSizedReg32 a, AutoSizedReg32 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(AutoSizedReg32 a, AutoSizedReg32 b) => a.Value <= b.Value;
+    public static bool operator <=(AutoSizedReg32 a, AutoSizedReg32 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(AutoSizedReg32 a, AutoSizedReg32 b) => a.Value >= b.Value;
+    public static bool operator >=(AutoSizedReg32 a, AutoSizedReg32 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(AutoSizedReg32 a, AutoSizedReg32 b) => a.Value == b.Value;
+    public static bool operator ==(AutoSizedReg32 a, AutoSizedReg32 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(AutoSizedReg32 a, AutoSizedReg32 b) => a.Value != b.Value;
+    public static bool operator !=(AutoSizedReg32 a, AutoSizedReg32 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is AutoSizedReg32 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is AutoSizedReg32 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(AutoSizedReg32 value) => value.Value;
+    public static implicit operator uint(AutoSizedReg32 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AutoSizedReg32(uint value) => new(value);
@@ -326,7 +326,7 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -510,7 +510,7 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -519,7 +519,7 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -536,13 +536,13 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
     /// <param name="other">A AutoSizedReg32 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(AutoSizedReg32 other) => Value.CompareTo(other.Value);
+    public int CompareTo(AutoSizedReg32 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another AutoSizedReg32.</summary>
     /// <param name="other">A AutoSizedReg32 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(AutoSizedReg32 other) => Value == other.Value;
+    public bool Equals(AutoSizedReg32 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes AutoSizedReg32 as a string.</summary>
     private sealed class AutoSizedReg32JsonConverter : JsonConverter<AutoSizedReg32>

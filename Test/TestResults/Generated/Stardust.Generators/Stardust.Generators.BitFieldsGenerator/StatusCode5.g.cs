@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEquatable<StatusCode5>,
                              IFormattable, ISpanFormattable, IParsable<StatusCode5>, ISpanParsable<StatusCode5>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,53 +27,53 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
 
     // --- Bit field mask constants ---
     // Category: bits [0..2], width 3
-    private const int CATEGORY_START_BIT = 0;
-    private const byte CATEGORY_MASK = 0x07;
-    private const byte CATEGORY_INVERTED_MASK = 0xF8;  // ~CATEGORY_MASK
+    private const int __CATEGORY_START_BIT = 0;
+    private const byte __CATEGORY_MASK = 0x07;
+    private const byte __CATEGORY_INVERTED_MASK = 0xF8;  // ~__CATEGORY_MASK
     // Urgent: bit 3
-    private const int URGENT_BIT = 3;
-    private const byte URGENT_MASK = 0x08;  // 1 << URGENT_BIT
-    private const byte URGENT_INVERTED_MASK = 0xF7;  // ~URGENT_MASK
+    private const int __URGENT_BIT = 3;
+    private const byte __URGENT_MASK = 0x08;  // 1 << __URGENT_BIT
+    private const byte __URGENT_INVERTED_MASK = 0xF7;  // ~__URGENT_MASK
     // Acknowledged: bit 4
-    private const int ACKNOWLEDGED_BIT = 4;
-    private const byte ACKNOWLEDGED_MASK = 0x10;  // 1 << ACKNOWLEDGED_BIT
-    private const byte ACKNOWLEDGED_INVERTED_MASK = 0xEF;  // ~ACKNOWLEDGED_MASK
+    private const int __ACKNOWLEDGED_BIT = 4;
+    private const byte __ACKNOWLEDGED_MASK = 0x10;  // 1 << __ACKNOWLEDGED_BIT
+    private const byte __ACKNOWLEDGED_INVERTED_MASK = 0xEF;  // ~__ACKNOWLEDGED_MASK
 
     /// <summary>Creates a new StatusCode5 with the specified raw bits value.</summary>
-    public StatusCode5(byte value) { Value = value; }
+    public StatusCode5(byte value) { __value = value; }
 
     public partial byte Category
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & CATEGORY_MASK);
+        get => (byte)(__value & __CATEGORY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & CATEGORY_INVERTED_MASK) | (((byte)value) & CATEGORY_MASK));
+        set => __value = (byte)((__value & __CATEGORY_INVERTED_MASK) | (((byte)value) & __CATEGORY_MASK));
     }
 
     public partial bool Urgent
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & URGENT_MASK) != 0;
+        get => (__value & __URGENT_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | URGENT_MASK) : (byte)(Value & URGENT_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __URGENT_MASK) : (byte)(__value & __URGENT_INVERTED_MASK);
     }
 
     public partial bool Acknowledged
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & ACKNOWLEDGED_MASK) != 0;
+        get => (__value & __ACKNOWLEDGED_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | ACKNOWLEDGED_MASK) : (byte)(Value & ACKNOWLEDGED_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __ACKNOWLEDGED_MASK) : (byte)(__value & __ACKNOWLEDGED_INVERTED_MASK);
     }
 
     /// <summary>Returns a StatusCode5 with only the Urgent bit set.</summary>
-    public static StatusCode5 UrgentBit => new(URGENT_MASK);
+    public static StatusCode5 UrgentBit => new(__URGENT_MASK);
 
     /// <summary>Returns a StatusCode5 with only the Acknowledged bit set.</summary>
-    public static StatusCode5 AcknowledgedBit => new(ACKNOWLEDGED_MASK);
+    public static StatusCode5 AcknowledgedBit => new(__ACKNOWLEDGED_MASK);
 
     /// <summary>Returns a StatusCode5 with the mask for the Category field (bits 0-2).</summary>
-    public static StatusCode5 CategoryMask => new(CATEGORY_MASK);
+    public static StatusCode5 CategoryMask => new(__CATEGORY_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -89,31 +89,31 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
 
     /// <summary>Returns a new StatusCode5 with the Urgent flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusCode5 WithUrgent(bool value) => new(value ? (byte)(Value | URGENT_MASK) : (byte)(Value & URGENT_INVERTED_MASK));
+    public StatusCode5 WithUrgent(bool value) => new(value ? (byte)(__value | __URGENT_MASK) : (byte)(__value & __URGENT_INVERTED_MASK));
 
     /// <summary>Returns a new StatusCode5 with the Acknowledged flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusCode5 WithAcknowledged(bool value) => new(value ? (byte)(Value | ACKNOWLEDGED_MASK) : (byte)(Value & ACKNOWLEDGED_INVERTED_MASK));
+    public StatusCode5 WithAcknowledged(bool value) => new(value ? (byte)(__value | __ACKNOWLEDGED_MASK) : (byte)(__value & __ACKNOWLEDGED_INVERTED_MASK));
 
     /// <summary>Returns a new StatusCode5 with the Category field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusCode5 WithCategory(byte value) => new((byte)((Value & CATEGORY_INVERTED_MASK) | ((byte)value & CATEGORY_MASK)));
+    public StatusCode5 WithCategory(byte value) => new((byte)((__value & __CATEGORY_INVERTED_MASK) | ((byte)value & __CATEGORY_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator ~(StatusCode5 a) => new((byte)~a.Value);
+    public static StatusCode5 operator ~(StatusCode5 a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator |(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value | b.Value));
+    public static StatusCode5 operator |(StatusCode5 a, StatusCode5 b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator &(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value & b.Value));
+    public static StatusCode5 operator &(StatusCode5 a, StatusCode5 b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator ^(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value ^ b.Value));
+    public static StatusCode5 operator ^(StatusCode5 a, StatusCode5 b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -121,115 +121,115 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator -(StatusCode5 a) => new(unchecked((byte)(0 - a.Value)));
+    public static StatusCode5 operator -(StatusCode5 a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator +(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static StatusCode5 operator +(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator +(StatusCode5 a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static StatusCode5 operator +(StatusCode5 a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator +(byte a, StatusCode5 b) => new(unchecked((byte)(a + b.Value)));
+    public static StatusCode5 operator +(byte a, StatusCode5 b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator -(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static StatusCode5 operator -(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator -(StatusCode5 a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static StatusCode5 operator -(StatusCode5 a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator -(byte a, StatusCode5 b) => new(unchecked((byte)(a - b.Value)));
+    public static StatusCode5 operator -(byte a, StatusCode5 b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator *(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static StatusCode5 operator *(StatusCode5 a, StatusCode5 b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator *(StatusCode5 a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static StatusCode5 operator *(StatusCode5 a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator *(byte a, StatusCode5 b) => new(unchecked((byte)(a * b.Value)));
+    public static StatusCode5 operator *(byte a, StatusCode5 b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator /(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value / b.Value));
+    public static StatusCode5 operator /(StatusCode5 a, StatusCode5 b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator /(StatusCode5 a, byte b) => new((byte)(a.Value / b));
+    public static StatusCode5 operator /(StatusCode5 a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator /(byte a, StatusCode5 b) => new((byte)(a / b.Value));
+    public static StatusCode5 operator /(byte a, StatusCode5 b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator %(StatusCode5 a, StatusCode5 b) => new((byte)(a.Value % b.Value));
+    public static StatusCode5 operator %(StatusCode5 a, StatusCode5 b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator %(StatusCode5 a, byte b) => new((byte)(a.Value % b));
+    public static StatusCode5 operator %(StatusCode5 a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusCode5 operator %(byte a, StatusCode5 b) => new((byte)(a % b.Value));
+    public static StatusCode5 operator %(byte a, StatusCode5 b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(StatusCode5 a, int b) => a.Value << b;
+    public static int operator <<(StatusCode5 a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(StatusCode5 a, int b) => a.Value >> b;
+    public static int operator >>(StatusCode5 a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(StatusCode5 a, int b) => a.Value >>> b;
+    public static int operator >>>(StatusCode5 a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(StatusCode5 a, StatusCode5 b) => a.Value < b.Value;
+    public static bool operator <(StatusCode5 a, StatusCode5 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(StatusCode5 a, StatusCode5 b) => a.Value > b.Value;
+    public static bool operator >(StatusCode5 a, StatusCode5 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(StatusCode5 a, StatusCode5 b) => a.Value <= b.Value;
+    public static bool operator <=(StatusCode5 a, StatusCode5 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(StatusCode5 a, StatusCode5 b) => a.Value >= b.Value;
+    public static bool operator >=(StatusCode5 a, StatusCode5 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(StatusCode5 a, StatusCode5 b) => a.Value == b.Value;
+    public static bool operator ==(StatusCode5 a, StatusCode5 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(StatusCode5 a, StatusCode5 b) => a.Value != b.Value;
+    public static bool operator !=(StatusCode5 a, StatusCode5 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is StatusCode5 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is StatusCode5 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(StatusCode5 value) => value.Value;
+    public static implicit operator byte(StatusCode5 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator StatusCode5(byte value) => new(value);
@@ -261,7 +261,7 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -445,7 +445,7 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -454,7 +454,7 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -471,13 +471,13 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
     /// <param name="other">A StatusCode5 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(StatusCode5 other) => Value.CompareTo(other.Value);
+    public int CompareTo(StatusCode5 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another StatusCode5.</summary>
     /// <param name="other">A StatusCode5 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(StatusCode5 other) => Value == other.Value;
+    public bool Equals(StatusCode5 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes StatusCode5 as a string.</summary>
     private sealed class StatusCode5JsonConverter : JsonConverter<StatusCode5>

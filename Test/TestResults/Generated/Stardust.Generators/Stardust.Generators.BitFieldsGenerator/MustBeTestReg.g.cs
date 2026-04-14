@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, IEquatable<MustBeTestReg>,
                              IFormattable, ISpanFormattable, IParsable<MustBeTestReg>, ISpanParsable<MustBeTestReg>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,53 +27,53 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     // --- Bit field mask constants ---
     // Reserved: bits [1..2], width 2
-    private const int RESERVED_START_BIT = 1;
-    private const byte RESERVED_MASK = 0x03;
-    private const byte RESERVED_SHIFTED_MASK = 0x06;  // RESERVED_MASK << RESERVED_START_BIT
-    private const byte RESERVED_INVERTED_MASK = 0xF9;  // ~RESERVED_SHIFTED_MASK
+    private const int __RESERVED_START_BIT = 1;
+    private const byte __RESERVED_MASK = 0x03;
+    private const byte __RESERVED_SHIFTED_MASK = 0x06;  // __RESERVED_MASK << __RESERVED_START_BIT
+    private const byte __RESERVED_INVERTED_MASK = 0xF9;  // ~__RESERVED_SHIFTED_MASK
     // Data: bits [3..6], width 4
-    private const int DATA_START_BIT = 3;
-    private const byte DATA_MASK = 0x0F;
-    private const byte DATA_SHIFTED_MASK = 0x78;  // DATA_MASK << DATA_START_BIT
-    private const byte DATA_INVERTED_MASK = 0x87;  // ~DATA_SHIFTED_MASK
+    private const int __DATA_START_BIT = 3;
+    private const byte __DATA_MASK = 0x0F;
+    private const byte __DATA_SHIFTED_MASK = 0x78;  // __DATA_MASK << __DATA_START_BIT
+    private const byte __DATA_INVERTED_MASK = 0x87;  // ~__DATA_SHIFTED_MASK
     // Active: bit 0
-    private const int ACTIVE_BIT = 0;
-    private const byte ACTIVE_MASK = 0x01;  // 1 << ACTIVE_BIT
-    private const byte ACTIVE_INVERTED_MASK = 0xFE;  // ~ACTIVE_MASK
+    private const int __ACTIVE_BIT = 0;
+    private const byte __ACTIVE_MASK = 0x01;  // 1 << __ACTIVE_BIT
+    private const byte __ACTIVE_INVERTED_MASK = 0xFE;  // ~__ACTIVE_MASK
     // Sync: bit 7
-    private const int SYNC_BIT = 7;
-    private const byte SYNC_MASK = 0x80;  // 1 << SYNC_BIT
-    private const byte SYNC_INVERTED_MASK = 0x7F;  // ~SYNC_MASK
+    private const int __SYNC_BIT = 7;
+    private const byte __SYNC_MASK = 0x80;  // 1 << __SYNC_BIT
+    private const byte __SYNC_INVERTED_MASK = 0x7F;  // ~__SYNC_MASK
 
     // --- Constructor normalization masks ---
-    private const byte NORMALIZATION_AND_MASK = 0xF9;  // Clears: Reserved (MustBe.Zero)
-    private const byte NORMALIZATION_OR_MASK = 0x80;  // Sets: Sync (MustBe.One)
+    private const byte __NORMALIZATION_AND_MASK = 0xF9;  // Clears: Reserved (MustBe.Zero)
+    private const byte __NORMALIZATION_OR_MASK = 0x80;  // Sets: Sync (MustBe.One)
 
     /// <summary>Creates a new MustBeTestReg with the specified raw bits value.</summary>
-    public MustBeTestReg(byte value) { Value = (byte)((value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }
+    public MustBeTestReg(byte value) { __value = (byte)((value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }
 
     public partial byte Reserved
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
+        get => (byte)((__value >> __RESERVED_START_BIT) & __RESERVED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)(Value & RESERVED_INVERTED_MASK);
+        set => __value = (byte)(__value & __RESERVED_INVERTED_MASK);
     }
 
     public partial byte Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> DATA_START_BIT) & DATA_MASK);
+        get => (byte)((__value >> __DATA_START_BIT) & __DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & DATA_INVERTED_MASK) | ((((byte)value) << DATA_START_BIT) & DATA_SHIFTED_MASK));
+        set => __value = (byte)((__value & __DATA_INVERTED_MASK) | ((((byte)value) << __DATA_START_BIT) & __DATA_SHIFTED_MASK));
     }
 
     public partial bool Active
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & ACTIVE_MASK) != 0;
+        get => (__value & __ACTIVE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | ACTIVE_MASK) : (byte)(Value & ACTIVE_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __ACTIVE_MASK) : (byte)(__value & __ACTIVE_INVERTED_MASK);
     }
 
     public partial bool Sync
@@ -81,20 +81,20 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => true;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)(Value | SYNC_MASK);
+        set => __value = (byte)(__value | __SYNC_MASK);
     }
 
     /// <summary>Returns a MustBeTestReg with only the Active bit set.</summary>
-    public static MustBeTestReg ActiveBit => new(ACTIVE_MASK);
+    public static MustBeTestReg ActiveBit => new(__ACTIVE_MASK);
 
     /// <summary>Returns a MustBeTestReg with only the Sync bit set.</summary>
-    public static MustBeTestReg SyncBit => new(SYNC_MASK);
+    public static MustBeTestReg SyncBit => new(__SYNC_MASK);
 
     /// <summary>Returns a MustBeTestReg with the mask for the Reserved field (bits 1-2).</summary>
-    public static MustBeTestReg ReservedMask => new(RESERVED_SHIFTED_MASK);
+    public static MustBeTestReg ReservedMask => new(__RESERVED_SHIFTED_MASK);
 
     /// <summary>Returns a MustBeTestReg with the mask for the Data field (bits 3-6).</summary>
-    public static MustBeTestReg DataMask => new(DATA_SHIFTED_MASK);
+    public static MustBeTestReg DataMask => new(__DATA_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -111,35 +111,35 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     /// <summary>Returns a new MustBeTestReg with the Active flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithActive(bool value) => new(value ? (byte)(Value | ACTIVE_MASK) : (byte)(Value & ACTIVE_INVERTED_MASK));
+    public MustBeTestReg WithActive(bool value) => new(value ? (byte)(__value | __ACTIVE_MASK) : (byte)(__value & __ACTIVE_INVERTED_MASK));
 
     /// <summary>Returns a new MustBeTestReg with the Sync flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithSync(bool value) => new(value ? (byte)(Value | SYNC_MASK) : (byte)(Value & SYNC_INVERTED_MASK));
+    public MustBeTestReg WithSync(bool value) => new(value ? (byte)(__value | __SYNC_MASK) : (byte)(__value & __SYNC_INVERTED_MASK));
 
     /// <summary>Returns a new MustBeTestReg with the Reserved field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithReserved(byte value) => new((byte)((Value & RESERVED_INVERTED_MASK) | (((byte)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
+    public MustBeTestReg WithReserved(byte value) => new((byte)((__value & __RESERVED_INVERTED_MASK) | (((byte)value << __RESERVED_START_BIT) & __RESERVED_SHIFTED_MASK)));
 
     /// <summary>Returns a new MustBeTestReg with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MustBeTestReg WithData(byte value) => new((byte)((Value & DATA_INVERTED_MASK) | (((byte)value << DATA_START_BIT) & DATA_SHIFTED_MASK)));
+    public MustBeTestReg WithData(byte value) => new((byte)((__value & __DATA_INVERTED_MASK) | (((byte)value << __DATA_START_BIT) & __DATA_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator ~(MustBeTestReg a) => new((byte)~a.Value);
+    public static MustBeTestReg operator ~(MustBeTestReg a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator |(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value | b.Value));
+    public static MustBeTestReg operator |(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator &(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value & b.Value));
+    public static MustBeTestReg operator &(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator ^(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value ^ b.Value));
+    public static MustBeTestReg operator ^(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -147,115 +147,115 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator -(MustBeTestReg a) => new(unchecked((byte)(0 - a.Value)));
+    public static MustBeTestReg operator -(MustBeTestReg a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator +(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static MustBeTestReg operator +(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator +(MustBeTestReg a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static MustBeTestReg operator +(MustBeTestReg a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator +(byte a, MustBeTestReg b) => new(unchecked((byte)(a + b.Value)));
+    public static MustBeTestReg operator +(byte a, MustBeTestReg b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator -(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static MustBeTestReg operator -(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator -(MustBeTestReg a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static MustBeTestReg operator -(MustBeTestReg a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator -(byte a, MustBeTestReg b) => new(unchecked((byte)(a - b.Value)));
+    public static MustBeTestReg operator -(byte a, MustBeTestReg b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator *(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static MustBeTestReg operator *(MustBeTestReg a, MustBeTestReg b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator *(MustBeTestReg a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static MustBeTestReg operator *(MustBeTestReg a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator *(byte a, MustBeTestReg b) => new(unchecked((byte)(a * b.Value)));
+    public static MustBeTestReg operator *(byte a, MustBeTestReg b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator /(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value / b.Value));
+    public static MustBeTestReg operator /(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator /(MustBeTestReg a, byte b) => new((byte)(a.Value / b));
+    public static MustBeTestReg operator /(MustBeTestReg a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator /(byte a, MustBeTestReg b) => new((byte)(a / b.Value));
+    public static MustBeTestReg operator /(byte a, MustBeTestReg b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator %(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.Value % b.Value));
+    public static MustBeTestReg operator %(MustBeTestReg a, MustBeTestReg b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator %(MustBeTestReg a, byte b) => new((byte)(a.Value % b));
+    public static MustBeTestReg operator %(MustBeTestReg a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MustBeTestReg operator %(byte a, MustBeTestReg b) => new((byte)(a % b.Value));
+    public static MustBeTestReg operator %(byte a, MustBeTestReg b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(MustBeTestReg a, int b) => a.Value << b;
+    public static int operator <<(MustBeTestReg a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(MustBeTestReg a, int b) => a.Value >> b;
+    public static int operator >>(MustBeTestReg a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(MustBeTestReg a, int b) => a.Value >>> b;
+    public static int operator >>>(MustBeTestReg a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(MustBeTestReg a, MustBeTestReg b) => a.Value < b.Value;
+    public static bool operator <(MustBeTestReg a, MustBeTestReg b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(MustBeTestReg a, MustBeTestReg b) => a.Value > b.Value;
+    public static bool operator >(MustBeTestReg a, MustBeTestReg b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(MustBeTestReg a, MustBeTestReg b) => a.Value <= b.Value;
+    public static bool operator <=(MustBeTestReg a, MustBeTestReg b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(MustBeTestReg a, MustBeTestReg b) => a.Value >= b.Value;
+    public static bool operator >=(MustBeTestReg a, MustBeTestReg b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(MustBeTestReg a, MustBeTestReg b) => a.Value == b.Value;
+    public static bool operator ==(MustBeTestReg a, MustBeTestReg b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(MustBeTestReg a, MustBeTestReg b) => a.Value != b.Value;
+    public static bool operator !=(MustBeTestReg a, MustBeTestReg b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is MustBeTestReg other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is MustBeTestReg other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(MustBeTestReg value) => value.Value;
+    public static implicit operator byte(MustBeTestReg value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator MustBeTestReg(byte value) => new(value);
@@ -287,7 +287,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -471,7 +471,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -480,7 +480,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -497,13 +497,13 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <param name="other">A MustBeTestReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(MustBeTestReg other) => Value.CompareTo(other.Value);
+    public int CompareTo(MustBeTestReg other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another MustBeTestReg.</summary>
     /// <param name="other">A MustBeTestReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(MustBeTestReg other) => Value == other.Value;
+    public bool Equals(MustBeTestReg other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes MustBeTestReg as a string.</summary>
     private sealed class MustBeTestRegJsonConverter : JsonConverter<MustBeTestReg>

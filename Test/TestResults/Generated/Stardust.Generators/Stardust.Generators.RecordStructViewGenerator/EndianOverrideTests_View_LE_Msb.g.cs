@@ -16,8 +16,8 @@ public partial class EndianOverrideTests
     [JsonConverter(typeof(View_LE_MsbJsonConverter))]
     public partial record struct View_LE_Msb
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 16;
@@ -30,8 +30,8 @@ public partial class EndianOverrideTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class EndianOverrideTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal View_LE_Msb(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial ushort NativeU16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (ushort)BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(0));
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -71,15 +71,15 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(0);
                     BinaryPrimitives.WriteUInt16LittleEndian(slice, (ushort)value);
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 15) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -97,12 +97,12 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.UInt32Be)(uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(2));
                 }
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -111,15 +111,15 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(2);
                     BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)(uint)value);
                 }
                 else
                 {
-                    int ep = 16 + _bitOffset;
+                    int ep = 16 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 31) - bi * 8;
                     int sh = 64 - 1 - endInWindow;
@@ -137,12 +137,12 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.Int16Be)(short)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6));
                 }
-                int ep = 48 + _bitOffset;
+                int ep = 48 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -151,15 +151,15 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(6);
                     BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)(short)value);
                 }
                 else
                 {
-                    int ep = 48 + _bitOffset;
+                    int ep = 48 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 15) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -177,12 +177,12 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.UInt64Be)(ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(8));
                 }
-                int ep = 64 + _bitOffset;
+                int ep = 64 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -191,15 +191,15 @@ public partial class EndianOverrideTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(8);
                     BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)(ulong)value);
                 }
                 else
                 {
-                    int ep = 64 + _bitOffset;
+                    int ep = 64 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 63) - bi * 8;
                     int sh = 128 - 1 - endInWindow;
@@ -247,7 +247,7 @@ public partial class EndianOverrideTests
             /// <summary>Writes a View_LE_Msb to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, View_LE_Msb value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEquatable<MainHeader64>,
                              IFormattable, ISpanFormattable, IParsable<MainHeader64>, ISpanParsable<MainHeader64>
 {
-    private ulong Value;
+    private ulong __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
@@ -27,57 +27,57 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
 
     // --- Bit field mask constants ---
     // Protocol: bits [0..26], width 27
-    private const int PROTOCOL_START_BIT = 0;
-    private const ulong PROTOCOL_MASK = 0x0000000007FFFFFFUL;
-    private const ulong PROTOCOL_INVERTED_MASK = 0xFFFFFFFFF8000000UL;  // ~PROTOCOL_MASK
+    private const int __PROTOCOL_START_BIT = 0;
+    private const ulong __PROTOCOL_MASK = 0x0000000007FFFFFFUL;
+    private const ulong __PROTOCOL_INVERTED_MASK = 0xFFFFFFFFF8000000UL;  // ~__PROTOCOL_MASK
     // Priority: bits [27..31], width 5
-    private const int PRIORITY_START_BIT = 27;
-    private const ulong PRIORITY_MASK = 0x000000000000001FUL;
-    private const ulong PRIORITY_SHIFTED_MASK = 0x00000000F8000000UL;  // PRIORITY_MASK << PRIORITY_START_BIT
-    private const ulong PRIORITY_INVERTED_MASK = 0xFFFFFFFF07FFFFFFUL;  // ~PRIORITY_SHIFTED_MASK
+    private const int __PRIORITY_START_BIT = 27;
+    private const ulong __PRIORITY_MASK = 0x000000000000001FUL;
+    private const ulong __PRIORITY_SHIFTED_MASK = 0x00000000F8000000UL;  // __PRIORITY_MASK << __PRIORITY_START_BIT
+    private const ulong __PRIORITY_INVERTED_MASK = 0xFFFFFFFF07FFFFFFUL;  // ~__PRIORITY_SHIFTED_MASK
     // Timestamp: bits [32..63], width 32
-    private const int TIMESTAMP_START_BIT = 32;
-    private const ulong TIMESTAMP_MASK = 0x00000000FFFFFFFFUL;
-    private const ulong TIMESTAMP_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // TIMESTAMP_MASK << TIMESTAMP_START_BIT
-    private const ulong TIMESTAMP_INVERTED_MASK = 0x00000000FFFFFFFFUL;  // ~TIMESTAMP_SHIFTED_MASK
+    private const int __TIMESTAMP_START_BIT = 32;
+    private const ulong __TIMESTAMP_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong __TIMESTAMP_SHIFTED_MASK = 0xFFFFFFFF00000000UL;  // __TIMESTAMP_MASK << __TIMESTAMP_START_BIT
+    private const ulong __TIMESTAMP_INVERTED_MASK = 0x00000000FFFFFFFFUL;  // ~__TIMESTAMP_SHIFTED_MASK
 
     /// <summary>Creates a new MainHeader64 with the specified raw bits value.</summary>
-    public MainHeader64(ulong value) { Value = value; }
+    public MainHeader64(ulong value) { __value = value; }
 
     public partial global::Stardust.Utilities.Tests.Header27 Protocol
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.Header27)((uint)(Value & PROTOCOL_MASK));
+        get => (global::Stardust.Utilities.Tests.Header27)((uint)(__value & __PROTOCOL_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set { var __ev = (uint)value;
-            Value = (ulong)((Value & PROTOCOL_INVERTED_MASK) | (((ulong)__ev) & PROTOCOL_MASK));
+            __value = (ulong)((__value & __PROTOCOL_INVERTED_MASK) | (((ulong)__ev) & __PROTOCOL_MASK));
         }
     }
 
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> PRIORITY_START_BIT) & PRIORITY_MASK);
+        get => (byte)((__value >> __PRIORITY_START_BIT) & __PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & PRIORITY_INVERTED_MASK) | ((((ulong)value) << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK));
+        set => __value = (ulong)((__value & __PRIORITY_INVERTED_MASK) | ((((ulong)value) << __PRIORITY_START_BIT) & __PRIORITY_SHIFTED_MASK));
     }
 
     public partial uint Timestamp
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((Value >> TIMESTAMP_START_BIT) & TIMESTAMP_MASK);
+        get => (uint)((__value >> __TIMESTAMP_START_BIT) & __TIMESTAMP_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & TIMESTAMP_INVERTED_MASK) | ((((ulong)value) << TIMESTAMP_START_BIT) & TIMESTAMP_SHIFTED_MASK));
+        set => __value = (ulong)((__value & __TIMESTAMP_INVERTED_MASK) | ((((ulong)value) << __TIMESTAMP_START_BIT) & __TIMESTAMP_SHIFTED_MASK));
     }
 
     /// <summary>Returns a MainHeader64 with the mask for the Protocol field (bits 0-26).</summary>
-    public static MainHeader64 ProtocolMask => new(PROTOCOL_MASK);
+    public static MainHeader64 ProtocolMask => new(__PROTOCOL_MASK);
 
     /// <summary>Returns a MainHeader64 with the mask for the Priority field (bits 27-31).</summary>
-    public static MainHeader64 PriorityMask => new(PRIORITY_SHIFTED_MASK);
+    public static MainHeader64 PriorityMask => new(__PRIORITY_SHIFTED_MASK);
 
     /// <summary>Returns a MainHeader64 with the mask for the Timestamp field (bits 32-63).</summary>
-    public static MainHeader64 TimestampMask => new(TIMESTAMP_SHIFTED_MASK);
+    public static MainHeader64 TimestampMask => new(__TIMESTAMP_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -93,79 +93,79 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
 
     /// <summary>Returns a new MainHeader64 with the Protocol field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithProtocol(global::Stardust.Utilities.Tests.Header27 value) => new((ulong)((Value & PROTOCOL_INVERTED_MASK) | ((ulong)value & PROTOCOL_MASK)));
+    public MainHeader64 WithProtocol(global::Stardust.Utilities.Tests.Header27 value) => new((ulong)((__value & __PROTOCOL_INVERTED_MASK) | ((ulong)value & __PROTOCOL_MASK)));
 
     /// <summary>Returns a new MainHeader64 with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithPriority(byte value) => new((ulong)((Value & PRIORITY_INVERTED_MASK) | (((ulong)value << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK)));
+    public MainHeader64 WithPriority(byte value) => new((ulong)((__value & __PRIORITY_INVERTED_MASK) | (((ulong)value << __PRIORITY_START_BIT) & __PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Returns a new MainHeader64 with the Timestamp field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MainHeader64 WithTimestamp(uint value) => new((ulong)((Value & TIMESTAMP_INVERTED_MASK) | (((ulong)value << TIMESTAMP_START_BIT) & TIMESTAMP_SHIFTED_MASK)));
+    public MainHeader64 WithTimestamp(uint value) => new((ulong)((__value & __TIMESTAMP_INVERTED_MASK) | (((ulong)value << __TIMESTAMP_START_BIT) & __TIMESTAMP_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator ~(MainHeader64 a) => new((ulong)~a.Value);
+    public static MainHeader64 operator ~(MainHeader64 a) => new((ulong)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator |(MainHeader64 a, MainHeader64 b) => new((ulong)(a.Value | b.Value));
+    public static MainHeader64 operator |(MainHeader64 a, MainHeader64 b) => new((ulong)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator &(MainHeader64 a, MainHeader64 b) => new((ulong)(a.Value & b.Value));
+    public static MainHeader64 operator &(MainHeader64 a, MainHeader64 b) => new((ulong)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator ^(MainHeader64 a, MainHeader64 b) => new((ulong)(a.Value ^ b.Value));
+    public static MainHeader64 operator ^(MainHeader64 a, MainHeader64 b) => new((ulong)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator &(MainHeader64 a, ulong b) => new(a.Value & b);
+    public static MainHeader64 operator &(MainHeader64 a, ulong b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator &(ulong a, MainHeader64 b) => new(a & b.Value);
+    public static MainHeader64 operator &(ulong a, MainHeader64 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator |(MainHeader64 a, ulong b) => new(a.Value | b);
+    public static MainHeader64 operator |(MainHeader64 a, ulong b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator |(ulong a, MainHeader64 b) => new(a | b.Value);
+    public static MainHeader64 operator |(ulong a, MainHeader64 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator ^(MainHeader64 a, ulong b) => new(a.Value ^ b);
+    public static MainHeader64 operator ^(MainHeader64 a, ulong b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator ^(ulong a, MainHeader64 b) => new(a ^ b.Value);
+    public static MainHeader64 operator ^(ulong a, MainHeader64 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(MainHeader64 a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(MainHeader64 a, int b) => a.__value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, MainHeader64 b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, MainHeader64 b) => (ulong)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(MainHeader64 a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(MainHeader64 a, int b) => a.__value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, MainHeader64 b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, MainHeader64 b) => (ulong)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(MainHeader64 a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(MainHeader64 a, int b) => a.__value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, MainHeader64 b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, MainHeader64 b) => (ulong)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -173,115 +173,115 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator -(MainHeader64 a) => new(unchecked((ulong)(0 - a.Value)));
+    public static MainHeader64 operator -(MainHeader64 a) => new(unchecked((ulong)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator +(MainHeader64 a, MainHeader64 b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static MainHeader64 operator +(MainHeader64 a, MainHeader64 b) => new(unchecked((ulong)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator +(MainHeader64 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static MainHeader64 operator +(MainHeader64 a, ulong b) => new(unchecked((ulong)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator +(ulong a, MainHeader64 b) => new(unchecked((ulong)(a + b.Value)));
+    public static MainHeader64 operator +(ulong a, MainHeader64 b) => new(unchecked((ulong)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator -(MainHeader64 a, MainHeader64 b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static MainHeader64 operator -(MainHeader64 a, MainHeader64 b) => new(unchecked((ulong)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator -(MainHeader64 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static MainHeader64 operator -(MainHeader64 a, ulong b) => new(unchecked((ulong)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator -(ulong a, MainHeader64 b) => new(unchecked((ulong)(a - b.Value)));
+    public static MainHeader64 operator -(ulong a, MainHeader64 b) => new(unchecked((ulong)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator *(MainHeader64 a, MainHeader64 b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static MainHeader64 operator *(MainHeader64 a, MainHeader64 b) => new(unchecked((ulong)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator *(MainHeader64 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static MainHeader64 operator *(MainHeader64 a, ulong b) => new(unchecked((ulong)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator *(ulong a, MainHeader64 b) => new(unchecked((ulong)(a * b.Value)));
+    public static MainHeader64 operator *(ulong a, MainHeader64 b) => new(unchecked((ulong)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator /(MainHeader64 a, MainHeader64 b) => new((ulong)(a.Value / b.Value));
+    public static MainHeader64 operator /(MainHeader64 a, MainHeader64 b) => new((ulong)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator /(MainHeader64 a, ulong b) => new((ulong)(a.Value / b));
+    public static MainHeader64 operator /(MainHeader64 a, ulong b) => new((ulong)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator /(ulong a, MainHeader64 b) => new((ulong)(a / b.Value));
+    public static MainHeader64 operator /(ulong a, MainHeader64 b) => new((ulong)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator %(MainHeader64 a, MainHeader64 b) => new((ulong)(a.Value % b.Value));
+    public static MainHeader64 operator %(MainHeader64 a, MainHeader64 b) => new((ulong)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator %(MainHeader64 a, ulong b) => new((ulong)(a.Value % b));
+    public static MainHeader64 operator %(MainHeader64 a, ulong b) => new((ulong)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator %(ulong a, MainHeader64 b) => new((ulong)(a % b.Value));
+    public static MainHeader64 operator %(ulong a, MainHeader64 b) => new((ulong)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator <<(MainHeader64 a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static MainHeader64 operator <<(MainHeader64 a, int b) => new(unchecked((ulong)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator >>(MainHeader64 a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static MainHeader64 operator >>(MainHeader64 a, int b) => new(unchecked((ulong)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MainHeader64 operator >>>(MainHeader64 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static MainHeader64 operator >>>(MainHeader64 a, int b) => new(unchecked((ulong)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(MainHeader64 a, MainHeader64 b) => a.Value < b.Value;
+    public static bool operator <(MainHeader64 a, MainHeader64 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(MainHeader64 a, MainHeader64 b) => a.Value > b.Value;
+    public static bool operator >(MainHeader64 a, MainHeader64 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(MainHeader64 a, MainHeader64 b) => a.Value <= b.Value;
+    public static bool operator <=(MainHeader64 a, MainHeader64 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(MainHeader64 a, MainHeader64 b) => a.Value >= b.Value;
+    public static bool operator >=(MainHeader64 a, MainHeader64 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(MainHeader64 a, MainHeader64 b) => a.Value == b.Value;
+    public static bool operator ==(MainHeader64 a, MainHeader64 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(MainHeader64 a, MainHeader64 b) => a.Value != b.Value;
+    public static bool operator !=(MainHeader64 a, MainHeader64 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is MainHeader64 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is MainHeader64 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(MainHeader64 value) => value.Value;
+    public static implicit operator ulong(MainHeader64 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator MainHeader64(ulong value) => new(value);
@@ -309,7 +309,7 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -493,7 +493,7 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -502,7 +502,7 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -519,13 +519,13 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <param name="other">A MainHeader64 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(MainHeader64 other) => Value.CompareTo(other.Value);
+    public int CompareTo(MainHeader64 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another MainHeader64.</summary>
     /// <param name="other">A MainHeader64 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(MainHeader64 other) => Value == other.Value;
+    public bool Equals(MainHeader64 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes MainHeader64 as a string.</summary>
     private sealed class MainHeader64JsonConverter : JsonConverter<MainHeader64>

@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPropertyReg32>, IEquatable<SignedPropertyReg32>,
                              IFormattable, ISpanFormattable, IParsable<SignedPropertyReg32>, ISpanParsable<SignedPropertyReg32>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,55 +27,55 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
 
     // --- Bit field mask constants ---
     // HighByte: bits [24..31], width 8
-    private const int HIGH_BYTE_START_BIT = 24;
-    private const uint HIGH_BYTE_MASK = 0x000000FFU;
-    private const uint HIGH_BYTE_SHIFTED_MASK = 0xFF000000U;  // HIGH_BYTE_MASK << HIGH_BYTE_START_BIT
-    private const uint HIGH_BYTE_INVERTED_MASK = 0x00FFFFFFU;  // ~HIGH_BYTE_SHIFTED_MASK
+    private const int __HIGH_BYTE_START_BIT = 24;
+    private const uint __HIGH_BYTE_MASK = 0x000000FFU;
+    private const uint __HIGH_BYTE_SHIFTED_MASK = 0xFF000000U;  // __HIGH_BYTE_MASK << __HIGH_BYTE_START_BIT
+    private const uint __HIGH_BYTE_INVERTED_MASK = 0x00FFFFFFU;  // ~__HIGH_BYTE_SHIFTED_MASK
     // MiddleWord: bits [8..23], width 16
-    private const int MIDDLE_WORD_START_BIT = 8;
-    private const uint MIDDLE_WORD_MASK = 0x0000FFFFU;
-    private const uint MIDDLE_WORD_SHIFTED_MASK = 0x00FFFF00U;  // MIDDLE_WORD_MASK << MIDDLE_WORD_START_BIT
-    private const uint MIDDLE_WORD_INVERTED_MASK = 0xFF0000FFU;  // ~MIDDLE_WORD_SHIFTED_MASK
+    private const int __MIDDLE_WORD_START_BIT = 8;
+    private const uint __MIDDLE_WORD_MASK = 0x0000FFFFU;
+    private const uint __MIDDLE_WORD_SHIFTED_MASK = 0x00FFFF00U;  // __MIDDLE_WORD_MASK << __MIDDLE_WORD_START_BIT
+    private const uint __MIDDLE_WORD_INVERTED_MASK = 0xFF0000FFU;  // ~__MIDDLE_WORD_SHIFTED_MASK
     // LowByte: bits [0..7], width 8
-    private const int LOW_BYTE_START_BIT = 0;
-    private const uint LOW_BYTE_MASK = 0x000000FFU;
-    private const uint LOW_BYTE_INVERTED_MASK = 0xFFFFFF00U;  // ~LOW_BYTE_MASK
+    private const int __LOW_BYTE_START_BIT = 0;
+    private const uint __LOW_BYTE_MASK = 0x000000FFU;
+    private const uint __LOW_BYTE_INVERTED_MASK = 0xFFFFFF00U;  // ~__LOW_BYTE_MASK
 
     /// <summary>Creates a new SignedPropertyReg32 with the specified raw bits value.</summary>
-    public SignedPropertyReg32(uint value) { Value = value; }
+    public SignedPropertyReg32(uint value) { __value = value; }
 
     public partial sbyte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)((Value >> HIGH_BYTE_START_BIT) & HIGH_BYTE_MASK);
+        get => (sbyte)((__value >> __HIGH_BYTE_START_BIT) & __HIGH_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & HIGH_BYTE_INVERTED_MASK) | ((((uint)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK));
+        set => __value = (uint)((__value & __HIGH_BYTE_INVERTED_MASK) | ((((uint)value) << __HIGH_BYTE_START_BIT) & __HIGH_BYTE_SHIFTED_MASK));
     }
 
     public partial short MiddleWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (short)((Value >> MIDDLE_WORD_START_BIT) & MIDDLE_WORD_MASK);
+        get => (short)((__value >> __MIDDLE_WORD_START_BIT) & __MIDDLE_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & MIDDLE_WORD_INVERTED_MASK) | ((((uint)value) << MIDDLE_WORD_START_BIT) & MIDDLE_WORD_SHIFTED_MASK));
+        set => __value = (uint)((__value & __MIDDLE_WORD_INVERTED_MASK) | ((((uint)value) << __MIDDLE_WORD_START_BIT) & __MIDDLE_WORD_SHIFTED_MASK));
     }
 
     public partial byte LowByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & LOW_BYTE_MASK);
+        get => (byte)(__value & __LOW_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & LOW_BYTE_INVERTED_MASK) | (((uint)value) & LOW_BYTE_MASK));
+        set => __value = (uint)((__value & __LOW_BYTE_INVERTED_MASK) | (((uint)value) & __LOW_BYTE_MASK));
     }
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the HighByte field (bits 24-31).</summary>
-    public static SignedPropertyReg32 HighByteMask => new(HIGH_BYTE_SHIFTED_MASK);
+    public static SignedPropertyReg32 HighByteMask => new(__HIGH_BYTE_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the MiddleWord field (bits 8-23).</summary>
-    public static SignedPropertyReg32 MiddleWordMask => new(MIDDLE_WORD_SHIFTED_MASK);
+    public static SignedPropertyReg32 MiddleWordMask => new(__MIDDLE_WORD_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the LowByte field (bits 0-7).</summary>
-    public static SignedPropertyReg32 LowByteMask => new(LOW_BYTE_MASK);
+    public static SignedPropertyReg32 LowByteMask => new(__LOW_BYTE_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -91,79 +91,79 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg32 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((Value & HIGH_BYTE_INVERTED_MASK) | (((uint)value << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK)));
+    public SignedPropertyReg32 WithHighByte(sbyte value) => new((uint)((__value & __HIGH_BYTE_INVERTED_MASK) | (((uint)value << __HIGH_BYTE_START_BIT) & __HIGH_BYTE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg32 with the MiddleWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((Value & MIDDLE_WORD_INVERTED_MASK) | (((uint)value << MIDDLE_WORD_START_BIT) & MIDDLE_WORD_SHIFTED_MASK)));
+    public SignedPropertyReg32 WithMiddleWord(short value) => new((uint)((__value & __MIDDLE_WORD_INVERTED_MASK) | (((uint)value << __MIDDLE_WORD_START_BIT) & __MIDDLE_WORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg32 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((Value & LOW_BYTE_INVERTED_MASK) | ((uint)value & LOW_BYTE_MASK)));
+    public SignedPropertyReg32 WithLowByte(byte value) => new((uint)((__value & __LOW_BYTE_INVERTED_MASK) | ((uint)value & __LOW_BYTE_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator ~(SignedPropertyReg32 a) => new((uint)~a.Value);
+    public static SignedPropertyReg32 operator ~(SignedPropertyReg32 a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator |(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value | b.Value));
+    public static SignedPropertyReg32 operator |(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator &(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value & b.Value));
+    public static SignedPropertyReg32 operator &(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator ^(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value ^ b.Value));
+    public static SignedPropertyReg32 operator ^(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator &(SignedPropertyReg32 a, uint b) => new(a.Value & b);
+    public static SignedPropertyReg32 operator &(SignedPropertyReg32 a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator &(uint a, SignedPropertyReg32 b) => new(a & b.Value);
+    public static SignedPropertyReg32 operator &(uint a, SignedPropertyReg32 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator |(SignedPropertyReg32 a, uint b) => new(a.Value | b);
+    public static SignedPropertyReg32 operator |(SignedPropertyReg32 a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator |(uint a, SignedPropertyReg32 b) => new(a | b.Value);
+    public static SignedPropertyReg32 operator |(uint a, SignedPropertyReg32 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator ^(SignedPropertyReg32 a, uint b) => new(a.Value ^ b);
+    public static SignedPropertyReg32 operator ^(SignedPropertyReg32 a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator ^(uint a, SignedPropertyReg32 b) => new(a ^ b.Value);
+    public static SignedPropertyReg32 operator ^(uint a, SignedPropertyReg32 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(SignedPropertyReg32 a, int b) => a.Value & (long)b;
+    public static long operator &(SignedPropertyReg32 a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, SignedPropertyReg32 b) => (long)a & b.Value;
+    public static long operator &(int a, SignedPropertyReg32 b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(SignedPropertyReg32 a, int b) => a.Value | (long)b;
+    public static long operator |(SignedPropertyReg32 a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, SignedPropertyReg32 b) => (long)a | b.Value;
+    public static long operator |(int a, SignedPropertyReg32 b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(SignedPropertyReg32 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(SignedPropertyReg32 a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, SignedPropertyReg32 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, SignedPropertyReg32 b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -171,115 +171,115 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a) => new(unchecked((uint)(0 - a.Value)));
+    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static SignedPropertyReg32 operator +(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator +(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a + b.Value)));
+    public static SignedPropertyReg32 operator +(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static SignedPropertyReg32 operator -(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator -(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a - b.Value)));
+    public static SignedPropertyReg32 operator -(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator *(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static SignedPropertyReg32 operator *(SignedPropertyReg32 a, SignedPropertyReg32 b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator *(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static SignedPropertyReg32 operator *(SignedPropertyReg32 a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator *(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a * b.Value)));
+    public static SignedPropertyReg32 operator *(uint a, SignedPropertyReg32 b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator /(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value / b.Value));
+    public static SignedPropertyReg32 operator /(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator /(SignedPropertyReg32 a, uint b) => new((uint)(a.Value / b));
+    public static SignedPropertyReg32 operator /(SignedPropertyReg32 a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator /(uint a, SignedPropertyReg32 b) => new((uint)(a / b.Value));
+    public static SignedPropertyReg32 operator /(uint a, SignedPropertyReg32 b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator %(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.Value % b.Value));
+    public static SignedPropertyReg32 operator %(SignedPropertyReg32 a, SignedPropertyReg32 b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator %(SignedPropertyReg32 a, uint b) => new((uint)(a.Value % b));
+    public static SignedPropertyReg32 operator %(SignedPropertyReg32 a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator %(uint a, SignedPropertyReg32 b) => new((uint)(a % b.Value));
+    public static SignedPropertyReg32 operator %(uint a, SignedPropertyReg32 b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator <<(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static SignedPropertyReg32 operator <<(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator >>(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static SignedPropertyReg32 operator >>(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg32 operator >>>(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static SignedPropertyReg32 operator >>>(SignedPropertyReg32 a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value < b.Value;
+    public static bool operator <(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value > b.Value;
+    public static bool operator >(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value == b.Value;
+    public static bool operator ==(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.Value != b.Value;
+    public static bool operator !=(SignedPropertyReg32 a, SignedPropertyReg32 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SignedPropertyReg32 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedPropertyReg32 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(SignedPropertyReg32 value) => value.Value;
+    public static implicit operator uint(SignedPropertyReg32 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedPropertyReg32(uint value) => new(value);
@@ -307,7 +307,7 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -491,7 +491,7 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -500,7 +500,7 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -517,13 +517,13 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     /// <param name="other">A SignedPropertyReg32 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SignedPropertyReg32 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedPropertyReg32 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SignedPropertyReg32.</summary>
     /// <param name="other">A SignedPropertyReg32 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SignedPropertyReg32 other) => Value == other.Value;
+    public bool Equals(SignedPropertyReg32 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SignedPropertyReg32 as a string.</summary>
     private sealed class SignedPropertyReg32JsonConverter : JsonConverter<SignedPropertyReg32>

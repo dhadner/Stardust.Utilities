@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Tests;
 [JsonConverter(typeof(DiagramMsbViewJsonConverter))]
 public partial record struct DiagramMsbView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -28,8 +28,8 @@ public partial record struct DiagramMsbView
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct DiagramMsbView
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal DiagramMsbView(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[0] >> 4) & 0x0F);
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -69,14 +69,14 @@ public partial record struct DiagramMsbView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0x0F) | (((byte)value << 4) & 0xF0));
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -94,12 +94,12 @@ public partial record struct DiagramMsbView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)(s[0] & 0x0F);
             }
-            int ep = 4 + _bitOffset;
+            int ep = 4 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -108,14 +108,14 @@ public partial record struct DiagramMsbView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0xF0) | ((byte)value & 0x0F));
             }
             else
             {
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -133,12 +133,12 @@ public partial record struct DiagramMsbView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
-            int ep = 16 + _bitOffset;
+            int ep = 16 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -147,15 +147,15 @@ public partial record struct DiagramMsbView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(2);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -202,7 +202,7 @@ public partial record struct DiagramMsbView
         /// <summary>Writes a DiagramMsbView to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, DiagramMsbView value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

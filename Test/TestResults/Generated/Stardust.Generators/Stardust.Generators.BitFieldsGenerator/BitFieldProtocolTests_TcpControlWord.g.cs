@@ -19,7 +19,7 @@ public partial class BitFieldProtocolTests
     public partial struct TcpControlWord : IComparable, IComparable<TcpControlWord>, IEquatable<TcpControlWord>,
                                  IFormattable, ISpanFormattable, IParsable<TcpControlWord>, ISpanParsable<TcpControlWord>
     {
-        private uint Value;
+        private uint __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 4;
@@ -29,73 +29,73 @@ public partial class BitFieldProtocolTests
 
         // --- Bit field mask constants ---
         // DataOffset: bits [28..31], width 4
-        private const int DATA_OFFSET_START_BIT = 28;
-        private const uint DATA_OFFSET_MASK = 0x0000000FU;
-        private const uint DATA_OFFSET_SHIFTED_MASK = 0xF0000000U;  // DATA_OFFSET_MASK << DATA_OFFSET_START_BIT
-        private const uint DATA_OFFSET_INVERTED_MASK = 0x0FFFFFFFU;  // ~DATA_OFFSET_SHIFTED_MASK
+        private const int __DATA_OFFSET_START_BIT = 28;
+        private const uint __DATA_OFFSET_MASK = 0x0000000FU;
+        private const uint __DATA_OFFSET_SHIFTED_MASK = 0xF0000000U;  // __DATA_OFFSET_MASK << __DATA_OFFSET_START_BIT
+        private const uint __DATA_OFFSET_INVERTED_MASK = 0x0FFFFFFFU;  // ~__DATA_OFFSET_SHIFTED_MASK
         // Reserved: bits [25..27], width 3
-        private const int RESERVED_START_BIT = 25;
-        private const uint RESERVED_MASK = 0x00000007U;
-        private const uint RESERVED_SHIFTED_MASK = 0x0E000000U;  // RESERVED_MASK << RESERVED_START_BIT
-        private const uint RESERVED_INVERTED_MASK = 0xF1FFFFFFU;  // ~RESERVED_SHIFTED_MASK
+        private const int __RESERVED_START_BIT = 25;
+        private const uint __RESERVED_MASK = 0x00000007U;
+        private const uint __RESERVED_SHIFTED_MASK = 0x0E000000U;  // __RESERVED_MASK << __RESERVED_START_BIT
+        private const uint __RESERVED_INVERTED_MASK = 0xF1FFFFFFU;  // ~__RESERVED_SHIFTED_MASK
         // Flags: bits [16..24], width 9
-        private const int FLAGS_START_BIT = 16;
-        private const uint FLAGS_MASK = 0x000001FFU;
-        private const uint FLAGS_SHIFTED_MASK = 0x01FF0000U;  // FLAGS_MASK << FLAGS_START_BIT
-        private const uint FLAGS_INVERTED_MASK = 0xFE00FFFFU;  // ~FLAGS_SHIFTED_MASK
+        private const int __FLAGS_START_BIT = 16;
+        private const uint __FLAGS_MASK = 0x000001FFU;
+        private const uint __FLAGS_SHIFTED_MASK = 0x01FF0000U;  // __FLAGS_MASK << __FLAGS_START_BIT
+        private const uint __FLAGS_INVERTED_MASK = 0xFE00FFFFU;  // ~__FLAGS_SHIFTED_MASK
         // WindowSize: bits [0..15], width 16
-        private const int WINDOW_SIZE_START_BIT = 0;
-        private const uint WINDOW_SIZE_MASK = 0x0000FFFFU;
-        private const uint WINDOW_SIZE_INVERTED_MASK = 0xFFFF0000U;  // ~WINDOW_SIZE_MASK
+        private const int __WINDOW_SIZE_START_BIT = 0;
+        private const uint __WINDOW_SIZE_MASK = 0x0000FFFFU;
+        private const uint __WINDOW_SIZE_INVERTED_MASK = 0xFFFF0000U;  // ~__WINDOW_SIZE_MASK
 
         /// <summary>Creates a new TcpControlWord with the specified raw bits value.</summary>
-        public TcpControlWord(uint value) { Value = value; }
+        public TcpControlWord(uint value) { __value = value; }
 
         public partial byte DataOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> DATA_OFFSET_START_BIT) & DATA_OFFSET_MASK);
+            get => (byte)((__value >> __DATA_OFFSET_START_BIT) & __DATA_OFFSET_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & DATA_OFFSET_INVERTED_MASK) | ((((uint)value) << DATA_OFFSET_START_BIT) & DATA_OFFSET_SHIFTED_MASK));
+            set => __value = (uint)((__value & __DATA_OFFSET_INVERTED_MASK) | ((((uint)value) << __DATA_OFFSET_START_BIT) & __DATA_OFFSET_SHIFTED_MASK));
         }
 
         public partial byte Reserved
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> RESERVED_START_BIT) & RESERVED_MASK);
+            get => (byte)((__value >> __RESERVED_START_BIT) & __RESERVED_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & RESERVED_INVERTED_MASK) | ((((uint)value) << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK));
+            set => __value = (uint)((__value & __RESERVED_INVERTED_MASK) | ((((uint)value) << __RESERVED_START_BIT) & __RESERVED_SHIFTED_MASK));
         }
 
         public partial global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags Flags
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((ushort)((Value >> FLAGS_START_BIT) & FLAGS_MASK));
+            get => (global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags)((ushort)((__value >> __FLAGS_START_BIT) & __FLAGS_MASK));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { var __ev = (ushort)value;
-                Value = (uint)((Value & FLAGS_INVERTED_MASK) | ((((uint)__ev) << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK));
+                __value = (uint)((__value & __FLAGS_INVERTED_MASK) | ((((uint)__ev) << __FLAGS_START_BIT) & __FLAGS_SHIFTED_MASK));
             }
         }
 
         public partial ushort WindowSize
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & WINDOW_SIZE_MASK);
+            get => (ushort)(__value & __WINDOW_SIZE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & WINDOW_SIZE_INVERTED_MASK) | (((uint)value) & WINDOW_SIZE_MASK));
+            set => __value = (uint)((__value & __WINDOW_SIZE_INVERTED_MASK) | (((uint)value) & __WINDOW_SIZE_MASK));
         }
 
         /// <summary>Returns a TcpControlWord with the mask for the DataOffset field (bits 28-31).</summary>
-        public static TcpControlWord DataOffsetMask => new(DATA_OFFSET_SHIFTED_MASK);
+        public static TcpControlWord DataOffsetMask => new(__DATA_OFFSET_SHIFTED_MASK);
 
         /// <summary>Returns a TcpControlWord with the mask for the Reserved field (bits 25-27).</summary>
-        public static TcpControlWord ReservedMask => new(RESERVED_SHIFTED_MASK);
+        public static TcpControlWord ReservedMask => new(__RESERVED_SHIFTED_MASK);
 
         /// <summary>Returns a TcpControlWord with the mask for the Flags field (bits 16-24).</summary>
-        public static TcpControlWord FlagsMask => new(FLAGS_SHIFTED_MASK);
+        public static TcpControlWord FlagsMask => new(__FLAGS_SHIFTED_MASK);
 
         /// <summary>Returns a TcpControlWord with the mask for the WindowSize field (bits 0-15).</summary>
-        public static TcpControlWord WindowSizeMask => new(WINDOW_SIZE_MASK);
+        public static TcpControlWord WindowSizeMask => new(__WINDOW_SIZE_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -112,83 +112,83 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Returns a new TcpControlWord with the DataOffset field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithDataOffset(byte value) => new((uint)((Value & DATA_OFFSET_INVERTED_MASK) | (((uint)value << DATA_OFFSET_START_BIT) & DATA_OFFSET_SHIFTED_MASK)));
+        public TcpControlWord WithDataOffset(byte value) => new((uint)((__value & __DATA_OFFSET_INVERTED_MASK) | (((uint)value << __DATA_OFFSET_START_BIT) & __DATA_OFFSET_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the Reserved field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithReserved(byte value) => new((uint)((Value & RESERVED_INVERTED_MASK) | (((uint)value << RESERVED_START_BIT) & RESERVED_SHIFTED_MASK)));
+        public TcpControlWord WithReserved(byte value) => new((uint)((__value & __RESERVED_INVERTED_MASK) | (((uint)value << __RESERVED_START_BIT) & __RESERVED_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the Flags field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((Value & FLAGS_INVERTED_MASK) | (((uint)value << FLAGS_START_BIT) & FLAGS_SHIFTED_MASK)));
+        public TcpControlWord WithFlags(global::Stardust.Utilities.Tests.BitFieldProtocolTests.TcpFlags value) => new((uint)((__value & __FLAGS_INVERTED_MASK) | (((uint)value << __FLAGS_START_BIT) & __FLAGS_SHIFTED_MASK)));
 
         /// <summary>Returns a new TcpControlWord with the WindowSize field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TcpControlWord WithWindowSize(ushort value) => new((uint)((Value & WINDOW_SIZE_INVERTED_MASK) | ((uint)value & WINDOW_SIZE_MASK)));
+        public TcpControlWord WithWindowSize(ushort value) => new((uint)((__value & __WINDOW_SIZE_INVERTED_MASK) | ((uint)value & __WINDOW_SIZE_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator ~(TcpControlWord a) => new((uint)~a.Value);
+        public static TcpControlWord operator ~(TcpControlWord a) => new((uint)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator |(TcpControlWord a, TcpControlWord b) => new((uint)(a.Value | b.Value));
+        public static TcpControlWord operator |(TcpControlWord a, TcpControlWord b) => new((uint)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator &(TcpControlWord a, TcpControlWord b) => new((uint)(a.Value & b.Value));
+        public static TcpControlWord operator &(TcpControlWord a, TcpControlWord b) => new((uint)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator ^(TcpControlWord a, TcpControlWord b) => new((uint)(a.Value ^ b.Value));
+        public static TcpControlWord operator ^(TcpControlWord a, TcpControlWord b) => new((uint)(a.__value ^ b.__value));
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator &(TcpControlWord a, uint b) => new(a.Value & b);
+        public static TcpControlWord operator &(TcpControlWord a, uint b) => new(a.__value & b);
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator &(uint a, TcpControlWord b) => new(a & b.Value);
+        public static TcpControlWord operator &(uint a, TcpControlWord b) => new(a & b.__value);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator |(TcpControlWord a, uint b) => new(a.Value | b);
+        public static TcpControlWord operator |(TcpControlWord a, uint b) => new(a.__value | b);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator |(uint a, TcpControlWord b) => new(a | b.Value);
+        public static TcpControlWord operator |(uint a, TcpControlWord b) => new(a | b.__value);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator ^(TcpControlWord a, uint b) => new(a.Value ^ b);
+        public static TcpControlWord operator ^(TcpControlWord a, uint b) => new(a.__value ^ b);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator ^(uint a, TcpControlWord b) => new(a ^ b.Value);
+        public static TcpControlWord operator ^(uint a, TcpControlWord b) => new(a ^ b.__value);
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(TcpControlWord a, int b) => a.Value & (long)b;
+        public static long operator &(TcpControlWord a, int b) => a.__value & (long)b;
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(int a, TcpControlWord b) => (long)a & b.Value;
+        public static long operator &(int a, TcpControlWord b) => (long)a & b.__value;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(TcpControlWord a, int b) => a.Value | (long)b;
+        public static long operator |(TcpControlWord a, int b) => a.__value | (long)b;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(int a, TcpControlWord b) => (long)a | b.Value;
+        public static long operator |(int a, TcpControlWord b) => (long)a | b.__value;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(TcpControlWord a, int b) => a.Value ^ (long)b;
+        public static long operator ^(TcpControlWord a, int b) => a.__value ^ (long)b;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(int a, TcpControlWord b) => (long)a ^ b.Value;
+        public static long operator ^(int a, TcpControlWord b) => (long)a ^ b.__value;
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -196,115 +196,115 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator -(TcpControlWord a) => new(unchecked((uint)(0 - a.Value)));
+        public static TcpControlWord operator -(TcpControlWord a) => new(unchecked((uint)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator +(TcpControlWord a, TcpControlWord b) => new(unchecked((uint)(a.Value + b.Value)));
+        public static TcpControlWord operator +(TcpControlWord a, TcpControlWord b) => new(unchecked((uint)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator +(TcpControlWord a, uint b) => new(unchecked((uint)(a.Value + b)));
+        public static TcpControlWord operator +(TcpControlWord a, uint b) => new(unchecked((uint)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator +(uint a, TcpControlWord b) => new(unchecked((uint)(a + b.Value)));
+        public static TcpControlWord operator +(uint a, TcpControlWord b) => new(unchecked((uint)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator -(TcpControlWord a, TcpControlWord b) => new(unchecked((uint)(a.Value - b.Value)));
+        public static TcpControlWord operator -(TcpControlWord a, TcpControlWord b) => new(unchecked((uint)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator -(TcpControlWord a, uint b) => new(unchecked((uint)(a.Value - b)));
+        public static TcpControlWord operator -(TcpControlWord a, uint b) => new(unchecked((uint)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator -(uint a, TcpControlWord b) => new(unchecked((uint)(a - b.Value)));
+        public static TcpControlWord operator -(uint a, TcpControlWord b) => new(unchecked((uint)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator *(TcpControlWord a, TcpControlWord b) => new(unchecked((uint)(a.Value * b.Value)));
+        public static TcpControlWord operator *(TcpControlWord a, TcpControlWord b) => new(unchecked((uint)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator *(TcpControlWord a, uint b) => new(unchecked((uint)(a.Value * b)));
+        public static TcpControlWord operator *(TcpControlWord a, uint b) => new(unchecked((uint)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator *(uint a, TcpControlWord b) => new(unchecked((uint)(a * b.Value)));
+        public static TcpControlWord operator *(uint a, TcpControlWord b) => new(unchecked((uint)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator /(TcpControlWord a, TcpControlWord b) => new((uint)(a.Value / b.Value));
+        public static TcpControlWord operator /(TcpControlWord a, TcpControlWord b) => new((uint)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator /(TcpControlWord a, uint b) => new((uint)(a.Value / b));
+        public static TcpControlWord operator /(TcpControlWord a, uint b) => new((uint)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator /(uint a, TcpControlWord b) => new((uint)(a / b.Value));
+        public static TcpControlWord operator /(uint a, TcpControlWord b) => new((uint)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator %(TcpControlWord a, TcpControlWord b) => new((uint)(a.Value % b.Value));
+        public static TcpControlWord operator %(TcpControlWord a, TcpControlWord b) => new((uint)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator %(TcpControlWord a, uint b) => new((uint)(a.Value % b));
+        public static TcpControlWord operator %(TcpControlWord a, uint b) => new((uint)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator %(uint a, TcpControlWord b) => new((uint)(a % b.Value));
+        public static TcpControlWord operator %(uint a, TcpControlWord b) => new((uint)(a % b.__value));
 
         /// <summary>Left shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator <<(TcpControlWord a, int b) => new(unchecked((uint)(a.Value << b)));
+        public static TcpControlWord operator <<(TcpControlWord a, int b) => new(unchecked((uint)(a.__value << b)));
 
         /// <summary>Right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator >>(TcpControlWord a, int b) => new(unchecked((uint)(a.Value >> b)));
+        public static TcpControlWord operator >>(TcpControlWord a, int b) => new(unchecked((uint)(a.__value >> b)));
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TcpControlWord operator >>>(TcpControlWord a, int b) => new(unchecked((uint)(a.Value >>> b)));
+        public static TcpControlWord operator >>>(TcpControlWord a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(TcpControlWord a, TcpControlWord b) => a.Value < b.Value;
+        public static bool operator <(TcpControlWord a, TcpControlWord b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(TcpControlWord a, TcpControlWord b) => a.Value > b.Value;
+        public static bool operator >(TcpControlWord a, TcpControlWord b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(TcpControlWord a, TcpControlWord b) => a.Value <= b.Value;
+        public static bool operator <=(TcpControlWord a, TcpControlWord b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(TcpControlWord a, TcpControlWord b) => a.Value >= b.Value;
+        public static bool operator >=(TcpControlWord a, TcpControlWord b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(TcpControlWord a, TcpControlWord b) => a.Value == b.Value;
+        public static bool operator ==(TcpControlWord a, TcpControlWord b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(TcpControlWord a, TcpControlWord b) => a.Value != b.Value;
+        public static bool operator !=(TcpControlWord a, TcpControlWord b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is TcpControlWord other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is TcpControlWord other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator uint(TcpControlWord value) => value.Value;
+        public static implicit operator uint(TcpControlWord value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator TcpControlWord(uint value) => new(value);
@@ -332,7 +332,7 @@ public partial class BitFieldProtocolTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -516,7 +516,7 @@ public partial class BitFieldProtocolTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -525,7 +525,7 @@ public partial class BitFieldProtocolTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -542,13 +542,13 @@ public partial class BitFieldProtocolTests
         /// <param name="other">A TcpControlWord to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(TcpControlWord other) => Value.CompareTo(other.Value);
+        public int CompareTo(TcpControlWord other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another TcpControlWord.</summary>
         /// <param name="other">A TcpControlWord to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(TcpControlWord other) => Value == other.Value;
+        public bool Equals(TcpControlWord other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes TcpControlWord as a string.</summary>
         private sealed class TcpControlWordJsonConverter : JsonConverter<TcpControlWord>

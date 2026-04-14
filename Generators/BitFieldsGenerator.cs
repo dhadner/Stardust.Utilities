@@ -165,7 +165,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             unsignedStorageType = "ulong";
             storageType = "ulong"; // placeholder for compatibility
         }
-        // Half/float/double: NativeFloat mode — stored as ushort/uint/ulong, user-facing type is Half/float/double
+        // Half/float/double: NativeFloat mode ï¿½ stored as ushort/uint/ulong, user-facing type is Half/float/double
         else if (storageType == "Half")
         {
             storageTypeIsSigned = false;
@@ -276,7 +276,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                         continue;
                     }
 
-                    // Resolve [BitField] parameters across all constructor forms (SD0015–SD0019)
+                    // Resolve [BitField] parameters across all constructor forms (SD0015ï¿½SD0019)
                     var memberLocation = member.Locations.Length > 0 ? member.Locations[0] : null;
                     var (resolved, fieldDiags) = GeneratorUtils.ResolveBitFieldAttribute(
                         attr, member.Name, structSymbol.Name, memberLocation);
@@ -640,7 +640,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
 
     private static void Execute(SourceProductionContext context, BitFieldsInfo info, string platformTarget)
     {
-        // Report property-level diagnostics (SD0015–SD0019)
+        // Report property-level diagnostics (SD0015ï¿½SD0019)
         foreach (var pd in info.PropertyDiagnostics)
         {
             context.ReportDiagnostic(Diagnostic.Create(pd.Descriptor, pd.Location, pd.MessageArgs));
@@ -728,8 +728,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         var (mustClearMask, mustSetMask) = CalculateNormalizationMasks(info, undefinedBitsMask);
         bool needsNormalization = mustClearMask != 0 || mustSetMask != 0;
 
-        // Generate private Value field and constructor
-        sb.AppendLine($"{memberIndent}private {info.StorageType} Value;");
+        // Generate private __value field and constructor
+        sb.AppendLine($"{memberIndent}private {info.StorageType} __value;");
         sb.AppendLine();
         if (info.IsNativeIntegerType)
         {
@@ -758,31 +758,31 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // Constructor applies combined normalization (UndefinedBitsMustBe + per-field MustBe)
         if (!needsNormalization)
         {
-            sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = value; }}");
+            sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = value; }}");
         }
         else if (mustSetMask == 0)
         {
-            // Only clearing needed: Value = value & NORMALIZATION_AND_MASK
+            // Only clearing needed: __value = value & __NORMALIZATION_AND_MASK
             if (info.NeedsUnsignedCast)
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) & NORMALIZATION_AND_MASK); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = ({info.StorageType})((({info.UnsignedStorageType})value) & __NORMALIZATION_AND_MASK); }}");
             else
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value & NORMALIZATION_AND_MASK); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = ({info.StorageType})(value & __NORMALIZATION_AND_MASK); }}");
         }
         else if (mustClearMask == 0)
         {
-            // Only setting needed: Value = value | NORMALIZATION_OR_MASK
+            // Only setting needed: __value = value | __NORMALIZATION_OR_MASK
             if (info.NeedsUnsignedCast)
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((({info.UnsignedStorageType})value) | NORMALIZATION_OR_MASK); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = ({info.StorageType})((({info.UnsignedStorageType})value) | __NORMALIZATION_OR_MASK); }}");
             else
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(value | NORMALIZATION_OR_MASK); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = ({info.StorageType})(value | __NORMALIZATION_OR_MASK); }}");
         }
         else
         {
-            // Both: Value = (value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK
+            // Both: __value = (value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK
             if (info.NeedsUnsignedCast)
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})(((({info.UnsignedStorageType})value) & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = ({info.StorageType})(((({info.UnsignedStorageType})value) & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }}");
             else
-                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ Value = ({info.StorageType})((value & NORMALIZATION_AND_MASK) | NORMALIZATION_OR_MASK); }}");
+                sb.AppendLine($"{memberIndent}public {info.TypeName}({info.StorageType} value) {{ __value = ({info.StorageType})((value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }}");
         }
         sb.AppendLine();
 

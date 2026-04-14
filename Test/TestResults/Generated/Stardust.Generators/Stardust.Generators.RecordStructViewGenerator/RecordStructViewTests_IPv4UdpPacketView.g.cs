@@ -16,8 +16,8 @@ public partial class RecordStructViewTests
     [JsonConverter(typeof(IPv4UdpPacketViewJsonConverter))]
     public partial record struct IPv4UdpPacketView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 28;
@@ -30,8 +30,8 @@ public partial class RecordStructViewTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,27 +45,27 @@ public partial class RecordStructViewTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal IPv4UdpPacketView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial global::Stardust.Utilities.Protocols.IPv4HeaderView Ip
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new global::Stardust.Utilities.Protocols.IPv4HeaderView(_data.Slice(0));
+            get => new global::Stardust.Utilities.Protocols.IPv4HeaderView(__data.Slice(0));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Protocols.IPv4HeaderView.SIZE_IN_BYTES).CopyTo(_data.Span.Slice(0)); }
+            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Protocols.IPv4HeaderView.SIZE_IN_BYTES).CopyTo(__data.Span.Slice(0)); }
         }
 
         public partial global::Stardust.Utilities.Protocols.UdpHeaderView Udp
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new global::Stardust.Utilities.Protocols.UdpHeaderView(_data.Slice(20));
+            get => new global::Stardust.Utilities.Protocols.UdpHeaderView(__data.Slice(20));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Protocols.UdpHeaderView.SIZE_IN_BYTES).CopyTo(_data.Span.Slice(20)); }
+            set { value.Data.Span.Slice(0, global::Stardust.Utilities.Protocols.UdpHeaderView.SIZE_IN_BYTES).CopyTo(__data.Span.Slice(20)); }
         }
 
         /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
@@ -99,7 +99,7 @@ public partial class RecordStructViewTests
             /// <summary>Writes a IPv4UdpPacketView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, IPv4UdpPacketView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

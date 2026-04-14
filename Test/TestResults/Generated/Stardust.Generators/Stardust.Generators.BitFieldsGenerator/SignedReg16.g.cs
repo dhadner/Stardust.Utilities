@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEquatable<SignedReg16>,
                              IFormattable, ISpanFormattable, IParsable<SignedReg16>, ISpanParsable<SignedReg16>
 {
-    private short Value;
+    private short __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
@@ -27,70 +27,70 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     // --- Bit field mask constants ---
     // LowByte: bits [1..7], width 7
-    private const int LOW_BYTE_START_BIT = 1;
-    private const ushort LOW_BYTE_MASK = 0x007F;
-    private const ushort LOW_BYTE_SHIFTED_MASK = 0x00FE;  // LOW_BYTE_MASK << LOW_BYTE_START_BIT
-    private const ushort LOW_BYTE_INVERTED_MASK = 0xFF01;  // ~LOW_BYTE_SHIFTED_MASK
+    private const int __LOW_BYTE_START_BIT = 1;
+    private const ushort __LOW_BYTE_MASK = 0x007F;
+    private const ushort __LOW_BYTE_SHIFTED_MASK = 0x00FE;  // __LOW_BYTE_MASK << __LOW_BYTE_START_BIT
+    private const ushort __LOW_BYTE_INVERTED_MASK = 0xFF01;  // ~__LOW_BYTE_SHIFTED_MASK
     // HighByte: bits [8..14], width 7
-    private const int HIGH_BYTE_START_BIT = 8;
-    private const ushort HIGH_BYTE_MASK = 0x007F;
-    private const ushort HIGH_BYTE_SHIFTED_MASK = 0x7F00;  // HIGH_BYTE_MASK << HIGH_BYTE_START_BIT
-    private const ushort HIGH_BYTE_INVERTED_MASK = 0x80FF;  // ~HIGH_BYTE_SHIFTED_MASK
+    private const int __HIGH_BYTE_START_BIT = 8;
+    private const ushort __HIGH_BYTE_MASK = 0x007F;
+    private const ushort __HIGH_BYTE_SHIFTED_MASK = 0x7F00;  // __HIGH_BYTE_MASK << __HIGH_BYTE_START_BIT
+    private const ushort __HIGH_BYTE_INVERTED_MASK = 0x80FF;  // ~__HIGH_BYTE_SHIFTED_MASK
     // Flag0: bit 0
-    private const int FLAG0_BIT = 0;
-    private const ushort FLAG0_MASK = 0x0001;  // 1 << FLAG0_BIT
-    private const ushort FLAG0_INVERTED_MASK = 0xFFFE;  // ~FLAG0_MASK
+    private const int __FLAG0_BIT = 0;
+    private const ushort __FLAG0_MASK = 0x0001;  // 1 << __FLAG0_BIT
+    private const ushort __FLAG0_INVERTED_MASK = 0xFFFE;  // ~__FLAG0_MASK
     // Sign: bit 15
-    private const int SIGN_BIT = 15;
-    private const ushort SIGN_MASK = 0x8000;  // 1 << SIGN_BIT
-    private const ushort SIGN_INVERTED_MASK = 0x7FFF;  // ~SIGN_MASK
+    private const int __SIGN_BIT = 15;
+    private const ushort __SIGN_MASK = 0x8000;  // 1 << __SIGN_BIT
+    private const ushort __SIGN_INVERTED_MASK = 0x7FFF;  // ~__SIGN_MASK
 
     /// <summary>Creates a new SignedReg16 with the specified raw bits value.</summary>
-    public SignedReg16(short value) { Value = value; }
+    public SignedReg16(short value) { __value = value; }
 
     public partial byte LowByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ushort)Value) >> LOW_BYTE_START_BIT) & LOW_BYTE_MASK);
+        get => (byte)((((ushort)__value) >> __LOW_BYTE_START_BIT) & __LOW_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << LOW_BYTE_START_BIT) & LOW_BYTE_SHIFTED_MASK));
+        set => __value = (short)((((ushort)__value) & __LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << __LOW_BYTE_START_BIT) & __LOW_BYTE_SHIFTED_MASK));
     }
 
     public partial byte HighByte
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ushort)Value) >> HIGH_BYTE_START_BIT) & HIGH_BYTE_MASK);
+        get => (byte)((((ushort)__value) >> __HIGH_BYTE_START_BIT) & __HIGH_BYTE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK));
+        set => __value = (short)((((ushort)__value) & __HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << __HIGH_BYTE_START_BIT) & __HIGH_BYTE_SHIFTED_MASK));
     }
 
     public partial bool Flag0
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ushort)Value) & FLAG0_MASK) != 0;
+        get => (((ushort)__value) & __FLAG0_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (short)(((ushort)Value) | FLAG0_MASK) : (short)(((ushort)Value) & FLAG0_INVERTED_MASK);
+        set => __value = value ? (short)(((ushort)__value) | __FLAG0_MASK) : (short)(((ushort)__value) & __FLAG0_INVERTED_MASK);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ushort)Value) & SIGN_MASK) != 0;
+        get => (((ushort)__value) & __SIGN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (short)(((ushort)Value) | SIGN_MASK) : (short)(((ushort)Value) & SIGN_INVERTED_MASK);
+        set => __value = value ? (short)(((ushort)__value) | __SIGN_MASK) : (short)(((ushort)__value) & __SIGN_INVERTED_MASK);
     }
 
     /// <summary>Returns a SignedReg16 with only the Flag0 bit set.</summary>
-    public static SignedReg16 Flag0Bit => new(unchecked((short)FLAG0_MASK));
+    public static SignedReg16 Flag0Bit => new(unchecked((short)__FLAG0_MASK));
 
     /// <summary>Returns a SignedReg16 with only the Sign bit set.</summary>
-    public static SignedReg16 SignBit => new(unchecked((short)SIGN_MASK));
+    public static SignedReg16 SignBit => new(unchecked((short)__SIGN_MASK));
 
     /// <summary>Returns a SignedReg16 with the mask for the LowByte field (bits 1-7).</summary>
-    public static SignedReg16 LowByteMask => new(unchecked((short)LOW_BYTE_SHIFTED_MASK));
+    public static SignedReg16 LowByteMask => new(unchecked((short)__LOW_BYTE_SHIFTED_MASK));
 
     /// <summary>Returns a SignedReg16 with the mask for the HighByte field (bits 8-14).</summary>
-    public static SignedReg16 HighByteMask => new(unchecked((short)HIGH_BYTE_SHIFTED_MASK));
+    public static SignedReg16 HighByteMask => new(unchecked((short)__HIGH_BYTE_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -107,35 +107,35 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     /// <summary>Returns a new SignedReg16 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithFlag0(bool value) => new(value ? (short)(((ushort)Value) | FLAG0_MASK) : (short)(((ushort)Value) & FLAG0_INVERTED_MASK));
+    public SignedReg16 WithFlag0(bool value) => new(value ? (short)(((ushort)__value) | __FLAG0_MASK) : (short)(((ushort)__value) & __FLAG0_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg16 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithSign(bool value) => new(value ? (short)(((ushort)Value) | SIGN_MASK) : (short)(((ushort)Value) & SIGN_INVERTED_MASK));
+    public SignedReg16 WithSign(bool value) => new(value ? (short)(((ushort)__value) | __SIGN_MASK) : (short)(((ushort)__value) & __SIGN_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg16 with the LowByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithLowByte(byte value) => new((short)((((ushort)Value) & LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << LOW_BYTE_START_BIT) & LOW_BYTE_SHIFTED_MASK)));
+    public SignedReg16 WithLowByte(byte value) => new((short)((((ushort)__value) & __LOW_BYTE_INVERTED_MASK) | ((((ushort)value) << __LOW_BYTE_START_BIT) & __LOW_BYTE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg16 with the HighByte field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg16 WithHighByte(byte value) => new((short)((((ushort)Value) & HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << HIGH_BYTE_START_BIT) & HIGH_BYTE_SHIFTED_MASK)));
+    public SignedReg16 WithHighByte(byte value) => new((short)((((ushort)__value) & __HIGH_BYTE_INVERTED_MASK) | ((((ushort)value) << __HIGH_BYTE_START_BIT) & __HIGH_BYTE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator ~(SignedReg16 a) => new((short)~a.Value);
+    public static SignedReg16 operator ~(SignedReg16 a) => new((short)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator |(SignedReg16 a, SignedReg16 b) => new((short)(a.Value | b.Value));
+    public static SignedReg16 operator |(SignedReg16 a, SignedReg16 b) => new((short)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator &(SignedReg16 a, SignedReg16 b) => new((short)(a.Value & b.Value));
+    public static SignedReg16 operator &(SignedReg16 a, SignedReg16 b) => new((short)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator ^(SignedReg16 a, SignedReg16 b) => new((short)(a.Value ^ b.Value));
+    public static SignedReg16 operator ^(SignedReg16 a, SignedReg16 b) => new((short)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -143,115 +143,115 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator -(SignedReg16 a) => new(unchecked((short)(-a.Value)));
+    public static SignedReg16 operator -(SignedReg16 a) => new(unchecked((short)(-a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator +(SignedReg16 a, SignedReg16 b) => new(unchecked((short)(a.Value + b.Value)));
+    public static SignedReg16 operator +(SignedReg16 a, SignedReg16 b) => new(unchecked((short)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator +(SignedReg16 a, short b) => new(unchecked((short)(a.Value + b)));
+    public static SignedReg16 operator +(SignedReg16 a, short b) => new(unchecked((short)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator +(short a, SignedReg16 b) => new(unchecked((short)(a + b.Value)));
+    public static SignedReg16 operator +(short a, SignedReg16 b) => new(unchecked((short)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator -(SignedReg16 a, SignedReg16 b) => new(unchecked((short)(a.Value - b.Value)));
+    public static SignedReg16 operator -(SignedReg16 a, SignedReg16 b) => new(unchecked((short)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator -(SignedReg16 a, short b) => new(unchecked((short)(a.Value - b)));
+    public static SignedReg16 operator -(SignedReg16 a, short b) => new(unchecked((short)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator -(short a, SignedReg16 b) => new(unchecked((short)(a - b.Value)));
+    public static SignedReg16 operator -(short a, SignedReg16 b) => new(unchecked((short)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator *(SignedReg16 a, SignedReg16 b) => new(unchecked((short)(a.Value * b.Value)));
+    public static SignedReg16 operator *(SignedReg16 a, SignedReg16 b) => new(unchecked((short)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator *(SignedReg16 a, short b) => new(unchecked((short)(a.Value * b)));
+    public static SignedReg16 operator *(SignedReg16 a, short b) => new(unchecked((short)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator *(short a, SignedReg16 b) => new(unchecked((short)(a * b.Value)));
+    public static SignedReg16 operator *(short a, SignedReg16 b) => new(unchecked((short)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator /(SignedReg16 a, SignedReg16 b) => new((short)(a.Value / b.Value));
+    public static SignedReg16 operator /(SignedReg16 a, SignedReg16 b) => new((short)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator /(SignedReg16 a, short b) => new((short)(a.Value / b));
+    public static SignedReg16 operator /(SignedReg16 a, short b) => new((short)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator /(short a, SignedReg16 b) => new((short)(a / b.Value));
+    public static SignedReg16 operator /(short a, SignedReg16 b) => new((short)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator %(SignedReg16 a, SignedReg16 b) => new((short)(a.Value % b.Value));
+    public static SignedReg16 operator %(SignedReg16 a, SignedReg16 b) => new((short)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator %(SignedReg16 a, short b) => new((short)(a.Value % b));
+    public static SignedReg16 operator %(SignedReg16 a, short b) => new((short)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg16 operator %(short a, SignedReg16 b) => new((short)(a % b.Value));
+    public static SignedReg16 operator %(short a, SignedReg16 b) => new((short)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SignedReg16 a, int b) => a.Value << b;
+    public static int operator <<(SignedReg16 a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SignedReg16 a, int b) => a.Value >> b;
+    public static int operator >>(SignedReg16 a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SignedReg16 a, int b) => a.Value >>> b;
+    public static int operator >>>(SignedReg16 a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SignedReg16 a, SignedReg16 b) => a.Value < b.Value;
+    public static bool operator <(SignedReg16 a, SignedReg16 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SignedReg16 a, SignedReg16 b) => a.Value > b.Value;
+    public static bool operator >(SignedReg16 a, SignedReg16 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SignedReg16 a, SignedReg16 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedReg16 a, SignedReg16 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SignedReg16 a, SignedReg16 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedReg16 a, SignedReg16 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SignedReg16 a, SignedReg16 b) => a.Value == b.Value;
+    public static bool operator ==(SignedReg16 a, SignedReg16 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SignedReg16 a, SignedReg16 b) => a.Value != b.Value;
+    public static bool operator !=(SignedReg16 a, SignedReg16 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SignedReg16 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedReg16 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator short(SignedReg16 value) => value.Value;
+    public static implicit operator short(SignedReg16 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedReg16(short value) => new(value);
@@ -283,7 +283,7 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteInt16LittleEndian(destination, Value);
+        BinaryPrimitives.WriteInt16LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -467,7 +467,7 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -476,7 +476,7 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -493,13 +493,13 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     /// <param name="other">A SignedReg16 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SignedReg16 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedReg16 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SignedReg16.</summary>
     /// <param name="other">A SignedReg16 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SignedReg16 other) => Value == other.Value;
+    public bool Equals(SignedReg16 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SignedReg16 as a string.</summary>
     private sealed class SignedReg16JsonConverter : JsonConverter<SignedReg16>

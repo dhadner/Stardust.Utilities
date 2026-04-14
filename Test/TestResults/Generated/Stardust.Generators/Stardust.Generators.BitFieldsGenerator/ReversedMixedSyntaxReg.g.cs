@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<ReversedMixedSyntaxReg>, IEquatable<ReversedMixedSyntaxReg>,
                              IFormattable, ISpanFormattable, IParsable<ReversedMixedSyntaxReg>, ISpanParsable<ReversedMixedSyntaxReg>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,39 +27,39 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
 
     // --- Bit field mask constants ---
     // UpperFive: bits [3..7], width 5
-    private const int UPPER_FIVE_START_BIT = 3;
-    private const byte UPPER_FIVE_MASK = 0x1F;
-    private const byte UPPER_FIVE_SHIFTED_MASK = 0xF8;  // UPPER_FIVE_MASK << UPPER_FIVE_START_BIT
-    private const byte UPPER_FIVE_INVERTED_MASK = 0x07;  // ~UPPER_FIVE_SHIFTED_MASK
+    private const int __UPPER_FIVE_START_BIT = 3;
+    private const byte __UPPER_FIVE_MASK = 0x1F;
+    private const byte __UPPER_FIVE_SHIFTED_MASK = 0xF8;  // __UPPER_FIVE_MASK << __UPPER_FIVE_START_BIT
+    private const byte __UPPER_FIVE_INVERTED_MASK = 0x07;  // ~__UPPER_FIVE_SHIFTED_MASK
     // LowerThree: bits [0..2], width 3
-    private const int LOWER_THREE_START_BIT = 0;
-    private const byte LOWER_THREE_MASK = 0x07;
-    private const byte LOWER_THREE_INVERTED_MASK = 0xF8;  // ~LOWER_THREE_MASK
+    private const int __LOWER_THREE_START_BIT = 0;
+    private const byte __LOWER_THREE_MASK = 0x07;
+    private const byte __LOWER_THREE_INVERTED_MASK = 0xF8;  // ~__LOWER_THREE_MASK
 
     /// <summary>Creates a new ReversedMixedSyntaxReg with the specified raw bits value.</summary>
-    public ReversedMixedSyntaxReg(byte value) { Value = value; }
+    public ReversedMixedSyntaxReg(byte value) { __value = value; }
 
     public partial byte UpperFive
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> UPPER_FIVE_START_BIT) & UPPER_FIVE_MASK);
+        get => (byte)((__value >> __UPPER_FIVE_START_BIT) & __UPPER_FIVE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & UPPER_FIVE_INVERTED_MASK) | ((((byte)value) << UPPER_FIVE_START_BIT) & UPPER_FIVE_SHIFTED_MASK));
+        set => __value = (byte)((__value & __UPPER_FIVE_INVERTED_MASK) | ((((byte)value) << __UPPER_FIVE_START_BIT) & __UPPER_FIVE_SHIFTED_MASK));
     }
 
     public partial byte LowerThree
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & LOWER_THREE_MASK);
+        get => (byte)(__value & __LOWER_THREE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & LOWER_THREE_INVERTED_MASK) | (((byte)value) & LOWER_THREE_MASK));
+        set => __value = (byte)((__value & __LOWER_THREE_INVERTED_MASK) | (((byte)value) & __LOWER_THREE_MASK));
     }
 
     /// <summary>Returns a ReversedMixedSyntaxReg with the mask for the UpperFive field (bits 3-7).</summary>
-    public static ReversedMixedSyntaxReg UpperFiveMask => new(UPPER_FIVE_SHIFTED_MASK);
+    public static ReversedMixedSyntaxReg UpperFiveMask => new(__UPPER_FIVE_SHIFTED_MASK);
 
     /// <summary>Returns a ReversedMixedSyntaxReg with the mask for the LowerThree field (bits 0-2).</summary>
-    public static ReversedMixedSyntaxReg LowerThreeMask => new(LOWER_THREE_MASK);
+    public static ReversedMixedSyntaxReg LowerThreeMask => new(__LOWER_THREE_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -74,27 +74,27 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
 
     /// <summary>Returns a new ReversedMixedSyntaxReg with the UpperFive field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReversedMixedSyntaxReg WithUpperFive(byte value) => new((byte)((Value & UPPER_FIVE_INVERTED_MASK) | (((byte)value << UPPER_FIVE_START_BIT) & UPPER_FIVE_SHIFTED_MASK)));
+    public ReversedMixedSyntaxReg WithUpperFive(byte value) => new((byte)((__value & __UPPER_FIVE_INVERTED_MASK) | (((byte)value << __UPPER_FIVE_START_BIT) & __UPPER_FIVE_SHIFTED_MASK)));
 
     /// <summary>Returns a new ReversedMixedSyntaxReg with the LowerThree field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReversedMixedSyntaxReg WithLowerThree(byte value) => new((byte)((Value & LOWER_THREE_INVERTED_MASK) | ((byte)value & LOWER_THREE_MASK)));
+    public ReversedMixedSyntaxReg WithLowerThree(byte value) => new((byte)((__value & __LOWER_THREE_INVERTED_MASK) | ((byte)value & __LOWER_THREE_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator ~(ReversedMixedSyntaxReg a) => new((byte)~a.Value);
+    public static ReversedMixedSyntaxReg operator ~(ReversedMixedSyntaxReg a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator |(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.Value | b.Value));
+    public static ReversedMixedSyntaxReg operator |(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator &(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.Value & b.Value));
+    public static ReversedMixedSyntaxReg operator &(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator ^(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.Value ^ b.Value));
+    public static ReversedMixedSyntaxReg operator ^(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -102,115 +102,115 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator -(ReversedMixedSyntaxReg a) => new(unchecked((byte)(0 - a.Value)));
+    public static ReversedMixedSyntaxReg operator -(ReversedMixedSyntaxReg a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator +(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static ReversedMixedSyntaxReg operator +(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator +(ReversedMixedSyntaxReg a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static ReversedMixedSyntaxReg operator +(ReversedMixedSyntaxReg a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator +(byte a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a + b.Value)));
+    public static ReversedMixedSyntaxReg operator +(byte a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator -(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static ReversedMixedSyntaxReg operator -(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator -(ReversedMixedSyntaxReg a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static ReversedMixedSyntaxReg operator -(ReversedMixedSyntaxReg a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator -(byte a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a - b.Value)));
+    public static ReversedMixedSyntaxReg operator -(byte a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator *(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static ReversedMixedSyntaxReg operator *(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator *(ReversedMixedSyntaxReg a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static ReversedMixedSyntaxReg operator *(ReversedMixedSyntaxReg a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator *(byte a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a * b.Value)));
+    public static ReversedMixedSyntaxReg operator *(byte a, ReversedMixedSyntaxReg b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator /(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.Value / b.Value));
+    public static ReversedMixedSyntaxReg operator /(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator /(ReversedMixedSyntaxReg a, byte b) => new((byte)(a.Value / b));
+    public static ReversedMixedSyntaxReg operator /(ReversedMixedSyntaxReg a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator /(byte a, ReversedMixedSyntaxReg b) => new((byte)(a / b.Value));
+    public static ReversedMixedSyntaxReg operator /(byte a, ReversedMixedSyntaxReg b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator %(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.Value % b.Value));
+    public static ReversedMixedSyntaxReg operator %(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator %(ReversedMixedSyntaxReg a, byte b) => new((byte)(a.Value % b));
+    public static ReversedMixedSyntaxReg operator %(ReversedMixedSyntaxReg a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReversedMixedSyntaxReg operator %(byte a, ReversedMixedSyntaxReg b) => new((byte)(a % b.Value));
+    public static ReversedMixedSyntaxReg operator %(byte a, ReversedMixedSyntaxReg b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(ReversedMixedSyntaxReg a, int b) => a.Value << b;
+    public static int operator <<(ReversedMixedSyntaxReg a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(ReversedMixedSyntaxReg a, int b) => a.Value >> b;
+    public static int operator >>(ReversedMixedSyntaxReg a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(ReversedMixedSyntaxReg a, int b) => a.Value >>> b;
+    public static int operator >>>(ReversedMixedSyntaxReg a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.Value < b.Value;
+    public static bool operator <(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.Value > b.Value;
+    public static bool operator >(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.Value <= b.Value;
+    public static bool operator <=(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.Value >= b.Value;
+    public static bool operator >=(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.Value == b.Value;
+    public static bool operator ==(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.Value != b.Value;
+    public static bool operator !=(ReversedMixedSyntaxReg a, ReversedMixedSyntaxReg b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is ReversedMixedSyntaxReg other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is ReversedMixedSyntaxReg other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(ReversedMixedSyntaxReg value) => value.Value;
+    public static implicit operator byte(ReversedMixedSyntaxReg value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator ReversedMixedSyntaxReg(byte value) => new(value);
@@ -242,7 +242,7 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -426,7 +426,7 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -435,7 +435,7 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -452,13 +452,13 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     /// <param name="other">A ReversedMixedSyntaxReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(ReversedMixedSyntaxReg other) => Value.CompareTo(other.Value);
+    public int CompareTo(ReversedMixedSyntaxReg other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another ReversedMixedSyntaxReg.</summary>
     /// <param name="other">A ReversedMixedSyntaxReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(ReversedMixedSyntaxReg other) => Value == other.Value;
+    public bool Equals(ReversedMixedSyntaxReg other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes ReversedMixedSyntaxReg as a string.</summary>
     private sealed class ReversedMixedSyntaxRegJsonConverter : JsonConverter<ReversedMixedSyntaxReg>

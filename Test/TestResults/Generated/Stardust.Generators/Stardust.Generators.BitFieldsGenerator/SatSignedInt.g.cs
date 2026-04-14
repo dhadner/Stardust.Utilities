@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEquatable<SatSignedInt>,
                              IFormattable, ISpanFormattable, IParsable<SatSignedInt>, ISpanParsable<SatSignedInt>
 {
-    private int Value;
+    private int __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,45 +27,45 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
 
     // --- Bit field mask constants ---
     // Signed: bits [0..4], width 5
-    private const int SIGNED_START_BIT = 0;
-    private const uint SIGNED_MASK = 0x0000001FU;
-    private const uint SIGNED_INVERTED_MASK = 0xFFFFFFE0U;  // ~SIGNED_MASK
-    private const int SIGNED_SAT_MIN = -16;  // saturating: min for 5-bit signed field
-    private const int SIGNED_SAT_MAX = 15;  // saturating: max for 5-bit signed field
+    private const int __SIGNED_START_BIT = 0;
+    private const uint __SIGNED_MASK = 0x0000001FU;
+    private const uint __SIGNED_INVERTED_MASK = 0xFFFFFFE0U;  // ~__SIGNED_MASK
+    private const int __SIGNED_SAT_MIN = -16;  // saturating: min for 5-bit signed field
+    private const int __SIGNED_SAT_MAX = 15;  // saturating: max for 5-bit signed field
     // Other: bits [5..8], width 4
-    private const int OTHER_START_BIT = 5;
-    private const uint OTHER_MASK = 0x0000000FU;
-    private const uint OTHER_SHIFTED_MASK = 0x000001E0U;  // OTHER_MASK << OTHER_START_BIT
-    private const uint OTHER_INVERTED_MASK = 0xFFFFFE1FU;  // ~OTHER_SHIFTED_MASK
+    private const int __OTHER_START_BIT = 5;
+    private const uint __OTHER_MASK = 0x0000000FU;
+    private const uint __OTHER_SHIFTED_MASK = 0x000001E0U;  // __OTHER_MASK << __OTHER_START_BIT
+    private const uint __OTHER_INVERTED_MASK = 0xFFFFFE1FU;  // ~__OTHER_SHIFTED_MASK
 
     /// <summary>Creates a new SatSignedInt with the specified raw bits value.</summary>
-    public SatSignedInt(int value) { Value = value; }
+    public SatSignedInt(int value) { __value = value; }
 
     public partial int Signed
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (int)(((int)(((uint)Value) & SIGNED_MASK) << 27) >> 27);
+        get => (int)(((int)(((uint)__value) & __SIGNED_MASK) << 27) >> 27);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var __sat = value < SIGNED_SAT_MIN ? SIGNED_SAT_MIN : value > SIGNED_SAT_MAX ? SIGNED_SAT_MAX : value;
-            Value = (int)((((uint)Value) & SIGNED_INVERTED_MASK) | (((uint)__sat) & SIGNED_MASK));
+            var __sat = value < __SIGNED_SAT_MIN ? __SIGNED_SAT_MIN : value > __SIGNED_SAT_MAX ? __SIGNED_SAT_MAX : value;
+            __value = (int)((((uint)__value) & __SIGNED_INVERTED_MASK) | (((uint)__sat) & __SIGNED_MASK));
         }
     }
 
     public partial int Other
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (int)(((int)(((uint)Value) & OTHER_SHIFTED_MASK) << 23) >> 28);
+        get => (int)(((int)(((uint)__value) & __OTHER_SHIFTED_MASK) << 23) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & OTHER_INVERTED_MASK) | ((((uint)value) << OTHER_START_BIT) & OTHER_SHIFTED_MASK));
+        set => __value = (int)((((uint)__value) & __OTHER_INVERTED_MASK) | ((((uint)value) << __OTHER_START_BIT) & __OTHER_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SatSignedInt with the mask for the Signed field (bits 0-4).</summary>
-    public static SatSignedInt SignedMask => new(unchecked((int)SIGNED_MASK));
+    public static SatSignedInt SignedMask => new(unchecked((int)__SIGNED_MASK));
 
     /// <summary>Returns a SatSignedInt with the mask for the Other field (bits 5-8).</summary>
-    public static SatSignedInt OtherMask => new(unchecked((int)OTHER_SHIFTED_MASK));
+    public static SatSignedInt OtherMask => new(unchecked((int)__OTHER_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -82,53 +82,53 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SatSignedInt WithSigned(int value)
     {
-        var __sat = value < SIGNED_SAT_MIN ? SIGNED_SAT_MIN : value > SIGNED_SAT_MAX ? SIGNED_SAT_MAX : value;
-        return new((int)((((uint)Value) & SIGNED_INVERTED_MASK) | ((uint)__sat & SIGNED_MASK)));
+        var __sat = value < __SIGNED_SAT_MIN ? __SIGNED_SAT_MIN : value > __SIGNED_SAT_MAX ? __SIGNED_SAT_MAX : value;
+        return new((int)((((uint)__value) & __SIGNED_INVERTED_MASK) | ((uint)__sat & __SIGNED_MASK)));
     }
 
     /// <summary>Returns a new SatSignedInt with the Other field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SatSignedInt WithOther(int value) => new((int)((((uint)Value) & OTHER_INVERTED_MASK) | ((((uint)value) << OTHER_START_BIT) & OTHER_SHIFTED_MASK)));
+    public SatSignedInt WithOther(int value) => new((int)((((uint)__value) & __OTHER_INVERTED_MASK) | ((((uint)value) << __OTHER_START_BIT) & __OTHER_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator ~(SatSignedInt a) => new((int)~a.Value);
+    public static SatSignedInt operator ~(SatSignedInt a) => new((int)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator |(SatSignedInt a, SatSignedInt b) => new((int)(a.Value | b.Value));
+    public static SatSignedInt operator |(SatSignedInt a, SatSignedInt b) => new((int)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator &(SatSignedInt a, SatSignedInt b) => new((int)(a.Value & b.Value));
+    public static SatSignedInt operator &(SatSignedInt a, SatSignedInt b) => new((int)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator ^(SatSignedInt a, SatSignedInt b) => new((int)(a.Value ^ b.Value));
+    public static SatSignedInt operator ^(SatSignedInt a, SatSignedInt b) => new((int)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator &(SatSignedInt a, int b) => new(a.Value & b);
+    public static SatSignedInt operator &(SatSignedInt a, int b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator &(int a, SatSignedInt b) => new(a & b.Value);
+    public static SatSignedInt operator &(int a, SatSignedInt b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator |(SatSignedInt a, int b) => new(a.Value | b);
+    public static SatSignedInt operator |(SatSignedInt a, int b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator |(int a, SatSignedInt b) => new(a | b.Value);
+    public static SatSignedInt operator |(int a, SatSignedInt b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator ^(SatSignedInt a, int b) => new(a.Value ^ b);
+    public static SatSignedInt operator ^(SatSignedInt a, int b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator ^(int a, SatSignedInt b) => new(a ^ b.Value);
+    public static SatSignedInt operator ^(int a, SatSignedInt b) => new(a ^ b.__value);
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -136,115 +136,115 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator -(SatSignedInt a) => new(unchecked((int)(-a.Value)));
+    public static SatSignedInt operator -(SatSignedInt a) => new(unchecked((int)(-a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator +(SatSignedInt a, SatSignedInt b) => new(unchecked((int)(a.Value + b.Value)));
+    public static SatSignedInt operator +(SatSignedInt a, SatSignedInt b) => new(unchecked((int)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator +(SatSignedInt a, int b) => new(unchecked((int)(a.Value + b)));
+    public static SatSignedInt operator +(SatSignedInt a, int b) => new(unchecked((int)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator +(int a, SatSignedInt b) => new(unchecked((int)(a + b.Value)));
+    public static SatSignedInt operator +(int a, SatSignedInt b) => new(unchecked((int)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator -(SatSignedInt a, SatSignedInt b) => new(unchecked((int)(a.Value - b.Value)));
+    public static SatSignedInt operator -(SatSignedInt a, SatSignedInt b) => new(unchecked((int)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator -(SatSignedInt a, int b) => new(unchecked((int)(a.Value - b)));
+    public static SatSignedInt operator -(SatSignedInt a, int b) => new(unchecked((int)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator -(int a, SatSignedInt b) => new(unchecked((int)(a - b.Value)));
+    public static SatSignedInt operator -(int a, SatSignedInt b) => new(unchecked((int)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator *(SatSignedInt a, SatSignedInt b) => new(unchecked((int)(a.Value * b.Value)));
+    public static SatSignedInt operator *(SatSignedInt a, SatSignedInt b) => new(unchecked((int)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator *(SatSignedInt a, int b) => new(unchecked((int)(a.Value * b)));
+    public static SatSignedInt operator *(SatSignedInt a, int b) => new(unchecked((int)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator *(int a, SatSignedInt b) => new(unchecked((int)(a * b.Value)));
+    public static SatSignedInt operator *(int a, SatSignedInt b) => new(unchecked((int)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator /(SatSignedInt a, SatSignedInt b) => new((int)(a.Value / b.Value));
+    public static SatSignedInt operator /(SatSignedInt a, SatSignedInt b) => new((int)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator /(SatSignedInt a, int b) => new((int)(a.Value / b));
+    public static SatSignedInt operator /(SatSignedInt a, int b) => new((int)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator /(int a, SatSignedInt b) => new((int)(a / b.Value));
+    public static SatSignedInt operator /(int a, SatSignedInt b) => new((int)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator %(SatSignedInt a, SatSignedInt b) => new((int)(a.Value % b.Value));
+    public static SatSignedInt operator %(SatSignedInt a, SatSignedInt b) => new((int)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator %(SatSignedInt a, int b) => new((int)(a.Value % b));
+    public static SatSignedInt operator %(SatSignedInt a, int b) => new((int)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator %(int a, SatSignedInt b) => new((int)(a % b.Value));
+    public static SatSignedInt operator %(int a, SatSignedInt b) => new((int)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator <<(SatSignedInt a, int b) => new(unchecked((int)(a.Value << b)));
+    public static SatSignedInt operator <<(SatSignedInt a, int b) => new(unchecked((int)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator >>(SatSignedInt a, int b) => new(unchecked((int)(a.Value >> b)));
+    public static SatSignedInt operator >>(SatSignedInt a, int b) => new(unchecked((int)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatSignedInt operator >>>(SatSignedInt a, int b) => new(unchecked((int)(a.Value >>> b)));
+    public static SatSignedInt operator >>>(SatSignedInt a, int b) => new(unchecked((int)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SatSignedInt a, SatSignedInt b) => a.Value < b.Value;
+    public static bool operator <(SatSignedInt a, SatSignedInt b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SatSignedInt a, SatSignedInt b) => a.Value > b.Value;
+    public static bool operator >(SatSignedInt a, SatSignedInt b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SatSignedInt a, SatSignedInt b) => a.Value <= b.Value;
+    public static bool operator <=(SatSignedInt a, SatSignedInt b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SatSignedInt a, SatSignedInt b) => a.Value >= b.Value;
+    public static bool operator >=(SatSignedInt a, SatSignedInt b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SatSignedInt a, SatSignedInt b) => a.Value == b.Value;
+    public static bool operator ==(SatSignedInt a, SatSignedInt b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SatSignedInt a, SatSignedInt b) => a.Value != b.Value;
+    public static bool operator !=(SatSignedInt a, SatSignedInt b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SatSignedInt other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SatSignedInt other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator int(SatSignedInt value) => value.Value;
+    public static implicit operator int(SatSignedInt value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SatSignedInt(int value) => new(value);
@@ -272,7 +272,7 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -456,7 +456,7 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -465,7 +465,7 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -482,13 +482,13 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     /// <param name="other">A SatSignedInt to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SatSignedInt other) => Value.CompareTo(other.Value);
+    public int CompareTo(SatSignedInt other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SatSignedInt.</summary>
     /// <param name="other">A SatSignedInt to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SatSignedInt other) => Value == other.Value;
+    public bool Equals(SatSignedInt other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SatSignedInt as a string.</summary>
     private sealed class SatSignedIntJsonConverter : JsonConverter<SatSignedInt>

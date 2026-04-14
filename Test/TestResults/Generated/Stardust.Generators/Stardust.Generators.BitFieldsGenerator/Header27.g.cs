@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<Header27>,
                              IFormattable, ISpanFormattable, IParsable<Header27>, ISpanParsable<Header27>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,60 +27,60 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     // --- Bit field mask constants ---
     // SubHeader: bits [0..8], width 9
-    private const int SUB_HEADER_START_BIT = 0;
-    private const uint SUB_HEADER_MASK = 0x000001FFU;
-    private const uint SUB_HEADER_INVERTED_MASK = 0xFFFFFE00U;  // ~SUB_HEADER_MASK
+    private const int __SUB_HEADER_START_BIT = 0;
+    private const uint __SUB_HEADER_MASK = 0x000001FFU;
+    private const uint __SUB_HEADER_INVERTED_MASK = 0xFFFFFE00U;  // ~__SUB_HEADER_MASK
     // PayloadSize: bits [9..18], width 10
-    private const int PAYLOAD_SIZE_START_BIT = 9;
-    private const uint PAYLOAD_SIZE_MASK = 0x000003FFU;
-    private const uint PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // PAYLOAD_SIZE_MASK << PAYLOAD_SIZE_START_BIT
-    private const uint PAYLOAD_SIZE_INVERTED_MASK = 0xFFF801FFU;  // ~PAYLOAD_SIZE_SHIFTED_MASK
+    private const int __PAYLOAD_SIZE_START_BIT = 9;
+    private const uint __PAYLOAD_SIZE_MASK = 0x000003FFU;
+    private const uint __PAYLOAD_SIZE_SHIFTED_MASK = 0x0007FE00U;  // __PAYLOAD_SIZE_MASK << __PAYLOAD_SIZE_START_BIT
+    private const uint __PAYLOAD_SIZE_INVERTED_MASK = 0xFFF801FFU;  // ~__PAYLOAD_SIZE_SHIFTED_MASK
     // Sequence: bits [19..26], width 8
-    private const int SEQUENCE_START_BIT = 19;
-    private const uint SEQUENCE_MASK = 0x000000FFU;
-    private const uint SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // SEQUENCE_MASK << SEQUENCE_START_BIT
-    private const uint SEQUENCE_INVERTED_MASK = 0xF807FFFFU;  // ~SEQUENCE_SHIFTED_MASK
+    private const int __SEQUENCE_START_BIT = 19;
+    private const uint __SEQUENCE_MASK = 0x000000FFU;
+    private const uint __SEQUENCE_SHIFTED_MASK = 0x07F80000U;  // __SEQUENCE_MASK << __SEQUENCE_START_BIT
+    private const uint __SEQUENCE_INVERTED_MASK = 0xF807FFFFU;  // ~__SEQUENCE_SHIFTED_MASK
 
     // --- Constructor normalization masks ---
-    private const uint NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const uint __NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
     /// <summary>Creates a new Header27 with the specified raw bits value.</summary>
-    public Header27(uint value) { Value = (uint)(value & NORMALIZATION_AND_MASK); }
+    public Header27(uint value) { __value = (uint)(value & __NORMALIZATION_AND_MASK); }
 
     public partial global::Stardust.Utilities.Tests.SubHeader9 SubHeader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (global::Stardust.Utilities.Tests.SubHeader9)((ushort)(Value & SUB_HEADER_MASK));
+        get => (global::Stardust.Utilities.Tests.SubHeader9)((ushort)(__value & __SUB_HEADER_MASK));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set { var __ev = (ushort)value;
-            Value = (uint)((Value & SUB_HEADER_INVERTED_MASK) | (((uint)__ev) & SUB_HEADER_MASK));
+            __value = (uint)((__value & __SUB_HEADER_INVERTED_MASK) | (((uint)__ev) & __SUB_HEADER_MASK));
         }
     }
 
     public partial ushort PayloadSize
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_MASK);
+        get => (ushort)((__value >> __PAYLOAD_SIZE_START_BIT) & __PAYLOAD_SIZE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_SHIFTED_MASK));
+        set => __value = (uint)((__value & __PAYLOAD_SIZE_INVERTED_MASK) | ((((uint)value) << __PAYLOAD_SIZE_START_BIT) & __PAYLOAD_SIZE_SHIFTED_MASK));
     }
 
     public partial byte Sequence
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> SEQUENCE_START_BIT) & SEQUENCE_MASK);
+        get => (byte)((__value >> __SEQUENCE_START_BIT) & __SEQUENCE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & SEQUENCE_INVERTED_MASK) | ((((uint)value) << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK));
+        set => __value = (uint)((__value & __SEQUENCE_INVERTED_MASK) | ((((uint)value) << __SEQUENCE_START_BIT) & __SEQUENCE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a Header27 with the mask for the SubHeader field (bits 0-8).</summary>
-    public static Header27 SubHeaderMask => new(SUB_HEADER_MASK);
+    public static Header27 SubHeaderMask => new(__SUB_HEADER_MASK);
 
     /// <summary>Returns a Header27 with the mask for the PayloadSize field (bits 9-18).</summary>
-    public static Header27 PayloadSizeMask => new(PAYLOAD_SIZE_SHIFTED_MASK);
+    public static Header27 PayloadSizeMask => new(__PAYLOAD_SIZE_SHIFTED_MASK);
 
     /// <summary>Returns a Header27 with the mask for the Sequence field (bits 19-26).</summary>
-    public static Header27 SequenceMask => new(SEQUENCE_SHIFTED_MASK);
+    public static Header27 SequenceMask => new(__SEQUENCE_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -96,79 +96,79 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     /// <summary>Returns a new Header27 with the SubHeader field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((Value & SUB_HEADER_INVERTED_MASK) | ((uint)value & SUB_HEADER_MASK)));
+    public Header27 WithSubHeader(global::Stardust.Utilities.Tests.SubHeader9 value) => new((uint)((__value & __SUB_HEADER_INVERTED_MASK) | ((uint)value & __SUB_HEADER_MASK)));
 
     /// <summary>Returns a new Header27 with the PayloadSize field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithPayloadSize(ushort value) => new((uint)((Value & PAYLOAD_SIZE_INVERTED_MASK) | (((uint)value << PAYLOAD_SIZE_START_BIT) & PAYLOAD_SIZE_SHIFTED_MASK)));
+    public Header27 WithPayloadSize(ushort value) => new((uint)((__value & __PAYLOAD_SIZE_INVERTED_MASK) | (((uint)value << __PAYLOAD_SIZE_START_BIT) & __PAYLOAD_SIZE_SHIFTED_MASK)));
 
     /// <summary>Returns a new Header27 with the Sequence field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Header27 WithSequence(byte value) => new((uint)((Value & SEQUENCE_INVERTED_MASK) | (((uint)value << SEQUENCE_START_BIT) & SEQUENCE_SHIFTED_MASK)));
+    public Header27 WithSequence(byte value) => new((uint)((__value & __SEQUENCE_INVERTED_MASK) | (((uint)value << __SEQUENCE_START_BIT) & __SEQUENCE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ~(Header27 a) => new((uint)~a.Value);
+    public static Header27 operator ~(Header27 a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator |(Header27 a, Header27 b) => new((uint)(a.Value | b.Value));
+    public static Header27 operator |(Header27 a, Header27 b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator &(Header27 a, Header27 b) => new((uint)(a.Value & b.Value));
+    public static Header27 operator &(Header27 a, Header27 b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ^(Header27 a, Header27 b) => new((uint)(a.Value ^ b.Value));
+    public static Header27 operator ^(Header27 a, Header27 b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator &(Header27 a, uint b) => new(a.Value & b);
+    public static Header27 operator &(Header27 a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator &(uint a, Header27 b) => new(a & b.Value);
+    public static Header27 operator &(uint a, Header27 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator |(Header27 a, uint b) => new(a.Value | b);
+    public static Header27 operator |(Header27 a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator |(uint a, Header27 b) => new(a | b.Value);
+    public static Header27 operator |(uint a, Header27 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ^(Header27 a, uint b) => new(a.Value ^ b);
+    public static Header27 operator ^(Header27 a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator ^(uint a, Header27 b) => new(a ^ b.Value);
+    public static Header27 operator ^(uint a, Header27 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(Header27 a, int b) => a.Value & (long)b;
+    public static long operator &(Header27 a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, Header27 b) => (long)a & b.Value;
+    public static long operator &(int a, Header27 b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(Header27 a, int b) => a.Value | (long)b;
+    public static long operator |(Header27 a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, Header27 b) => (long)a | b.Value;
+    public static long operator |(int a, Header27 b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(Header27 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(Header27 a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, Header27 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, Header27 b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,115 +176,115 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(Header27 a) => new(unchecked((uint)(0 - a.Value)));
+    public static Header27 operator -(Header27 a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(Header27 a, Header27 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static Header27 operator +(Header27 a, Header27 b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(Header27 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static Header27 operator +(Header27 a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator +(uint a, Header27 b) => new(unchecked((uint)(a + b.Value)));
+    public static Header27 operator +(uint a, Header27 b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(Header27 a, Header27 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static Header27 operator -(Header27 a, Header27 b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(Header27 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static Header27 operator -(Header27 a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator -(uint a, Header27 b) => new(unchecked((uint)(a - b.Value)));
+    public static Header27 operator -(uint a, Header27 b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator *(Header27 a, Header27 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static Header27 operator *(Header27 a, Header27 b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator *(Header27 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static Header27 operator *(Header27 a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator *(uint a, Header27 b) => new(unchecked((uint)(a * b.Value)));
+    public static Header27 operator *(uint a, Header27 b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator /(Header27 a, Header27 b) => new((uint)(a.Value / b.Value));
+    public static Header27 operator /(Header27 a, Header27 b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator /(Header27 a, uint b) => new((uint)(a.Value / b));
+    public static Header27 operator /(Header27 a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator /(uint a, Header27 b) => new((uint)(a / b.Value));
+    public static Header27 operator /(uint a, Header27 b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator %(Header27 a, Header27 b) => new((uint)(a.Value % b.Value));
+    public static Header27 operator %(Header27 a, Header27 b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator %(Header27 a, uint b) => new((uint)(a.Value % b));
+    public static Header27 operator %(Header27 a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator %(uint a, Header27 b) => new((uint)(a % b.Value));
+    public static Header27 operator %(uint a, Header27 b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator <<(Header27 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static Header27 operator <<(Header27 a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator >>(Header27 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static Header27 operator >>(Header27 a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator >>>(Header27 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static Header27 operator >>>(Header27 a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(Header27 a, Header27 b) => a.Value < b.Value;
+    public static bool operator <(Header27 a, Header27 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(Header27 a, Header27 b) => a.Value > b.Value;
+    public static bool operator >(Header27 a, Header27 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(Header27 a, Header27 b) => a.Value <= b.Value;
+    public static bool operator <=(Header27 a, Header27 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(Header27 a, Header27 b) => a.Value >= b.Value;
+    public static bool operator >=(Header27 a, Header27 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Header27 a, Header27 b) => a.Value == b.Value;
+    public static bool operator ==(Header27 a, Header27 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Header27 a, Header27 b) => a.Value != b.Value;
+    public static bool operator !=(Header27 a, Header27 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is Header27 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is Header27 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(Header27 value) => value.Value;
+    public static implicit operator uint(Header27 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Header27(uint value) => new(value);
@@ -312,7 +312,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -496,7 +496,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -505,7 +505,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -522,13 +522,13 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <param name="other">A Header27 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Header27 other) => Value.CompareTo(other.Value);
+    public int CompareTo(Header27 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another Header27.</summary>
     /// <param name="other">A Header27 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Header27 other) => Value == other.Value;
+    public bool Equals(Header27 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes Header27 as a string.</summary>
     private sealed class Header27JsonConverter : JsonConverter<Header27>

@@ -19,7 +19,7 @@ public partial class RecordStructViewTests
     public partial struct BitZeroIsMsbRegister : IComparable, IComparable<BitZeroIsMsbRegister>, IEquatable<BitZeroIsMsbRegister>,
                                  IFormattable, ISpanFormattable, IParsable<BitZeroIsMsbRegister>, ISpanParsable<BitZeroIsMsbRegister>
     {
-        private byte Value;
+        private byte __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 1;
@@ -29,69 +29,69 @@ public partial class RecordStructViewTests
 
         // --- Bit field mask constants ---
         // HighNibble: bits [4..7], width 4
-        private const int HIGH_NIBBLE_START_BIT = 4;
-        private const byte HIGH_NIBBLE_MASK = 0x0F;
-        private const byte HIGH_NIBBLE_SHIFTED_MASK = 0xF0;  // HIGH_NIBBLE_MASK << HIGH_NIBBLE_START_BIT
-        private const byte HIGH_NIBBLE_INVERTED_MASK = 0x0F;  // ~HIGH_NIBBLE_SHIFTED_MASK
+        private const int __HIGH_NIBBLE_START_BIT = 4;
+        private const byte __HIGH_NIBBLE_MASK = 0x0F;
+        private const byte __HIGH_NIBBLE_SHIFTED_MASK = 0xF0;  // __HIGH_NIBBLE_MASK << __HIGH_NIBBLE_START_BIT
+        private const byte __HIGH_NIBBLE_INVERTED_MASK = 0x0F;  // ~__HIGH_NIBBLE_SHIFTED_MASK
         // LowNibble: bits [0..3], width 4
-        private const int LOW_NIBBLE_START_BIT = 0;
-        private const byte LOW_NIBBLE_MASK = 0x0F;
-        private const byte LOW_NIBBLE_INVERTED_MASK = 0xF0;  // ~LOW_NIBBLE_MASK
+        private const int __LOW_NIBBLE_START_BIT = 0;
+        private const byte __LOW_NIBBLE_MASK = 0x0F;
+        private const byte __LOW_NIBBLE_INVERTED_MASK = 0xF0;  // ~__LOW_NIBBLE_MASK
         // MsbFlag: bit 7
-        private const int MSB_FLAG_BIT = 7;
-        private const byte MSB_FLAG_MASK = 0x80;  // 1 << MSB_FLAG_BIT
-        private const byte MSB_FLAG_INVERTED_MASK = 0x7F;  // ~MSB_FLAG_MASK
+        private const int __MSB_FLAG_BIT = 7;
+        private const byte __MSB_FLAG_MASK = 0x80;  // 1 << __MSB_FLAG_BIT
+        private const byte __MSB_FLAG_INVERTED_MASK = 0x7F;  // ~__MSB_FLAG_MASK
         // LsbFlag: bit 0
-        private const int LSB_FLAG_BIT = 0;
-        private const byte LSB_FLAG_MASK = 0x01;  // 1 << LSB_FLAG_BIT
-        private const byte LSB_FLAG_INVERTED_MASK = 0xFE;  // ~LSB_FLAG_MASK
+        private const int __LSB_FLAG_BIT = 0;
+        private const byte __LSB_FLAG_MASK = 0x01;  // 1 << __LSB_FLAG_BIT
+        private const byte __LSB_FLAG_INVERTED_MASK = 0xFE;  // ~__LSB_FLAG_MASK
 
         /// <summary>Creates a new BitZeroIsMsbRegister with the specified raw bits value.</summary>
-        public BitZeroIsMsbRegister(byte value) { Value = value; }
+        public BitZeroIsMsbRegister(byte value) { __value = value; }
 
         public partial byte HighNibble
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_MASK);
+            get => (byte)((__value >> __HIGH_NIBBLE_START_BIT) & __HIGH_NIBBLE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | ((((byte)value) << HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_SHIFTED_MASK));
+            set => __value = (byte)((__value & __HIGH_NIBBLE_INVERTED_MASK) | ((((byte)value) << __HIGH_NIBBLE_START_BIT) & __HIGH_NIBBLE_SHIFTED_MASK));
         }
 
         public partial byte LowNibble
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)(Value & LOW_NIBBLE_MASK);
+            get => (byte)(__value & __LOW_NIBBLE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & LOW_NIBBLE_INVERTED_MASK) | (((byte)value) & LOW_NIBBLE_MASK));
+            set => __value = (byte)((__value & __LOW_NIBBLE_INVERTED_MASK) | (((byte)value) & __LOW_NIBBLE_MASK));
         }
 
         public partial bool MsbFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & MSB_FLAG_MASK) != 0;
+            get => (__value & __MSB_FLAG_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | MSB_FLAG_MASK) : (byte)(Value & MSB_FLAG_INVERTED_MASK);
+            set => __value = value ? (byte)(__value | __MSB_FLAG_MASK) : (byte)(__value & __MSB_FLAG_INVERTED_MASK);
         }
 
         public partial bool LsbFlag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & LSB_FLAG_MASK) != 0;
+            get => (__value & __LSB_FLAG_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | LSB_FLAG_MASK) : (byte)(Value & LSB_FLAG_INVERTED_MASK);
+            set => __value = value ? (byte)(__value | __LSB_FLAG_MASK) : (byte)(__value & __LSB_FLAG_INVERTED_MASK);
         }
 
         /// <summary>Returns a BitZeroIsMsbRegister with only the MsbFlag bit set.</summary>
-        public static BitZeroIsMsbRegister MsbFlagBit => new(MSB_FLAG_MASK);
+        public static BitZeroIsMsbRegister MsbFlagBit => new(__MSB_FLAG_MASK);
 
         /// <summary>Returns a BitZeroIsMsbRegister with only the LsbFlag bit set.</summary>
-        public static BitZeroIsMsbRegister LsbFlagBit => new(LSB_FLAG_MASK);
+        public static BitZeroIsMsbRegister LsbFlagBit => new(__LSB_FLAG_MASK);
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the HighNibble field (bits 4-7).</summary>
-        public static BitZeroIsMsbRegister HighNibbleMask => new(HIGH_NIBBLE_SHIFTED_MASK);
+        public static BitZeroIsMsbRegister HighNibbleMask => new(__HIGH_NIBBLE_SHIFTED_MASK);
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the LowNibble field (bits 0-3).</summary>
-        public static BitZeroIsMsbRegister LowNibbleMask => new(LOW_NIBBLE_MASK);
+        public static BitZeroIsMsbRegister LowNibbleMask => new(__LOW_NIBBLE_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -108,35 +108,35 @@ public partial class RecordStructViewTests
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the MsbFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithMsbFlag(bool value) => new(value ? (byte)(Value | MSB_FLAG_MASK) : (byte)(Value & MSB_FLAG_INVERTED_MASK));
+        public BitZeroIsMsbRegister WithMsbFlag(bool value) => new(value ? (byte)(__value | __MSB_FLAG_MASK) : (byte)(__value & __MSB_FLAG_INVERTED_MASK));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the LsbFlag flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithLsbFlag(bool value) => new(value ? (byte)(Value | LSB_FLAG_MASK) : (byte)(Value & LSB_FLAG_INVERTED_MASK));
+        public BitZeroIsMsbRegister WithLsbFlag(bool value) => new(value ? (byte)(__value | __LSB_FLAG_MASK) : (byte)(__value & __LSB_FLAG_INVERTED_MASK));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the HighNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithHighNibble(byte value) => new((byte)((Value & HIGH_NIBBLE_INVERTED_MASK) | (((byte)value << HIGH_NIBBLE_START_BIT) & HIGH_NIBBLE_SHIFTED_MASK)));
+        public BitZeroIsMsbRegister WithHighNibble(byte value) => new((byte)((__value & __HIGH_NIBBLE_INVERTED_MASK) | (((byte)value << __HIGH_NIBBLE_START_BIT) & __HIGH_NIBBLE_SHIFTED_MASK)));
 
         /// <summary>Returns a new BitZeroIsMsbRegister with the LowNibble field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public BitZeroIsMsbRegister WithLowNibble(byte value) => new((byte)((Value & LOW_NIBBLE_INVERTED_MASK) | ((byte)value & LOW_NIBBLE_MASK)));
+        public BitZeroIsMsbRegister WithLowNibble(byte value) => new((byte)((__value & __LOW_NIBBLE_INVERTED_MASK) | ((byte)value & __LOW_NIBBLE_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator ~(BitZeroIsMsbRegister a) => new((byte)~a.Value);
+        public static BitZeroIsMsbRegister operator ~(BitZeroIsMsbRegister a) => new((byte)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator |(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.Value | b.Value));
+        public static BitZeroIsMsbRegister operator |(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator &(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.Value & b.Value));
+        public static BitZeroIsMsbRegister operator &(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator ^(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.Value ^ b.Value));
+        public static BitZeroIsMsbRegister operator ^(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.__value ^ b.__value));
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -144,115 +144,115 @@ public partial class RecordStructViewTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator -(BitZeroIsMsbRegister a) => new(unchecked((byte)(0 - a.Value)));
+        public static BitZeroIsMsbRegister operator -(BitZeroIsMsbRegister a) => new(unchecked((byte)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator +(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a.Value + b.Value)));
+        public static BitZeroIsMsbRegister operator +(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator +(BitZeroIsMsbRegister a, byte b) => new(unchecked((byte)(a.Value + b)));
+        public static BitZeroIsMsbRegister operator +(BitZeroIsMsbRegister a, byte b) => new(unchecked((byte)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator +(byte a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a + b.Value)));
+        public static BitZeroIsMsbRegister operator +(byte a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator -(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a.Value - b.Value)));
+        public static BitZeroIsMsbRegister operator -(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator -(BitZeroIsMsbRegister a, byte b) => new(unchecked((byte)(a.Value - b)));
+        public static BitZeroIsMsbRegister operator -(BitZeroIsMsbRegister a, byte b) => new(unchecked((byte)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator -(byte a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a - b.Value)));
+        public static BitZeroIsMsbRegister operator -(byte a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator *(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a.Value * b.Value)));
+        public static BitZeroIsMsbRegister operator *(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator *(BitZeroIsMsbRegister a, byte b) => new(unchecked((byte)(a.Value * b)));
+        public static BitZeroIsMsbRegister operator *(BitZeroIsMsbRegister a, byte b) => new(unchecked((byte)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator *(byte a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a * b.Value)));
+        public static BitZeroIsMsbRegister operator *(byte a, BitZeroIsMsbRegister b) => new(unchecked((byte)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator /(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.Value / b.Value));
+        public static BitZeroIsMsbRegister operator /(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator /(BitZeroIsMsbRegister a, byte b) => new((byte)(a.Value / b));
+        public static BitZeroIsMsbRegister operator /(BitZeroIsMsbRegister a, byte b) => new((byte)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator /(byte a, BitZeroIsMsbRegister b) => new((byte)(a / b.Value));
+        public static BitZeroIsMsbRegister operator /(byte a, BitZeroIsMsbRegister b) => new((byte)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator %(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.Value % b.Value));
+        public static BitZeroIsMsbRegister operator %(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => new((byte)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator %(BitZeroIsMsbRegister a, byte b) => new((byte)(a.Value % b));
+        public static BitZeroIsMsbRegister operator %(BitZeroIsMsbRegister a, byte b) => new((byte)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BitZeroIsMsbRegister operator %(byte a, BitZeroIsMsbRegister b) => new((byte)(a % b.Value));
+        public static BitZeroIsMsbRegister operator %(byte a, BitZeroIsMsbRegister b) => new((byte)(a % b.__value));
 
         /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(BitZeroIsMsbRegister a, int b) => a.Value << b;
+        public static int operator <<(BitZeroIsMsbRegister a, int b) => a.__value << b;
 
         /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(BitZeroIsMsbRegister a, int b) => a.Value >> b;
+        public static int operator >>(BitZeroIsMsbRegister a, int b) => a.__value >> b;
 
         /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(BitZeroIsMsbRegister a, int b) => a.Value >>> b;
+        public static int operator >>>(BitZeroIsMsbRegister a, int b) => a.__value >>> b;
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.Value < b.Value;
+        public static bool operator <(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.Value > b.Value;
+        public static bool operator >(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.Value <= b.Value;
+        public static bool operator <=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.Value >= b.Value;
+        public static bool operator >=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.Value == b.Value;
+        public static bool operator ==(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.Value != b.Value;
+        public static bool operator !=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is BitZeroIsMsbRegister other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is BitZeroIsMsbRegister other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator byte(BitZeroIsMsbRegister value) => value.Value;
+        public static implicit operator byte(BitZeroIsMsbRegister value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator BitZeroIsMsbRegister(byte value) => new(value);
@@ -284,7 +284,7 @@ public partial class RecordStructViewTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            destination[0] = unchecked((byte)Value);
+            destination[0] = unchecked((byte)__value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -468,7 +468,7 @@ public partial class RecordStructViewTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -477,7 +477,7 @@ public partial class RecordStructViewTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -494,13 +494,13 @@ public partial class RecordStructViewTests
         /// <param name="other">A BitZeroIsMsbRegister to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(BitZeroIsMsbRegister other) => Value.CompareTo(other.Value);
+        public int CompareTo(BitZeroIsMsbRegister other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another BitZeroIsMsbRegister.</summary>
         /// <param name="other">A BitZeroIsMsbRegister to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(BitZeroIsMsbRegister other) => Value == other.Value;
+        public bool Equals(BitZeroIsMsbRegister other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes BitZeroIsMsbRegister as a string.</summary>
         private sealed class BitZeroIsMsbRegisterJsonConverter : JsonConverter<BitZeroIsMsbRegister>

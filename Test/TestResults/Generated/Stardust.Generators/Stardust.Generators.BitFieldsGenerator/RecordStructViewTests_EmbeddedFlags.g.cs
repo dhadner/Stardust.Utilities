@@ -19,7 +19,7 @@ public partial class RecordStructViewTests
     public partial struct EmbeddedFlags : IComparable, IComparable<EmbeddedFlags>, IEquatable<EmbeddedFlags>,
                                  IFormattable, ISpanFormattable, IParsable<EmbeddedFlags>, ISpanParsable<EmbeddedFlags>
     {
-        private byte Value;
+        private byte __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 1;
@@ -29,54 +29,54 @@ public partial class RecordStructViewTests
 
         // --- Bit field mask constants ---
         // Code: bits [4..7], width 4
-        private const int CODE_START_BIT = 4;
-        private const byte CODE_MASK = 0x0F;
-        private const byte CODE_SHIFTED_MASK = 0xF0;  // CODE_MASK << CODE_START_BIT
-        private const byte CODE_INVERTED_MASK = 0x0F;  // ~CODE_SHIFTED_MASK
+        private const int __CODE_START_BIT = 4;
+        private const byte __CODE_MASK = 0x0F;
+        private const byte __CODE_SHIFTED_MASK = 0xF0;  // __CODE_MASK << __CODE_START_BIT
+        private const byte __CODE_INVERTED_MASK = 0x0F;  // ~__CODE_SHIFTED_MASK
         // Active: bit 0
-        private const int ACTIVE_BIT = 0;
-        private const byte ACTIVE_MASK = 0x01;  // 1 << ACTIVE_BIT
-        private const byte ACTIVE_INVERTED_MASK = 0xFE;  // ~ACTIVE_MASK
+        private const int __ACTIVE_BIT = 0;
+        private const byte __ACTIVE_MASK = 0x01;  // 1 << __ACTIVE_BIT
+        private const byte __ACTIVE_INVERTED_MASK = 0xFE;  // ~__ACTIVE_MASK
         // Valid: bit 1
-        private const int VALID_BIT = 1;
-        private const byte VALID_MASK = 0x02;  // 1 << VALID_BIT
-        private const byte VALID_INVERTED_MASK = 0xFD;  // ~VALID_MASK
+        private const int __VALID_BIT = 1;
+        private const byte __VALID_MASK = 0x02;  // 1 << __VALID_BIT
+        private const byte __VALID_INVERTED_MASK = 0xFD;  // ~__VALID_MASK
 
         /// <summary>Creates a new EmbeddedFlags with the specified raw bits value.</summary>
-        public EmbeddedFlags(byte value) { Value = value; }
+        public EmbeddedFlags(byte value) { __value = value; }
 
         public partial byte Code
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> CODE_START_BIT) & CODE_MASK);
+            get => (byte)((__value >> __CODE_START_BIT) & __CODE_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (byte)((Value & CODE_INVERTED_MASK) | ((((byte)value) << CODE_START_BIT) & CODE_SHIFTED_MASK));
+            set => __value = (byte)((__value & __CODE_INVERTED_MASK) | ((((byte)value) << __CODE_START_BIT) & __CODE_SHIFTED_MASK));
         }
 
         public partial bool Active
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & ACTIVE_MASK) != 0;
+            get => (__value & __ACTIVE_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | ACTIVE_MASK) : (byte)(Value & ACTIVE_INVERTED_MASK);
+            set => __value = value ? (byte)(__value | __ACTIVE_MASK) : (byte)(__value & __ACTIVE_INVERTED_MASK);
         }
 
         public partial bool Valid
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & VALID_MASK) != 0;
+            get => (__value & __VALID_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (byte)(Value | VALID_MASK) : (byte)(Value & VALID_INVERTED_MASK);
+            set => __value = value ? (byte)(__value | __VALID_MASK) : (byte)(__value & __VALID_INVERTED_MASK);
         }
 
         /// <summary>Returns a EmbeddedFlags with only the Active bit set.</summary>
-        public static EmbeddedFlags ActiveBit => new(ACTIVE_MASK);
+        public static EmbeddedFlags ActiveBit => new(__ACTIVE_MASK);
 
         /// <summary>Returns a EmbeddedFlags with only the Valid bit set.</summary>
-        public static EmbeddedFlags ValidBit => new(VALID_MASK);
+        public static EmbeddedFlags ValidBit => new(__VALID_MASK);
 
         /// <summary>Returns a EmbeddedFlags with the mask for the Code field (bits 4-7).</summary>
-        public static EmbeddedFlags CodeMask => new(CODE_SHIFTED_MASK);
+        public static EmbeddedFlags CodeMask => new(__CODE_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -92,31 +92,31 @@ public partial class RecordStructViewTests
 
         /// <summary>Returns a new EmbeddedFlags with the Active flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EmbeddedFlags WithActive(bool value) => new(value ? (byte)(Value | ACTIVE_MASK) : (byte)(Value & ACTIVE_INVERTED_MASK));
+        public EmbeddedFlags WithActive(bool value) => new(value ? (byte)(__value | __ACTIVE_MASK) : (byte)(__value & __ACTIVE_INVERTED_MASK));
 
         /// <summary>Returns a new EmbeddedFlags with the Valid flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EmbeddedFlags WithValid(bool value) => new(value ? (byte)(Value | VALID_MASK) : (byte)(Value & VALID_INVERTED_MASK));
+        public EmbeddedFlags WithValid(bool value) => new(value ? (byte)(__value | __VALID_MASK) : (byte)(__value & __VALID_INVERTED_MASK));
 
         /// <summary>Returns a new EmbeddedFlags with the Code field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EmbeddedFlags WithCode(byte value) => new((byte)((Value & CODE_INVERTED_MASK) | (((byte)value << CODE_START_BIT) & CODE_SHIFTED_MASK)));
+        public EmbeddedFlags WithCode(byte value) => new((byte)((__value & __CODE_INVERTED_MASK) | (((byte)value << __CODE_START_BIT) & __CODE_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator ~(EmbeddedFlags a) => new((byte)~a.Value);
+        public static EmbeddedFlags operator ~(EmbeddedFlags a) => new((byte)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator |(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.Value | b.Value));
+        public static EmbeddedFlags operator |(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator &(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.Value & b.Value));
+        public static EmbeddedFlags operator &(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator ^(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.Value ^ b.Value));
+        public static EmbeddedFlags operator ^(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.__value ^ b.__value));
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -124,115 +124,115 @@ public partial class RecordStructViewTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator -(EmbeddedFlags a) => new(unchecked((byte)(0 - a.Value)));
+        public static EmbeddedFlags operator -(EmbeddedFlags a) => new(unchecked((byte)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator +(EmbeddedFlags a, EmbeddedFlags b) => new(unchecked((byte)(a.Value + b.Value)));
+        public static EmbeddedFlags operator +(EmbeddedFlags a, EmbeddedFlags b) => new(unchecked((byte)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator +(EmbeddedFlags a, byte b) => new(unchecked((byte)(a.Value + b)));
+        public static EmbeddedFlags operator +(EmbeddedFlags a, byte b) => new(unchecked((byte)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator +(byte a, EmbeddedFlags b) => new(unchecked((byte)(a + b.Value)));
+        public static EmbeddedFlags operator +(byte a, EmbeddedFlags b) => new(unchecked((byte)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator -(EmbeddedFlags a, EmbeddedFlags b) => new(unchecked((byte)(a.Value - b.Value)));
+        public static EmbeddedFlags operator -(EmbeddedFlags a, EmbeddedFlags b) => new(unchecked((byte)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator -(EmbeddedFlags a, byte b) => new(unchecked((byte)(a.Value - b)));
+        public static EmbeddedFlags operator -(EmbeddedFlags a, byte b) => new(unchecked((byte)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator -(byte a, EmbeddedFlags b) => new(unchecked((byte)(a - b.Value)));
+        public static EmbeddedFlags operator -(byte a, EmbeddedFlags b) => new(unchecked((byte)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator *(EmbeddedFlags a, EmbeddedFlags b) => new(unchecked((byte)(a.Value * b.Value)));
+        public static EmbeddedFlags operator *(EmbeddedFlags a, EmbeddedFlags b) => new(unchecked((byte)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator *(EmbeddedFlags a, byte b) => new(unchecked((byte)(a.Value * b)));
+        public static EmbeddedFlags operator *(EmbeddedFlags a, byte b) => new(unchecked((byte)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator *(byte a, EmbeddedFlags b) => new(unchecked((byte)(a * b.Value)));
+        public static EmbeddedFlags operator *(byte a, EmbeddedFlags b) => new(unchecked((byte)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator /(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.Value / b.Value));
+        public static EmbeddedFlags operator /(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator /(EmbeddedFlags a, byte b) => new((byte)(a.Value / b));
+        public static EmbeddedFlags operator /(EmbeddedFlags a, byte b) => new((byte)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator /(byte a, EmbeddedFlags b) => new((byte)(a / b.Value));
+        public static EmbeddedFlags operator /(byte a, EmbeddedFlags b) => new((byte)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator %(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.Value % b.Value));
+        public static EmbeddedFlags operator %(EmbeddedFlags a, EmbeddedFlags b) => new((byte)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator %(EmbeddedFlags a, byte b) => new((byte)(a.Value % b));
+        public static EmbeddedFlags operator %(EmbeddedFlags a, byte b) => new((byte)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static EmbeddedFlags operator %(byte a, EmbeddedFlags b) => new((byte)(a % b.Value));
+        public static EmbeddedFlags operator %(byte a, EmbeddedFlags b) => new((byte)(a % b.__value));
 
         /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(EmbeddedFlags a, int b) => a.Value << b;
+        public static int operator <<(EmbeddedFlags a, int b) => a.__value << b;
 
         /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(EmbeddedFlags a, int b) => a.Value >> b;
+        public static int operator >>(EmbeddedFlags a, int b) => a.__value >> b;
 
         /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(EmbeddedFlags a, int b) => a.Value >>> b;
+        public static int operator >>>(EmbeddedFlags a, int b) => a.__value >>> b;
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(EmbeddedFlags a, EmbeddedFlags b) => a.Value < b.Value;
+        public static bool operator <(EmbeddedFlags a, EmbeddedFlags b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(EmbeddedFlags a, EmbeddedFlags b) => a.Value > b.Value;
+        public static bool operator >(EmbeddedFlags a, EmbeddedFlags b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(EmbeddedFlags a, EmbeddedFlags b) => a.Value <= b.Value;
+        public static bool operator <=(EmbeddedFlags a, EmbeddedFlags b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(EmbeddedFlags a, EmbeddedFlags b) => a.Value >= b.Value;
+        public static bool operator >=(EmbeddedFlags a, EmbeddedFlags b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(EmbeddedFlags a, EmbeddedFlags b) => a.Value == b.Value;
+        public static bool operator ==(EmbeddedFlags a, EmbeddedFlags b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(EmbeddedFlags a, EmbeddedFlags b) => a.Value != b.Value;
+        public static bool operator !=(EmbeddedFlags a, EmbeddedFlags b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is EmbeddedFlags other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is EmbeddedFlags other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator byte(EmbeddedFlags value) => value.Value;
+        public static implicit operator byte(EmbeddedFlags value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator EmbeddedFlags(byte value) => new(value);
@@ -264,7 +264,7 @@ public partial class RecordStructViewTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            destination[0] = unchecked((byte)Value);
+            destination[0] = unchecked((byte)__value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -448,7 +448,7 @@ public partial class RecordStructViewTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -457,7 +457,7 @@ public partial class RecordStructViewTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -474,13 +474,13 @@ public partial class RecordStructViewTests
         /// <param name="other">A EmbeddedFlags to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(EmbeddedFlags other) => Value.CompareTo(other.Value);
+        public int CompareTo(EmbeddedFlags other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another EmbeddedFlags.</summary>
         /// <param name="other">A EmbeddedFlags to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(EmbeddedFlags other) => Value == other.Value;
+        public bool Equals(EmbeddedFlags other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes EmbeddedFlags as a string.</summary>
         private sealed class EmbeddedFlagsJsonConverter : JsonConverter<EmbeddedFlags>

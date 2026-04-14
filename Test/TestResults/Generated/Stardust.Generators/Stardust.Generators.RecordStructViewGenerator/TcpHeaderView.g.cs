@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Protocols;
 [JsonConverter(typeof(TcpHeaderViewJsonConverter))]
 public partial record struct TcpHeaderView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 20;
@@ -28,8 +28,8 @@ public partial record struct TcpHeaderView
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct TcpHeaderView
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal TcpHeaderView(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial ushort SourcePort
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0));
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -69,15 +69,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(0);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -95,12 +95,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
-            int ep = 16 + _bitOffset;
+            int ep = 16 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -109,15 +109,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(2);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -135,12 +135,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4));
             }
-            int ep = 32 + _bitOffset;
+            int ep = 32 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 31) - bi * 8;
             int sh = 64 - 1 - endInWindow;
@@ -149,15 +149,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(4);
                 BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
-                int ep = 32 + _bitOffset;
+                int ep = 32 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -175,12 +175,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8));
             }
-            int ep = 64 + _bitOffset;
+            int ep = 64 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 31) - bi * 8;
             int sh = 64 - 1 - endInWindow;
@@ -189,15 +189,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(8);
                 BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)value);
             }
             else
             {
-                int ep = 64 + _bitOffset;
+                int ep = 64 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -215,12 +215,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[12] >> 4) & 0x0F);
             }
-            int ep = 96 + _bitOffset;
+            int ep = 96 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -229,14 +229,14 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[12] = (byte)((s[12] & 0x0F) | (((byte)value << 4) & 0xF0));
             }
             else
             {
-                int ep = 96 + _bitOffset;
+                int ep = 96 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -254,12 +254,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[12] >> 1) & 0x07);
             }
-            int ep = 100 + _bitOffset;
+            int ep = 100 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 2) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -268,14 +268,14 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[12] = (byte)((s[12] & 0xF1) | (((byte)value << 1) & 0x0E));
             }
             else
             {
-                int ep = 100 + _bitOffset;
+                int ep = 100 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 2) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -293,12 +293,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(14));
             }
-            int ep = 112 + _bitOffset;
+            int ep = 112 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -307,15 +307,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(14);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 112 + _bitOffset;
+                int ep = 112 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -333,12 +333,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(16));
             }
-            int ep = 128 + _bitOffset;
+            int ep = 128 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -347,15 +347,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(16);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 128 + _bitOffset;
+                int ep = 128 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -373,12 +373,12 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(18));
             }
-            int ep = 144 + _bitOffset;
+            int ep = 144 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -387,15 +387,15 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(18);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 144 + _bitOffset;
+                int ep = 144 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -413,21 +413,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[12] & 0x01) != 0;
-            int ep = 103 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[12] & 0x01) != 0;
+            int ep = 103 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[12] = value ? (byte)(s[12] | 0x01) : (byte)(s[12] & 0xFE);
                 return;
             }
-            int ep = 103 + _bitOffset;
+            int ep = 103 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -439,21 +439,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x80) != 0;
-            int ep = 104 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x80) != 0;
+            int ep = 104 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x80) : (byte)(s[13] & 0x7F);
                 return;
             }
-            int ep = 104 + _bitOffset;
+            int ep = 104 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -465,21 +465,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x40) != 0;
-            int ep = 105 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x40) != 0;
+            int ep = 105 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x40) : (byte)(s[13] & 0xBF);
                 return;
             }
-            int ep = 105 + _bitOffset;
+            int ep = 105 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -491,21 +491,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x20) != 0;
-            int ep = 106 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x20) != 0;
+            int ep = 106 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x20) : (byte)(s[13] & 0xDF);
                 return;
             }
-            int ep = 106 + _bitOffset;
+            int ep = 106 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -517,21 +517,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x10) != 0;
-            int ep = 107 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x10) != 0;
+            int ep = 107 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x10) : (byte)(s[13] & 0xEF);
                 return;
             }
-            int ep = 107 + _bitOffset;
+            int ep = 107 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -543,21 +543,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x08) != 0;
-            int ep = 108 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x08) != 0;
+            int ep = 108 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x08) : (byte)(s[13] & 0xF7);
                 return;
             }
-            int ep = 108 + _bitOffset;
+            int ep = 108 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -569,21 +569,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x04) != 0;
-            int ep = 109 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x04) != 0;
+            int ep = 109 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x04) : (byte)(s[13] & 0xFB);
                 return;
             }
-            int ep = 109 + _bitOffset;
+            int ep = 109 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -595,21 +595,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x02) != 0;
-            int ep = 110 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x02) != 0;
+            int ep = 110 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x02) : (byte)(s[13] & 0xFD);
                 return;
             }
-            int ep = 110 + _bitOffset;
+            int ep = 110 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -621,21 +621,21 @@ public partial record struct TcpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[13] & 0x01) != 0;
-            int ep = 111 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[13] & 0x01) != 0;
+            int ep = 111 + __bitOffset;
             return (s[ep >> 3] & (1 << (7 - (ep & 7)))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[13] = value ? (byte)(s[13] | 0x01) : (byte)(s[13] & 0xFE);
                 return;
             }
-            int ep = 111 + _bitOffset;
+            int ep = 111 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (7 - (ep & 7));
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -691,7 +691,7 @@ public partial record struct TcpHeaderView
         /// <summary>Writes a TcpHeaderView to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, TcpHeaderView value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

@@ -19,7 +19,7 @@ public partial class BitFieldSpecializationTests
     public partial struct DoubleRegister : IComparable, IComparable<DoubleRegister>, IEquatable<DoubleRegister>,
                                  IFormattable, ISpanFormattable, IParsable<DoubleRegister>, ISpanParsable<DoubleRegister>
     {
-        private ulong Value;
+        private ulong __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 8;
@@ -29,21 +29,21 @@ public partial class BitFieldSpecializationTests
 
         // --- Bit field mask constants ---
         // Mantissa: bits [0..51], width 52
-        private const int MANTISSA_START_BIT = 0;
-        private const ulong MANTISSA_MASK = 0x000FFFFFFFFFFFFFUL;
-        private const ulong MANTISSA_INVERTED_MASK = 0xFFF0000000000000UL;  // ~MANTISSA_MASK
+        private const int __MANTISSA_START_BIT = 0;
+        private const ulong __MANTISSA_MASK = 0x000FFFFFFFFFFFFFUL;
+        private const ulong __MANTISSA_INVERTED_MASK = 0xFFF0000000000000UL;  // ~__MANTISSA_MASK
         // Exponent: bits [52..62], width 11
-        private const int EXPONENT_START_BIT = 52;
-        private const ulong EXPONENT_MASK = 0x00000000000007FFUL;
-        private const ulong EXPONENT_SHIFTED_MASK = 0x7FF0000000000000UL;  // EXPONENT_MASK << EXPONENT_START_BIT
-        private const ulong EXPONENT_INVERTED_MASK = 0x800FFFFFFFFFFFFFUL;  // ~EXPONENT_SHIFTED_MASK
+        private const int __EXPONENT_START_BIT = 52;
+        private const ulong __EXPONENT_MASK = 0x00000000000007FFUL;
+        private const ulong __EXPONENT_SHIFTED_MASK = 0x7FF0000000000000UL;  // __EXPONENT_MASK << __EXPONENT_START_BIT
+        private const ulong __EXPONENT_INVERTED_MASK = 0x800FFFFFFFFFFFFFUL;  // ~__EXPONENT_SHIFTED_MASK
         // Sign: bit 63
-        private const int SIGN_BIT = 63;
-        private const ulong SIGN_MASK = 0x8000000000000000UL;  // 1 << SIGN_BIT
-        private const ulong SIGN_INVERTED_MASK = 0x7FFFFFFFFFFFFFFFUL;  // ~SIGN_MASK
+        private const int __SIGN_BIT = 63;
+        private const ulong __SIGN_MASK = 0x8000000000000000UL;  // 1 << __SIGN_BIT
+        private const ulong __SIGN_INVERTED_MASK = 0x7FFFFFFFFFFFFFFFUL;  // ~__SIGN_MASK
 
         /// <summary>Creates a new DoubleRegister with the specified raw bits value.</summary>
-        public DoubleRegister(ulong value) { Value = value; }
+        public DoubleRegister(ulong value) { __value = value; }
 
         /// <summary>Creates a new DoubleRegister from a double value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,35 +52,35 @@ public partial class BitFieldSpecializationTests
         public partial ulong Mantissa
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ulong)(Value & MANTISSA_MASK);
+            get => (ulong)(__value & __MANTISSA_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & MANTISSA_INVERTED_MASK) | (((ulong)value) & MANTISSA_MASK));
+            set => __value = (ulong)((__value & __MANTISSA_INVERTED_MASK) | (((ulong)value) & __MANTISSA_MASK));
         }
 
         public partial ushort Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
+            get => (ushort)((__value >> __EXPONENT_START_BIT) & __EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & EXPONENT_INVERTED_MASK) | ((((ulong)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
+            set => __value = (ulong)((__value & __EXPONENT_INVERTED_MASK) | ((((ulong)value) << __EXPONENT_START_BIT) & __EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & SIGN_MASK) != 0;
+            get => (__value & __SIGN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ulong)(Value | SIGN_MASK) : (ulong)(Value & SIGN_INVERTED_MASK);
+            set => __value = value ? (ulong)(__value | __SIGN_MASK) : (ulong)(__value & __SIGN_INVERTED_MASK);
         }
 
         /// <summary>Returns a DoubleRegister with only the Sign bit set.</summary>
-        public static DoubleRegister SignBit => new(SIGN_MASK);
+        public static DoubleRegister SignBit => new(__SIGN_MASK);
 
         /// <summary>Returns a DoubleRegister with the mask for the Mantissa field (bits 0-51).</summary>
-        public static DoubleRegister MantissaMask => new(MANTISSA_MASK);
+        public static DoubleRegister MantissaMask => new(__MANTISSA_MASK);
 
         /// <summary>Returns a DoubleRegister with the mask for the Exponent field (bits 52-62).</summary>
-        public static DoubleRegister ExponentMask => new(EXPONENT_SHIFTED_MASK);
+        public static DoubleRegister ExponentMask => new(__EXPONENT_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -96,79 +96,79 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new DoubleRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithSign(bool value) => new(value ? (ulong)(Value | SIGN_MASK) : (ulong)(Value & SIGN_INVERTED_MASK));
+        public DoubleRegister WithSign(bool value) => new(value ? (ulong)(__value | __SIGN_MASK) : (ulong)(__value & __SIGN_INVERTED_MASK));
 
         /// <summary>Returns a new DoubleRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithMantissa(ulong value) => new((ulong)((Value & MANTISSA_INVERTED_MASK) | ((ulong)value & MANTISSA_MASK)));
+        public DoubleRegister WithMantissa(ulong value) => new((ulong)((__value & __MANTISSA_INVERTED_MASK) | ((ulong)value & __MANTISSA_MASK)));
 
         /// <summary>Returns a new DoubleRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public DoubleRegister WithExponent(ushort value) => new((ulong)((Value & EXPONENT_INVERTED_MASK) | (((ulong)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
+        public DoubleRegister WithExponent(ushort value) => new((ulong)((__value & __EXPONENT_INVERTED_MASK) | (((ulong)value << __EXPONENT_START_BIT) & __EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator ~(DoubleRegister a) => new((ulong)~a.Value);
+        public static DoubleRegister operator ~(DoubleRegister a) => new((ulong)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator |(DoubleRegister a, DoubleRegister b) => new((ulong)(a.Value | b.Value));
+        public static DoubleRegister operator |(DoubleRegister a, DoubleRegister b) => new((ulong)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator &(DoubleRegister a, DoubleRegister b) => new((ulong)(a.Value & b.Value));
+        public static DoubleRegister operator &(DoubleRegister a, DoubleRegister b) => new((ulong)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator ^(DoubleRegister a, DoubleRegister b) => new((ulong)(a.Value ^ b.Value));
+        public static DoubleRegister operator ^(DoubleRegister a, DoubleRegister b) => new((ulong)(a.__value ^ b.__value));
 
         /// <summary>Bitwise AND operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator &(DoubleRegister a, ulong b) => new(a.Value & b);
+        public static DoubleRegister operator &(DoubleRegister a, ulong b) => new(a.__value & b);
 
         /// <summary>Bitwise AND operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator &(ulong a, DoubleRegister b) => new(a & b.Value);
+        public static DoubleRegister operator &(ulong a, DoubleRegister b) => new(a & b.__value);
 
         /// <summary>Bitwise OR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator |(DoubleRegister a, ulong b) => new(a.Value | b);
+        public static DoubleRegister operator |(DoubleRegister a, ulong b) => new(a.__value | b);
 
         /// <summary>Bitwise OR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator |(ulong a, DoubleRegister b) => new(a | b.Value);
+        public static DoubleRegister operator |(ulong a, DoubleRegister b) => new(a | b.__value);
 
         /// <summary>Bitwise XOR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator ^(DoubleRegister a, ulong b) => new(a.Value ^ b);
+        public static DoubleRegister operator ^(DoubleRegister a, ulong b) => new(a.__value ^ b);
 
         /// <summary>Bitwise XOR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator ^(ulong a, DoubleRegister b) => new(a ^ b.Value);
+        public static DoubleRegister operator ^(ulong a, DoubleRegister b) => new(a ^ b.__value);
 
         /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator &(DoubleRegister a, int b) => a.Value & (ulong)b;
+        public static ulong operator &(DoubleRegister a, int b) => a.__value & (ulong)b;
 
         /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator &(int a, DoubleRegister b) => (ulong)a & b.Value;
+        public static ulong operator &(int a, DoubleRegister b) => (ulong)a & b.__value;
 
         /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator |(DoubleRegister a, int b) => a.Value | (ulong)b;
+        public static ulong operator |(DoubleRegister a, int b) => a.__value | (ulong)b;
 
         /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator |(int a, DoubleRegister b) => (ulong)a | b.Value;
+        public static ulong operator |(int a, DoubleRegister b) => (ulong)a | b.__value;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator ^(DoubleRegister a, int b) => a.Value ^ (ulong)b;
+        public static ulong operator ^(DoubleRegister a, int b) => a.__value ^ (ulong)b;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator ^(int a, DoubleRegister b) => (ulong)a ^ b.Value;
+        public static ulong operator ^(int a, DoubleRegister b) => (ulong)a ^ b.__value;
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,116 +176,116 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Unary negation operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator -(DoubleRegister a) => new(BitConverter.DoubleToUInt64Bits(-BitConverter.UInt64BitsToDouble(a.Value)));
+        public static DoubleRegister operator -(DoubleRegister a) => new(BitConverter.DoubleToUInt64Bits(-BitConverter.UInt64BitsToDouble(a.__value)));
 
         /// <summary>Addition operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator +(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) + BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator +(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) + BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Addition operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator +(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) + b));
+        public static DoubleRegister operator +(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) + b));
 
         /// <summary>Addition operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator +(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a + BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator +(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a + BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Subtraction operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator -(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) - BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator -(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) - BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Subtraction operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator -(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) - b));
+        public static DoubleRegister operator -(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) - b));
 
         /// <summary>Subtraction operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator -(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a - BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator -(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a - BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Multiplication operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator *(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) * BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator *(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) * BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Multiplication operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator *(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) * b));
+        public static DoubleRegister operator *(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) * b));
 
         /// <summary>Multiplication operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator *(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a * BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator *(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a * BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Division operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator /(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) / BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator /(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) / BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Division operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator /(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) / b));
+        public static DoubleRegister operator /(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) / b));
 
         /// <summary>Division operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator /(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a / BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator /(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a / BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Modulus operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator %(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) % BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator %(DoubleRegister a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) % BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Modulus operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator %(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.Value) % b));
+        public static DoubleRegister operator %(DoubleRegister a, double b) => new(BitConverter.DoubleToUInt64Bits(BitConverter.UInt64BitsToDouble(a.__value) % b));
 
         /// <summary>Modulus operator with double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator %(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a % BitConverter.UInt64BitsToDouble(b.Value)));
+        public static DoubleRegister operator %(double a, DoubleRegister b) => new(BitConverter.DoubleToUInt64Bits(a % BitConverter.UInt64BitsToDouble(b.__value)));
 
         /// <summary>Left shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator <<(DoubleRegister a, int b) => new(unchecked((ulong)(a.Value << b)));
+        public static DoubleRegister operator <<(DoubleRegister a, int b) => new(unchecked((ulong)(a.__value << b)));
 
         /// <summary>Right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator >>(DoubleRegister a, int b) => new(unchecked((ulong)(a.Value >> b)));
+        public static DoubleRegister operator >>(DoubleRegister a, int b) => new(unchecked((ulong)(a.__value >> b)));
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DoubleRegister operator >>>(DoubleRegister a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+        public static DoubleRegister operator >>>(DoubleRegister a, int b) => new(unchecked((ulong)(a.__value >>> b)));
 
         /// <summary>Less than operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.Value) < BitConverter.UInt64BitsToDouble(b.Value);
+        public static bool operator <(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.__value) < BitConverter.UInt64BitsToDouble(b.__value);
 
         /// <summary>Greater than operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.Value) > BitConverter.UInt64BitsToDouble(b.Value);
+        public static bool operator >(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.__value) > BitConverter.UInt64BitsToDouble(b.__value);
 
         /// <summary>Less than or equal operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.Value) <= BitConverter.UInt64BitsToDouble(b.Value);
+        public static bool operator <=(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.__value) <= BitConverter.UInt64BitsToDouble(b.__value);
 
         /// <summary>Greater than or equal operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.Value) >= BitConverter.UInt64BitsToDouble(b.Value);
+        public static bool operator >=(DoubleRegister a, DoubleRegister b) => BitConverter.UInt64BitsToDouble(a.__value) >= BitConverter.UInt64BitsToDouble(b.__value);
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(DoubleRegister a, DoubleRegister b) => a.Value == b.Value;
+        public static bool operator ==(DoubleRegister a, DoubleRegister b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(DoubleRegister a, DoubleRegister b) => a.Value != b.Value;
+        public static bool operator !=(DoubleRegister a, DoubleRegister b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is DoubleRegister other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is DoubleRegister other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => BitConverter.UInt64BitsToDouble(Value).ToString();
+        public override string ToString() => BitConverter.UInt64BitsToDouble(__value).ToString();
 
         /// <summary>Implicit conversion to double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator double(DoubleRegister value) => BitConverter.UInt64BitsToDouble(value.Value);
+        public static implicit operator double(DoubleRegister value) => BitConverter.UInt64BitsToDouble(value.__value);
 
         /// <summary>Implicit conversion from double.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -293,7 +293,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Explicit conversion to raw bits (ulong).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ulong(DoubleRegister value) => value.Value;
+        public static explicit operator ulong(DoubleRegister value) => value.__value;
 
         /// <summary>Explicit conversion from raw bits (ulong).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -322,7 +322,7 @@ public partial class BitFieldSpecializationTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -397,7 +397,7 @@ public partial class BitFieldSpecializationTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => BitConverter.UInt64BitsToDouble(Value).ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => BitConverter.UInt64BitsToDouble(__value).ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -406,7 +406,7 @@ public partial class BitFieldSpecializationTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -423,13 +423,13 @@ public partial class BitFieldSpecializationTests
         /// <param name="other">A DoubleRegister to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(DoubleRegister other) => BitConverter.UInt64BitsToDouble(Value).CompareTo(BitConverter.UInt64BitsToDouble(other.Value));
+        public int CompareTo(DoubleRegister other) => BitConverter.UInt64BitsToDouble(__value).CompareTo(BitConverter.UInt64BitsToDouble(other.__value));
 
         /// <summary>Indicates whether this instance is equal to another DoubleRegister.</summary>
         /// <param name="other">A DoubleRegister to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(DoubleRegister other) => Value == other.Value;
+        public bool Equals(DoubleRegister other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes DoubleRegister as a string.</summary>
         private sealed class DoubleRegisterJsonConverter : JsonConverter<DoubleRegister>

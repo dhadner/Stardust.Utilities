@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Tests;
 [JsonConverter(typeof(DescEscapeViewJsonConverter))]
 public partial record struct DescEscapeView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -28,8 +28,8 @@ public partial record struct DescEscapeView
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct DescEscapeView
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal DescEscapeView(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial byte AllAtOnce
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[0] >> 4) & 0x0F);
             }
-            int ep = 4 + _bitOffset;
+            int ep = 4 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x000F);
@@ -68,14 +68,14 @@ public partial record struct DescEscapeView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0x0F) | (((byte)value << 4) & 0xF0));
             }
             else
             {
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -92,21 +92,21 @@ public partial record struct DescEscapeView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[0] & 0x01) != 0;
-            int ep = 0 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[0] & 0x01) != 0;
+            int ep = 0 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = value ? (byte)(s[0] | 0x01) : (byte)(s[0] & 0xFE);
                 return;
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -118,21 +118,21 @@ public partial record struct DescEscapeView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[0] & 0x02) != 0;
-            int ep = 1 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[0] & 0x02) != 0;
+            int ep = 1 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = value ? (byte)(s[0] | 0x02) : (byte)(s[0] & 0xFD);
                 return;
             }
-            int ep = 1 + _bitOffset;
+            int ep = 1 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -144,21 +144,21 @@ public partial record struct DescEscapeView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[0] & 0x04) != 0;
-            int ep = 2 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[0] & 0x04) != 0;
+            int ep = 2 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = value ? (byte)(s[0] | 0x04) : (byte)(s[0] & 0xFB);
                 return;
             }
-            int ep = 2 + _bitOffset;
+            int ep = 2 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -170,21 +170,21 @@ public partial record struct DescEscapeView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[0] & 0x08) != 0;
-            int ep = 3 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[0] & 0x08) != 0;
+            int ep = 3 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = value ? (byte)(s[0] | 0x08) : (byte)(s[0] & 0xF7);
                 return;
             }
-            int ep = 3 + _bitOffset;
+            int ep = 3 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -227,7 +227,7 @@ public partial record struct DescEscapeView
         /// <summary>Writes a DescEscapeView to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, DescEscapeView value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

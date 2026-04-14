@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquatable<RgbColor24>,
                              IFormattable, ISpanFormattable, IParsable<RgbColor24>, ISpanParsable<RgbColor24>
 {
-    private uint Value;
+    private uint __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,58 +27,58 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     // --- Bit field mask constants ---
     // Red: bits [0..7], width 8
-    private const int RED_START_BIT = 0;
-    private const uint RED_MASK = 0x000000FFU;
-    private const uint RED_INVERTED_MASK = 0xFFFFFF00U;  // ~RED_MASK
+    private const int __RED_START_BIT = 0;
+    private const uint __RED_MASK = 0x000000FFU;
+    private const uint __RED_INVERTED_MASK = 0xFFFFFF00U;  // ~__RED_MASK
     // Green: bits [8..15], width 8
-    private const int GREEN_START_BIT = 8;
-    private const uint GREEN_MASK = 0x000000FFU;
-    private const uint GREEN_SHIFTED_MASK = 0x0000FF00U;  // GREEN_MASK << GREEN_START_BIT
-    private const uint GREEN_INVERTED_MASK = 0xFFFF00FFU;  // ~GREEN_SHIFTED_MASK
+    private const int __GREEN_START_BIT = 8;
+    private const uint __GREEN_MASK = 0x000000FFU;
+    private const uint __GREEN_SHIFTED_MASK = 0x0000FF00U;  // __GREEN_MASK << __GREEN_START_BIT
+    private const uint __GREEN_INVERTED_MASK = 0xFFFF00FFU;  // ~__GREEN_SHIFTED_MASK
     // Blue: bits [16..23], width 8
-    private const int BLUE_START_BIT = 16;
-    private const uint BLUE_MASK = 0x000000FFU;
-    private const uint BLUE_SHIFTED_MASK = 0x00FF0000U;  // BLUE_MASK << BLUE_START_BIT
-    private const uint BLUE_INVERTED_MASK = 0xFF00FFFFU;  // ~BLUE_SHIFTED_MASK
+    private const int __BLUE_START_BIT = 16;
+    private const uint __BLUE_MASK = 0x000000FFU;
+    private const uint __BLUE_SHIFTED_MASK = 0x00FF0000U;  // __BLUE_MASK << __BLUE_START_BIT
+    private const uint __BLUE_INVERTED_MASK = 0xFF00FFFFU;  // ~__BLUE_SHIFTED_MASK
 
     // --- Constructor normalization masks ---
-    private const uint NORMALIZATION_AND_MASK = 0x00FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const uint __NORMALIZATION_AND_MASK = 0x00FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
     /// <summary>Creates a new RgbColor24 with the specified raw bits value.</summary>
-    public RgbColor24(uint value) { Value = (uint)(value & NORMALIZATION_AND_MASK); }
+    public RgbColor24(uint value) { __value = (uint)(value & __NORMALIZATION_AND_MASK); }
 
     public partial byte Red
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & RED_MASK);
+        get => (byte)(__value & __RED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & RED_INVERTED_MASK) | (((uint)value) & RED_MASK));
+        set => __value = (uint)((__value & __RED_INVERTED_MASK) | (((uint)value) & __RED_MASK));
     }
 
     public partial byte Green
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> GREEN_START_BIT) & GREEN_MASK);
+        get => (byte)((__value >> __GREEN_START_BIT) & __GREEN_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & GREEN_INVERTED_MASK) | ((((uint)value) << GREEN_START_BIT) & GREEN_SHIFTED_MASK));
+        set => __value = (uint)((__value & __GREEN_INVERTED_MASK) | ((((uint)value) << __GREEN_START_BIT) & __GREEN_SHIFTED_MASK));
     }
 
     public partial byte Blue
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> BLUE_START_BIT) & BLUE_MASK);
+        get => (byte)((__value >> __BLUE_START_BIT) & __BLUE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (uint)((Value & BLUE_INVERTED_MASK) | ((((uint)value) << BLUE_START_BIT) & BLUE_SHIFTED_MASK));
+        set => __value = (uint)((__value & __BLUE_INVERTED_MASK) | ((((uint)value) << __BLUE_START_BIT) & __BLUE_SHIFTED_MASK));
     }
 
     /// <summary>Returns a RgbColor24 with the mask for the Red field (bits 0-7).</summary>
-    public static RgbColor24 RedMask => new(RED_MASK);
+    public static RgbColor24 RedMask => new(__RED_MASK);
 
     /// <summary>Returns a RgbColor24 with the mask for the Green field (bits 8-15).</summary>
-    public static RgbColor24 GreenMask => new(GREEN_SHIFTED_MASK);
+    public static RgbColor24 GreenMask => new(__GREEN_SHIFTED_MASK);
 
     /// <summary>Returns a RgbColor24 with the mask for the Blue field (bits 16-23).</summary>
-    public static RgbColor24 BlueMask => new(BLUE_SHIFTED_MASK);
+    public static RgbColor24 BlueMask => new(__BLUE_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -94,79 +94,79 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     /// <summary>Returns a new RgbColor24 with the Red field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RgbColor24 WithRed(byte value) => new((uint)((Value & RED_INVERTED_MASK) | ((uint)value & RED_MASK)));
+    public RgbColor24 WithRed(byte value) => new((uint)((__value & __RED_INVERTED_MASK) | ((uint)value & __RED_MASK)));
 
     /// <summary>Returns a new RgbColor24 with the Green field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RgbColor24 WithGreen(byte value) => new((uint)((Value & GREEN_INVERTED_MASK) | (((uint)value << GREEN_START_BIT) & GREEN_SHIFTED_MASK)));
+    public RgbColor24 WithGreen(byte value) => new((uint)((__value & __GREEN_INVERTED_MASK) | (((uint)value << __GREEN_START_BIT) & __GREEN_SHIFTED_MASK)));
 
     /// <summary>Returns a new RgbColor24 with the Blue field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RgbColor24 WithBlue(byte value) => new((uint)((Value & BLUE_INVERTED_MASK) | (((uint)value << BLUE_START_BIT) & BLUE_SHIFTED_MASK)));
+    public RgbColor24 WithBlue(byte value) => new((uint)((__value & __BLUE_INVERTED_MASK) | (((uint)value << __BLUE_START_BIT) & __BLUE_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator ~(RgbColor24 a) => new((uint)~a.Value);
+    public static RgbColor24 operator ~(RgbColor24 a) => new((uint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator |(RgbColor24 a, RgbColor24 b) => new((uint)(a.Value | b.Value));
+    public static RgbColor24 operator |(RgbColor24 a, RgbColor24 b) => new((uint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator &(RgbColor24 a, RgbColor24 b) => new((uint)(a.Value & b.Value));
+    public static RgbColor24 operator &(RgbColor24 a, RgbColor24 b) => new((uint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator ^(RgbColor24 a, RgbColor24 b) => new((uint)(a.Value ^ b.Value));
+    public static RgbColor24 operator ^(RgbColor24 a, RgbColor24 b) => new((uint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator &(RgbColor24 a, uint b) => new(a.Value & b);
+    public static RgbColor24 operator &(RgbColor24 a, uint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator &(uint a, RgbColor24 b) => new(a & b.Value);
+    public static RgbColor24 operator &(uint a, RgbColor24 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator |(RgbColor24 a, uint b) => new(a.Value | b);
+    public static RgbColor24 operator |(RgbColor24 a, uint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator |(uint a, RgbColor24 b) => new(a | b.Value);
+    public static RgbColor24 operator |(uint a, RgbColor24 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator ^(RgbColor24 a, uint b) => new(a.Value ^ b);
+    public static RgbColor24 operator ^(RgbColor24 a, uint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with uint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator ^(uint a, RgbColor24 b) => new(a ^ b.Value);
+    public static RgbColor24 operator ^(uint a, RgbColor24 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(RgbColor24 a, int b) => a.Value & (long)b;
+    public static long operator &(RgbColor24 a, int b) => a.__value & (long)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator &(int a, RgbColor24 b) => (long)a & b.Value;
+    public static long operator &(int a, RgbColor24 b) => (long)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(RgbColor24 a, int b) => a.Value | (long)b;
+    public static long operator |(RgbColor24 a, int b) => a.__value | (long)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator |(int a, RgbColor24 b) => (long)a | b.Value;
+    public static long operator |(int a, RgbColor24 b) => (long)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(RgbColor24 a, int b) => a.Value ^ (long)b;
+    public static long operator ^(RgbColor24 a, int b) => a.__value ^ (long)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static long operator ^(int a, RgbColor24 b) => (long)a ^ b.Value;
+    public static long operator ^(int a, RgbColor24 b) => (long)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -174,115 +174,115 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator -(RgbColor24 a) => new(unchecked((uint)(0 - a.Value)));
+    public static RgbColor24 operator -(RgbColor24 a) => new(unchecked((uint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator +(RgbColor24 a, RgbColor24 b) => new(unchecked((uint)(a.Value + b.Value)));
+    public static RgbColor24 operator +(RgbColor24 a, RgbColor24 b) => new(unchecked((uint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator +(RgbColor24 a, uint b) => new(unchecked((uint)(a.Value + b)));
+    public static RgbColor24 operator +(RgbColor24 a, uint b) => new(unchecked((uint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator +(uint a, RgbColor24 b) => new(unchecked((uint)(a + b.Value)));
+    public static RgbColor24 operator +(uint a, RgbColor24 b) => new(unchecked((uint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator -(RgbColor24 a, RgbColor24 b) => new(unchecked((uint)(a.Value - b.Value)));
+    public static RgbColor24 operator -(RgbColor24 a, RgbColor24 b) => new(unchecked((uint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator -(RgbColor24 a, uint b) => new(unchecked((uint)(a.Value - b)));
+    public static RgbColor24 operator -(RgbColor24 a, uint b) => new(unchecked((uint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator -(uint a, RgbColor24 b) => new(unchecked((uint)(a - b.Value)));
+    public static RgbColor24 operator -(uint a, RgbColor24 b) => new(unchecked((uint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator *(RgbColor24 a, RgbColor24 b) => new(unchecked((uint)(a.Value * b.Value)));
+    public static RgbColor24 operator *(RgbColor24 a, RgbColor24 b) => new(unchecked((uint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator *(RgbColor24 a, uint b) => new(unchecked((uint)(a.Value * b)));
+    public static RgbColor24 operator *(RgbColor24 a, uint b) => new(unchecked((uint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator *(uint a, RgbColor24 b) => new(unchecked((uint)(a * b.Value)));
+    public static RgbColor24 operator *(uint a, RgbColor24 b) => new(unchecked((uint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator /(RgbColor24 a, RgbColor24 b) => new((uint)(a.Value / b.Value));
+    public static RgbColor24 operator /(RgbColor24 a, RgbColor24 b) => new((uint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator /(RgbColor24 a, uint b) => new((uint)(a.Value / b));
+    public static RgbColor24 operator /(RgbColor24 a, uint b) => new((uint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator /(uint a, RgbColor24 b) => new((uint)(a / b.Value));
+    public static RgbColor24 operator /(uint a, RgbColor24 b) => new((uint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator %(RgbColor24 a, RgbColor24 b) => new((uint)(a.Value % b.Value));
+    public static RgbColor24 operator %(RgbColor24 a, RgbColor24 b) => new((uint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator %(RgbColor24 a, uint b) => new((uint)(a.Value % b));
+    public static RgbColor24 operator %(RgbColor24 a, uint b) => new((uint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator %(uint a, RgbColor24 b) => new((uint)(a % b.Value));
+    public static RgbColor24 operator %(uint a, RgbColor24 b) => new((uint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator <<(RgbColor24 a, int b) => new(unchecked((uint)(a.Value << b)));
+    public static RgbColor24 operator <<(RgbColor24 a, int b) => new(unchecked((uint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator >>(RgbColor24 a, int b) => new(unchecked((uint)(a.Value >> b)));
+    public static RgbColor24 operator >>(RgbColor24 a, int b) => new(unchecked((uint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator >>>(RgbColor24 a, int b) => new(unchecked((uint)(a.Value >>> b)));
+    public static RgbColor24 operator >>>(RgbColor24 a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(RgbColor24 a, RgbColor24 b) => a.Value < b.Value;
+    public static bool operator <(RgbColor24 a, RgbColor24 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(RgbColor24 a, RgbColor24 b) => a.Value > b.Value;
+    public static bool operator >(RgbColor24 a, RgbColor24 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(RgbColor24 a, RgbColor24 b) => a.Value <= b.Value;
+    public static bool operator <=(RgbColor24 a, RgbColor24 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(RgbColor24 a, RgbColor24 b) => a.Value >= b.Value;
+    public static bool operator >=(RgbColor24 a, RgbColor24 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(RgbColor24 a, RgbColor24 b) => a.Value == b.Value;
+    public static bool operator ==(RgbColor24 a, RgbColor24 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(RgbColor24 a, RgbColor24 b) => a.Value != b.Value;
+    public static bool operator !=(RgbColor24 a, RgbColor24 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is RgbColor24 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is RgbColor24 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(RgbColor24 value) => value.Value;
+    public static implicit operator uint(RgbColor24 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator RgbColor24(uint value) => new(value);
@@ -310,7 +310,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -494,7 +494,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -503,7 +503,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -520,13 +520,13 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="other">A RgbColor24 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(RgbColor24 other) => Value.CompareTo(other.Value);
+    public int CompareTo(RgbColor24 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another RgbColor24.</summary>
     /// <param name="other">A RgbColor24 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(RgbColor24 other) => Value == other.Value;
+    public bool Equals(RgbColor24 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes RgbColor24 as a string.</summary>
     private sealed class RgbColor24JsonConverter : JsonConverter<RgbColor24>

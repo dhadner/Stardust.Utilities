@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEquatable<SignedReg32>,
                              IFormattable, ISpanFormattable, IParsable<SignedReg32>, ISpanParsable<SignedReg32>
 {
-    private int Value;
+    private int __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
@@ -27,70 +27,70 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
 
     // --- Bit field mask constants ---
     // LowWord: bits [1..15], width 15
-    private const int LOW_WORD_START_BIT = 1;
-    private const uint LOW_WORD_MASK = 0x00007FFFU;
-    private const uint LOW_WORD_SHIFTED_MASK = 0x0000FFFEU;  // LOW_WORD_MASK << LOW_WORD_START_BIT
-    private const uint LOW_WORD_INVERTED_MASK = 0xFFFF0001U;  // ~LOW_WORD_SHIFTED_MASK
+    private const int __LOW_WORD_START_BIT = 1;
+    private const uint __LOW_WORD_MASK = 0x00007FFFU;
+    private const uint __LOW_WORD_SHIFTED_MASK = 0x0000FFFEU;  // __LOW_WORD_MASK << __LOW_WORD_START_BIT
+    private const uint __LOW_WORD_INVERTED_MASK = 0xFFFF0001U;  // ~__LOW_WORD_SHIFTED_MASK
     // HighWord: bits [16..30], width 15
-    private const int HIGH_WORD_START_BIT = 16;
-    private const uint HIGH_WORD_MASK = 0x00007FFFU;
-    private const uint HIGH_WORD_SHIFTED_MASK = 0x7FFF0000U;  // HIGH_WORD_MASK << HIGH_WORD_START_BIT
-    private const uint HIGH_WORD_INVERTED_MASK = 0x8000FFFFU;  // ~HIGH_WORD_SHIFTED_MASK
+    private const int __HIGH_WORD_START_BIT = 16;
+    private const uint __HIGH_WORD_MASK = 0x00007FFFU;
+    private const uint __HIGH_WORD_SHIFTED_MASK = 0x7FFF0000U;  // __HIGH_WORD_MASK << __HIGH_WORD_START_BIT
+    private const uint __HIGH_WORD_INVERTED_MASK = 0x8000FFFFU;  // ~__HIGH_WORD_SHIFTED_MASK
     // Flag0: bit 0
-    private const int FLAG0_BIT = 0;
-    private const uint FLAG0_MASK = 0x00000001U;  // 1 << FLAG0_BIT
-    private const uint FLAG0_INVERTED_MASK = 0xFFFFFFFEU;  // ~FLAG0_MASK
+    private const int __FLAG0_BIT = 0;
+    private const uint __FLAG0_MASK = 0x00000001U;  // 1 << __FLAG0_BIT
+    private const uint __FLAG0_INVERTED_MASK = 0xFFFFFFFEU;  // ~__FLAG0_MASK
     // Sign: bit 31
-    private const int SIGN_BIT = 31;
-    private const uint SIGN_MASK = 0x80000000U;  // 1 << SIGN_BIT
-    private const uint SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~SIGN_MASK
+    private const int __SIGN_BIT = 31;
+    private const uint __SIGN_MASK = 0x80000000U;  // 1 << __SIGN_BIT
+    private const uint __SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~__SIGN_MASK
 
     /// <summary>Creates a new SignedReg32 with the specified raw bits value.</summary>
-    public SignedReg32(int value) { Value = value; }
+    public SignedReg32(int value) { __value = value; }
 
     public partial ushort LowWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> LOW_WORD_START_BIT) & LOW_WORD_MASK);
+        get => (ushort)((((uint)__value) >> __LOW_WORD_START_BIT) & __LOW_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << LOW_WORD_START_BIT) & LOW_WORD_SHIFTED_MASK));
+        set => __value = (int)((((uint)__value) & __LOW_WORD_INVERTED_MASK) | ((((uint)value) << __LOW_WORD_START_BIT) & __LOW_WORD_SHIFTED_MASK));
     }
 
     public partial ushort HighWord
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((uint)Value) >> HIGH_WORD_START_BIT) & HIGH_WORD_MASK);
+        get => (ushort)((((uint)__value) >> __HIGH_WORD_START_BIT) & __HIGH_WORD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << HIGH_WORD_START_BIT) & HIGH_WORD_SHIFTED_MASK));
+        set => __value = (int)((((uint)__value) & __HIGH_WORD_INVERTED_MASK) | ((((uint)value) << __HIGH_WORD_START_BIT) & __HIGH_WORD_SHIFTED_MASK));
     }
 
     public partial bool Flag0
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((uint)Value) & FLAG0_MASK) != 0;
+        get => (((uint)__value) & __FLAG0_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (int)(((uint)Value) | FLAG0_MASK) : (int)(((uint)Value) & FLAG0_INVERTED_MASK);
+        set => __value = value ? (int)(((uint)__value) | __FLAG0_MASK) : (int)(((uint)__value) & __FLAG0_INVERTED_MASK);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((uint)Value) & SIGN_MASK) != 0;
+        get => (((uint)__value) & __SIGN_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (int)(((uint)Value) | SIGN_MASK) : (int)(((uint)Value) & SIGN_INVERTED_MASK);
+        set => __value = value ? (int)(((uint)__value) | __SIGN_MASK) : (int)(((uint)__value) & __SIGN_INVERTED_MASK);
     }
 
     /// <summary>Returns a SignedReg32 with only the Flag0 bit set.</summary>
-    public static SignedReg32 Flag0Bit => new(unchecked((int)FLAG0_MASK));
+    public static SignedReg32 Flag0Bit => new(unchecked((int)__FLAG0_MASK));
 
     /// <summary>Returns a SignedReg32 with only the Sign bit set.</summary>
-    public static SignedReg32 SignBit => new(unchecked((int)SIGN_MASK));
+    public static SignedReg32 SignBit => new(unchecked((int)__SIGN_MASK));
 
     /// <summary>Returns a SignedReg32 with the mask for the LowWord field (bits 1-15).</summary>
-    public static SignedReg32 LowWordMask => new(unchecked((int)LOW_WORD_SHIFTED_MASK));
+    public static SignedReg32 LowWordMask => new(unchecked((int)__LOW_WORD_SHIFTED_MASK));
 
     /// <summary>Returns a SignedReg32 with the mask for the HighWord field (bits 16-30).</summary>
-    public static SignedReg32 HighWordMask => new(unchecked((int)HIGH_WORD_SHIFTED_MASK));
+    public static SignedReg32 HighWordMask => new(unchecked((int)__HIGH_WORD_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -107,59 +107,59 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
 
     /// <summary>Returns a new SignedReg32 with the Flag0 flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithFlag0(bool value) => new(value ? (int)(((uint)Value) | FLAG0_MASK) : (int)(((uint)Value) & FLAG0_INVERTED_MASK));
+    public SignedReg32 WithFlag0(bool value) => new(value ? (int)(((uint)__value) | __FLAG0_MASK) : (int)(((uint)__value) & __FLAG0_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg32 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithSign(bool value) => new(value ? (int)(((uint)Value) | SIGN_MASK) : (int)(((uint)Value) & SIGN_INVERTED_MASK));
+    public SignedReg32 WithSign(bool value) => new(value ? (int)(((uint)__value) | __SIGN_MASK) : (int)(((uint)__value) & __SIGN_INVERTED_MASK));
 
     /// <summary>Returns a new SignedReg32 with the LowWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithLowWord(ushort value) => new((int)((((uint)Value) & LOW_WORD_INVERTED_MASK) | ((((uint)value) << LOW_WORD_START_BIT) & LOW_WORD_SHIFTED_MASK)));
+    public SignedReg32 WithLowWord(ushort value) => new((int)((((uint)__value) & __LOW_WORD_INVERTED_MASK) | ((((uint)value) << __LOW_WORD_START_BIT) & __LOW_WORD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedReg32 with the HighWord field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedReg32 WithHighWord(ushort value) => new((int)((((uint)Value) & HIGH_WORD_INVERTED_MASK) | ((((uint)value) << HIGH_WORD_START_BIT) & HIGH_WORD_SHIFTED_MASK)));
+    public SignedReg32 WithHighWord(ushort value) => new((int)((((uint)__value) & __HIGH_WORD_INVERTED_MASK) | ((((uint)value) << __HIGH_WORD_START_BIT) & __HIGH_WORD_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator ~(SignedReg32 a) => new((int)~a.Value);
+    public static SignedReg32 operator ~(SignedReg32 a) => new((int)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator |(SignedReg32 a, SignedReg32 b) => new((int)(a.Value | b.Value));
+    public static SignedReg32 operator |(SignedReg32 a, SignedReg32 b) => new((int)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator &(SignedReg32 a, SignedReg32 b) => new((int)(a.Value & b.Value));
+    public static SignedReg32 operator &(SignedReg32 a, SignedReg32 b) => new((int)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator ^(SignedReg32 a, SignedReg32 b) => new((int)(a.Value ^ b.Value));
+    public static SignedReg32 operator ^(SignedReg32 a, SignedReg32 b) => new((int)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator &(SignedReg32 a, int b) => new(a.Value & b);
+    public static SignedReg32 operator &(SignedReg32 a, int b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator &(int a, SignedReg32 b) => new(a & b.Value);
+    public static SignedReg32 operator &(int a, SignedReg32 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator |(SignedReg32 a, int b) => new(a.Value | b);
+    public static SignedReg32 operator |(SignedReg32 a, int b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator |(int a, SignedReg32 b) => new(a | b.Value);
+    public static SignedReg32 operator |(int a, SignedReg32 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator ^(SignedReg32 a, int b) => new(a.Value ^ b);
+    public static SignedReg32 operator ^(SignedReg32 a, int b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with int.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator ^(int a, SignedReg32 b) => new(a ^ b.Value);
+    public static SignedReg32 operator ^(int a, SignedReg32 b) => new(a ^ b.__value);
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,115 +167,115 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator -(SignedReg32 a) => new(unchecked((int)(-a.Value)));
+    public static SignedReg32 operator -(SignedReg32 a) => new(unchecked((int)(-a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator +(SignedReg32 a, SignedReg32 b) => new(unchecked((int)(a.Value + b.Value)));
+    public static SignedReg32 operator +(SignedReg32 a, SignedReg32 b) => new(unchecked((int)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator +(SignedReg32 a, int b) => new(unchecked((int)(a.Value + b)));
+    public static SignedReg32 operator +(SignedReg32 a, int b) => new(unchecked((int)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator +(int a, SignedReg32 b) => new(unchecked((int)(a + b.Value)));
+    public static SignedReg32 operator +(int a, SignedReg32 b) => new(unchecked((int)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator -(SignedReg32 a, SignedReg32 b) => new(unchecked((int)(a.Value - b.Value)));
+    public static SignedReg32 operator -(SignedReg32 a, SignedReg32 b) => new(unchecked((int)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator -(SignedReg32 a, int b) => new(unchecked((int)(a.Value - b)));
+    public static SignedReg32 operator -(SignedReg32 a, int b) => new(unchecked((int)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator -(int a, SignedReg32 b) => new(unchecked((int)(a - b.Value)));
+    public static SignedReg32 operator -(int a, SignedReg32 b) => new(unchecked((int)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator *(SignedReg32 a, SignedReg32 b) => new(unchecked((int)(a.Value * b.Value)));
+    public static SignedReg32 operator *(SignedReg32 a, SignedReg32 b) => new(unchecked((int)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator *(SignedReg32 a, int b) => new(unchecked((int)(a.Value * b)));
+    public static SignedReg32 operator *(SignedReg32 a, int b) => new(unchecked((int)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator *(int a, SignedReg32 b) => new(unchecked((int)(a * b.Value)));
+    public static SignedReg32 operator *(int a, SignedReg32 b) => new(unchecked((int)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator /(SignedReg32 a, SignedReg32 b) => new((int)(a.Value / b.Value));
+    public static SignedReg32 operator /(SignedReg32 a, SignedReg32 b) => new((int)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator /(SignedReg32 a, int b) => new((int)(a.Value / b));
+    public static SignedReg32 operator /(SignedReg32 a, int b) => new((int)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator /(int a, SignedReg32 b) => new((int)(a / b.Value));
+    public static SignedReg32 operator /(int a, SignedReg32 b) => new((int)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator %(SignedReg32 a, SignedReg32 b) => new((int)(a.Value % b.Value));
+    public static SignedReg32 operator %(SignedReg32 a, SignedReg32 b) => new((int)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator %(SignedReg32 a, int b) => new((int)(a.Value % b));
+    public static SignedReg32 operator %(SignedReg32 a, int b) => new((int)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator %(int a, SignedReg32 b) => new((int)(a % b.Value));
+    public static SignedReg32 operator %(int a, SignedReg32 b) => new((int)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator <<(SignedReg32 a, int b) => new(unchecked((int)(a.Value << b)));
+    public static SignedReg32 operator <<(SignedReg32 a, int b) => new(unchecked((int)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator >>(SignedReg32 a, int b) => new(unchecked((int)(a.Value >> b)));
+    public static SignedReg32 operator >>(SignedReg32 a, int b) => new(unchecked((int)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedReg32 operator >>>(SignedReg32 a, int b) => new(unchecked((int)(a.Value >>> b)));
+    public static SignedReg32 operator >>>(SignedReg32 a, int b) => new(unchecked((int)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SignedReg32 a, SignedReg32 b) => a.Value < b.Value;
+    public static bool operator <(SignedReg32 a, SignedReg32 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SignedReg32 a, SignedReg32 b) => a.Value > b.Value;
+    public static bool operator >(SignedReg32 a, SignedReg32 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SignedReg32 a, SignedReg32 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedReg32 a, SignedReg32 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SignedReg32 a, SignedReg32 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedReg32 a, SignedReg32 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SignedReg32 a, SignedReg32 b) => a.Value == b.Value;
+    public static bool operator ==(SignedReg32 a, SignedReg32 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SignedReg32 a, SignedReg32 b) => a.Value != b.Value;
+    public static bool operator !=(SignedReg32 a, SignedReg32 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SignedReg32 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedReg32 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator int(SignedReg32 value) => value.Value;
+    public static implicit operator int(SignedReg32 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedReg32(int value) => new(value);
@@ -303,7 +303,7 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteInt32LittleEndian(destination, Value);
+        BinaryPrimitives.WriteInt32LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -487,7 +487,7 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -496,7 +496,7 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -513,13 +513,13 @@ public partial struct SignedReg32 : IComparable, IComparable<SignedReg32>, IEqua
     /// <param name="other">A SignedReg32 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SignedReg32 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedReg32 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SignedReg32.</summary>
     /// <param name="other">A SignedReg32 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SignedReg32 other) => Value == other.Value;
+    public bool Equals(SignedReg32 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SignedReg32 as a string.</summary>
     private sealed class SignedReg32JsonConverter : JsonConverter<SignedReg32>

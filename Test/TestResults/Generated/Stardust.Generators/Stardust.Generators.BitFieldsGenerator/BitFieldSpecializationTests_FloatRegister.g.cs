@@ -19,7 +19,7 @@ public partial class BitFieldSpecializationTests
     public partial struct FloatRegister : IComparable, IComparable<FloatRegister>, IEquatable<FloatRegister>,
                                  IFormattable, ISpanFormattable, IParsable<FloatRegister>, ISpanParsable<FloatRegister>
     {
-        private uint Value;
+        private uint __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 4;
@@ -29,21 +29,21 @@ public partial class BitFieldSpecializationTests
 
         // --- Bit field mask constants ---
         // Mantissa: bits [0..22], width 23
-        private const int MANTISSA_START_BIT = 0;
-        private const uint MANTISSA_MASK = 0x007FFFFFU;
-        private const uint MANTISSA_INVERTED_MASK = 0xFF800000U;  // ~MANTISSA_MASK
+        private const int __MANTISSA_START_BIT = 0;
+        private const uint __MANTISSA_MASK = 0x007FFFFFU;
+        private const uint __MANTISSA_INVERTED_MASK = 0xFF800000U;  // ~__MANTISSA_MASK
         // Exponent: bits [23..30], width 8
-        private const int EXPONENT_START_BIT = 23;
-        private const uint EXPONENT_MASK = 0x000000FFU;
-        private const uint EXPONENT_SHIFTED_MASK = 0x7F800000U;  // EXPONENT_MASK << EXPONENT_START_BIT
-        private const uint EXPONENT_INVERTED_MASK = 0x807FFFFFU;  // ~EXPONENT_SHIFTED_MASK
+        private const int __EXPONENT_START_BIT = 23;
+        private const uint __EXPONENT_MASK = 0x000000FFU;
+        private const uint __EXPONENT_SHIFTED_MASK = 0x7F800000U;  // __EXPONENT_MASK << __EXPONENT_START_BIT
+        private const uint __EXPONENT_INVERTED_MASK = 0x807FFFFFU;  // ~__EXPONENT_SHIFTED_MASK
         // Sign: bit 31
-        private const int SIGN_BIT = 31;
-        private const uint SIGN_MASK = 0x80000000U;  // 1 << SIGN_BIT
-        private const uint SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~SIGN_MASK
+        private const int __SIGN_BIT = 31;
+        private const uint __SIGN_MASK = 0x80000000U;  // 1 << __SIGN_BIT
+        private const uint __SIGN_INVERTED_MASK = 0x7FFFFFFFU;  // ~__SIGN_MASK
 
         /// <summary>Creates a new FloatRegister with the specified raw bits value.</summary>
-        public FloatRegister(uint value) { Value = value; }
+        public FloatRegister(uint value) { __value = value; }
 
         /// <summary>Creates a new FloatRegister from a float value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,35 +52,35 @@ public partial class BitFieldSpecializationTests
         public partial uint Mantissa
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (uint)(Value & MANTISSA_MASK);
+            get => (uint)(__value & __MANTISSA_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & MANTISSA_INVERTED_MASK) | (((uint)value) & MANTISSA_MASK));
+            set => __value = (uint)((__value & __MANTISSA_INVERTED_MASK) | (((uint)value) & __MANTISSA_MASK));
         }
 
         public partial byte Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
+            get => (byte)((__value >> __EXPONENT_START_BIT) & __EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (uint)((Value & EXPONENT_INVERTED_MASK) | ((((uint)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
+            set => __value = (uint)((__value & __EXPONENT_INVERTED_MASK) | ((((uint)value) << __EXPONENT_START_BIT) & __EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & SIGN_MASK) != 0;
+            get => (__value & __SIGN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (uint)(Value | SIGN_MASK) : (uint)(Value & SIGN_INVERTED_MASK);
+            set => __value = value ? (uint)(__value | __SIGN_MASK) : (uint)(__value & __SIGN_INVERTED_MASK);
         }
 
         /// <summary>Returns a FloatRegister with only the Sign bit set.</summary>
-        public static FloatRegister SignBit => new(SIGN_MASK);
+        public static FloatRegister SignBit => new(__SIGN_MASK);
 
         /// <summary>Returns a FloatRegister with the mask for the Mantissa field (bits 0-22).</summary>
-        public static FloatRegister MantissaMask => new(MANTISSA_MASK);
+        public static FloatRegister MantissaMask => new(__MANTISSA_MASK);
 
         /// <summary>Returns a FloatRegister with the mask for the Exponent field (bits 23-30).</summary>
-        public static FloatRegister ExponentMask => new(EXPONENT_SHIFTED_MASK);
+        public static FloatRegister ExponentMask => new(__EXPONENT_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -96,79 +96,79 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new FloatRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithSign(bool value) => new(value ? (uint)(Value | SIGN_MASK) : (uint)(Value & SIGN_INVERTED_MASK));
+        public FloatRegister WithSign(bool value) => new(value ? (uint)(__value | __SIGN_MASK) : (uint)(__value & __SIGN_INVERTED_MASK));
 
         /// <summary>Returns a new FloatRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithMantissa(uint value) => new((uint)((Value & MANTISSA_INVERTED_MASK) | ((uint)value & MANTISSA_MASK)));
+        public FloatRegister WithMantissa(uint value) => new((uint)((__value & __MANTISSA_INVERTED_MASK) | ((uint)value & __MANTISSA_MASK)));
 
         /// <summary>Returns a new FloatRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatRegister WithExponent(byte value) => new((uint)((Value & EXPONENT_INVERTED_MASK) | (((uint)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
+        public FloatRegister WithExponent(byte value) => new((uint)((__value & __EXPONENT_INVERTED_MASK) | (((uint)value << __EXPONENT_START_BIT) & __EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator ~(FloatRegister a) => new((uint)~a.Value);
+        public static FloatRegister operator ~(FloatRegister a) => new((uint)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator |(FloatRegister a, FloatRegister b) => new((uint)(a.Value | b.Value));
+        public static FloatRegister operator |(FloatRegister a, FloatRegister b) => new((uint)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator &(FloatRegister a, FloatRegister b) => new((uint)(a.Value & b.Value));
+        public static FloatRegister operator &(FloatRegister a, FloatRegister b) => new((uint)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator ^(FloatRegister a, FloatRegister b) => new((uint)(a.Value ^ b.Value));
+        public static FloatRegister operator ^(FloatRegister a, FloatRegister b) => new((uint)(a.__value ^ b.__value));
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator &(FloatRegister a, uint b) => new(a.Value & b);
+        public static FloatRegister operator &(FloatRegister a, uint b) => new(a.__value & b);
 
         /// <summary>Bitwise AND operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator &(uint a, FloatRegister b) => new(a & b.Value);
+        public static FloatRegister operator &(uint a, FloatRegister b) => new(a & b.__value);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator |(FloatRegister a, uint b) => new(a.Value | b);
+        public static FloatRegister operator |(FloatRegister a, uint b) => new(a.__value | b);
 
         /// <summary>Bitwise OR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator |(uint a, FloatRegister b) => new(a | b.Value);
+        public static FloatRegister operator |(uint a, FloatRegister b) => new(a | b.__value);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator ^(FloatRegister a, uint b) => new(a.Value ^ b);
+        public static FloatRegister operator ^(FloatRegister a, uint b) => new(a.__value ^ b);
 
         /// <summary>Bitwise XOR operator with uint.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator ^(uint a, FloatRegister b) => new(a ^ b.Value);
+        public static FloatRegister operator ^(uint a, FloatRegister b) => new(a ^ b.__value);
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(FloatRegister a, int b) => a.Value & (long)b;
+        public static long operator &(FloatRegister a, int b) => a.__value & (long)b;
 
         /// <summary>Bitwise AND operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator &(int a, FloatRegister b) => (long)a & b.Value;
+        public static long operator &(int a, FloatRegister b) => (long)a & b.__value;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(FloatRegister a, int b) => a.Value | (long)b;
+        public static long operator |(FloatRegister a, int b) => a.__value | (long)b;
 
         /// <summary>Bitwise OR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator |(int a, FloatRegister b) => (long)a | b.Value;
+        public static long operator |(int a, FloatRegister b) => (long)a | b.__value;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(FloatRegister a, int b) => a.Value ^ (long)b;
+        public static long operator ^(FloatRegister a, int b) => a.__value ^ (long)b;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns long for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long operator ^(int a, FloatRegister b) => (long)a ^ b.Value;
+        public static long operator ^(int a, FloatRegister b) => (long)a ^ b.__value;
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,116 +176,116 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Unary negation operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator -(FloatRegister a) => new(BitConverter.SingleToUInt32Bits(-BitConverter.UInt32BitsToSingle(a.Value)));
+        public static FloatRegister operator -(FloatRegister a) => new(BitConverter.SingleToUInt32Bits(-BitConverter.UInt32BitsToSingle(a.__value)));
 
         /// <summary>Addition operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator +(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) + BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator +(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) + BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Addition operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator +(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) + b));
+        public static FloatRegister operator +(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) + b));
 
         /// <summary>Addition operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator +(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a + BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator +(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a + BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Subtraction operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator -(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) - BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator -(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) - BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Subtraction operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator -(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) - b));
+        public static FloatRegister operator -(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) - b));
 
         /// <summary>Subtraction operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator -(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a - BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator -(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a - BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Multiplication operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator *(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) * BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator *(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) * BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Multiplication operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator *(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) * b));
+        public static FloatRegister operator *(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) * b));
 
         /// <summary>Multiplication operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator *(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a * BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator *(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a * BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Division operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator /(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) / BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator /(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) / BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Division operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator /(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) / b));
+        public static FloatRegister operator /(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) / b));
 
         /// <summary>Division operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator /(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a / BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator /(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a / BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Modulus operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator %(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) % BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator %(FloatRegister a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) % BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Modulus operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator %(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.Value) % b));
+        public static FloatRegister operator %(FloatRegister a, float b) => new(BitConverter.SingleToUInt32Bits(BitConverter.UInt32BitsToSingle(a.__value) % b));
 
         /// <summary>Modulus operator with float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator %(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a % BitConverter.UInt32BitsToSingle(b.Value)));
+        public static FloatRegister operator %(float a, FloatRegister b) => new(BitConverter.SingleToUInt32Bits(a % BitConverter.UInt32BitsToSingle(b.__value)));
 
         /// <summary>Left shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator <<(FloatRegister a, int b) => new(unchecked((uint)(a.Value << b)));
+        public static FloatRegister operator <<(FloatRegister a, int b) => new(unchecked((uint)(a.__value << b)));
 
         /// <summary>Right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator >>(FloatRegister a, int b) => new(unchecked((uint)(a.Value >> b)));
+        public static FloatRegister operator >>(FloatRegister a, int b) => new(unchecked((uint)(a.__value >> b)));
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatRegister operator >>>(FloatRegister a, int b) => new(unchecked((uint)(a.Value >>> b)));
+        public static FloatRegister operator >>>(FloatRegister a, int b) => new(unchecked((uint)(a.__value >>> b)));
 
         /// <summary>Less than operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.Value) < BitConverter.UInt32BitsToSingle(b.Value);
+        public static bool operator <(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.__value) < BitConverter.UInt32BitsToSingle(b.__value);
 
         /// <summary>Greater than operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.Value) > BitConverter.UInt32BitsToSingle(b.Value);
+        public static bool operator >(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.__value) > BitConverter.UInt32BitsToSingle(b.__value);
 
         /// <summary>Less than or equal operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.Value) <= BitConverter.UInt32BitsToSingle(b.Value);
+        public static bool operator <=(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.__value) <= BitConverter.UInt32BitsToSingle(b.__value);
 
         /// <summary>Greater than or equal operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.Value) >= BitConverter.UInt32BitsToSingle(b.Value);
+        public static bool operator >=(FloatRegister a, FloatRegister b) => BitConverter.UInt32BitsToSingle(a.__value) >= BitConverter.UInt32BitsToSingle(b.__value);
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(FloatRegister a, FloatRegister b) => a.Value == b.Value;
+        public static bool operator ==(FloatRegister a, FloatRegister b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(FloatRegister a, FloatRegister b) => a.Value != b.Value;
+        public static bool operator !=(FloatRegister a, FloatRegister b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is FloatRegister other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is FloatRegister other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => BitConverter.UInt32BitsToSingle(Value).ToString();
+        public override string ToString() => BitConverter.UInt32BitsToSingle(__value).ToString();
 
         /// <summary>Implicit conversion to float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator float(FloatRegister value) => BitConverter.UInt32BitsToSingle(value.Value);
+        public static implicit operator float(FloatRegister value) => BitConverter.UInt32BitsToSingle(value.__value);
 
         /// <summary>Implicit conversion from float.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -293,7 +293,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Explicit conversion to raw bits (uint).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator uint(FloatRegister value) => value.Value;
+        public static explicit operator uint(FloatRegister value) => value.__value;
 
         /// <summary>Explicit conversion from raw bits (uint).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -322,7 +322,7 @@ public partial class BitFieldSpecializationTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt32LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -397,7 +397,7 @@ public partial class BitFieldSpecializationTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => BitConverter.UInt32BitsToSingle(Value).ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => BitConverter.UInt32BitsToSingle(__value).ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -406,7 +406,7 @@ public partial class BitFieldSpecializationTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -423,13 +423,13 @@ public partial class BitFieldSpecializationTests
         /// <param name="other">A FloatRegister to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(FloatRegister other) => BitConverter.UInt32BitsToSingle(Value).CompareTo(BitConverter.UInt32BitsToSingle(other.Value));
+        public int CompareTo(FloatRegister other) => BitConverter.UInt32BitsToSingle(__value).CompareTo(BitConverter.UInt32BitsToSingle(other.__value));
 
         /// <summary>Indicates whether this instance is equal to another FloatRegister.</summary>
         /// <param name="other">A FloatRegister to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(FloatRegister other) => Value == other.Value;
+        public bool Equals(FloatRegister other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes FloatRegister as a string.</summary>
         private sealed class FloatRegisterJsonConverter : JsonConverter<FloatRegister>

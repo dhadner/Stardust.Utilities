@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEquatable<StatusFlags>,
                              IFormattable, ISpanFormattable, IParsable<StatusFlags>, ISpanParsable<StatusFlags>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,84 +27,84 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
 
     // --- Bit field mask constants ---
     // Priority: bits [4..7], width 4
-    private const int PRIORITY_START_BIT = 4;
-    private const byte PRIORITY_MASK = 0x0F;
-    private const byte PRIORITY_SHIFTED_MASK = 0xF0;  // PRIORITY_MASK << PRIORITY_START_BIT
-    private const byte PRIORITY_INVERTED_MASK = 0x0F;  // ~PRIORITY_SHIFTED_MASK
+    private const int __PRIORITY_START_BIT = 4;
+    private const byte __PRIORITY_MASK = 0x0F;
+    private const byte __PRIORITY_SHIFTED_MASK = 0xF0;  // __PRIORITY_MASK << __PRIORITY_START_BIT
+    private const byte __PRIORITY_INVERTED_MASK = 0x0F;  // ~__PRIORITY_SHIFTED_MASK
     // Ready: bit 0
-    private const int READY_BIT = 0;
-    private const byte READY_MASK = 0x01;  // 1 << READY_BIT
-    private const byte READY_INVERTED_MASK = 0xFE;  // ~READY_MASK
+    private const int __READY_BIT = 0;
+    private const byte __READY_MASK = 0x01;  // 1 << __READY_BIT
+    private const byte __READY_INVERTED_MASK = 0xFE;  // ~__READY_MASK
     // Error: bit 1
-    private const int ERROR_BIT = 1;
-    private const byte ERROR_MASK = 0x02;  // 1 << ERROR_BIT
-    private const byte ERROR_INVERTED_MASK = 0xFD;  // ~ERROR_MASK
+    private const int __ERROR_BIT = 1;
+    private const byte __ERROR_MASK = 0x02;  // 1 << __ERROR_BIT
+    private const byte __ERROR_INVERTED_MASK = 0xFD;  // ~__ERROR_MASK
     // Busy: bit 2
-    private const int BUSY_BIT = 2;
-    private const byte BUSY_MASK = 0x04;  // 1 << BUSY_BIT
-    private const byte BUSY_INVERTED_MASK = 0xFB;  // ~BUSY_MASK
+    private const int __BUSY_BIT = 2;
+    private const byte __BUSY_MASK = 0x04;  // 1 << __BUSY_BIT
+    private const byte __BUSY_INVERTED_MASK = 0xFB;  // ~__BUSY_MASK
     // Complete: bit 3
-    private const int COMPLETE_BIT = 3;
-    private const byte COMPLETE_MASK = 0x08;  // 1 << COMPLETE_BIT
-    private const byte COMPLETE_INVERTED_MASK = 0xF7;  // ~COMPLETE_MASK
+    private const int __COMPLETE_BIT = 3;
+    private const byte __COMPLETE_MASK = 0x08;  // 1 << __COMPLETE_BIT
+    private const byte __COMPLETE_INVERTED_MASK = 0xF7;  // ~__COMPLETE_MASK
 
     /// <summary>Creates a new StatusFlags with the specified raw bits value.</summary>
-    public StatusFlags(byte value) { Value = value; }
+    public StatusFlags(byte value) { __value = value; }
 
     public partial byte Priority
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> PRIORITY_START_BIT) & PRIORITY_MASK);
+        get => (byte)((__value >> __PRIORITY_START_BIT) & __PRIORITY_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & PRIORITY_INVERTED_MASK) | ((((byte)value) << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK));
+        set => __value = (byte)((__value & __PRIORITY_INVERTED_MASK) | ((((byte)value) << __PRIORITY_START_BIT) & __PRIORITY_SHIFTED_MASK));
     }
 
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & READY_MASK) != 0;
+        get => (__value & __READY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __READY_MASK) : (byte)(__value & __READY_INVERTED_MASK);
     }
 
     public partial bool Error
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & ERROR_MASK) != 0;
+        get => (__value & __ERROR_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __ERROR_MASK) : (byte)(__value & __ERROR_INVERTED_MASK);
     }
 
     public partial bool Busy
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & BUSY_MASK) != 0;
+        get => (__value & __BUSY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __BUSY_MASK) : (byte)(__value & __BUSY_INVERTED_MASK);
     }
 
     public partial bool Complete
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & COMPLETE_MASK) != 0;
+        get => (__value & __COMPLETE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | COMPLETE_MASK) : (byte)(Value & COMPLETE_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __COMPLETE_MASK) : (byte)(__value & __COMPLETE_INVERTED_MASK);
     }
 
     /// <summary>Returns a StatusFlags with only the Ready bit set.</summary>
-    public static StatusFlags ReadyBit => new(READY_MASK);
+    public static StatusFlags ReadyBit => new(__READY_MASK);
 
     /// <summary>Returns a StatusFlags with only the Error bit set.</summary>
-    public static StatusFlags ErrorBit => new(ERROR_MASK);
+    public static StatusFlags ErrorBit => new(__ERROR_MASK);
 
     /// <summary>Returns a StatusFlags with only the Busy bit set.</summary>
-    public static StatusFlags BusyBit => new(BUSY_MASK);
+    public static StatusFlags BusyBit => new(__BUSY_MASK);
 
     /// <summary>Returns a StatusFlags with only the Complete bit set.</summary>
-    public static StatusFlags CompleteBit => new(COMPLETE_MASK);
+    public static StatusFlags CompleteBit => new(__COMPLETE_MASK);
 
     /// <summary>Returns a StatusFlags with the mask for the Priority field (bits 4-7).</summary>
-    public static StatusFlags PriorityMask => new(PRIORITY_SHIFTED_MASK);
+    public static StatusFlags PriorityMask => new(__PRIORITY_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -122,39 +122,39 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
 
     /// <summary>Returns a new StatusFlags with the Ready flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithReady(bool value) => new(value ? (byte)(Value | READY_MASK) : (byte)(Value & READY_INVERTED_MASK));
+    public StatusFlags WithReady(bool value) => new(value ? (byte)(__value | __READY_MASK) : (byte)(__value & __READY_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Error flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithError(bool value) => new(value ? (byte)(Value | ERROR_MASK) : (byte)(Value & ERROR_INVERTED_MASK));
+    public StatusFlags WithError(bool value) => new(value ? (byte)(__value | __ERROR_MASK) : (byte)(__value & __ERROR_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Busy flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithBusy(bool value) => new(value ? (byte)(Value | BUSY_MASK) : (byte)(Value & BUSY_INVERTED_MASK));
+    public StatusFlags WithBusy(bool value) => new(value ? (byte)(__value | __BUSY_MASK) : (byte)(__value & __BUSY_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Complete flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithComplete(bool value) => new(value ? (byte)(Value | COMPLETE_MASK) : (byte)(Value & COMPLETE_INVERTED_MASK));
+    public StatusFlags WithComplete(bool value) => new(value ? (byte)(__value | __COMPLETE_MASK) : (byte)(__value & __COMPLETE_INVERTED_MASK));
 
     /// <summary>Returns a new StatusFlags with the Priority field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public StatusFlags WithPriority(byte value) => new((byte)((Value & PRIORITY_INVERTED_MASK) | (((byte)value << PRIORITY_START_BIT) & PRIORITY_SHIFTED_MASK)));
+    public StatusFlags WithPriority(byte value) => new((byte)((__value & __PRIORITY_INVERTED_MASK) | (((byte)value << __PRIORITY_START_BIT) & __PRIORITY_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator ~(StatusFlags a) => new((byte)~a.Value);
+    public static StatusFlags operator ~(StatusFlags a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator |(StatusFlags a, StatusFlags b) => new((byte)(a.Value | b.Value));
+    public static StatusFlags operator |(StatusFlags a, StatusFlags b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator &(StatusFlags a, StatusFlags b) => new((byte)(a.Value & b.Value));
+    public static StatusFlags operator &(StatusFlags a, StatusFlags b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator ^(StatusFlags a, StatusFlags b) => new((byte)(a.Value ^ b.Value));
+    public static StatusFlags operator ^(StatusFlags a, StatusFlags b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -162,115 +162,115 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator -(StatusFlags a) => new(unchecked((byte)(0 - a.Value)));
+    public static StatusFlags operator -(StatusFlags a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator +(StatusFlags a, StatusFlags b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static StatusFlags operator +(StatusFlags a, StatusFlags b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator +(StatusFlags a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static StatusFlags operator +(StatusFlags a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator +(byte a, StatusFlags b) => new(unchecked((byte)(a + b.Value)));
+    public static StatusFlags operator +(byte a, StatusFlags b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator -(StatusFlags a, StatusFlags b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static StatusFlags operator -(StatusFlags a, StatusFlags b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator -(StatusFlags a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static StatusFlags operator -(StatusFlags a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator -(byte a, StatusFlags b) => new(unchecked((byte)(a - b.Value)));
+    public static StatusFlags operator -(byte a, StatusFlags b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator *(StatusFlags a, StatusFlags b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static StatusFlags operator *(StatusFlags a, StatusFlags b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator *(StatusFlags a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static StatusFlags operator *(StatusFlags a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator *(byte a, StatusFlags b) => new(unchecked((byte)(a * b.Value)));
+    public static StatusFlags operator *(byte a, StatusFlags b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator /(StatusFlags a, StatusFlags b) => new((byte)(a.Value / b.Value));
+    public static StatusFlags operator /(StatusFlags a, StatusFlags b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator /(StatusFlags a, byte b) => new((byte)(a.Value / b));
+    public static StatusFlags operator /(StatusFlags a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator /(byte a, StatusFlags b) => new((byte)(a / b.Value));
+    public static StatusFlags operator /(byte a, StatusFlags b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator %(StatusFlags a, StatusFlags b) => new((byte)(a.Value % b.Value));
+    public static StatusFlags operator %(StatusFlags a, StatusFlags b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator %(StatusFlags a, byte b) => new((byte)(a.Value % b));
+    public static StatusFlags operator %(StatusFlags a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static StatusFlags operator %(byte a, StatusFlags b) => new((byte)(a % b.Value));
+    public static StatusFlags operator %(byte a, StatusFlags b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(StatusFlags a, int b) => a.Value << b;
+    public static int operator <<(StatusFlags a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(StatusFlags a, int b) => a.Value >> b;
+    public static int operator >>(StatusFlags a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(StatusFlags a, int b) => a.Value >>> b;
+    public static int operator >>>(StatusFlags a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(StatusFlags a, StatusFlags b) => a.Value < b.Value;
+    public static bool operator <(StatusFlags a, StatusFlags b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(StatusFlags a, StatusFlags b) => a.Value > b.Value;
+    public static bool operator >(StatusFlags a, StatusFlags b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(StatusFlags a, StatusFlags b) => a.Value <= b.Value;
+    public static bool operator <=(StatusFlags a, StatusFlags b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(StatusFlags a, StatusFlags b) => a.Value >= b.Value;
+    public static bool operator >=(StatusFlags a, StatusFlags b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(StatusFlags a, StatusFlags b) => a.Value == b.Value;
+    public static bool operator ==(StatusFlags a, StatusFlags b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(StatusFlags a, StatusFlags b) => a.Value != b.Value;
+    public static bool operator !=(StatusFlags a, StatusFlags b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is StatusFlags other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is StatusFlags other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(StatusFlags value) => value.Value;
+    public static implicit operator byte(StatusFlags value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator StatusFlags(byte value) => new(value);
@@ -302,7 +302,7 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -486,7 +486,7 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -495,7 +495,7 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -512,13 +512,13 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <param name="other">A StatusFlags to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(StatusFlags other) => Value.CompareTo(other.Value);
+    public int CompareTo(StatusFlags other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another StatusFlags.</summary>
     /// <param name="other">A StatusFlags to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(StatusFlags other) => Value == other.Value;
+    public bool Equals(StatusFlags other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes StatusFlags as a string.</summary>
     private sealed class StatusFlagsJsonConverter : JsonConverter<StatusFlags>

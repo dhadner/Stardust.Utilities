@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGappyRegister>, IEquatable<DiagramGappyRegister>,
                              IFormattable, ISpanFormattable, IParsable<DiagramGappyRegister>, ISpanParsable<DiagramGappyRegister>
 {
-    private ushort Value;
+    private ushort __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
@@ -27,42 +27,42 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     // --- Bit field mask constants ---
     // TypeCode: bits [0..3], width 4
-    private const int TYPE_CODE_START_BIT = 0;
-    private const ushort TYPE_CODE_MASK = 0x000F;
-    private const ushort TYPE_CODE_INVERTED_MASK = 0xFFF0;  // ~TYPE_CODE_MASK
+    private const int __TYPE_CODE_START_BIT = 0;
+    private const ushort __TYPE_CODE_MASK = 0x000F;
+    private const ushort __TYPE_CODE_INVERTED_MASK = 0xFFF0;  // ~__TYPE_CODE_MASK
     // Version: bits [12..15], width 4
-    private const int VERSION_START_BIT = 12;
-    private const ushort VERSION_MASK = 0x000F;
-    private const ushort VERSION_SHIFTED_MASK = 0xF000;  // VERSION_MASK << VERSION_START_BIT
-    private const ushort VERSION_INVERTED_MASK = 0x0FFF;  // ~VERSION_SHIFTED_MASK
+    private const int __VERSION_START_BIT = 12;
+    private const ushort __VERSION_MASK = 0x000F;
+    private const ushort __VERSION_SHIFTED_MASK = 0xF000;  // __VERSION_MASK << __VERSION_START_BIT
+    private const ushort __VERSION_INVERTED_MASK = 0x0FFF;  // ~__VERSION_SHIFTED_MASK
 
     // --- Constructor normalization masks ---
-    private const ushort NORMALIZATION_AND_MASK = 0xF00F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const ushort __NORMALIZATION_AND_MASK = 0xF00F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
     /// <summary>Creates a new DiagramGappyRegister with the specified raw bits value.</summary>
-    public DiagramGappyRegister(ushort value) { Value = (ushort)(value & NORMALIZATION_AND_MASK); }
+    public DiagramGappyRegister(ushort value) { __value = (ushort)(value & __NORMALIZATION_AND_MASK); }
 
     public partial byte TypeCode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & TYPE_CODE_MASK);
+        get => (byte)(__value & __TYPE_CODE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & TYPE_CODE_INVERTED_MASK) | (((ushort)value) & TYPE_CODE_MASK));
+        set => __value = (ushort)((__value & __TYPE_CODE_INVERTED_MASK) | (((ushort)value) & __TYPE_CODE_MASK));
     }
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> VERSION_START_BIT) & VERSION_MASK);
+        get => (byte)((__value >> __VERSION_START_BIT) & __VERSION_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & VERSION_INVERTED_MASK) | ((((ushort)value) << VERSION_START_BIT) & VERSION_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __VERSION_INVERTED_MASK) | ((((ushort)value) << __VERSION_START_BIT) & __VERSION_SHIFTED_MASK));
     }
 
     /// <summary>Returns a DiagramGappyRegister with the mask for the TypeCode field (bits 0-3).</summary>
-    public static DiagramGappyRegister TypeCodeMask => new(TYPE_CODE_MASK);
+    public static DiagramGappyRegister TypeCodeMask => new(__TYPE_CODE_MASK);
 
     /// <summary>Returns a DiagramGappyRegister with the mask for the Version field (bits 12-15).</summary>
-    public static DiagramGappyRegister VersionMask => new(VERSION_SHIFTED_MASK);
+    public static DiagramGappyRegister VersionMask => new(__VERSION_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -77,27 +77,27 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     /// <summary>Returns a new DiagramGappyRegister with the TypeCode field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramGappyRegister WithTypeCode(byte value) => new((ushort)((Value & TYPE_CODE_INVERTED_MASK) | ((ushort)value & TYPE_CODE_MASK)));
+    public DiagramGappyRegister WithTypeCode(byte value) => new((ushort)((__value & __TYPE_CODE_INVERTED_MASK) | ((ushort)value & __TYPE_CODE_MASK)));
 
     /// <summary>Returns a new DiagramGappyRegister with the Version field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramGappyRegister WithVersion(byte value) => new((ushort)((Value & VERSION_INVERTED_MASK) | (((ushort)value << VERSION_START_BIT) & VERSION_SHIFTED_MASK)));
+    public DiagramGappyRegister WithVersion(byte value) => new((ushort)((__value & __VERSION_INVERTED_MASK) | (((ushort)value << __VERSION_START_BIT) & __VERSION_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator ~(DiagramGappyRegister a) => new((ushort)~a.Value);
+    public static DiagramGappyRegister operator ~(DiagramGappyRegister a) => new((ushort)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator |(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.Value | b.Value));
+    public static DiagramGappyRegister operator |(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator &(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.Value & b.Value));
+    public static DiagramGappyRegister operator &(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator ^(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.Value ^ b.Value));
+    public static DiagramGappyRegister operator ^(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -105,115 +105,115 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator -(DiagramGappyRegister a) => new(unchecked((ushort)(0 - a.Value)));
+    public static DiagramGappyRegister operator -(DiagramGappyRegister a) => new(unchecked((ushort)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator +(DiagramGappyRegister a, DiagramGappyRegister b) => new(unchecked((ushort)(a.Value + b.Value)));
+    public static DiagramGappyRegister operator +(DiagramGappyRegister a, DiagramGappyRegister b) => new(unchecked((ushort)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator +(DiagramGappyRegister a, ushort b) => new(unchecked((ushort)(a.Value + b)));
+    public static DiagramGappyRegister operator +(DiagramGappyRegister a, ushort b) => new(unchecked((ushort)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator +(ushort a, DiagramGappyRegister b) => new(unchecked((ushort)(a + b.Value)));
+    public static DiagramGappyRegister operator +(ushort a, DiagramGappyRegister b) => new(unchecked((ushort)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator -(DiagramGappyRegister a, DiagramGappyRegister b) => new(unchecked((ushort)(a.Value - b.Value)));
+    public static DiagramGappyRegister operator -(DiagramGappyRegister a, DiagramGappyRegister b) => new(unchecked((ushort)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator -(DiagramGappyRegister a, ushort b) => new(unchecked((ushort)(a.Value - b)));
+    public static DiagramGappyRegister operator -(DiagramGappyRegister a, ushort b) => new(unchecked((ushort)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator -(ushort a, DiagramGappyRegister b) => new(unchecked((ushort)(a - b.Value)));
+    public static DiagramGappyRegister operator -(ushort a, DiagramGappyRegister b) => new(unchecked((ushort)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator *(DiagramGappyRegister a, DiagramGappyRegister b) => new(unchecked((ushort)(a.Value * b.Value)));
+    public static DiagramGappyRegister operator *(DiagramGappyRegister a, DiagramGappyRegister b) => new(unchecked((ushort)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator *(DiagramGappyRegister a, ushort b) => new(unchecked((ushort)(a.Value * b)));
+    public static DiagramGappyRegister operator *(DiagramGappyRegister a, ushort b) => new(unchecked((ushort)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator *(ushort a, DiagramGappyRegister b) => new(unchecked((ushort)(a * b.Value)));
+    public static DiagramGappyRegister operator *(ushort a, DiagramGappyRegister b) => new(unchecked((ushort)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator /(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.Value / b.Value));
+    public static DiagramGappyRegister operator /(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator /(DiagramGappyRegister a, ushort b) => new((ushort)(a.Value / b));
+    public static DiagramGappyRegister operator /(DiagramGappyRegister a, ushort b) => new((ushort)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator /(ushort a, DiagramGappyRegister b) => new((ushort)(a / b.Value));
+    public static DiagramGappyRegister operator /(ushort a, DiagramGappyRegister b) => new((ushort)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator %(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.Value % b.Value));
+    public static DiagramGappyRegister operator %(DiagramGappyRegister a, DiagramGappyRegister b) => new((ushort)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator %(DiagramGappyRegister a, ushort b) => new((ushort)(a.Value % b));
+    public static DiagramGappyRegister operator %(DiagramGappyRegister a, ushort b) => new((ushort)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramGappyRegister operator %(ushort a, DiagramGappyRegister b) => new((ushort)(a % b.Value));
+    public static DiagramGappyRegister operator %(ushort a, DiagramGappyRegister b) => new((ushort)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(DiagramGappyRegister a, int b) => a.Value << b;
+    public static int operator <<(DiagramGappyRegister a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(DiagramGappyRegister a, int b) => a.Value >> b;
+    public static int operator >>(DiagramGappyRegister a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(DiagramGappyRegister a, int b) => a.Value >>> b;
+    public static int operator >>>(DiagramGappyRegister a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(DiagramGappyRegister a, DiagramGappyRegister b) => a.Value < b.Value;
+    public static bool operator <(DiagramGappyRegister a, DiagramGappyRegister b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(DiagramGappyRegister a, DiagramGappyRegister b) => a.Value > b.Value;
+    public static bool operator >(DiagramGappyRegister a, DiagramGappyRegister b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(DiagramGappyRegister a, DiagramGappyRegister b) => a.Value <= b.Value;
+    public static bool operator <=(DiagramGappyRegister a, DiagramGappyRegister b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(DiagramGappyRegister a, DiagramGappyRegister b) => a.Value >= b.Value;
+    public static bool operator >=(DiagramGappyRegister a, DiagramGappyRegister b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DiagramGappyRegister a, DiagramGappyRegister b) => a.Value == b.Value;
+    public static bool operator ==(DiagramGappyRegister a, DiagramGappyRegister b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(DiagramGappyRegister a, DiagramGappyRegister b) => a.Value != b.Value;
+    public static bool operator !=(DiagramGappyRegister a, DiagramGappyRegister b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is DiagramGappyRegister other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is DiagramGappyRegister other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(DiagramGappyRegister value) => value.Value;
+    public static implicit operator ushort(DiagramGappyRegister value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator DiagramGappyRegister(ushort value) => new(value);
@@ -245,7 +245,7 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -429,7 +429,7 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -438,7 +438,7 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -455,13 +455,13 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
     /// <param name="other">A DiagramGappyRegister to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(DiagramGappyRegister other) => Value.CompareTo(other.Value);
+    public int CompareTo(DiagramGappyRegister other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another DiagramGappyRegister.</summary>
     /// <param name="other">A DiagramGappyRegister to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(DiagramGappyRegister other) => Value == other.Value;
+    public bool Equals(DiagramGappyRegister other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes DiagramGappyRegister as a string.</summary>
     private sealed class DiagramGappyRegisterJsonConverter : JsonConverter<DiagramGappyRegister>

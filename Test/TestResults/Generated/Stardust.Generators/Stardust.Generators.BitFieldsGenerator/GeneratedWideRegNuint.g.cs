@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct GeneratedWideRegNuint : IComparable, IComparable<GeneratedWideRegNuint>, IEquatable<GeneratedWideRegNuint>,
                              IFormattable, ISpanFormattable, IParsable<GeneratedWideRegNuint>, ISpanParsable<GeneratedWideRegNuint>
 {
-    private nuint Value;
+    private nuint __value;
 
     /// <summary>Size of this struct in bytes (platform-dependent: 4 on 32-bit, 8 on 64-bit).</summary>
     public static int SIZE_IN_BYTES => nint.Size;
@@ -27,85 +27,85 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
 
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
-    private const int STATUS_START_BIT = 0;
-    private const ulong STATUS_MASK = 0x00000000000000FFUL;
-    private const ulong STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~STATUS_MASK
+    private const int __STATUS_START_BIT = 0;
+    private const ulong __STATUS_MASK = 0x00000000000000FFUL;
+    private const ulong __STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~__STATUS_MASK
     // Data: bits [8..23], width 16
-    private const int DATA_START_BIT = 8;
-    private const ulong DATA_MASK = 0x000000000000FFFFUL;
-    private const ulong DATA_SHIFTED_MASK = 0x0000000000FFFF00UL;  // DATA_MASK << DATA_START_BIT
-    private const ulong DATA_INVERTED_MASK = 0xFFFFFFFFFF0000FFUL;  // ~DATA_SHIFTED_MASK
+    private const int __DATA_START_BIT = 8;
+    private const ulong __DATA_MASK = 0x000000000000FFFFUL;
+    private const ulong __DATA_SHIFTED_MASK = 0x0000000000FFFF00UL;  // __DATA_MASK << __DATA_START_BIT
+    private const ulong __DATA_INVERTED_MASK = 0xFFFFFFFFFF0000FFUL;  // ~__DATA_SHIFTED_MASK
     // Address: bits [24..55], width 32
-    private const int ADDRESS_START_BIT = 24;
-    private const ulong ADDRESS_MASK = 0x00000000FFFFFFFFUL;
-    private const ulong ADDRESS_SHIFTED_MASK = 0x00FFFFFFFF000000UL;  // ADDRESS_MASK << ADDRESS_START_BIT
-    private const ulong ADDRESS_INVERTED_MASK = 0xFF00000000FFFFFFUL;  // ~ADDRESS_SHIFTED_MASK
+    private const int __ADDRESS_START_BIT = 24;
+    private const ulong __ADDRESS_MASK = 0x00000000FFFFFFFFUL;
+    private const ulong __ADDRESS_SHIFTED_MASK = 0x00FFFFFFFF000000UL;  // __ADDRESS_MASK << __ADDRESS_START_BIT
+    private const ulong __ADDRESS_INVERTED_MASK = 0xFF00000000FFFFFFUL;  // ~__ADDRESS_SHIFTED_MASK
     // Valid: bit 56
-    private const int VALID_BIT = 56;
-    private const ulong VALID_MASK = 0x0100000000000000UL;  // 1 << VALID_BIT
-    private const ulong VALID_INVERTED_MASK = 0xFEFFFFFFFFFFFFFFUL;  // ~VALID_MASK
+    private const int __VALID_BIT = 56;
+    private const ulong __VALID_MASK = 0x0100000000000000UL;  // 1 << __VALID_BIT
+    private const ulong __VALID_INVERTED_MASK = 0xFEFFFFFFFFFFFFFFUL;  // ~__VALID_MASK
     // Ready: bit 57
-    private const int READY_BIT = 57;
-    private const ulong READY_MASK = 0x0200000000000000UL;  // 1 << READY_BIT
-    private const ulong READY_INVERTED_MASK = 0xFDFFFFFFFFFFFFFFUL;  // ~READY_MASK
+    private const int __READY_BIT = 57;
+    private const ulong __READY_MASK = 0x0200000000000000UL;  // 1 << __READY_BIT
+    private const ulong __READY_INVERTED_MASK = 0xFDFFFFFFFFFFFFFFUL;  // ~__READY_MASK
 
     /// <summary>Creates a new GeneratedWideRegNuint with the specified raw bits value.</summary>
-    public GeneratedWideRegNuint(nuint value) { Value = value; }
+    public GeneratedWideRegNuint(nuint value) { __value = value; }
 
     public partial byte Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(((ulong)Value) & STATUS_MASK);
+        get => (byte)(((ulong)__value) & __STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (nuint)((((ulong)Value) & STATUS_INVERTED_MASK) | (((ulong)value) & STATUS_MASK));
+        set => __value = (nuint)((((ulong)__value) & __STATUS_INVERTED_MASK) | (((ulong)value) & __STATUS_MASK));
     }
 
     public partial ushort Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((((ulong)Value) >> DATA_START_BIT) & DATA_MASK);
+        get => (ushort)((((ulong)__value) >> __DATA_START_BIT) & __DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (nuint)((((ulong)Value) & DATA_INVERTED_MASK) | ((((ulong)value) << DATA_START_BIT) & DATA_SHIFTED_MASK));
+        set => __value = (nuint)((((ulong)__value) & __DATA_INVERTED_MASK) | ((((ulong)value) << __DATA_START_BIT) & __DATA_SHIFTED_MASK));
     }
 
     public partial uint Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (uint)((((ulong)Value) >> ADDRESS_START_BIT) & ADDRESS_MASK);
+        get => (uint)((((ulong)__value) >> __ADDRESS_START_BIT) & __ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (nuint)((((ulong)Value) & ADDRESS_INVERTED_MASK) | ((((ulong)value) << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK));
+        set => __value = (nuint)((((ulong)__value) & __ADDRESS_INVERTED_MASK) | ((((ulong)value) << __ADDRESS_START_BIT) & __ADDRESS_SHIFTED_MASK));
     }
 
     public partial bool Valid
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ulong)Value) & VALID_MASK) != 0;
+        get => (((ulong)__value) & __VALID_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (nuint)(((ulong)Value) | VALID_MASK) : (nuint)(((ulong)Value) & VALID_INVERTED_MASK);
+        set => __value = value ? (nuint)(((ulong)__value) | __VALID_MASK) : (nuint)(((ulong)__value) & __VALID_INVERTED_MASK);
     }
 
     public partial bool Ready
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ulong)Value) & READY_MASK) != 0;
+        get => (((ulong)__value) & __READY_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (nuint)(((ulong)Value) | READY_MASK) : (nuint)(((ulong)Value) & READY_INVERTED_MASK);
+        set => __value = value ? (nuint)(((ulong)__value) | __READY_MASK) : (nuint)(((ulong)__value) & __READY_INVERTED_MASK);
     }
 
     /// <summary>Returns a GeneratedWideRegNuint with only the Valid bit set.</summary>
-    public static GeneratedWideRegNuint ValidBit => new(unchecked((nuint)VALID_MASK));
+    public static GeneratedWideRegNuint ValidBit => new(unchecked((nuint)__VALID_MASK));
 
     /// <summary>Returns a GeneratedWideRegNuint with only the Ready bit set.</summary>
-    public static GeneratedWideRegNuint ReadyBit => new(unchecked((nuint)READY_MASK));
+    public static GeneratedWideRegNuint ReadyBit => new(unchecked((nuint)__READY_MASK));
 
     /// <summary>Returns a GeneratedWideRegNuint with the mask for the Status field (bits 0-7).</summary>
-    public static GeneratedWideRegNuint StatusMask => new(unchecked((nuint)STATUS_MASK));
+    public static GeneratedWideRegNuint StatusMask => new(unchecked((nuint)__STATUS_MASK));
 
     /// <summary>Returns a GeneratedWideRegNuint with the mask for the Data field (bits 8-23).</summary>
-    public static GeneratedWideRegNuint DataMask => new(unchecked((nuint)DATA_SHIFTED_MASK));
+    public static GeneratedWideRegNuint DataMask => new(unchecked((nuint)__DATA_SHIFTED_MASK));
 
     /// <summary>Returns a GeneratedWideRegNuint with the mask for the Address field (bits 24-55).</summary>
-    public static GeneratedWideRegNuint AddressMask => new(unchecked((nuint)ADDRESS_SHIFTED_MASK));
+    public static GeneratedWideRegNuint AddressMask => new(unchecked((nuint)__ADDRESS_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -123,63 +123,63 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
 
     /// <summary>Returns a new GeneratedWideRegNuint with the Valid flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideRegNuint WithValid(bool value) => new(value ? (nuint)(((ulong)Value) | VALID_MASK) : (nuint)(((ulong)Value) & VALID_INVERTED_MASK));
+    public GeneratedWideRegNuint WithValid(bool value) => new(value ? (nuint)(((ulong)__value) | __VALID_MASK) : (nuint)(((ulong)__value) & __VALID_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedWideRegNuint with the Ready flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideRegNuint WithReady(bool value) => new(value ? (nuint)(((ulong)Value) | READY_MASK) : (nuint)(((ulong)Value) & READY_INVERTED_MASK));
+    public GeneratedWideRegNuint WithReady(bool value) => new(value ? (nuint)(((ulong)__value) | __READY_MASK) : (nuint)(((ulong)__value) & __READY_INVERTED_MASK));
 
     /// <summary>Returns a new GeneratedWideRegNuint with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideRegNuint WithStatus(byte value) => new((nuint)((Value & STATUS_INVERTED_MASK) | ((nuint)value & STATUS_MASK)));
+    public GeneratedWideRegNuint WithStatus(byte value) => new((nuint)((__value & __STATUS_INVERTED_MASK) | ((nuint)value & __STATUS_MASK)));
 
     /// <summary>Returns a new GeneratedWideRegNuint with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideRegNuint WithData(ushort value) => new((nuint)((Value & DATA_INVERTED_MASK) | (((nuint)value << DATA_START_BIT) & DATA_SHIFTED_MASK)));
+    public GeneratedWideRegNuint WithData(ushort value) => new((nuint)((__value & __DATA_INVERTED_MASK) | (((nuint)value << __DATA_START_BIT) & __DATA_SHIFTED_MASK)));
 
     /// <summary>Returns a new GeneratedWideRegNuint with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public GeneratedWideRegNuint WithAddress(uint value) => new((nuint)((Value & ADDRESS_INVERTED_MASK) | (((nuint)value << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK)));
+    public GeneratedWideRegNuint WithAddress(uint value) => new((nuint)((__value & __ADDRESS_INVERTED_MASK) | (((nuint)value << __ADDRESS_START_BIT) & __ADDRESS_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator ~(GeneratedWideRegNuint a) => new((nuint)~a.Value);
+    public static GeneratedWideRegNuint operator ~(GeneratedWideRegNuint a) => new((nuint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator |(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.Value | b.Value));
+    public static GeneratedWideRegNuint operator |(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator &(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.Value & b.Value));
+    public static GeneratedWideRegNuint operator &(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator ^(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.Value ^ b.Value));
+    public static GeneratedWideRegNuint operator ^(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator &(GeneratedWideRegNuint a, nuint b) => new(a.Value & b);
+    public static GeneratedWideRegNuint operator &(GeneratedWideRegNuint a, nuint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator &(nuint a, GeneratedWideRegNuint b) => new(a & b.Value);
+    public static GeneratedWideRegNuint operator &(nuint a, GeneratedWideRegNuint b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator |(GeneratedWideRegNuint a, nuint b) => new(a.Value | b);
+    public static GeneratedWideRegNuint operator |(GeneratedWideRegNuint a, nuint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator |(nuint a, GeneratedWideRegNuint b) => new(a | b.Value);
+    public static GeneratedWideRegNuint operator |(nuint a, GeneratedWideRegNuint b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator ^(GeneratedWideRegNuint a, nuint b) => new(a.Value ^ b);
+    public static GeneratedWideRegNuint operator ^(GeneratedWideRegNuint a, nuint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator ^(nuint a, GeneratedWideRegNuint b) => new(a ^ b.Value);
+    public static GeneratedWideRegNuint operator ^(nuint a, GeneratedWideRegNuint b) => new(a ^ b.__value);
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -187,115 +187,115 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator -(GeneratedWideRegNuint a) => new(unchecked((nuint)(0 - a.Value)));
+    public static GeneratedWideRegNuint operator -(GeneratedWideRegNuint a) => new(unchecked((nuint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator +(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a.Value + b.Value)));
+    public static GeneratedWideRegNuint operator +(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator +(GeneratedWideRegNuint a, nuint b) => new(unchecked((nuint)(a.Value + b)));
+    public static GeneratedWideRegNuint operator +(GeneratedWideRegNuint a, nuint b) => new(unchecked((nuint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator +(nuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a + b.Value)));
+    public static GeneratedWideRegNuint operator +(nuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator -(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a.Value - b.Value)));
+    public static GeneratedWideRegNuint operator -(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator -(GeneratedWideRegNuint a, nuint b) => new(unchecked((nuint)(a.Value - b)));
+    public static GeneratedWideRegNuint operator -(GeneratedWideRegNuint a, nuint b) => new(unchecked((nuint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator -(nuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a - b.Value)));
+    public static GeneratedWideRegNuint operator -(nuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator *(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a.Value * b.Value)));
+    public static GeneratedWideRegNuint operator *(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator *(GeneratedWideRegNuint a, nuint b) => new(unchecked((nuint)(a.Value * b)));
+    public static GeneratedWideRegNuint operator *(GeneratedWideRegNuint a, nuint b) => new(unchecked((nuint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator *(nuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a * b.Value)));
+    public static GeneratedWideRegNuint operator *(nuint a, GeneratedWideRegNuint b) => new(unchecked((nuint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator /(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.Value / b.Value));
+    public static GeneratedWideRegNuint operator /(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator /(GeneratedWideRegNuint a, nuint b) => new((nuint)(a.Value / b));
+    public static GeneratedWideRegNuint operator /(GeneratedWideRegNuint a, nuint b) => new((nuint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator /(nuint a, GeneratedWideRegNuint b) => new((nuint)(a / b.Value));
+    public static GeneratedWideRegNuint operator /(nuint a, GeneratedWideRegNuint b) => new((nuint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator %(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.Value % b.Value));
+    public static GeneratedWideRegNuint operator %(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => new((nuint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator %(GeneratedWideRegNuint a, nuint b) => new((nuint)(a.Value % b));
+    public static GeneratedWideRegNuint operator %(GeneratedWideRegNuint a, nuint b) => new((nuint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator %(nuint a, GeneratedWideRegNuint b) => new((nuint)(a % b.Value));
+    public static GeneratedWideRegNuint operator %(nuint a, GeneratedWideRegNuint b) => new((nuint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator <<(GeneratedWideRegNuint a, int b) => new(unchecked((nuint)(a.Value << b)));
+    public static GeneratedWideRegNuint operator <<(GeneratedWideRegNuint a, int b) => new(unchecked((nuint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator >>(GeneratedWideRegNuint a, int b) => new(unchecked((nuint)(a.Value >> b)));
+    public static GeneratedWideRegNuint operator >>(GeneratedWideRegNuint a, int b) => new(unchecked((nuint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static GeneratedWideRegNuint operator >>>(GeneratedWideRegNuint a, int b) => new(unchecked((nuint)(a.Value >>> b)));
+    public static GeneratedWideRegNuint operator >>>(GeneratedWideRegNuint a, int b) => new(unchecked((nuint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.Value < b.Value;
+    public static bool operator <(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.Value > b.Value;
+    public static bool operator >(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.Value <= b.Value;
+    public static bool operator <=(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.Value >= b.Value;
+    public static bool operator >=(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.Value == b.Value;
+    public static bool operator ==(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.Value != b.Value;
+    public static bool operator !=(GeneratedWideRegNuint a, GeneratedWideRegNuint b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is GeneratedWideRegNuint other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is GeneratedWideRegNuint other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator nuint(GeneratedWideRegNuint value) => value.Value;
+    public static implicit operator nuint(GeneratedWideRegNuint value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator GeneratedWideRegNuint(nuint value) => new(value);
@@ -323,8 +323,8 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        if (nint.Size == 8) BinaryPrimitives.WriteUInt64LittleEndian(destination, (ulong)Value);
-        else BinaryPrimitives.WriteUInt32LittleEndian(destination, (uint)Value);
+        if (nint.Size == 8) BinaryPrimitives.WriteUInt64LittleEndian(destination, (ulong)__value);
+        else BinaryPrimitives.WriteUInt32LittleEndian(destination, (uint)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -508,7 +508,7 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -517,7 +517,7 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -534,13 +534,13 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
     /// <param name="other">A GeneratedWideRegNuint to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(GeneratedWideRegNuint other) => Value.CompareTo(other.Value);
+    public int CompareTo(GeneratedWideRegNuint other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another GeneratedWideRegNuint.</summary>
     /// <param name="other">A GeneratedWideRegNuint to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(GeneratedWideRegNuint other) => Value == other.Value;
+    public bool Equals(GeneratedWideRegNuint other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes GeneratedWideRegNuint as a string.</summary>
     private sealed class GeneratedWideRegNuintJsonConverter : JsonConverter<GeneratedWideRegNuint>

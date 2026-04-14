@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Protocols;
 [JsonConverter(typeof(UdpHeaderViewJsonConverter))]
 public partial record struct UdpHeaderView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 8;
@@ -28,8 +28,8 @@ public partial record struct UdpHeaderView
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct UdpHeaderView
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal UdpHeaderView(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial ushort SourcePort
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0));
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -69,15 +69,15 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(0);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -95,12 +95,12 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
             }
-            int ep = 16 + _bitOffset;
+            int ep = 16 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -109,15 +109,15 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(2);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -135,12 +135,12 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4));
             }
-            int ep = 32 + _bitOffset;
+            int ep = 32 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -149,15 +149,15 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(4);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 32 + _bitOffset;
+                int ep = 32 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -175,12 +175,12 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(6));
             }
-            int ep = 48 + _bitOffset;
+            int ep = 48 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -189,15 +189,15 @@ public partial record struct UdpHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(6);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 48 + _bitOffset;
+                int ep = 48 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -245,7 +245,7 @@ public partial record struct UdpHeaderView
         /// <summary>Writes a UdpHeaderView to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, UdpHeaderView value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

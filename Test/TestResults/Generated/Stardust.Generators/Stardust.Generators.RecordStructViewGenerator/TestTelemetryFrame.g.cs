@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Tests;
 [JsonConverter(typeof(TestTelemetryFrameJsonConverter))]
 public partial record struct TestTelemetryFrame
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 24;
@@ -28,8 +28,8 @@ public partial record struct TestTelemetryFrame
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct TestTelemetryFrame
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal TestTelemetryFrame(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial double Temperature
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(0)) >> 1) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
             }
-            int ep = 1 + _bitOffset;
+            int ep = 1 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
@@ -68,8 +68,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(0);
                 UInt128 raw = BinaryPrimitives.ReadUInt128LittleEndian(slice);
@@ -78,7 +78,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 1 + _bitOffset;
+                int ep = 1 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -95,12 +95,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.IEEE754Double)BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(0)) >> 1) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
             }
-            int ep = 1 + _bitOffset;
+            int ep = 1 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.IEEE754Double)BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
@@ -108,8 +108,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(0);
                 UInt128 raw = BinaryPrimitives.ReadUInt128LittleEndian(slice);
@@ -118,7 +118,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 1 + _bitOffset;
+                int ep = 1 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -135,12 +135,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(8)) >> 2) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
             }
-            int ep = 66 + _bitOffset;
+            int ep = 66 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
@@ -148,8 +148,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(8);
                 UInt128 raw = BinaryPrimitives.ReadUInt128LittleEndian(slice);
@@ -158,7 +158,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 66 + _bitOffset;
+                int ep = 66 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -175,12 +175,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.IEEE754Double)BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(8)) >> 2) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
             }
-            int ep = 66 + _bitOffset;
+            int ep = 66 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.IEEE754Double)BitConverter.UInt64BitsToDouble((ulong)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
@@ -188,8 +188,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(8);
                 UInt128 raw = BinaryPrimitives.ReadUInt128LittleEndian(slice);
@@ -198,7 +198,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 66 + _bitOffset;
+                int ep = 66 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -215,12 +215,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return BitConverter.UInt32BitsToSingle((uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(16)) >> 3) & 0xFFFFFFFFUL));
             }
-            int ep = 131 + _bitOffset;
+            int ep = 131 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return BitConverter.UInt32BitsToSingle((uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL));
@@ -228,8 +228,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(16);
                 ulong raw = BinaryPrimitives.ReadUInt64LittleEndian(slice);
@@ -238,7 +238,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 131 + _bitOffset;
+                int ep = 131 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -255,12 +255,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.IEEE754Single)BitConverter.UInt32BitsToSingle((uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(16)) >> 3) & 0xFFFFFFFFUL));
             }
-            int ep = 131 + _bitOffset;
+            int ep = 131 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.IEEE754Single)BitConverter.UInt32BitsToSingle((uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL));
@@ -268,8 +268,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(16);
                 ulong raw = BinaryPrimitives.ReadUInt64LittleEndian(slice);
@@ -278,7 +278,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 131 + _bitOffset;
+                int ep = 131 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -295,12 +295,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return BitConverter.UInt16BitsToHalf((ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(20)) >> 4) & 0xFFFFU));
             }
-            int ep = 164 + _bitOffset;
+            int ep = 164 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return BitConverter.UInt16BitsToHalf((ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU));
@@ -308,8 +308,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(20);
                 uint raw = BinaryPrimitives.ReadUInt32LittleEndian(slice);
@@ -318,7 +318,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 164 + _bitOffset;
+                int ep = 164 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -335,12 +335,12 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.IEEE754Half)BitConverter.UInt16BitsToHalf((ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(20)) >> 4) & 0xFFFFU));
             }
-            int ep = 164 + _bitOffset;
+            int ep = 164 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.IEEE754Half)BitConverter.UInt16BitsToHalf((ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFU));
@@ -348,8 +348,8 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(20);
                 uint raw = BinaryPrimitives.ReadUInt32LittleEndian(slice);
@@ -358,7 +358,7 @@ public partial record struct TestTelemetryFrame
             }
             else
             {
-                int ep = 164 + _bitOffset;
+                int ep = 164 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -375,21 +375,21 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[0] & 0x01) != 0;
-            int ep = 0 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[0] & 0x01) != 0;
+            int ep = 0 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = value ? (byte)(s[0] | 0x01) : (byte)(s[0] & 0xFE);
                 return;
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -401,21 +401,21 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[8] & 0x02) != 0;
-            int ep = 65 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[8] & 0x02) != 0;
+            int ep = 65 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[8] = value ? (byte)(s[8] | 0x02) : (byte)(s[8] & 0xFD);
                 return;
             }
-            int ep = 65 + _bitOffset;
+            int ep = 65 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -427,21 +427,21 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[16] & 0x04) != 0;
-            int ep = 130 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[16] & 0x04) != 0;
+            int ep = 130 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[16] = value ? (byte)(s[16] | 0x04) : (byte)(s[16] & 0xFB);
                 return;
             }
-            int ep = 130 + _bitOffset;
+            int ep = 130 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -453,21 +453,21 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[20] & 0x08) != 0;
-            int ep = 163 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[20] & 0x08) != 0;
+            int ep = 163 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[20] = value ? (byte)(s[20] | 0x08) : (byte)(s[20] & 0xF7);
                 return;
             }
-            int ep = 163 + _bitOffset;
+            int ep = 163 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -479,21 +479,21 @@ public partial record struct TestTelemetryFrame
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0) return (s[22] & 0x10) != 0;
-            int ep = 180 + _bitOffset;
+            var s = __data.Span;
+            if (__bitOffset == 0) return (s[22] & 0x10) != 0;
+            int ep = 180 + __bitOffset;
             return (s[ep >> 3] & (1 << (ep & 7))) != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[22] = value ? (byte)(s[22] | 0x10) : (byte)(s[22] & 0xEF);
                 return;
             }
-            int ep = 180 + _bitOffset;
+            int ep = 180 + __bitOffset;
             int bi = ep >> 3;
             int m = 1 << (ep & 7);
             s[bi] = value ? (byte)(s[bi] | m) : (byte)(s[bi] & ~m);
@@ -544,7 +544,7 @@ public partial record struct TestTelemetryFrame
         /// <summary>Writes a TestTelemetryFrame to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, TestTelemetryFrame value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

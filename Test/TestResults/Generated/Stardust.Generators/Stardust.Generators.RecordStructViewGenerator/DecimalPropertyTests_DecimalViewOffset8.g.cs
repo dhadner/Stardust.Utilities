@@ -16,8 +16,8 @@ public partial class DecimalPropertyTests
     [JsonConverter(typeof(DecimalViewOffset8JsonConverter))]
     public partial record struct DecimalViewOffset8
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 18;
@@ -30,8 +30,8 @@ public partial class DecimalPropertyTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class DecimalPropertyTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal DecimalViewOffset8(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial byte LowPad
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)s[0];
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x00FF);
@@ -70,14 +70,14 @@ public partial class DecimalPropertyTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = (byte)value;
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -94,12 +94,12 @@ public partial class DecimalPropertyTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return UInt128BitsToDecimal((UInt128)BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(1)));
                 }
-                int ep = 8 + _bitOffset;
+                int ep = 8 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return UInt128BitsToDecimal((UInt128)((BinaryPrimitives.ReadUInt128LittleEndian(s.Slice(bi)) >> sh) & (UInt128)0xFFFFFFFFFFFFFFFFUL));
@@ -107,15 +107,15 @@ public partial class DecimalPropertyTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(1);
                     BinaryPrimitives.WriteUInt128LittleEndian(slice, (UInt128)DecimalToUInt128Bits(value));
                 }
                 else
                 {
-                    int ep = 8 + _bitOffset;
+                    int ep = 8 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -132,12 +132,12 @@ public partial class DecimalPropertyTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)s[17];
                 }
-                int ep = 136 + _bitOffset;
+                int ep = 136 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x00FF);
@@ -145,14 +145,14 @@ public partial class DecimalPropertyTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[17] = (byte)value;
                 }
                 else
                 {
-                    int ep = 136 + _bitOffset;
+                    int ep = 136 + __bitOffset;
                     int bi = ep >> 3;
                     int sh = ep & 7;
                     var slice = s.Slice(bi);
@@ -198,7 +198,7 @@ public partial class DecimalPropertyTests
             /// <summary>Writes a DecimalViewOffset8 to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, DecimalViewOffset8 value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

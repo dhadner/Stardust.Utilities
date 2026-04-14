@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramOverlapRegister>, IEquatable<DiagramOverlapRegister>,
                              IFormattable, ISpanFormattable, IParsable<DiagramOverlapRegister>, ISpanParsable<DiagramOverlapRegister>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,70 +27,70 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
 
     // --- Bit field mask constants ---
     // Address: bits [4..7], width 4
-    private const int ADDRESS_START_BIT = 4;
-    private const byte ADDRESS_MASK = 0x0F;
-    private const byte ADDRESS_SHIFTED_MASK = 0xF0;  // ADDRESS_MASK << ADDRESS_START_BIT
-    private const byte ADDRESS_INVERTED_MASK = 0x0F;  // ~ADDRESS_SHIFTED_MASK
+    private const int __ADDRESS_START_BIT = 4;
+    private const byte __ADDRESS_MASK = 0x0F;
+    private const byte __ADDRESS_SHIFTED_MASK = 0xF0;  // __ADDRESS_MASK << __ADDRESS_START_BIT
+    private const byte __ADDRESS_INVERTED_MASK = 0x0F;  // ~__ADDRESS_SHIFTED_MASK
     // Command: bits [2..3], width 2
-    private const int COMMAND_START_BIT = 2;
-    private const byte COMMAND_MASK = 0x03;
-    private const byte COMMAND_SHIFTED_MASK = 0x0C;  // COMMAND_MASK << COMMAND_START_BIT
-    private const byte COMMAND_INVERTED_MASK = 0xF3;  // ~COMMAND_SHIFTED_MASK
+    private const int __COMMAND_START_BIT = 2;
+    private const byte __COMMAND_MASK = 0x03;
+    private const byte __COMMAND_SHIFTED_MASK = 0x0C;  // __COMMAND_MASK << __COMMAND_START_BIT
+    private const byte __COMMAND_INVERTED_MASK = 0xF3;  // ~__COMMAND_SHIFTED_MASK
     // Register: bits [0..1], width 2
-    private const int REGISTER_START_BIT = 0;
-    private const byte REGISTER_MASK = 0x03;
-    private const byte REGISTER_INVERTED_MASK = 0xFC;  // ~REGISTER_MASK
+    private const int __REGISTER_START_BIT = 0;
+    private const byte __REGISTER_MASK = 0x03;
+    private const byte __REGISTER_INVERTED_MASK = 0xFC;  // ~__REGISTER_MASK
     // ExtendedCommand: bits [0..3], width 4
-    private const int EXTENDED_COMMAND_START_BIT = 0;
-    private const byte EXTENDED_COMMAND_MASK = 0x0F;
-    private const byte EXTENDED_COMMAND_INVERTED_MASK = 0xF0;  // ~EXTENDED_COMMAND_MASK
+    private const int __EXTENDED_COMMAND_START_BIT = 0;
+    private const byte __EXTENDED_COMMAND_MASK = 0x0F;
+    private const byte __EXTENDED_COMMAND_INVERTED_MASK = 0xF0;  // ~__EXTENDED_COMMAND_MASK
 
     /// <summary>Creates a new DiagramOverlapRegister with the specified raw bits value.</summary>
-    public DiagramOverlapRegister(byte value) { Value = value; }
+    public DiagramOverlapRegister(byte value) { __value = value; }
 
     public partial byte Address
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> ADDRESS_START_BIT) & ADDRESS_MASK);
+        get => (byte)((__value >> __ADDRESS_START_BIT) & __ADDRESS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & ADDRESS_INVERTED_MASK) | ((((byte)value) << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK));
+        set => __value = (byte)((__value & __ADDRESS_INVERTED_MASK) | ((((byte)value) << __ADDRESS_START_BIT) & __ADDRESS_SHIFTED_MASK));
     }
 
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> COMMAND_START_BIT) & COMMAND_MASK);
+        get => (byte)((__value >> __COMMAND_START_BIT) & __COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & COMMAND_INVERTED_MASK) | ((((byte)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
+        set => __value = (byte)((__value & __COMMAND_INVERTED_MASK) | ((((byte)value) << __COMMAND_START_BIT) & __COMMAND_SHIFTED_MASK));
     }
 
     public partial byte Register
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & REGISTER_MASK);
+        get => (byte)(__value & __REGISTER_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & REGISTER_INVERTED_MASK) | (((byte)value) & REGISTER_MASK));
+        set => __value = (byte)((__value & __REGISTER_INVERTED_MASK) | (((byte)value) & __REGISTER_MASK));
     }
 
     public partial byte ExtendedCommand
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & EXTENDED_COMMAND_MASK);
+        get => (byte)(__value & __EXTENDED_COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & EXTENDED_COMMAND_INVERTED_MASK) | (((byte)value) & EXTENDED_COMMAND_MASK));
+        set => __value = (byte)((__value & __EXTENDED_COMMAND_INVERTED_MASK) | (((byte)value) & __EXTENDED_COMMAND_MASK));
     }
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Address field (bits 4-7).</summary>
-    public static DiagramOverlapRegister AddressMask => new(ADDRESS_SHIFTED_MASK);
+    public static DiagramOverlapRegister AddressMask => new(__ADDRESS_SHIFTED_MASK);
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Command field (bits 2-3).</summary>
-    public static DiagramOverlapRegister CommandMask => new(COMMAND_SHIFTED_MASK);
+    public static DiagramOverlapRegister CommandMask => new(__COMMAND_SHIFTED_MASK);
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Register field (bits 0-1).</summary>
-    public static DiagramOverlapRegister RegisterMask => new(REGISTER_MASK);
+    public static DiagramOverlapRegister RegisterMask => new(__REGISTER_MASK);
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the ExtendedCommand field (bits 0-3).</summary>
-    public static DiagramOverlapRegister ExtendedCommandMask => new(EXTENDED_COMMAND_MASK);
+    public static DiagramOverlapRegister ExtendedCommandMask => new(__EXTENDED_COMMAND_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -107,35 +107,35 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
 
     /// <summary>Returns a new DiagramOverlapRegister with the Address field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithAddress(byte value) => new((byte)((Value & ADDRESS_INVERTED_MASK) | (((byte)value << ADDRESS_START_BIT) & ADDRESS_SHIFTED_MASK)));
+    public DiagramOverlapRegister WithAddress(byte value) => new((byte)((__value & __ADDRESS_INVERTED_MASK) | (((byte)value << __ADDRESS_START_BIT) & __ADDRESS_SHIFTED_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithCommand(byte value) => new((byte)((Value & COMMAND_INVERTED_MASK) | (((byte)value << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK)));
+    public DiagramOverlapRegister WithCommand(byte value) => new((byte)((__value & __COMMAND_INVERTED_MASK) | (((byte)value << __COMMAND_START_BIT) & __COMMAND_SHIFTED_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the Register field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithRegister(byte value) => new((byte)((Value & REGISTER_INVERTED_MASK) | ((byte)value & REGISTER_MASK)));
+    public DiagramOverlapRegister WithRegister(byte value) => new((byte)((__value & __REGISTER_INVERTED_MASK) | ((byte)value & __REGISTER_MASK)));
 
     /// <summary>Returns a new DiagramOverlapRegister with the ExtendedCommand field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DiagramOverlapRegister WithExtendedCommand(byte value) => new((byte)((Value & EXTENDED_COMMAND_INVERTED_MASK) | ((byte)value & EXTENDED_COMMAND_MASK)));
+    public DiagramOverlapRegister WithExtendedCommand(byte value) => new((byte)((__value & __EXTENDED_COMMAND_INVERTED_MASK) | ((byte)value & __EXTENDED_COMMAND_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator ~(DiagramOverlapRegister a) => new((byte)~a.Value);
+    public static DiagramOverlapRegister operator ~(DiagramOverlapRegister a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator |(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.Value | b.Value));
+    public static DiagramOverlapRegister operator |(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator &(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.Value & b.Value));
+    public static DiagramOverlapRegister operator &(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator ^(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.Value ^ b.Value));
+    public static DiagramOverlapRegister operator ^(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -143,115 +143,115 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator -(DiagramOverlapRegister a) => new(unchecked((byte)(0 - a.Value)));
+    public static DiagramOverlapRegister operator -(DiagramOverlapRegister a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator +(DiagramOverlapRegister a, DiagramOverlapRegister b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static DiagramOverlapRegister operator +(DiagramOverlapRegister a, DiagramOverlapRegister b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator +(DiagramOverlapRegister a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static DiagramOverlapRegister operator +(DiagramOverlapRegister a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator +(byte a, DiagramOverlapRegister b) => new(unchecked((byte)(a + b.Value)));
+    public static DiagramOverlapRegister operator +(byte a, DiagramOverlapRegister b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator -(DiagramOverlapRegister a, DiagramOverlapRegister b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static DiagramOverlapRegister operator -(DiagramOverlapRegister a, DiagramOverlapRegister b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator -(DiagramOverlapRegister a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static DiagramOverlapRegister operator -(DiagramOverlapRegister a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator -(byte a, DiagramOverlapRegister b) => new(unchecked((byte)(a - b.Value)));
+    public static DiagramOverlapRegister operator -(byte a, DiagramOverlapRegister b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator *(DiagramOverlapRegister a, DiagramOverlapRegister b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static DiagramOverlapRegister operator *(DiagramOverlapRegister a, DiagramOverlapRegister b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator *(DiagramOverlapRegister a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static DiagramOverlapRegister operator *(DiagramOverlapRegister a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator *(byte a, DiagramOverlapRegister b) => new(unchecked((byte)(a * b.Value)));
+    public static DiagramOverlapRegister operator *(byte a, DiagramOverlapRegister b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator /(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.Value / b.Value));
+    public static DiagramOverlapRegister operator /(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator /(DiagramOverlapRegister a, byte b) => new((byte)(a.Value / b));
+    public static DiagramOverlapRegister operator /(DiagramOverlapRegister a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator /(byte a, DiagramOverlapRegister b) => new((byte)(a / b.Value));
+    public static DiagramOverlapRegister operator /(byte a, DiagramOverlapRegister b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator %(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.Value % b.Value));
+    public static DiagramOverlapRegister operator %(DiagramOverlapRegister a, DiagramOverlapRegister b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator %(DiagramOverlapRegister a, byte b) => new((byte)(a.Value % b));
+    public static DiagramOverlapRegister operator %(DiagramOverlapRegister a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DiagramOverlapRegister operator %(byte a, DiagramOverlapRegister b) => new((byte)(a % b.Value));
+    public static DiagramOverlapRegister operator %(byte a, DiagramOverlapRegister b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(DiagramOverlapRegister a, int b) => a.Value << b;
+    public static int operator <<(DiagramOverlapRegister a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(DiagramOverlapRegister a, int b) => a.Value >> b;
+    public static int operator >>(DiagramOverlapRegister a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(DiagramOverlapRegister a, int b) => a.Value >>> b;
+    public static int operator >>>(DiagramOverlapRegister a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.Value < b.Value;
+    public static bool operator <(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.Value > b.Value;
+    public static bool operator >(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.Value <= b.Value;
+    public static bool operator <=(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.Value >= b.Value;
+    public static bool operator >=(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.Value == b.Value;
+    public static bool operator ==(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.Value != b.Value;
+    public static bool operator !=(DiagramOverlapRegister a, DiagramOverlapRegister b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is DiagramOverlapRegister other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is DiagramOverlapRegister other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(DiagramOverlapRegister value) => value.Value;
+    public static implicit operator byte(DiagramOverlapRegister value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator DiagramOverlapRegister(byte value) => new(value);
@@ -283,7 +283,7 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -467,7 +467,7 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -476,7 +476,7 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -493,13 +493,13 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     /// <param name="other">A DiagramOverlapRegister to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(DiagramOverlapRegister other) => Value.CompareTo(other.Value);
+    public int CompareTo(DiagramOverlapRegister other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another DiagramOverlapRegister.</summary>
     /// <param name="other">A DiagramOverlapRegister to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(DiagramOverlapRegister other) => Value == other.Value;
+    public bool Equals(DiagramOverlapRegister other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes DiagramOverlapRegister as a string.</summary>
     private sealed class DiagramOverlapRegisterJsonConverter : JsonConverter<DiagramOverlapRegister>

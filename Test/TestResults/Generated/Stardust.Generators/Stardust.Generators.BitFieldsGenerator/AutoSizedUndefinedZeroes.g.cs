@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSizedUndefinedZeroes>, IEquatable<AutoSizedUndefinedZeroes>,
                              IFormattable, ISpanFormattable, IParsable<AutoSizedUndefinedZeroes>, ISpanParsable<AutoSizedUndefinedZeroes>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,57 +27,57 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
 
     // --- Bit field mask constants ---
     // Low: bits [0..2], width 3
-    private const int LOW_START_BIT = 0;
-    private const byte LOW_MASK = 0x07;
-    private const byte LOW_INVERTED_MASK = 0xF8;  // ~LOW_MASK
+    private const int __LOW_START_BIT = 0;
+    private const byte __LOW_MASK = 0x07;
+    private const byte __LOW_INVERTED_MASK = 0xF8;  // ~__LOW_MASK
     // High: bits [3..4], width 2
-    private const int HIGH_START_BIT = 3;
-    private const byte HIGH_MASK = 0x03;
-    private const byte HIGH_SHIFTED_MASK = 0x18;  // HIGH_MASK << HIGH_START_BIT
-    private const byte HIGH_INVERTED_MASK = 0xE7;  // ~HIGH_SHIFTED_MASK
+    private const int __HIGH_START_BIT = 3;
+    private const byte __HIGH_MASK = 0x03;
+    private const byte __HIGH_SHIFTED_MASK = 0x18;  // __HIGH_MASK << __HIGH_START_BIT
+    private const byte __HIGH_INVERTED_MASK = 0xE7;  // ~__HIGH_SHIFTED_MASK
     // AllDefined: bits [0..4], width 5
-    private const int ALL_DEFINED_START_BIT = 0;
-    private const byte ALL_DEFINED_MASK = 0x1F;
-    private const byte ALL_DEFINED_INVERTED_MASK = 0xE0;  // ~ALL_DEFINED_MASK
+    private const int __ALL_DEFINED_START_BIT = 0;
+    private const byte __ALL_DEFINED_MASK = 0x1F;
+    private const byte __ALL_DEFINED_INVERTED_MASK = 0xE0;  // ~__ALL_DEFINED_MASK
 
     // --- Constructor normalization masks ---
-    private const byte NORMALIZATION_AND_MASK = 0x1F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+    private const byte __NORMALIZATION_AND_MASK = 0x1F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
     /// <summary>Creates a new AutoSizedUndefinedZeroes with the specified raw bits value.</summary>
-    public AutoSizedUndefinedZeroes(byte value) { Value = (byte)(value & NORMALIZATION_AND_MASK); }
+    public AutoSizedUndefinedZeroes(byte value) { __value = (byte)(value & __NORMALIZATION_AND_MASK); }
 
     public partial byte Low
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & LOW_MASK);
+        get => (byte)(__value & __LOW_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & LOW_INVERTED_MASK) | (((byte)value) & LOW_MASK));
+        set => __value = (byte)((__value & __LOW_INVERTED_MASK) | (((byte)value) & __LOW_MASK));
     }
 
     public partial byte High
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> HIGH_START_BIT) & HIGH_MASK);
+        get => (byte)((__value >> __HIGH_START_BIT) & __HIGH_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & HIGH_INVERTED_MASK) | ((((byte)value) << HIGH_START_BIT) & HIGH_SHIFTED_MASK));
+        set => __value = (byte)((__value & __HIGH_INVERTED_MASK) | ((((byte)value) << __HIGH_START_BIT) & __HIGH_SHIFTED_MASK));
     }
 
     public partial byte AllDefined
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & ALL_DEFINED_MASK);
+        get => (byte)(__value & __ALL_DEFINED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & ALL_DEFINED_INVERTED_MASK) | (((byte)value) & ALL_DEFINED_MASK));
+        set => __value = (byte)((__value & __ALL_DEFINED_INVERTED_MASK) | (((byte)value) & __ALL_DEFINED_MASK));
     }
 
     /// <summary>Returns a AutoSizedUndefinedZeroes with the mask for the Low field (bits 0-2).</summary>
-    public static AutoSizedUndefinedZeroes LowMask => new(LOW_MASK);
+    public static AutoSizedUndefinedZeroes LowMask => new(__LOW_MASK);
 
     /// <summary>Returns a AutoSizedUndefinedZeroes with the mask for the High field (bits 3-4).</summary>
-    public static AutoSizedUndefinedZeroes HighMask => new(HIGH_SHIFTED_MASK);
+    public static AutoSizedUndefinedZeroes HighMask => new(__HIGH_SHIFTED_MASK);
 
     /// <summary>Returns a AutoSizedUndefinedZeroes with the mask for the AllDefined field (bits 0-4).</summary>
-    public static AutoSizedUndefinedZeroes AllDefinedMask => new(ALL_DEFINED_MASK);
+    public static AutoSizedUndefinedZeroes AllDefinedMask => new(__ALL_DEFINED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -93,31 +93,31 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
 
     /// <summary>Returns a new AutoSizedUndefinedZeroes with the Low field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedUndefinedZeroes WithLow(byte value) => new((byte)((Value & LOW_INVERTED_MASK) | ((byte)value & LOW_MASK)));
+    public AutoSizedUndefinedZeroes WithLow(byte value) => new((byte)((__value & __LOW_INVERTED_MASK) | ((byte)value & __LOW_MASK)));
 
     /// <summary>Returns a new AutoSizedUndefinedZeroes with the High field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedUndefinedZeroes WithHigh(byte value) => new((byte)((Value & HIGH_INVERTED_MASK) | (((byte)value << HIGH_START_BIT) & HIGH_SHIFTED_MASK)));
+    public AutoSizedUndefinedZeroes WithHigh(byte value) => new((byte)((__value & __HIGH_INVERTED_MASK) | (((byte)value << __HIGH_START_BIT) & __HIGH_SHIFTED_MASK)));
 
     /// <summary>Returns a new AutoSizedUndefinedZeroes with the AllDefined field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedUndefinedZeroes WithAllDefined(byte value) => new((byte)((Value & ALL_DEFINED_INVERTED_MASK) | ((byte)value & ALL_DEFINED_MASK)));
+    public AutoSizedUndefinedZeroes WithAllDefined(byte value) => new((byte)((__value & __ALL_DEFINED_INVERTED_MASK) | ((byte)value & __ALL_DEFINED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator ~(AutoSizedUndefinedZeroes a) => new((byte)~a.Value);
+    public static AutoSizedUndefinedZeroes operator ~(AutoSizedUndefinedZeroes a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator |(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.Value | b.Value));
+    public static AutoSizedUndefinedZeroes operator |(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator &(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.Value & b.Value));
+    public static AutoSizedUndefinedZeroes operator &(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator ^(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.Value ^ b.Value));
+    public static AutoSizedUndefinedZeroes operator ^(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -125,115 +125,115 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator -(AutoSizedUndefinedZeroes a) => new(unchecked((byte)(0 - a.Value)));
+    public static AutoSizedUndefinedZeroes operator -(AutoSizedUndefinedZeroes a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator +(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static AutoSizedUndefinedZeroes operator +(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator +(AutoSizedUndefinedZeroes a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static AutoSizedUndefinedZeroes operator +(AutoSizedUndefinedZeroes a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator +(byte a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a + b.Value)));
+    public static AutoSizedUndefinedZeroes operator +(byte a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator -(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static AutoSizedUndefinedZeroes operator -(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator -(AutoSizedUndefinedZeroes a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static AutoSizedUndefinedZeroes operator -(AutoSizedUndefinedZeroes a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator -(byte a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a - b.Value)));
+    public static AutoSizedUndefinedZeroes operator -(byte a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator *(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static AutoSizedUndefinedZeroes operator *(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator *(AutoSizedUndefinedZeroes a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static AutoSizedUndefinedZeroes operator *(AutoSizedUndefinedZeroes a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator *(byte a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a * b.Value)));
+    public static AutoSizedUndefinedZeroes operator *(byte a, AutoSizedUndefinedZeroes b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator /(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.Value / b.Value));
+    public static AutoSizedUndefinedZeroes operator /(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator /(AutoSizedUndefinedZeroes a, byte b) => new((byte)(a.Value / b));
+    public static AutoSizedUndefinedZeroes operator /(AutoSizedUndefinedZeroes a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator /(byte a, AutoSizedUndefinedZeroes b) => new((byte)(a / b.Value));
+    public static AutoSizedUndefinedZeroes operator /(byte a, AutoSizedUndefinedZeroes b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator %(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.Value % b.Value));
+    public static AutoSizedUndefinedZeroes operator %(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator %(AutoSizedUndefinedZeroes a, byte b) => new((byte)(a.Value % b));
+    public static AutoSizedUndefinedZeroes operator %(AutoSizedUndefinedZeroes a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedUndefinedZeroes operator %(byte a, AutoSizedUndefinedZeroes b) => new((byte)(a % b.Value));
+    public static AutoSizedUndefinedZeroes operator %(byte a, AutoSizedUndefinedZeroes b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(AutoSizedUndefinedZeroes a, int b) => a.Value << b;
+    public static int operator <<(AutoSizedUndefinedZeroes a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(AutoSizedUndefinedZeroes a, int b) => a.Value >> b;
+    public static int operator >>(AutoSizedUndefinedZeroes a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(AutoSizedUndefinedZeroes a, int b) => a.Value >>> b;
+    public static int operator >>>(AutoSizedUndefinedZeroes a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.Value < b.Value;
+    public static bool operator <(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.Value > b.Value;
+    public static bool operator >(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.Value <= b.Value;
+    public static bool operator <=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.Value >= b.Value;
+    public static bool operator >=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.Value == b.Value;
+    public static bool operator ==(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.Value != b.Value;
+    public static bool operator !=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is AutoSizedUndefinedZeroes other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is AutoSizedUndefinedZeroes other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(AutoSizedUndefinedZeroes value) => value.Value;
+    public static implicit operator byte(AutoSizedUndefinedZeroes value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AutoSizedUndefinedZeroes(byte value) => new(value);
@@ -265,7 +265,7 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -449,7 +449,7 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -458,7 +458,7 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -475,13 +475,13 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <param name="other">A AutoSizedUndefinedZeroes to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(AutoSizedUndefinedZeroes other) => Value.CompareTo(other.Value);
+    public int CompareTo(AutoSizedUndefinedZeroes other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another AutoSizedUndefinedZeroes.</summary>
     /// <param name="other">A AutoSizedUndefinedZeroes to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(AutoSizedUndefinedZeroes other) => Value == other.Value;
+    public bool Equals(AutoSizedUndefinedZeroes other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes AutoSizedUndefinedZeroes as a string.</summary>
     private sealed class AutoSizedUndefinedZeroesJsonConverter : JsonConverter<AutoSizedUndefinedZeroes>

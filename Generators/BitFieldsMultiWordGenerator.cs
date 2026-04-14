@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -73,14 +73,14 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             int lo = i * 64;
             int hi = System.Math.Min(lo + (layout.IsRemainder(i) ? layout.RemainderBits - 1 : 63), info.TotalBits - 1);
-            sb.AppendLine($"{mind}private {layout.FieldType(i)} _w{i}; // bits {lo}-{hi}");
+            sb.AppendLine($"{mind}private {layout.FieldType(i)} __w{i}; // bits {lo}-{hi}");
         }
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Number of conceptual words in the backing store.</summary>");
-        sb.AppendLine($"{mind}private const int WORD_COUNT = {wc};");
+        sb.AppendLine($"{mind}private const int __WORD_COUNT = {wc};");
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Total number of defined bits.</summary>");
-        sb.AppendLine($"{mind}private const int TOTAL_BITS = {info.TotalBits};");
+        sb.AppendLine($"{mind}private const int __TOTAL_BITS = {info.TotalBits};");
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Size of this struct in bytes.</summary>");
         sb.AppendLine($"{mind}public const int SIZE_IN_BYTES = {layout.StructBytes};");
@@ -90,7 +90,7 @@ internal static partial class BitFieldsMultiWordGenerator
         int lwBits = info.TotalBits % 64;
         if (lwBits == 0) lwBits = 64;
         ulong lastWordMask = lwBits == 64 ? ulong.MaxValue : (1UL << lwBits) - 1;
-        sb.AppendLine($"{mind}private const ulong LAST_WORD_MASK = 0x{lastWordMask:X16}UL;");
+        sb.AppendLine($"{mind}private const ulong __LAST_WORD_MASK = 0x{lastWordMask:X16}UL;");
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Returns a {t} with all bits set to zero.</summary>");
         sb.AppendLine($"{mind}public static {t} Zero => default;");
@@ -257,7 +257,7 @@ internal static partial class BitFieldsMultiWordGenerator
 
         /// <summary>Returns expression to read word i as ulong (with cast if needed).</summary>
         public string Read(string prefix, int i)
-            => IsRemainder(i) ? $"((ulong){prefix}_w{i})" : $"{prefix}_w{i}";
+            => IsRemainder(i) ? $"((ulong){prefix}__w{i})" : $"{prefix}__w{i}";
 
         /// <summary>Returns expression to store a ulong result into word i (with truncation if needed).</summary>
         public string Store(int i, string expr)
@@ -300,14 +300,14 @@ internal static partial class BitFieldsMultiWordGenerator
     }
 
     /// <summary>
-    /// Emits a multi-line block: var result = default(T); result._w0 = expr; ... return result;
+    /// Emits a multi-line block: var result = default(T); result.__w0 = expr; ... return result;
     /// Used for types with >4 words where no positional constructor exists.
     /// </summary>
     private static void EmitBlockConstruction(StringBuilder sb, string typeName, WordLayout layout, string ind, string[] wordExprs)
     {
         sb.AppendLine($"{ind}var result = default({typeName});");
         for (int i = 0; i < layout.WordCount; i++)
-            sb.AppendLine($"{ind}result._w{i} = {wordExprs[i]};");
+            sb.AppendLine($"{ind}result.__w{i} = {wordExprs[i]};");
         sb.AppendLine($"{ind}return result;");
     }
 
@@ -371,11 +371,11 @@ internal static partial class BitFieldsMultiWordGenerator
                 string pn = WordParamName(i, wc);
                 bool isLast = i == wc - 1;
                 if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
-                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} & LAST_WORD_MASK")};");
+                    sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, $"(ulong){pn} & __LAST_WORD_MASK")};");
                 else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
-                    sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, $"(ulong){pn} | ~LAST_WORD_MASK")};");
+                    sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, $"(ulong){pn} | ~__LAST_WORD_MASK")};");
                 else
-                    sb.AppendLine($"{ind}    _w{i} = {pn};");
+                    sb.AppendLine($"{ind}    __w{i} = {pn};");
             }
             sb.AppendLine($"{ind}}}");
             sb.AppendLine();
@@ -394,7 +394,7 @@ internal static partial class BitFieldsMultiWordGenerator
             sb.AppendLine($"{ind}public {info.TypeName}(ulong value)");
             sb.AppendLine($"{ind}{{");
             sb.AppendLine($"{ind}    this = default;");
-            sb.AppendLine($"{ind}    _w0 = value;");
+            sb.AppendLine($"{ind}    __w0 = value;");
             sb.AppendLine($"{ind}}}");
         }
         sb.AppendLine();
@@ -406,16 +406,16 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    ulong extended = unchecked((ulong)(long)value);");
         sb.AppendLine($"{ind}    ulong fill = value < 0 ? ulong.MaxValue : 0UL;");
-        sb.AppendLine($"{ind}    _w0 = extended;");
+        sb.AppendLine($"{ind}    __w0 = extended;");
         for (int i = 1; i < wc; i++)
         {
             bool isLast = i == wc - 1;
             if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Zeroes)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill & LAST_WORD_MASK")};");
+                sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, "fill & __LAST_WORD_MASK")};");
             else if (isLast && mustMaskLast && info.UndefinedBitsMode == UndefinedBitsMustBe.Ones)
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill | ~LAST_WORD_MASK")};");
+                sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, "fill | ~__LAST_WORD_MASK")};");
             else
-                sb.AppendLine($"{ind}    _w{i} = {layout.Store(i, "fill")};");
+                sb.AppendLine($"{ind}    __w{i} = {layout.Store(i, "fill")};");
         }
         sb.AppendLine($"{ind}}}");
         sb.AppendLine();

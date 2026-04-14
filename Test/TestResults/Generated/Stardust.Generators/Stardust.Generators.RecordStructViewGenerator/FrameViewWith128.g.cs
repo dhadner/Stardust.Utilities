@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Tests;
 [JsonConverter(typeof(FrameViewWith128JsonConverter))]
 public partial record struct FrameViewWith128
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 24;
@@ -28,8 +28,8 @@ public partial record struct FrameViewWith128
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct FrameViewWith128
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal FrameViewWith128(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial uint Header
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(0));
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
@@ -68,15 +68,15 @@ public partial record struct FrameViewWith128
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(0);
                 BinaryPrimitives.WriteUInt32LittleEndian(slice, (uint)value);
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -91,9 +91,9 @@ public partial record struct FrameViewWith128
     public partial global::Stardust.Utilities.Tests.GuidBits128 Id
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => global::Stardust.Utilities.Tests.GuidBits128.ReadFrom(_data.Span.Slice(4, 16));
+        get => global::Stardust.Utilities.Tests.GuidBits128.ReadFrom(__data.Span.Slice(4, 16));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => value.WriteTo(_data.Span.Slice(4, 16));
+        set => value.WriteTo(__data.Span.Slice(4, 16));
     }
 
     public partial uint Checksum
@@ -101,12 +101,12 @@ public partial record struct FrameViewWith128
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(20));
             }
-            int ep = 160 + _bitOffset;
+            int ep = 160 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (uint)((BinaryPrimitives.ReadUInt64LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFFFUL);
@@ -114,15 +114,15 @@ public partial record struct FrameViewWith128
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(20);
                 BinaryPrimitives.WriteUInt32LittleEndian(slice, (uint)value);
             }
             else
             {
-                int ep = 160 + _bitOffset;
+                int ep = 160 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -168,7 +168,7 @@ public partial record struct FrameViewWith128
         /// <summary>Writes a FrameViewWith128 to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, FrameViewWith128 value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

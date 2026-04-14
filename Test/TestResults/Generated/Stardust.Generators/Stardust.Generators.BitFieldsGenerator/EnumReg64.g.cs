@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatable<EnumReg64>,
                              IFormattable, ISpanFormattable, IParsable<EnumReg64>, ISpanParsable<EnumReg64>
 {
-    private ulong Value;
+    private ulong __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
@@ -27,54 +27,54 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
 
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
-    private const int STATUS_START_BIT = 0;
-    private const ulong STATUS_MASK = 0x00000000000000FFUL;
-    private const ulong STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~STATUS_MASK
+    private const int __STATUS_START_BIT = 0;
+    private const ulong __STATUS_MASK = 0x00000000000000FFUL;
+    private const ulong __STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~__STATUS_MASK
     // Data: bits [8..23], width 16
-    private const int DATA_START_BIT = 8;
-    private const ulong DATA_MASK = 0x000000000000FFFFUL;
-    private const ulong DATA_SHIFTED_MASK = 0x0000000000FFFF00UL;  // DATA_MASK << DATA_START_BIT
-    private const ulong DATA_INVERTED_MASK = 0xFFFFFFFFFF0000FFUL;  // ~DATA_SHIFTED_MASK
+    private const int __DATA_START_BIT = 8;
+    private const ulong __DATA_MASK = 0x000000000000FFFFUL;
+    private const ulong __DATA_SHIFTED_MASK = 0x0000000000FFFF00UL;  // __DATA_MASK << __DATA_START_BIT
+    private const ulong __DATA_INVERTED_MASK = 0xFFFFFFFFFF0000FFUL;  // ~__DATA_SHIFTED_MASK
     // Valid: bit 56
-    private const int VALID_BIT = 56;
-    private const ulong VALID_MASK = 0x0100000000000000UL;  // 1 << VALID_BIT
-    private const ulong VALID_INVERTED_MASK = 0xFEFFFFFFFFFFFFFFUL;  // ~VALID_MASK
+    private const int __VALID_BIT = 56;
+    private const ulong __VALID_MASK = 0x0100000000000000UL;  // 1 << __VALID_BIT
+    private const ulong __VALID_INVERTED_MASK = 0xFEFFFFFFFFFFFFFFUL;  // ~__VALID_MASK
 
     /// <summary>Creates a new EnumReg64 with the specified raw bits value.</summary>
-    public EnumReg64(ulong value) { Value = value; }
+    public EnumReg64(ulong value) { __value = value; }
 
     public partial byte Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & STATUS_MASK);
+        get => (byte)(__value & __STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & STATUS_INVERTED_MASK) | (((ulong)value) & STATUS_MASK));
+        set => __value = (ulong)((__value & __STATUS_INVERTED_MASK) | (((ulong)value) & __STATUS_MASK));
     }
 
     public partial ushort Data
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ushort)((Value >> DATA_START_BIT) & DATA_MASK);
+        get => (ushort)((__value >> __DATA_START_BIT) & __DATA_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ulong)((Value & DATA_INVERTED_MASK) | ((((ulong)value) << DATA_START_BIT) & DATA_SHIFTED_MASK));
+        set => __value = (ulong)((__value & __DATA_INVERTED_MASK) | ((((ulong)value) << __DATA_START_BIT) & __DATA_SHIFTED_MASK));
     }
 
     public partial bool Valid
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & VALID_MASK) != 0;
+        get => (__value & __VALID_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ulong)(Value | VALID_MASK) : (ulong)(Value & VALID_INVERTED_MASK);
+        set => __value = value ? (ulong)(__value | __VALID_MASK) : (ulong)(__value & __VALID_INVERTED_MASK);
     }
 
     /// <summary>Returns a EnumReg64 with only the Valid bit set.</summary>
-    public static EnumReg64 ValidBit => new(VALID_MASK);
+    public static EnumReg64 ValidBit => new(__VALID_MASK);
 
     /// <summary>Returns a EnumReg64 with the mask for the Status field (bits 0-7).</summary>
-    public static EnumReg64 StatusMask => new(STATUS_MASK);
+    public static EnumReg64 StatusMask => new(__STATUS_MASK);
 
     /// <summary>Returns a EnumReg64 with the mask for the Data field (bits 8-23).</summary>
-    public static EnumReg64 DataMask => new(DATA_SHIFTED_MASK);
+    public static EnumReg64 DataMask => new(__DATA_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -90,79 +90,79 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
 
     /// <summary>Returns a new EnumReg64 with the Valid flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumReg64 WithValid(bool value) => new(value ? (ulong)(Value | VALID_MASK) : (ulong)(Value & VALID_INVERTED_MASK));
+    public EnumReg64 WithValid(bool value) => new(value ? (ulong)(__value | __VALID_MASK) : (ulong)(__value & __VALID_INVERTED_MASK));
 
     /// <summary>Returns a new EnumReg64 with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumReg64 WithStatus(byte value) => new((ulong)((Value & STATUS_INVERTED_MASK) | ((ulong)value & STATUS_MASK)));
+    public EnumReg64 WithStatus(byte value) => new((ulong)((__value & __STATUS_INVERTED_MASK) | ((ulong)value & __STATUS_MASK)));
 
     /// <summary>Returns a new EnumReg64 with the Data field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public EnumReg64 WithData(ushort value) => new((ulong)((Value & DATA_INVERTED_MASK) | (((ulong)value << DATA_START_BIT) & DATA_SHIFTED_MASK)));
+    public EnumReg64 WithData(ushort value) => new((ulong)((__value & __DATA_INVERTED_MASK) | (((ulong)value << __DATA_START_BIT) & __DATA_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator ~(EnumReg64 a) => new((ulong)~a.Value);
+    public static EnumReg64 operator ~(EnumReg64 a) => new((ulong)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator |(EnumReg64 a, EnumReg64 b) => new((ulong)(a.Value | b.Value));
+    public static EnumReg64 operator |(EnumReg64 a, EnumReg64 b) => new((ulong)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator &(EnumReg64 a, EnumReg64 b) => new((ulong)(a.Value & b.Value));
+    public static EnumReg64 operator &(EnumReg64 a, EnumReg64 b) => new((ulong)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator ^(EnumReg64 a, EnumReg64 b) => new((ulong)(a.Value ^ b.Value));
+    public static EnumReg64 operator ^(EnumReg64 a, EnumReg64 b) => new((ulong)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator &(EnumReg64 a, ulong b) => new(a.Value & b);
+    public static EnumReg64 operator &(EnumReg64 a, ulong b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator &(ulong a, EnumReg64 b) => new(a & b.Value);
+    public static EnumReg64 operator &(ulong a, EnumReg64 b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator |(EnumReg64 a, ulong b) => new(a.Value | b);
+    public static EnumReg64 operator |(EnumReg64 a, ulong b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator |(ulong a, EnumReg64 b) => new(a | b.Value);
+    public static EnumReg64 operator |(ulong a, EnumReg64 b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator ^(EnumReg64 a, ulong b) => new(a.Value ^ b);
+    public static EnumReg64 operator ^(EnumReg64 a, ulong b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with ulong.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator ^(ulong a, EnumReg64 b) => new(a ^ b.Value);
+    public static EnumReg64 operator ^(ulong a, EnumReg64 b) => new(a ^ b.__value);
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(EnumReg64 a, int b) => a.Value & (ulong)b;
+    public static ulong operator &(EnumReg64 a, int b) => a.__value & (ulong)b;
 
     /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator &(int a, EnumReg64 b) => (ulong)a & b.Value;
+    public static ulong operator &(int a, EnumReg64 b) => (ulong)a & b.__value;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(EnumReg64 a, int b) => a.Value | (ulong)b;
+    public static ulong operator |(EnumReg64 a, int b) => a.__value | (ulong)b;
 
     /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator |(int a, EnumReg64 b) => (ulong)a | b.Value;
+    public static ulong operator |(int a, EnumReg64 b) => (ulong)a | b.__value;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(EnumReg64 a, int b) => a.Value ^ (ulong)b;
+    public static ulong operator ^(EnumReg64 a, int b) => a.__value ^ (ulong)b;
 
     /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ulong operator ^(int a, EnumReg64 b) => (ulong)a ^ b.Value;
+    public static ulong operator ^(int a, EnumReg64 b) => (ulong)a ^ b.__value;
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -170,115 +170,115 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator -(EnumReg64 a) => new(unchecked((ulong)(0 - a.Value)));
+    public static EnumReg64 operator -(EnumReg64 a) => new(unchecked((ulong)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator +(EnumReg64 a, EnumReg64 b) => new(unchecked((ulong)(a.Value + b.Value)));
+    public static EnumReg64 operator +(EnumReg64 a, EnumReg64 b) => new(unchecked((ulong)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator +(EnumReg64 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+    public static EnumReg64 operator +(EnumReg64 a, ulong b) => new(unchecked((ulong)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator +(ulong a, EnumReg64 b) => new(unchecked((ulong)(a + b.Value)));
+    public static EnumReg64 operator +(ulong a, EnumReg64 b) => new(unchecked((ulong)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator -(EnumReg64 a, EnumReg64 b) => new(unchecked((ulong)(a.Value - b.Value)));
+    public static EnumReg64 operator -(EnumReg64 a, EnumReg64 b) => new(unchecked((ulong)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator -(EnumReg64 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+    public static EnumReg64 operator -(EnumReg64 a, ulong b) => new(unchecked((ulong)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator -(ulong a, EnumReg64 b) => new(unchecked((ulong)(a - b.Value)));
+    public static EnumReg64 operator -(ulong a, EnumReg64 b) => new(unchecked((ulong)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator *(EnumReg64 a, EnumReg64 b) => new(unchecked((ulong)(a.Value * b.Value)));
+    public static EnumReg64 operator *(EnumReg64 a, EnumReg64 b) => new(unchecked((ulong)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator *(EnumReg64 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+    public static EnumReg64 operator *(EnumReg64 a, ulong b) => new(unchecked((ulong)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator *(ulong a, EnumReg64 b) => new(unchecked((ulong)(a * b.Value)));
+    public static EnumReg64 operator *(ulong a, EnumReg64 b) => new(unchecked((ulong)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator /(EnumReg64 a, EnumReg64 b) => new((ulong)(a.Value / b.Value));
+    public static EnumReg64 operator /(EnumReg64 a, EnumReg64 b) => new((ulong)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator /(EnumReg64 a, ulong b) => new((ulong)(a.Value / b));
+    public static EnumReg64 operator /(EnumReg64 a, ulong b) => new((ulong)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator /(ulong a, EnumReg64 b) => new((ulong)(a / b.Value));
+    public static EnumReg64 operator /(ulong a, EnumReg64 b) => new((ulong)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator %(EnumReg64 a, EnumReg64 b) => new((ulong)(a.Value % b.Value));
+    public static EnumReg64 operator %(EnumReg64 a, EnumReg64 b) => new((ulong)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator %(EnumReg64 a, ulong b) => new((ulong)(a.Value % b));
+    public static EnumReg64 operator %(EnumReg64 a, ulong b) => new((ulong)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator %(ulong a, EnumReg64 b) => new((ulong)(a % b.Value));
+    public static EnumReg64 operator %(ulong a, EnumReg64 b) => new((ulong)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator <<(EnumReg64 a, int b) => new(unchecked((ulong)(a.Value << b)));
+    public static EnumReg64 operator <<(EnumReg64 a, int b) => new(unchecked((ulong)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator >>(EnumReg64 a, int b) => new(unchecked((ulong)(a.Value >> b)));
+    public static EnumReg64 operator >>(EnumReg64 a, int b) => new(unchecked((ulong)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static EnumReg64 operator >>>(EnumReg64 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+    public static EnumReg64 operator >>>(EnumReg64 a, int b) => new(unchecked((ulong)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(EnumReg64 a, EnumReg64 b) => a.Value < b.Value;
+    public static bool operator <(EnumReg64 a, EnumReg64 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(EnumReg64 a, EnumReg64 b) => a.Value > b.Value;
+    public static bool operator >(EnumReg64 a, EnumReg64 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(EnumReg64 a, EnumReg64 b) => a.Value <= b.Value;
+    public static bool operator <=(EnumReg64 a, EnumReg64 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(EnumReg64 a, EnumReg64 b) => a.Value >= b.Value;
+    public static bool operator >=(EnumReg64 a, EnumReg64 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(EnumReg64 a, EnumReg64 b) => a.Value == b.Value;
+    public static bool operator ==(EnumReg64 a, EnumReg64 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(EnumReg64 a, EnumReg64 b) => a.Value != b.Value;
+    public static bool operator !=(EnumReg64 a, EnumReg64 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is EnumReg64 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is EnumReg64 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(EnumReg64 value) => value.Value;
+    public static implicit operator ulong(EnumReg64 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator EnumReg64(ulong value) => new(value);
@@ -306,7 +306,7 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -490,7 +490,7 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -499,7 +499,7 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -516,13 +516,13 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     /// <param name="other">A EnumReg64 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(EnumReg64 other) => Value.CompareTo(other.Value);
+    public int CompareTo(EnumReg64 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another EnumReg64.</summary>
     /// <param name="other">A EnumReg64 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(EnumReg64 other) => Value == other.Value;
+    public bool Equals(EnumReg64 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes EnumReg64 as a string.</summary>
     private sealed class EnumReg64JsonConverter : JsonConverter<EnumReg64>

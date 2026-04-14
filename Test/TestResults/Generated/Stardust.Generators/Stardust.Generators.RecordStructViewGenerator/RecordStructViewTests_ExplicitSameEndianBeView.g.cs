@@ -16,8 +16,8 @@ public partial class RecordStructViewTests
     [JsonConverter(typeof(ExplicitSameEndianBeViewJsonConverter))]
     public partial record struct ExplicitSameEndianBeView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 28;
@@ -30,8 +30,8 @@ public partial class RecordStructViewTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class RecordStructViewTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal ExplicitSameEndianBeView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial global::Stardust.Utilities.UInt16Be U16
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.UInt16Be)(ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0));
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -71,15 +71,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(0);
                     BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)(ushort)value);
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 15) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -97,12 +97,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.Int16Be)(short)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(2));
                 }
-                int ep = 16 + _bitOffset;
+                int ep = 16 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -111,15 +111,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(2);
                     BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)(short)value);
                 }
                 else
                 {
-                    int ep = 16 + _bitOffset;
+                    int ep = 16 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 15) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -137,12 +137,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.UInt32Be)(uint)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(4));
                 }
-                int ep = 32 + _bitOffset;
+                int ep = 32 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -151,15 +151,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(4);
                     BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)(uint)value);
                 }
                 else
                 {
-                    int ep = 32 + _bitOffset;
+                    int ep = 32 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 31) - bi * 8;
                     int sh = 64 - 1 - endInWindow;
@@ -177,12 +177,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.Int32Be)(int)BinaryPrimitives.ReadUInt32BigEndian(s.Slice(8));
                 }
-                int ep = 64 + _bitOffset;
+                int ep = 64 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 31) - bi * 8;
                 int sh = 64 - 1 - endInWindow;
@@ -191,15 +191,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(8);
                     BinaryPrimitives.WriteUInt32BigEndian(slice, (uint)(int)value);
                 }
                 else
                 {
-                    int ep = 64 + _bitOffset;
+                    int ep = 64 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 31) - bi * 8;
                     int sh = 64 - 1 - endInWindow;
@@ -217,12 +217,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.UInt64Be)(ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(12));
                 }
-                int ep = 96 + _bitOffset;
+                int ep = 96 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -231,15 +231,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(12);
                     BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)(ulong)value);
                 }
                 else
                 {
-                    int ep = 96 + _bitOffset;
+                    int ep = 96 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 63) - bi * 8;
                     int sh = 128 - 1 - endInWindow;
@@ -257,12 +257,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (global::Stardust.Utilities.Int64Be)(long)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(20));
                 }
-                int ep = 160 + _bitOffset;
+                int ep = 160 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -271,15 +271,15 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(20);
                     BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)(long)value);
                 }
                 else
                 {
-                    int ep = 160 + _bitOffset;
+                    int ep = 160 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 63) - bi * 8;
                     int sh = 128 - 1 - endInWindow;
@@ -329,7 +329,7 @@ public partial class RecordStructViewTests
             /// <summary>Writes a ExplicitSameEndianBeView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, ExplicitSameEndianBeView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

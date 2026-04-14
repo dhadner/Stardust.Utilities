@@ -19,7 +19,7 @@ public partial class BitFieldSpecializationTests
     public partial struct HalfRegister : IComparable, IComparable<HalfRegister>, IEquatable<HalfRegister>,
                                  IFormattable, ISpanFormattable, IParsable<HalfRegister>, ISpanParsable<HalfRegister>
     {
-        private ushort Value;
+        private ushort __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 2;
@@ -29,21 +29,21 @@ public partial class BitFieldSpecializationTests
 
         // --- Bit field mask constants ---
         // Mantissa: bits [0..9], width 10
-        private const int MANTISSA_START_BIT = 0;
-        private const ushort MANTISSA_MASK = 0x03FF;
-        private const ushort MANTISSA_INVERTED_MASK = 0xFC00;  // ~MANTISSA_MASK
+        private const int __MANTISSA_START_BIT = 0;
+        private const ushort __MANTISSA_MASK = 0x03FF;
+        private const ushort __MANTISSA_INVERTED_MASK = 0xFC00;  // ~__MANTISSA_MASK
         // Exponent: bits [10..14], width 5
-        private const int EXPONENT_START_BIT = 10;
-        private const ushort EXPONENT_MASK = 0x001F;
-        private const ushort EXPONENT_SHIFTED_MASK = 0x7C00;  // EXPONENT_MASK << EXPONENT_START_BIT
-        private const ushort EXPONENT_INVERTED_MASK = 0x83FF;  // ~EXPONENT_SHIFTED_MASK
+        private const int __EXPONENT_START_BIT = 10;
+        private const ushort __EXPONENT_MASK = 0x001F;
+        private const ushort __EXPONENT_SHIFTED_MASK = 0x7C00;  // __EXPONENT_MASK << __EXPONENT_START_BIT
+        private const ushort __EXPONENT_INVERTED_MASK = 0x83FF;  // ~__EXPONENT_SHIFTED_MASK
         // Sign: bit 15
-        private const int SIGN_BIT = 15;
-        private const ushort SIGN_MASK = 0x8000;  // 1 << SIGN_BIT
-        private const ushort SIGN_INVERTED_MASK = 0x7FFF;  // ~SIGN_MASK
+        private const int __SIGN_BIT = 15;
+        private const ushort __SIGN_MASK = 0x8000;  // 1 << __SIGN_BIT
+        private const ushort __SIGN_INVERTED_MASK = 0x7FFF;  // ~__SIGN_MASK
 
         /// <summary>Creates a new HalfRegister with the specified raw bits value.</summary>
-        public HalfRegister(ushort value) { Value = value; }
+        public HalfRegister(ushort value) { __value = value; }
 
         /// <summary>Creates a new HalfRegister from a Half value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,35 +52,35 @@ public partial class BitFieldSpecializationTests
         public partial ushort Mantissa
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Value & MANTISSA_MASK);
+            get => (ushort)(__value & __MANTISSA_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ushort)((Value & MANTISSA_INVERTED_MASK) | (((ushort)value) & MANTISSA_MASK));
+            set => __value = (ushort)((__value & __MANTISSA_INVERTED_MASK) | (((ushort)value) & __MANTISSA_MASK));
         }
 
         public partial byte Exponent
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (byte)((Value >> EXPONENT_START_BIT) & EXPONENT_MASK);
+            get => (byte)((__value >> __EXPONENT_START_BIT) & __EXPONENT_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ushort)((Value & EXPONENT_INVERTED_MASK) | ((((ushort)value) << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK));
+            set => __value = (ushort)((__value & __EXPONENT_INVERTED_MASK) | ((((ushort)value) << __EXPONENT_START_BIT) & __EXPONENT_SHIFTED_MASK));
         }
 
         public partial bool Sign
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (Value & SIGN_MASK) != 0;
+            get => (__value & __SIGN_MASK) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = value ? (ushort)(Value | SIGN_MASK) : (ushort)(Value & SIGN_INVERTED_MASK);
+            set => __value = value ? (ushort)(__value | __SIGN_MASK) : (ushort)(__value & __SIGN_INVERTED_MASK);
         }
 
         /// <summary>Returns a HalfRegister with only the Sign bit set.</summary>
-        public static HalfRegister SignBit => new(SIGN_MASK);
+        public static HalfRegister SignBit => new(__SIGN_MASK);
 
         /// <summary>Returns a HalfRegister with the mask for the Mantissa field (bits 0-9).</summary>
-        public static HalfRegister MantissaMask => new(MANTISSA_MASK);
+        public static HalfRegister MantissaMask => new(__MANTISSA_MASK);
 
         /// <summary>Returns a HalfRegister with the mask for the Exponent field (bits 10-14).</summary>
-        public static HalfRegister ExponentMask => new(EXPONENT_SHIFTED_MASK);
+        public static HalfRegister ExponentMask => new(__EXPONENT_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -96,31 +96,31 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Returns a new HalfRegister with the Sign flag set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithSign(bool value) => new(value ? (ushort)(Value | SIGN_MASK) : (ushort)(Value & SIGN_INVERTED_MASK));
+        public HalfRegister WithSign(bool value) => new(value ? (ushort)(__value | __SIGN_MASK) : (ushort)(__value & __SIGN_INVERTED_MASK));
 
         /// <summary>Returns a new HalfRegister with the Mantissa field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithMantissa(ushort value) => new((ushort)((Value & MANTISSA_INVERTED_MASK) | ((ushort)value & MANTISSA_MASK)));
+        public HalfRegister WithMantissa(ushort value) => new((ushort)((__value & __MANTISSA_INVERTED_MASK) | ((ushort)value & __MANTISSA_MASK)));
 
         /// <summary>Returns a new HalfRegister with the Exponent field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public HalfRegister WithExponent(byte value) => new((ushort)((Value & EXPONENT_INVERTED_MASK) | (((ushort)value << EXPONENT_START_BIT) & EXPONENT_SHIFTED_MASK)));
+        public HalfRegister WithExponent(byte value) => new((ushort)((__value & __EXPONENT_INVERTED_MASK) | (((ushort)value << __EXPONENT_START_BIT) & __EXPONENT_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator ~(HalfRegister a) => new((ushort)~a.Value);
+        public static HalfRegister operator ~(HalfRegister a) => new((ushort)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator |(HalfRegister a, HalfRegister b) => new((ushort)(a.Value | b.Value));
+        public static HalfRegister operator |(HalfRegister a, HalfRegister b) => new((ushort)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator &(HalfRegister a, HalfRegister b) => new((ushort)(a.Value & b.Value));
+        public static HalfRegister operator &(HalfRegister a, HalfRegister b) => new((ushort)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator ^(HalfRegister a, HalfRegister b) => new((ushort)(a.Value ^ b.Value));
+        public static HalfRegister operator ^(HalfRegister a, HalfRegister b) => new((ushort)(a.__value ^ b.__value));
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -128,116 +128,116 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Unary negation operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator -(HalfRegister a) => new(BitConverter.HalfToUInt16Bits(-BitConverter.UInt16BitsToHalf(a.Value)));
+        public static HalfRegister operator -(HalfRegister a) => new(BitConverter.HalfToUInt16Bits(-BitConverter.UInt16BitsToHalf(a.__value)));
 
         /// <summary>Addition operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator +(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) + BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator +(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) + BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Addition operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator +(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) + b));
+        public static HalfRegister operator +(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) + b));
 
         /// <summary>Addition operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator +(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a + BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator +(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a + BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Subtraction operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator -(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) - BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator -(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) - BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Subtraction operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator -(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) - b));
+        public static HalfRegister operator -(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) - b));
 
         /// <summary>Subtraction operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator -(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a - BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator -(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a - BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Multiplication operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator *(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) * BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator *(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) * BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Multiplication operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator *(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) * b));
+        public static HalfRegister operator *(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) * b));
 
         /// <summary>Multiplication operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator *(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a * BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator *(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a * BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Division operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator /(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) / BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator /(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) / BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Division operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator /(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) / b));
+        public static HalfRegister operator /(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) / b));
 
         /// <summary>Division operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator /(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a / BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator /(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a / BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Modulus operator (floating-point arithmetic).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator %(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) % BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator %(HalfRegister a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) % BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Modulus operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator %(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.Value) % b));
+        public static HalfRegister operator %(HalfRegister a, Half b) => new(BitConverter.HalfToUInt16Bits(BitConverter.UInt16BitsToHalf(a.__value) % b));
 
         /// <summary>Modulus operator with Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static HalfRegister operator %(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a % BitConverter.UInt16BitsToHalf(b.Value)));
+        public static HalfRegister operator %(Half a, HalfRegister b) => new(BitConverter.HalfToUInt16Bits(a % BitConverter.UInt16BitsToHalf(b.__value)));
 
         /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(HalfRegister a, int b) => a.Value << b;
+        public static int operator <<(HalfRegister a, int b) => a.__value << b;
 
         /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(HalfRegister a, int b) => a.Value >> b;
+        public static int operator >>(HalfRegister a, int b) => a.__value >> b;
 
         /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(HalfRegister a, int b) => a.Value >>> b;
+        public static int operator >>>(HalfRegister a, int b) => a.__value >>> b;
 
         /// <summary>Less than operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.Value) < BitConverter.UInt16BitsToHalf(b.Value);
+        public static bool operator <(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.__value) < BitConverter.UInt16BitsToHalf(b.__value);
 
         /// <summary>Greater than operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.Value) > BitConverter.UInt16BitsToHalf(b.Value);
+        public static bool operator >(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.__value) > BitConverter.UInt16BitsToHalf(b.__value);
 
         /// <summary>Less than or equal operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.Value) <= BitConverter.UInt16BitsToHalf(b.Value);
+        public static bool operator <=(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.__value) <= BitConverter.UInt16BitsToHalf(b.__value);
 
         /// <summary>Greater than or equal operator (floating-point comparison).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.Value) >= BitConverter.UInt16BitsToHalf(b.Value);
+        public static bool operator >=(HalfRegister a, HalfRegister b) => BitConverter.UInt16BitsToHalf(a.__value) >= BitConverter.UInt16BitsToHalf(b.__value);
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(HalfRegister a, HalfRegister b) => a.Value == b.Value;
+        public static bool operator ==(HalfRegister a, HalfRegister b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(HalfRegister a, HalfRegister b) => a.Value != b.Value;
+        public static bool operator !=(HalfRegister a, HalfRegister b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is HalfRegister other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is HalfRegister other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => BitConverter.UInt16BitsToHalf(Value).ToString();
+        public override string ToString() => BitConverter.UInt16BitsToHalf(__value).ToString();
 
         /// <summary>Implicit conversion to Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Half(HalfRegister value) => BitConverter.UInt16BitsToHalf(value.Value);
+        public static implicit operator Half(HalfRegister value) => BitConverter.UInt16BitsToHalf(value.__value);
 
         /// <summary>Implicit conversion from Half.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -245,7 +245,7 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Explicit conversion to raw bits (ushort).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ushort(HalfRegister value) => value.Value;
+        public static explicit operator ushort(HalfRegister value) => value.__value;
 
         /// <summary>Explicit conversion from raw bits (ushort).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -278,7 +278,7 @@ public partial class BitFieldSpecializationTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -353,7 +353,7 @@ public partial class BitFieldSpecializationTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => BitConverter.UInt16BitsToHalf(Value).ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => BitConverter.UInt16BitsToHalf(__value).ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -362,7 +362,7 @@ public partial class BitFieldSpecializationTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -379,13 +379,13 @@ public partial class BitFieldSpecializationTests
         /// <param name="other">A HalfRegister to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(HalfRegister other) => BitConverter.UInt16BitsToHalf(Value).CompareTo(BitConverter.UInt16BitsToHalf(other.Value));
+        public int CompareTo(HalfRegister other) => BitConverter.UInt16BitsToHalf(__value).CompareTo(BitConverter.UInt16BitsToHalf(other.__value));
 
         /// <summary>Indicates whether this instance is equal to another HalfRegister.</summary>
         /// <param name="other">A HalfRegister to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(HalfRegister other) => Value == other.Value;
+        public bool Equals(HalfRegister other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes HalfRegister as a string.</summary>
         private sealed class HalfRegisterJsonConverter : JsonConverter<HalfRegister>

@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>, IEquatable<NuintSafe32Reg>,
                              IFormattable, ISpanFormattable, IParsable<NuintSafe32Reg>, ISpanParsable<NuintSafe32Reg>
 {
-    private nuint Value;
+    private nuint __value;
 
     /// <summary>Size of this struct in bytes (platform-dependent: 4 on 32-bit, 8 on 64-bit).</summary>
     public static int SIZE_IN_BYTES => nint.Size;
@@ -27,69 +27,69 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
 
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
-    private const int STATUS_START_BIT = 0;
-    private const ulong STATUS_MASK = 0x00000000000000FFUL;
-    private const ulong STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~STATUS_MASK
+    private const int __STATUS_START_BIT = 0;
+    private const ulong __STATUS_MASK = 0x00000000000000FFUL;
+    private const ulong __STATUS_INVERTED_MASK = 0xFFFFFFFFFFFFFF00UL;  // ~__STATUS_MASK
     // Command: bits [8..11], width 4
-    private const int COMMAND_START_BIT = 8;
-    private const ulong COMMAND_MASK = 0x000000000000000FUL;
-    private const ulong COMMAND_SHIFTED_MASK = 0x0000000000000F00UL;  // COMMAND_MASK << COMMAND_START_BIT
-    private const ulong COMMAND_INVERTED_MASK = 0xFFFFFFFFFFFFF0FFUL;  // ~COMMAND_SHIFTED_MASK
+    private const int __COMMAND_START_BIT = 8;
+    private const ulong __COMMAND_MASK = 0x000000000000000FUL;
+    private const ulong __COMMAND_SHIFTED_MASK = 0x0000000000000F00UL;  // __COMMAND_MASK << __COMMAND_START_BIT
+    private const ulong __COMMAND_INVERTED_MASK = 0xFFFFFFFFFFFFF0FFUL;  // ~__COMMAND_SHIFTED_MASK
     // Enabled: bit 28
-    private const int ENABLED_BIT = 28;
-    private const ulong ENABLED_MASK = 0x0000000010000000UL;  // 1 << ENABLED_BIT
-    private const ulong ENABLED_INVERTED_MASK = 0xFFFFFFFFEFFFFFFFUL;  // ~ENABLED_MASK
+    private const int __ENABLED_BIT = 28;
+    private const ulong __ENABLED_MASK = 0x0000000010000000UL;  // 1 << __ENABLED_BIT
+    private const ulong __ENABLED_INVERTED_MASK = 0xFFFFFFFFEFFFFFFFUL;  // ~__ENABLED_MASK
     // Active: bit 29
-    private const int ACTIVE_BIT = 29;
-    private const ulong ACTIVE_MASK = 0x0000000020000000UL;  // 1 << ACTIVE_BIT
-    private const ulong ACTIVE_INVERTED_MASK = 0xFFFFFFFFDFFFFFFFUL;  // ~ACTIVE_MASK
+    private const int __ACTIVE_BIT = 29;
+    private const ulong __ACTIVE_MASK = 0x0000000020000000UL;  // 1 << __ACTIVE_BIT
+    private const ulong __ACTIVE_INVERTED_MASK = 0xFFFFFFFFDFFFFFFFUL;  // ~__ACTIVE_MASK
 
     /// <summary>Creates a new NuintSafe32Reg with the specified raw bits value.</summary>
-    public NuintSafe32Reg(nuint value) { Value = value; }
+    public NuintSafe32Reg(nuint value) { __value = value; }
 
     public partial byte Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(((ulong)Value) & STATUS_MASK);
+        get => (byte)(((ulong)__value) & __STATUS_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (nuint)((((ulong)Value) & STATUS_INVERTED_MASK) | (((ulong)value) & STATUS_MASK));
+        set => __value = (nuint)((((ulong)__value) & __STATUS_INVERTED_MASK) | (((ulong)value) & __STATUS_MASK));
     }
 
     public partial byte Command
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((((ulong)Value) >> COMMAND_START_BIT) & COMMAND_MASK);
+        get => (byte)((((ulong)__value) >> __COMMAND_START_BIT) & __COMMAND_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (nuint)((((ulong)Value) & COMMAND_INVERTED_MASK) | ((((ulong)value) << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK));
+        set => __value = (nuint)((((ulong)__value) & __COMMAND_INVERTED_MASK) | ((((ulong)value) << __COMMAND_START_BIT) & __COMMAND_SHIFTED_MASK));
     }
 
     public partial bool Enabled
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ulong)Value) & ENABLED_MASK) != 0;
+        get => (((ulong)__value) & __ENABLED_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (nuint)(((ulong)Value) | ENABLED_MASK) : (nuint)(((ulong)Value) & ENABLED_INVERTED_MASK);
+        set => __value = value ? (nuint)(((ulong)__value) | __ENABLED_MASK) : (nuint)(((ulong)__value) & __ENABLED_INVERTED_MASK);
     }
 
     public partial bool Active
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (((ulong)Value) & ACTIVE_MASK) != 0;
+        get => (((ulong)__value) & __ACTIVE_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (nuint)(((ulong)Value) | ACTIVE_MASK) : (nuint)(((ulong)Value) & ACTIVE_INVERTED_MASK);
+        set => __value = value ? (nuint)(((ulong)__value) | __ACTIVE_MASK) : (nuint)(((ulong)__value) & __ACTIVE_INVERTED_MASK);
     }
 
     /// <summary>Returns a NuintSafe32Reg with only the Enabled bit set.</summary>
-    public static NuintSafe32Reg EnabledBit => new(unchecked((nuint)ENABLED_MASK));
+    public static NuintSafe32Reg EnabledBit => new(unchecked((nuint)__ENABLED_MASK));
 
     /// <summary>Returns a NuintSafe32Reg with only the Active bit set.</summary>
-    public static NuintSafe32Reg ActiveBit => new(unchecked((nuint)ACTIVE_MASK));
+    public static NuintSafe32Reg ActiveBit => new(unchecked((nuint)__ACTIVE_MASK));
 
     /// <summary>Returns a NuintSafe32Reg with the mask for the Status field (bits 0-7).</summary>
-    public static NuintSafe32Reg StatusMask => new(unchecked((nuint)STATUS_MASK));
+    public static NuintSafe32Reg StatusMask => new(unchecked((nuint)__STATUS_MASK));
 
     /// <summary>Returns a NuintSafe32Reg with the mask for the Command field (bits 8-11).</summary>
-    public static NuintSafe32Reg CommandMask => new(unchecked((nuint)COMMAND_SHIFTED_MASK));
+    public static NuintSafe32Reg CommandMask => new(unchecked((nuint)__COMMAND_SHIFTED_MASK));
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -106,59 +106,59 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
 
     /// <summary>Returns a new NuintSafe32Reg with the Enabled flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public NuintSafe32Reg WithEnabled(bool value) => new(value ? (nuint)(((ulong)Value) | ENABLED_MASK) : (nuint)(((ulong)Value) & ENABLED_INVERTED_MASK));
+    public NuintSafe32Reg WithEnabled(bool value) => new(value ? (nuint)(((ulong)__value) | __ENABLED_MASK) : (nuint)(((ulong)__value) & __ENABLED_INVERTED_MASK));
 
     /// <summary>Returns a new NuintSafe32Reg with the Active flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public NuintSafe32Reg WithActive(bool value) => new(value ? (nuint)(((ulong)Value) | ACTIVE_MASK) : (nuint)(((ulong)Value) & ACTIVE_INVERTED_MASK));
+    public NuintSafe32Reg WithActive(bool value) => new(value ? (nuint)(((ulong)__value) | __ACTIVE_MASK) : (nuint)(((ulong)__value) & __ACTIVE_INVERTED_MASK));
 
     /// <summary>Returns a new NuintSafe32Reg with the Status field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public NuintSafe32Reg WithStatus(byte value) => new((nuint)((Value & STATUS_INVERTED_MASK) | ((nuint)value & STATUS_MASK)));
+    public NuintSafe32Reg WithStatus(byte value) => new((nuint)((__value & __STATUS_INVERTED_MASK) | ((nuint)value & __STATUS_MASK)));
 
     /// <summary>Returns a new NuintSafe32Reg with the Command field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public NuintSafe32Reg WithCommand(byte value) => new((nuint)((Value & COMMAND_INVERTED_MASK) | (((nuint)value << COMMAND_START_BIT) & COMMAND_SHIFTED_MASK)));
+    public NuintSafe32Reg WithCommand(byte value) => new((nuint)((__value & __COMMAND_INVERTED_MASK) | (((nuint)value << __COMMAND_START_BIT) & __COMMAND_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator ~(NuintSafe32Reg a) => new((nuint)~a.Value);
+    public static NuintSafe32Reg operator ~(NuintSafe32Reg a) => new((nuint)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator |(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.Value | b.Value));
+    public static NuintSafe32Reg operator |(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator &(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.Value & b.Value));
+    public static NuintSafe32Reg operator &(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator ^(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.Value ^ b.Value));
+    public static NuintSafe32Reg operator ^(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.__value ^ b.__value));
 
     /// <summary>Bitwise AND operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator &(NuintSafe32Reg a, nuint b) => new(a.Value & b);
+    public static NuintSafe32Reg operator &(NuintSafe32Reg a, nuint b) => new(a.__value & b);
 
     /// <summary>Bitwise AND operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator &(nuint a, NuintSafe32Reg b) => new(a & b.Value);
+    public static NuintSafe32Reg operator &(nuint a, NuintSafe32Reg b) => new(a & b.__value);
 
     /// <summary>Bitwise OR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator |(NuintSafe32Reg a, nuint b) => new(a.Value | b);
+    public static NuintSafe32Reg operator |(NuintSafe32Reg a, nuint b) => new(a.__value | b);
 
     /// <summary>Bitwise OR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator |(nuint a, NuintSafe32Reg b) => new(a | b.Value);
+    public static NuintSafe32Reg operator |(nuint a, NuintSafe32Reg b) => new(a | b.__value);
 
     /// <summary>Bitwise XOR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator ^(NuintSafe32Reg a, nuint b) => new(a.Value ^ b);
+    public static NuintSafe32Reg operator ^(NuintSafe32Reg a, nuint b) => new(a.__value ^ b);
 
     /// <summary>Bitwise XOR operator with nuint.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator ^(nuint a, NuintSafe32Reg b) => new(a ^ b.Value);
+    public static NuintSafe32Reg operator ^(nuint a, NuintSafe32Reg b) => new(a ^ b.__value);
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -166,115 +166,115 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator -(NuintSafe32Reg a) => new(unchecked((nuint)(0 - a.Value)));
+    public static NuintSafe32Reg operator -(NuintSafe32Reg a) => new(unchecked((nuint)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator +(NuintSafe32Reg a, NuintSafe32Reg b) => new(unchecked((nuint)(a.Value + b.Value)));
+    public static NuintSafe32Reg operator +(NuintSafe32Reg a, NuintSafe32Reg b) => new(unchecked((nuint)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator +(NuintSafe32Reg a, nuint b) => new(unchecked((nuint)(a.Value + b)));
+    public static NuintSafe32Reg operator +(NuintSafe32Reg a, nuint b) => new(unchecked((nuint)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator +(nuint a, NuintSafe32Reg b) => new(unchecked((nuint)(a + b.Value)));
+    public static NuintSafe32Reg operator +(nuint a, NuintSafe32Reg b) => new(unchecked((nuint)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator -(NuintSafe32Reg a, NuintSafe32Reg b) => new(unchecked((nuint)(a.Value - b.Value)));
+    public static NuintSafe32Reg operator -(NuintSafe32Reg a, NuintSafe32Reg b) => new(unchecked((nuint)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator -(NuintSafe32Reg a, nuint b) => new(unchecked((nuint)(a.Value - b)));
+    public static NuintSafe32Reg operator -(NuintSafe32Reg a, nuint b) => new(unchecked((nuint)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator -(nuint a, NuintSafe32Reg b) => new(unchecked((nuint)(a - b.Value)));
+    public static NuintSafe32Reg operator -(nuint a, NuintSafe32Reg b) => new(unchecked((nuint)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator *(NuintSafe32Reg a, NuintSafe32Reg b) => new(unchecked((nuint)(a.Value * b.Value)));
+    public static NuintSafe32Reg operator *(NuintSafe32Reg a, NuintSafe32Reg b) => new(unchecked((nuint)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator *(NuintSafe32Reg a, nuint b) => new(unchecked((nuint)(a.Value * b)));
+    public static NuintSafe32Reg operator *(NuintSafe32Reg a, nuint b) => new(unchecked((nuint)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator *(nuint a, NuintSafe32Reg b) => new(unchecked((nuint)(a * b.Value)));
+    public static NuintSafe32Reg operator *(nuint a, NuintSafe32Reg b) => new(unchecked((nuint)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator /(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.Value / b.Value));
+    public static NuintSafe32Reg operator /(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator /(NuintSafe32Reg a, nuint b) => new((nuint)(a.Value / b));
+    public static NuintSafe32Reg operator /(NuintSafe32Reg a, nuint b) => new((nuint)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator /(nuint a, NuintSafe32Reg b) => new((nuint)(a / b.Value));
+    public static NuintSafe32Reg operator /(nuint a, NuintSafe32Reg b) => new((nuint)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator %(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.Value % b.Value));
+    public static NuintSafe32Reg operator %(NuintSafe32Reg a, NuintSafe32Reg b) => new((nuint)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator %(NuintSafe32Reg a, nuint b) => new((nuint)(a.Value % b));
+    public static NuintSafe32Reg operator %(NuintSafe32Reg a, nuint b) => new((nuint)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator %(nuint a, NuintSafe32Reg b) => new((nuint)(a % b.Value));
+    public static NuintSafe32Reg operator %(nuint a, NuintSafe32Reg b) => new((nuint)(a % b.__value));
 
     /// <summary>Left shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator <<(NuintSafe32Reg a, int b) => new(unchecked((nuint)(a.Value << b)));
+    public static NuintSafe32Reg operator <<(NuintSafe32Reg a, int b) => new(unchecked((nuint)(a.__value << b)));
 
     /// <summary>Right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator >>(NuintSafe32Reg a, int b) => new(unchecked((nuint)(a.Value >> b)));
+    public static NuintSafe32Reg operator >>(NuintSafe32Reg a, int b) => new(unchecked((nuint)(a.__value >> b)));
 
     /// <summary>Unsigned right shift operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NuintSafe32Reg operator >>>(NuintSafe32Reg a, int b) => new(unchecked((nuint)(a.Value >>> b)));
+    public static NuintSafe32Reg operator >>>(NuintSafe32Reg a, int b) => new(unchecked((nuint)(a.__value >>> b)));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(NuintSafe32Reg a, NuintSafe32Reg b) => a.Value < b.Value;
+    public static bool operator <(NuintSafe32Reg a, NuintSafe32Reg b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(NuintSafe32Reg a, NuintSafe32Reg b) => a.Value > b.Value;
+    public static bool operator >(NuintSafe32Reg a, NuintSafe32Reg b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(NuintSafe32Reg a, NuintSafe32Reg b) => a.Value <= b.Value;
+    public static bool operator <=(NuintSafe32Reg a, NuintSafe32Reg b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(NuintSafe32Reg a, NuintSafe32Reg b) => a.Value >= b.Value;
+    public static bool operator >=(NuintSafe32Reg a, NuintSafe32Reg b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(NuintSafe32Reg a, NuintSafe32Reg b) => a.Value == b.Value;
+    public static bool operator ==(NuintSafe32Reg a, NuintSafe32Reg b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(NuintSafe32Reg a, NuintSafe32Reg b) => a.Value != b.Value;
+    public static bool operator !=(NuintSafe32Reg a, NuintSafe32Reg b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is NuintSafe32Reg other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is NuintSafe32Reg other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator nuint(NuintSafe32Reg value) => value.Value;
+    public static implicit operator nuint(NuintSafe32Reg value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator NuintSafe32Reg(nuint value) => new(value);
@@ -302,8 +302,8 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        if (nint.Size == 8) BinaryPrimitives.WriteUInt64LittleEndian(destination, (ulong)Value);
-        else BinaryPrimitives.WriteUInt32LittleEndian(destination, (uint)Value);
+        if (nint.Size == 8) BinaryPrimitives.WriteUInt64LittleEndian(destination, (ulong)__value);
+        else BinaryPrimitives.WriteUInt32LittleEndian(destination, (uint)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -487,7 +487,7 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -496,7 +496,7 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -513,13 +513,13 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
     /// <param name="other">A NuintSafe32Reg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(NuintSafe32Reg other) => Value.CompareTo(other.Value);
+    public int CompareTo(NuintSafe32Reg other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another NuintSafe32Reg.</summary>
     /// <param name="other">A NuintSafe32Reg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(NuintSafe32Reg other) => Value == other.Value;
+    public bool Equals(NuintSafe32Reg other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes NuintSafe32Reg as a string.</summary>
     private sealed class NuintSafe32RegJsonConverter : JsonConverter<NuintSafe32Reg>

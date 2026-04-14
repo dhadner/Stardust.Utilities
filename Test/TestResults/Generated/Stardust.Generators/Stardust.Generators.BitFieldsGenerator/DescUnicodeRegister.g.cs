@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicodeRegister>, IEquatable<DescUnicodeRegister>,
                              IFormattable, ISpanFormattable, IParsable<DescUnicodeRegister>, ISpanParsable<DescUnicodeRegister>
 {
-    private ushort Value;
+    private ushort __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
@@ -27,70 +27,70 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
 
     // --- Bit field mask constants ---
     // Japanese: bits [2..7], width 6
-    private const int JAPANESE_START_BIT = 2;
-    private const ushort JAPANESE_MASK = 0x003F;
-    private const ushort JAPANESE_SHIFTED_MASK = 0x00FC;  // JAPANESE_MASK << JAPANESE_START_BIT
-    private const ushort JAPANESE_INVERTED_MASK = 0xFF03;  // ~JAPANESE_SHIFTED_MASK
+    private const int __JAPANESE_START_BIT = 2;
+    private const ushort __JAPANESE_MASK = 0x003F;
+    private const ushort __JAPANESE_SHIFTED_MASK = 0x00FC;  // __JAPANESE_MASK << __JAPANESE_START_BIT
+    private const ushort __JAPANESE_INVERTED_MASK = 0xFF03;  // ~__JAPANESE_SHIFTED_MASK
     // Accented: bits [8..15], width 8
-    private const int ACCENTED_START_BIT = 8;
-    private const ushort ACCENTED_MASK = 0x00FF;
-    private const ushort ACCENTED_SHIFTED_MASK = 0xFF00;  // ACCENTED_MASK << ACCENTED_START_BIT
-    private const ushort ACCENTED_INVERTED_MASK = 0x00FF;  // ~ACCENTED_SHIFTED_MASK
+    private const int __ACCENTED_START_BIT = 8;
+    private const ushort __ACCENTED_MASK = 0x00FF;
+    private const ushort __ACCENTED_SHIFTED_MASK = 0xFF00;  // __ACCENTED_MASK << __ACCENTED_START_BIT
+    private const ushort __ACCENTED_INVERTED_MASK = 0x00FF;  // ~__ACCENTED_SHIFTED_MASK
     // Check: bit 0
-    private const int CHECK_BIT = 0;
-    private const ushort CHECK_MASK = 0x0001;  // 1 << CHECK_BIT
-    private const ushort CHECK_INVERTED_MASK = 0xFFFE;  // ~CHECK_MASK
+    private const int __CHECK_BIT = 0;
+    private const ushort __CHECK_MASK = 0x0001;  // 1 << __CHECK_BIT
+    private const ushort __CHECK_INVERTED_MASK = 0xFFFE;  // ~__CHECK_MASK
     // Rocket: bit 1
-    private const int ROCKET_BIT = 1;
-    private const ushort ROCKET_MASK = 0x0002;  // 1 << ROCKET_BIT
-    private const ushort ROCKET_INVERTED_MASK = 0xFFFD;  // ~ROCKET_MASK
+    private const int __ROCKET_BIT = 1;
+    private const ushort __ROCKET_MASK = 0x0002;  // 1 << __ROCKET_BIT
+    private const ushort __ROCKET_INVERTED_MASK = 0xFFFD;  // ~__ROCKET_MASK
 
     /// <summary>Creates a new DescUnicodeRegister with the specified raw bits value.</summary>
-    public DescUnicodeRegister(ushort value) { Value = value; }
+    public DescUnicodeRegister(ushort value) { __value = value; }
 
     public partial byte Japanese
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> JAPANESE_START_BIT) & JAPANESE_MASK);
+        get => (byte)((__value >> __JAPANESE_START_BIT) & __JAPANESE_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & JAPANESE_INVERTED_MASK) | ((((ushort)value) << JAPANESE_START_BIT) & JAPANESE_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __JAPANESE_INVERTED_MASK) | ((((ushort)value) << __JAPANESE_START_BIT) & __JAPANESE_SHIFTED_MASK));
     }
 
     public partial byte Accented
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> ACCENTED_START_BIT) & ACCENTED_MASK);
+        get => (byte)((__value >> __ACCENTED_START_BIT) & __ACCENTED_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & ACCENTED_INVERTED_MASK) | ((((ushort)value) << ACCENTED_START_BIT) & ACCENTED_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __ACCENTED_INVERTED_MASK) | ((((ushort)value) << __ACCENTED_START_BIT) & __ACCENTED_SHIFTED_MASK));
     }
 
     public partial bool Check
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & CHECK_MASK) != 0;
+        get => (__value & __CHECK_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ushort)(Value | CHECK_MASK) : (ushort)(Value & CHECK_INVERTED_MASK);
+        set => __value = value ? (ushort)(__value | __CHECK_MASK) : (ushort)(__value & __CHECK_INVERTED_MASK);
     }
 
     public partial bool Rocket
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & ROCKET_MASK) != 0;
+        get => (__value & __ROCKET_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (ushort)(Value | ROCKET_MASK) : (ushort)(Value & ROCKET_INVERTED_MASK);
+        set => __value = value ? (ushort)(__value | __ROCKET_MASK) : (ushort)(__value & __ROCKET_INVERTED_MASK);
     }
 
     /// <summary>Returns a DescUnicodeRegister with only the Check bit set.</summary>
-    public static DescUnicodeRegister CheckBit => new(CHECK_MASK);
+    public static DescUnicodeRegister CheckBit => new(__CHECK_MASK);
 
     /// <summary>Returns a DescUnicodeRegister with only the Rocket bit set.</summary>
-    public static DescUnicodeRegister RocketBit => new(ROCKET_MASK);
+    public static DescUnicodeRegister RocketBit => new(__ROCKET_MASK);
 
     /// <summary>Returns a DescUnicodeRegister with the mask for the Japanese field (bits 2-7).</summary>
-    public static DescUnicodeRegister JapaneseMask => new(JAPANESE_SHIFTED_MASK);
+    public static DescUnicodeRegister JapaneseMask => new(__JAPANESE_SHIFTED_MASK);
 
     /// <summary>Returns a DescUnicodeRegister with the mask for the Accented field (bits 8-15).</summary>
-    public static DescUnicodeRegister AccentedMask => new(ACCENTED_SHIFTED_MASK);
+    public static DescUnicodeRegister AccentedMask => new(__ACCENTED_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -107,35 +107,35 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
 
     /// <summary>Returns a new DescUnicodeRegister with the Check flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithCheck(bool value) => new(value ? (ushort)(Value | CHECK_MASK) : (ushort)(Value & CHECK_INVERTED_MASK));
+    public DescUnicodeRegister WithCheck(bool value) => new(value ? (ushort)(__value | __CHECK_MASK) : (ushort)(__value & __CHECK_INVERTED_MASK));
 
     /// <summary>Returns a new DescUnicodeRegister with the Rocket flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithRocket(bool value) => new(value ? (ushort)(Value | ROCKET_MASK) : (ushort)(Value & ROCKET_INVERTED_MASK));
+    public DescUnicodeRegister WithRocket(bool value) => new(value ? (ushort)(__value | __ROCKET_MASK) : (ushort)(__value & __ROCKET_INVERTED_MASK));
 
     /// <summary>Returns a new DescUnicodeRegister with the Japanese field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((Value & JAPANESE_INVERTED_MASK) | (((ushort)value << JAPANESE_START_BIT) & JAPANESE_SHIFTED_MASK)));
+    public DescUnicodeRegister WithJapanese(byte value) => new((ushort)((__value & __JAPANESE_INVERTED_MASK) | (((ushort)value << __JAPANESE_START_BIT) & __JAPANESE_SHIFTED_MASK)));
 
     /// <summary>Returns a new DescUnicodeRegister with the Accented field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((Value & ACCENTED_INVERTED_MASK) | (((ushort)value << ACCENTED_START_BIT) & ACCENTED_SHIFTED_MASK)));
+    public DescUnicodeRegister WithAccented(byte value) => new((ushort)((__value & __ACCENTED_INVERTED_MASK) | (((ushort)value << __ACCENTED_START_BIT) & __ACCENTED_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator ~(DescUnicodeRegister a) => new((ushort)~a.Value);
+    public static DescUnicodeRegister operator ~(DescUnicodeRegister a) => new((ushort)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator |(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value | b.Value));
+    public static DescUnicodeRegister operator |(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator &(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value & b.Value));
+    public static DescUnicodeRegister operator &(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator ^(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value ^ b.Value));
+    public static DescUnicodeRegister operator ^(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -143,115 +143,115 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator -(DescUnicodeRegister a) => new(unchecked((ushort)(0 - a.Value)));
+    public static DescUnicodeRegister operator -(DescUnicodeRegister a) => new(unchecked((ushort)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator +(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.Value + b.Value)));
+    public static DescUnicodeRegister operator +(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator +(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.Value + b)));
+    public static DescUnicodeRegister operator +(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator +(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a + b.Value)));
+    public static DescUnicodeRegister operator +(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator -(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.Value - b.Value)));
+    public static DescUnicodeRegister operator -(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator -(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.Value - b)));
+    public static DescUnicodeRegister operator -(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator -(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a - b.Value)));
+    public static DescUnicodeRegister operator -(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator *(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.Value * b.Value)));
+    public static DescUnicodeRegister operator *(DescUnicodeRegister a, DescUnicodeRegister b) => new(unchecked((ushort)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator *(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.Value * b)));
+    public static DescUnicodeRegister operator *(DescUnicodeRegister a, ushort b) => new(unchecked((ushort)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator *(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a * b.Value)));
+    public static DescUnicodeRegister operator *(ushort a, DescUnicodeRegister b) => new(unchecked((ushort)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator /(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value / b.Value));
+    public static DescUnicodeRegister operator /(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator /(DescUnicodeRegister a, ushort b) => new((ushort)(a.Value / b));
+    public static DescUnicodeRegister operator /(DescUnicodeRegister a, ushort b) => new((ushort)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator /(ushort a, DescUnicodeRegister b) => new((ushort)(a / b.Value));
+    public static DescUnicodeRegister operator /(ushort a, DescUnicodeRegister b) => new((ushort)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator %(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.Value % b.Value));
+    public static DescUnicodeRegister operator %(DescUnicodeRegister a, DescUnicodeRegister b) => new((ushort)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator %(DescUnicodeRegister a, ushort b) => new((ushort)(a.Value % b));
+    public static DescUnicodeRegister operator %(DescUnicodeRegister a, ushort b) => new((ushort)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DescUnicodeRegister operator %(ushort a, DescUnicodeRegister b) => new((ushort)(a % b.Value));
+    public static DescUnicodeRegister operator %(ushort a, DescUnicodeRegister b) => new((ushort)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(DescUnicodeRegister a, int b) => a.Value << b;
+    public static int operator <<(DescUnicodeRegister a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(DescUnicodeRegister a, int b) => a.Value >> b;
+    public static int operator >>(DescUnicodeRegister a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(DescUnicodeRegister a, int b) => a.Value >>> b;
+    public static int operator >>>(DescUnicodeRegister a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value < b.Value;
+    public static bool operator <(DescUnicodeRegister a, DescUnicodeRegister b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value > b.Value;
+    public static bool operator >(DescUnicodeRegister a, DescUnicodeRegister b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value <= b.Value;
+    public static bool operator <=(DescUnicodeRegister a, DescUnicodeRegister b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value >= b.Value;
+    public static bool operator >=(DescUnicodeRegister a, DescUnicodeRegister b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value == b.Value;
+    public static bool operator ==(DescUnicodeRegister a, DescUnicodeRegister b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(DescUnicodeRegister a, DescUnicodeRegister b) => a.Value != b.Value;
+    public static bool operator !=(DescUnicodeRegister a, DescUnicodeRegister b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is DescUnicodeRegister other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is DescUnicodeRegister other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(DescUnicodeRegister value) => value.Value;
+    public static implicit operator ushort(DescUnicodeRegister value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator DescUnicodeRegister(ushort value) => new(value);
@@ -283,7 +283,7 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -467,7 +467,7 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -476,7 +476,7 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -493,13 +493,13 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <param name="other">A DescUnicodeRegister to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(DescUnicodeRegister other) => Value.CompareTo(other.Value);
+    public int CompareTo(DescUnicodeRegister other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another DescUnicodeRegister.</summary>
     /// <param name="other">A DescUnicodeRegister to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(DescUnicodeRegister other) => Value == other.Value;
+    public bool Equals(DescUnicodeRegister other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes DescUnicodeRegister as a string.</summary>
     private sealed class DescUnicodeRegisterJsonConverter : JsonConverter<DescUnicodeRegister>

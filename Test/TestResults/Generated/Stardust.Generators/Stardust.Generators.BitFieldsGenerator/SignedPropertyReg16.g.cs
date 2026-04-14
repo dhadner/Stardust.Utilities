@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPropertyReg16>, IEquatable<SignedPropertyReg16>,
                              IFormattable, ISpanFormattable, IParsable<SignedPropertyReg16>, ISpanParsable<SignedPropertyReg16>
 {
-    private ushort Value;
+    private ushort __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
@@ -27,71 +27,71 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     // --- Bit field mask constants ---
     // Delta: bits [13..15], width 3
-    private const int DELTA_START_BIT = 13;
-    private const ushort DELTA_MASK = 0x0007;
-    private const ushort DELTA_SHIFTED_MASK = 0xE000;  // DELTA_MASK << DELTA_START_BIT
-    private const ushort DELTA_INVERTED_MASK = 0x1FFF;  // ~DELTA_SHIFTED_MASK
+    private const int __DELTA_START_BIT = 13;
+    private const ushort __DELTA_MASK = 0x0007;
+    private const ushort __DELTA_SHIFTED_MASK = 0xE000;  // __DELTA_MASK << __DELTA_START_BIT
+    private const ushort __DELTA_INVERTED_MASK = 0x1FFF;  // ~__DELTA_SHIFTED_MASK
     // UnsignedField: bits [10..12], width 3
-    private const int UNSIGNED_FIELD_START_BIT = 10;
-    private const ushort UNSIGNED_FIELD_MASK = 0x0007;
-    private const ushort UNSIGNED_FIELD_SHIFTED_MASK = 0x1C00;  // UNSIGNED_FIELD_MASK << UNSIGNED_FIELD_START_BIT
-    private const ushort UNSIGNED_FIELD_INVERTED_MASK = 0xE3FF;  // ~UNSIGNED_FIELD_SHIFTED_MASK
+    private const int __UNSIGNED_FIELD_START_BIT = 10;
+    private const ushort __UNSIGNED_FIELD_MASK = 0x0007;
+    private const ushort __UNSIGNED_FIELD_SHIFTED_MASK = 0x1C00;  // __UNSIGNED_FIELD_MASK << __UNSIGNED_FIELD_START_BIT
+    private const ushort __UNSIGNED_FIELD_INVERTED_MASK = 0xE3FF;  // ~__UNSIGNED_FIELD_SHIFTED_MASK
     // SignedNibble: bits [6..9], width 4
-    private const int SIGNED_NIBBLE_START_BIT = 6;
-    private const ushort SIGNED_NIBBLE_MASK = 0x000F;
-    private const ushort SIGNED_NIBBLE_SHIFTED_MASK = 0x03C0;  // SIGNED_NIBBLE_MASK << SIGNED_NIBBLE_START_BIT
-    private const ushort SIGNED_NIBBLE_INVERTED_MASK = 0xFC3F;  // ~SIGNED_NIBBLE_SHIFTED_MASK
+    private const int __SIGNED_NIBBLE_START_BIT = 6;
+    private const ushort __SIGNED_NIBBLE_MASK = 0x000F;
+    private const ushort __SIGNED_NIBBLE_SHIFTED_MASK = 0x03C0;  // __SIGNED_NIBBLE_MASK << __SIGNED_NIBBLE_START_BIT
+    private const ushort __SIGNED_NIBBLE_INVERTED_MASK = 0xFC3F;  // ~__SIGNED_NIBBLE_SHIFTED_MASK
     // Offset: bits [0..5], width 6
-    private const int OFFSET_START_BIT = 0;
-    private const ushort OFFSET_MASK = 0x003F;
-    private const ushort OFFSET_INVERTED_MASK = 0xFFC0;  // ~OFFSET_MASK
+    private const int __OFFSET_START_BIT = 0;
+    private const ushort __OFFSET_MASK = 0x003F;
+    private const ushort __OFFSET_INVERTED_MASK = 0xFFC0;  // ~__OFFSET_MASK
 
     /// <summary>Creates a new SignedPropertyReg16 with the specified raw bits value.</summary>
-    public SignedPropertyReg16(ushort value) { Value = value; }
+    public SignedPropertyReg16(ushort value) { __value = value; }
 
     public partial sbyte Delta
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(Value & DELTA_SHIFTED_MASK) << 16) >> 29);
+        get => (sbyte)(((int)(__value & __DELTA_SHIFTED_MASK) << 16) >> 29);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & DELTA_INVERTED_MASK) | ((((ushort)value) << DELTA_START_BIT) & DELTA_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __DELTA_INVERTED_MASK) | ((((ushort)value) << __DELTA_START_BIT) & __DELTA_SHIFTED_MASK));
     }
 
     public partial byte UnsignedField
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> UNSIGNED_FIELD_START_BIT) & UNSIGNED_FIELD_MASK);
+        get => (byte)((__value >> __UNSIGNED_FIELD_START_BIT) & __UNSIGNED_FIELD_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | ((((ushort)value) << UNSIGNED_FIELD_START_BIT) & UNSIGNED_FIELD_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __UNSIGNED_FIELD_INVERTED_MASK) | ((((ushort)value) << __UNSIGNED_FIELD_START_BIT) & __UNSIGNED_FIELD_SHIFTED_MASK));
     }
 
     public partial sbyte SignedNibble
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(Value & SIGNED_NIBBLE_SHIFTED_MASK) << 22) >> 28);
+        get => (sbyte)(((int)(__value & __SIGNED_NIBBLE_SHIFTED_MASK) << 22) >> 28);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK));
+        set => __value = (ushort)((__value & __SIGNED_NIBBLE_INVERTED_MASK) | ((((ushort)value) << __SIGNED_NIBBLE_START_BIT) & __SIGNED_NIBBLE_SHIFTED_MASK));
     }
 
     public partial sbyte Offset
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (sbyte)(((int)(Value & OFFSET_MASK) << 26) >> 26);
+        get => (sbyte)(((int)(__value & __OFFSET_MASK) << 26) >> 26);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (ushort)((Value & OFFSET_INVERTED_MASK) | (((ushort)value) & OFFSET_MASK));
+        set => __value = (ushort)((__value & __OFFSET_INVERTED_MASK) | (((ushort)value) & __OFFSET_MASK));
     }
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Delta field (bits 13-15).</summary>
-    public static SignedPropertyReg16 DeltaMask => new(DELTA_SHIFTED_MASK);
+    public static SignedPropertyReg16 DeltaMask => new(__DELTA_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the UnsignedField field (bits 10-12).</summary>
-    public static SignedPropertyReg16 UnsignedFieldMask => new(UNSIGNED_FIELD_SHIFTED_MASK);
+    public static SignedPropertyReg16 UnsignedFieldMask => new(__UNSIGNED_FIELD_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the SignedNibble field (bits 6-9).</summary>
-    public static SignedPropertyReg16 SignedNibbleMask => new(SIGNED_NIBBLE_SHIFTED_MASK);
+    public static SignedPropertyReg16 SignedNibbleMask => new(__SIGNED_NIBBLE_SHIFTED_MASK);
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Offset field (bits 0-5).</summary>
-    public static SignedPropertyReg16 OffsetMask => new(OFFSET_MASK);
+    public static SignedPropertyReg16 OffsetMask => new(__OFFSET_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -108,35 +108,35 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     /// <summary>Returns a new SignedPropertyReg16 with the Delta field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((Value & DELTA_INVERTED_MASK) | (((ushort)value << DELTA_START_BIT) & DELTA_SHIFTED_MASK)));
+    public SignedPropertyReg16 WithDelta(sbyte value) => new((ushort)((__value & __DELTA_INVERTED_MASK) | (((ushort)value << __DELTA_START_BIT) & __DELTA_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the UnsignedField field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((Value & UNSIGNED_FIELD_INVERTED_MASK) | (((ushort)value << UNSIGNED_FIELD_START_BIT) & UNSIGNED_FIELD_SHIFTED_MASK)));
+    public SignedPropertyReg16 WithUnsignedField(byte value) => new((ushort)((__value & __UNSIGNED_FIELD_INVERTED_MASK) | (((ushort)value << __UNSIGNED_FIELD_START_BIT) & __UNSIGNED_FIELD_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the SignedNibble field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((Value & SIGNED_NIBBLE_INVERTED_MASK) | (((ushort)value << SIGNED_NIBBLE_START_BIT) & SIGNED_NIBBLE_SHIFTED_MASK)));
+    public SignedPropertyReg16 WithSignedNibble(sbyte value) => new((ushort)((__value & __SIGNED_NIBBLE_INVERTED_MASK) | (((ushort)value << __SIGNED_NIBBLE_START_BIT) & __SIGNED_NIBBLE_SHIFTED_MASK)));
 
     /// <summary>Returns a new SignedPropertyReg16 with the Offset field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((Value & OFFSET_INVERTED_MASK) | ((ushort)value & OFFSET_MASK)));
+    public SignedPropertyReg16 WithOffset(sbyte value) => new((ushort)((__value & __OFFSET_INVERTED_MASK) | ((ushort)value & __OFFSET_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator ~(SignedPropertyReg16 a) => new((ushort)~a.Value);
+    public static SignedPropertyReg16 operator ~(SignedPropertyReg16 a) => new((ushort)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator |(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value | b.Value));
+    public static SignedPropertyReg16 operator |(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator &(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value & b.Value));
+    public static SignedPropertyReg16 operator &(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator ^(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value ^ b.Value));
+    public static SignedPropertyReg16 operator ^(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -144,115 +144,115 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a) => new(unchecked((ushort)(0 - a.Value)));
+    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a) => new(unchecked((ushort)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.Value + b.Value)));
+    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.Value + b)));
+    public static SignedPropertyReg16 operator +(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator +(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a + b.Value)));
+    public static SignedPropertyReg16 operator +(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.Value - b.Value)));
+    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.Value - b)));
+    public static SignedPropertyReg16 operator -(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator -(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a - b.Value)));
+    public static SignedPropertyReg16 operator -(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator *(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.Value * b.Value)));
+    public static SignedPropertyReg16 operator *(SignedPropertyReg16 a, SignedPropertyReg16 b) => new(unchecked((ushort)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator *(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.Value * b)));
+    public static SignedPropertyReg16 operator *(SignedPropertyReg16 a, ushort b) => new(unchecked((ushort)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator *(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a * b.Value)));
+    public static SignedPropertyReg16 operator *(ushort a, SignedPropertyReg16 b) => new(unchecked((ushort)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator /(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value / b.Value));
+    public static SignedPropertyReg16 operator /(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator /(SignedPropertyReg16 a, ushort b) => new((ushort)(a.Value / b));
+    public static SignedPropertyReg16 operator /(SignedPropertyReg16 a, ushort b) => new((ushort)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator /(ushort a, SignedPropertyReg16 b) => new((ushort)(a / b.Value));
+    public static SignedPropertyReg16 operator /(ushort a, SignedPropertyReg16 b) => new((ushort)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator %(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.Value % b.Value));
+    public static SignedPropertyReg16 operator %(SignedPropertyReg16 a, SignedPropertyReg16 b) => new((ushort)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator %(SignedPropertyReg16 a, ushort b) => new((ushort)(a.Value % b));
+    public static SignedPropertyReg16 operator %(SignedPropertyReg16 a, ushort b) => new((ushort)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SignedPropertyReg16 operator %(ushort a, SignedPropertyReg16 b) => new((ushort)(a % b.Value));
+    public static SignedPropertyReg16 operator %(ushort a, SignedPropertyReg16 b) => new((ushort)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SignedPropertyReg16 a, int b) => a.Value << b;
+    public static int operator <<(SignedPropertyReg16 a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SignedPropertyReg16 a, int b) => a.Value >> b;
+    public static int operator >>(SignedPropertyReg16 a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SignedPropertyReg16 a, int b) => a.Value >>> b;
+    public static int operator >>>(SignedPropertyReg16 a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value < b.Value;
+    public static bool operator <(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value > b.Value;
+    public static bool operator >(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value <= b.Value;
+    public static bool operator <=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value >= b.Value;
+    public static bool operator >=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value == b.Value;
+    public static bool operator ==(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.Value != b.Value;
+    public static bool operator !=(SignedPropertyReg16 a, SignedPropertyReg16 b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SignedPropertyReg16 other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SignedPropertyReg16 other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(SignedPropertyReg16 value) => value.Value;
+    public static implicit operator ushort(SignedPropertyReg16 value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SignedPropertyReg16(ushort value) => new(value);
@@ -284,7 +284,7 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, Value);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, __value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -468,7 +468,7 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -477,7 +477,7 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -494,13 +494,13 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     /// <param name="other">A SignedPropertyReg16 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SignedPropertyReg16 other) => Value.CompareTo(other.Value);
+    public int CompareTo(SignedPropertyReg16 other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SignedPropertyReg16.</summary>
     /// <param name="other">A SignedPropertyReg16 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SignedPropertyReg16 other) => Value == other.Value;
+    public bool Equals(SignedPropertyReg16 other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SignedPropertyReg16 as a string.</summary>
     private sealed class SignedPropertyReg16JsonConverter : JsonConverter<SignedPropertyReg16>

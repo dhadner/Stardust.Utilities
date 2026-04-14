@@ -17,25 +17,25 @@ public partial class BitFieldsGenerator
         // Unary complement ~
         sb.AppendLine($"{indent}/// <summary>Bitwise complement operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator ~({t} a) => new(({s})~a.Value);");
+        sb.AppendLine($"{indent}public static {t} operator ~({t} a) => new(({s})~a.__value);");
         sb.AppendLine();
 
         // Binary OR | (same type)
         sb.AppendLine($"{indent}/// <summary>Bitwise OR operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator |({t} a, {t} b) => new(({s})(a.Value | b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator |({t} a, {t} b) => new(({s})(a.__value | b.__value));");
         sb.AppendLine();
 
         // Binary AND & (same type)
         sb.AppendLine($"{indent}/// <summary>Bitwise AND operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator &({t} a, {t} b) => new(({s})(a.Value & b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator &({t} a, {t} b) => new(({s})(a.__value & b.__value));");
         sb.AppendLine();
 
         // Binary XOR ^ (same type)
         sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator ^({t} a, {t} b) => new(({s})(a.Value ^ b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator ^({t} a, {t} b) => new(({s})(a.__value ^ b.__value));");
         sb.AppendLine();
 
         // For small types (byte, sbyte, short, ushort), DON'T generate mixed int operators.
@@ -69,29 +69,29 @@ public partial class BitFieldsGenerator
             // Widening int operators (return long)
             sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns long.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator &({t} a, int b) => a.Value & b;");
+            sb.AppendLine($"{indent}public static long operator &({t} a, int b) => a.__value & b;");
             sb.AppendLine();
             sb.AppendLine($"{indent}/// <summary>Bitwise AND operator with int (widening). Returns long.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator &(int a, {t} b) => a & b.Value;");
+            sb.AppendLine($"{indent}public static long operator &(int a, {t} b) => a & b.__value;");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns long.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator |({t} a, int b) => a.Value | b;");
+            sb.AppendLine($"{indent}public static long operator |({t} a, int b) => a.__value | b;");
             sb.AppendLine();
             sb.AppendLine($"{indent}/// <summary>Bitwise OR operator with int (widening). Returns long.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator |(int a, {t} b) => a | b.Value;");
+            sb.AppendLine($"{indent}public static long operator |(int a, {t} b) => a | b.__value;");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns long.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator ^({t} a, int b) => a.Value ^ b;");
+            sb.AppendLine($"{indent}public static long operator ^({t} a, int b) => a.__value ^ b;");
             sb.AppendLine();
             sb.AppendLine($"{indent}/// <summary>Bitwise XOR operator with int (widening). Returns long.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static long operator ^(int a, {t} b) => a ^ b.Value;");
+            sb.AppendLine($"{indent}public static long operator ^(int a, {t} b) => a ^ b.__value;");
             sb.AppendLine();
         }
         else if (s == "ulong")
@@ -112,11 +112,11 @@ public partial class BitFieldsGenerator
         {
             sb.AppendLine($"{indent}/// <summary>Bitwise {name} operator with {mixType}.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator {op}({t} a, {mixType} b) => new(a.Value {op} b);");
+            sb.AppendLine($"{indent}public static {t} operator {op}({t} a, {mixType} b) => new(a.__value {op} b);");
             sb.AppendLine();
             sb.AppendLine($"{indent}/// <summary>Bitwise {name} operator with {mixType}.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator {op}({mixType} a, {t} b) => new(a {op} b.Value);");
+            sb.AppendLine($"{indent}public static {t} operator {op}({mixType} a, {t} b) => new(a {op} b.__value);");
             sb.AppendLine();
         }
     }
@@ -130,11 +130,11 @@ public partial class BitFieldsGenerator
         {
             sb.AppendLine($"{indent}/// <summary>Bitwise {name} operator with {narrowType} (widening). Returns {wideReturn} for correct semantics.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {wideReturn} operator {op}({t} a, {narrowType} b) => a.Value {op} {cast}b;");
+            sb.AppendLine($"{indent}public static {wideReturn} operator {op}({t} a, {narrowType} b) => a.__value {op} {cast}b;");
             sb.AppendLine();
             sb.AppendLine($"{indent}/// <summary>Bitwise {name} operator with {narrowType} (widening). Returns {wideReturn} for correct semantics.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {wideReturn} operator {op}({narrowType} a, {t} b) => {cast}a {op} b.Value;");
+            sb.AppendLine($"{indent}public static {wideReturn} operator {op}({narrowType} a, {t} b) => {cast}a {op} b.__value;");
             sb.AppendLine();
         }
     }
@@ -161,7 +161,7 @@ public partial class BitFieldsGenerator
 
             sb.AppendLine($"{indent}/// <summary>Unary negation operator.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new({toBits}(-{fromBits}(a.Value)));");
+            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new({toBits}(-{fromBits}(a.__value)));");
             sb.AppendLine();
 
             // Binary arithmetic operators via float/double
@@ -169,17 +169,17 @@ public partial class BitFieldsGenerator
             {
                 sb.AppendLine($"{indent}/// <summary>{name} operator (floating-point arithmetic).</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static {t} operator {op}({t} a, {t} b) => new({toBits}({fromBits}(a.Value) {op} {fromBits}(b.Value)));");
+                sb.AppendLine($"{indent}public static {t} operator {op}({t} a, {t} b) => new({toBits}({fromBits}(a.__value) {op} {fromBits}(b.__value)));");
                 sb.AppendLine();
 
                 sb.AppendLine($"{indent}/// <summary>{name} operator with {fp}.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static {t} operator {op}({t} a, {fp} b) => new({toBits}({fromBits}(a.Value) {op} b));");
+                sb.AppendLine($"{indent}public static {t} operator {op}({t} a, {fp} b) => new({toBits}({fromBits}(a.__value) {op} b));");
                 sb.AppendLine();
 
                 sb.AppendLine($"{indent}/// <summary>{name} operator with {fp}.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static {t} operator {op}({fp} a, {t} b) => new({toBits}(a {op} {fromBits}(b.Value)));");
+                sb.AppendLine($"{indent}public static {t} operator {op}({fp} a, {t} b) => new({toBits}(a {op} {fromBits}(b.__value)));");
                 sb.AppendLine();
             }
             return;
@@ -196,82 +196,82 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         if (info.StorageTypeIsSigned)
         {
-            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(-a.Value)));");
+            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(-a.__value)));");
         }
         else
         {
-            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(0 - a.Value)));");
+            sb.AppendLine($"{indent}public static {t} operator -({t} a) => new(unchecked(({s})(0 - a.__value)));");
         }
         sb.AppendLine();
 
         // Binary + (use unchecked to match native wraparound behavior)
         sb.AppendLine($"{indent}/// <summary>Addition operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({t} a, {t} b) => new(unchecked(({s})(a.Value + b.Value)));");
+        sb.AppendLine($"{indent}public static {t} operator +({t} a, {t} b) => new(unchecked(({s})(a.__value + b.__value)));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Addition operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({t} a, {s} b) => new(unchecked(({s})(a.Value + b)));");
+        sb.AppendLine($"{indent}public static {t} operator +({t} a, {s} b) => new(unchecked(({s})(a.__value + b)));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Addition operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator +({s} a, {t} b) => new(unchecked(({s})(a + b.Value)));");
+        sb.AppendLine($"{indent}public static {t} operator +({s} a, {t} b) => new(unchecked(({s})(a + b.__value)));");
         sb.AppendLine();
 
         // Binary -
         sb.AppendLine($"{indent}/// <summary>Subtraction operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator -({t} a, {t} b) => new(unchecked(({s})(a.Value - b.Value)));");
+        sb.AppendLine($"{indent}public static {t} operator -({t} a, {t} b) => new(unchecked(({s})(a.__value - b.__value)));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Subtraction operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator -({t} a, {s} b) => new(unchecked(({s})(a.Value - b)));");
+        sb.AppendLine($"{indent}public static {t} operator -({t} a, {s} b) => new(unchecked(({s})(a.__value - b)));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Subtraction operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator -({s} a, {t} b) => new(unchecked(({s})(a - b.Value)));");
+        sb.AppendLine($"{indent}public static {t} operator -({s} a, {t} b) => new(unchecked(({s})(a - b.__value)));");
         sb.AppendLine();
 
         // Binary *
         sb.AppendLine($"{indent}/// <summary>Multiplication operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator *({t} a, {t} b) => new(unchecked(({s})(a.Value * b.Value)));");
+        sb.AppendLine($"{indent}public static {t} operator *({t} a, {t} b) => new(unchecked(({s})(a.__value * b.__value)));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Multiplication operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator *({t} a, {s} b) => new(unchecked(({s})(a.Value * b)));");
+        sb.AppendLine($"{indent}public static {t} operator *({t} a, {s} b) => new(unchecked(({s})(a.__value * b)));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Multiplication operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator *({s} a, {t} b) => new(unchecked(({s})(a * b.Value)));");
+        sb.AppendLine($"{indent}public static {t} operator *({s} a, {t} b) => new(unchecked(({s})(a * b.__value)));");
         sb.AppendLine();
 
         // Binary /
         sb.AppendLine($"{indent}/// <summary>Division operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator /({t} a, {t} b) => new(({s})(a.Value / b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator /({t} a, {t} b) => new(({s})(a.__value / b.__value));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Division operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator /({t} a, {s} b) => new(({s})(a.Value / b));");
+        sb.AppendLine($"{indent}public static {t} operator /({t} a, {s} b) => new(({s})(a.__value / b));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Division operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator /({s} a, {t} b) => new(({s})(a / b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator /({s} a, {t} b) => new(({s})(a / b.__value));");
         sb.AppendLine();
 
         // Binary %
         sb.AppendLine($"{indent}/// <summary>Modulus operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator %({t} a, {t} b) => new(({s})(a.Value % b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator %({t} a, {t} b) => new(({s})(a.__value % b.__value));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Modulus operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator %({t} a, {s} b) => new(({s})(a.Value % b));");
+        sb.AppendLine($"{indent}public static {t} operator %({t} a, {s} b) => new(({s})(a.__value % b));");
         sb.AppendLine();
         sb.AppendLine($"{indent}/// <summary>Modulus operator with storage type.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static {t} operator %({s} a, {t} b) => new(({s})(a % b.Value));");
+        sb.AppendLine($"{indent}public static {t} operator %({s} a, {t} b) => new(({s})(a % b.__value));");
         sb.AppendLine();
     }
 
@@ -289,34 +289,34 @@ public partial class BitFieldsGenerator
             // Small types: shift returns int
             sb.AppendLine($"{indent}/// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static int operator <<({t} a, int b) => a.Value << b;");
+            sb.AppendLine($"{indent}public static int operator <<({t} a, int b) => a.__value << b;");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static int operator >>({t} a, int b) => a.Value >> b;");
+            sb.AppendLine($"{indent}public static int operator >>({t} a, int b) => a.__value >> b;");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static int operator >>>({t} a, int b) => a.Value >>> b;");
+            sb.AppendLine($"{indent}public static int operator >>>({t} a, int b) => a.__value >>> b;");
             sb.AppendLine();
         }
         else
         {
             sb.AppendLine($"{indent}/// <summary>Left shift operator.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator <<({t} a, int b) => new(unchecked(({s})(a.Value << b)));");
+            sb.AppendLine($"{indent}public static {t} operator <<({t} a, int b) => new(unchecked(({s})(a.__value << b)));");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Right shift operator.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator >>({t} a, int b) => new(unchecked(({s})(a.Value >> b)));");
+            sb.AppendLine($"{indent}public static {t} operator >>({t} a, int b) => new(unchecked(({s})(a.__value >> b)));");
             sb.AppendLine();
 
             sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static {t} operator >>>({t} a, int b) => new(unchecked(({s})(a.Value >>> b)));");
+            sb.AppendLine($"{indent}public static {t} operator >>>({t} a, int b) => new(unchecked(({s})(a.__value >>> b)));");
             sb.AppendLine();
         }
     }
@@ -338,7 +338,7 @@ public partial class BitFieldsGenerator
             {
                 sb.AppendLine($"{indent}/// <summary>{name} operator (floating-point comparison).</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static bool operator {op}({t} a, {t} b) => {fromBits}(a.Value) {op} {fromBits}(b.Value);");
+                sb.AppendLine($"{indent}public static bool operator {op}({t} a, {t} b) => {fromBits}(a.__value) {op} {fromBits}(b.__value);");
                 sb.AppendLine();
             }
             return;
@@ -348,7 +348,7 @@ public partial class BitFieldsGenerator
         {
             sb.AppendLine($"{indent}/// <summary>{name} operator.</summary>");
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{indent}public static bool operator {op}({t} a, {t} b) => a.Value {op} b.Value;");
+            sb.AppendLine($"{indent}public static bool operator {op}({t} a, {t} b) => a.__value {op} b.__value;");
             sb.AppendLine();
         }
     }
@@ -363,31 +363,31 @@ public partial class BitFieldsGenerator
 
         sb.AppendLine($"{indent}/// <summary>Equality operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator ==({t} a, {t} b) => a.Value == b.Value;");
+        sb.AppendLine($"{indent}public static bool operator ==({t} a, {t} b) => a.__value == b.__value;");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Inequality operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public static bool operator !=({t} a, {t} b) => a.Value != b.Value;");
+        sb.AppendLine($"{indent}public static bool operator !=({t} a, {t} b) => a.__value != b.__value;");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Determines whether the specified object is equal to the current object.</summary>");
-        sb.AppendLine($"{indent}public override bool Equals(object? obj) => obj is {t} other && Value == other.Value;");
+        sb.AppendLine($"{indent}public override bool Equals(object? obj) => obj is {t} other && __value == other.__value;");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Returns the hash code for this instance.</summary>");
-        sb.AppendLine($"{indent}public override int GetHashCode() => Value.GetHashCode();");
+        sb.AppendLine($"{indent}public override int GetHashCode() => __value.GetHashCode();");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Returns a string representation of the value.</summary>");
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fromBits = FromBitsMethod(info.FloatingPointType!);
-            sb.AppendLine($"{indent}public override string ToString() => {fromBits}(Value).ToString();");
+            sb.AppendLine($"{indent}public override string ToString() => {fromBits}(__value).ToString();");
         }
         else
         {
-            sb.AppendLine($"{indent}public override string ToString() => $\"0x{{Value:X}}\";");
+            sb.AppendLine($"{indent}public override string ToString() => $\"0x{{__value:X}}\";");
         }
         sb.AppendLine();
     }

@@ -20,19 +20,19 @@ namespace Stardust.Utilities.Tests;
 public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayload128>, IEquatable<DecimalPayload128>,
                              IFormattable, ISpanFormattable, IParsable<DecimalPayload128>, ISpanParsable<DecimalPayload128>
 {
-    private ulong _w0; // bits 0-63
-    private ulong _w1; // bits 64-127
+    private ulong __w0; // bits 0-63
+    private ulong __w1; // bits 64-127
 
     /// <summary>Number of conceptual words in the backing store.</summary>
-    private const int WORD_COUNT = 2;
+    private const int __WORD_COUNT = 2;
 
     /// <summary>Total number of defined bits.</summary>
-    private const int TOTAL_BITS = 128;
+    private const int __TOTAL_BITS = 128;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 16;
 
-    private const ulong LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
+    private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
     /// <summary>Returns a DecimalPayload128 with all bits set to zero.</summary>
     public static DecimalPayload128 Zero => default;
@@ -42,8 +42,8 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     /// <param name="upper">Bits 64-127 (most significant).</param>
     public DecimalPayload128(ulong lower, ulong upper)
     {
-        _w0 = lower;
-        _w1 = upper;
+        __w0 = lower;
+        __w1 = upper;
     }
 
     /// <summary>Creates a new DecimalPayload128 from a ulong value (zero-extended).</summary>
@@ -55,36 +55,36 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     {
         ulong extended = unchecked((ulong)(long)value);
         ulong fill = value < 0 ? ulong.MaxValue : 0UL;
-        _w0 = extended;
-        _w1 = fill;
+        __w0 = extended;
+        __w1 = fill;
     }
 
     public partial ulong Coefficient
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ulong)((_w0 >> 0) | ((_w1 & 0xFFFFFFFFUL) << 64));
+        get => (ulong)((__w0 >> 0) | ((__w1 & 0xFFFFFFFFUL) << 64));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            _w0 = (_w0 & 0x0000000000000000UL) | (((ulong)value & 0x0UL) << 0);
-            _w1 = (_w1 & 0xFFFFFFFF00000000UL) | (((ulong)value >> 64) & 0xFFFFFFFFUL);
+            __w0 = (__w0 & 0x0000000000000000UL) | (((ulong)value & 0x0UL) << 0);
+            __w1 = (__w1 & 0xFFFFFFFF00000000UL) | (((ulong)value >> 64) & 0xFFFFFFFFUL);
         }
     }
 
     public partial byte Scale
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((_w1 >> 48) & 0x7FUL);
+        get => (byte)((__w1 >> 48) & 0x7FUL);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => _w1 = (_w1 & 0xFF80FFFFFFFFFFFFUL) | (((ulong)value << 48) & 0x007F000000000000UL);
+        set => __w1 = (__w1 & 0xFF80FFFFFFFFFFFFUL) | (((ulong)value << 48) & 0x007F000000000000UL);
     }
 
     public partial bool Sign
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (_w1 & 0x8000000000000000UL) != 0;
+        get => (__w1 & 0x8000000000000000UL) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => _w1 = value ? (_w1 | 0x8000000000000000UL) : (_w1 & 0x7FFFFFFFFFFFFFFFUL);
+        set => __w1 = value ? (__w1 | 0x8000000000000000UL) : (__w1 & 0x7FFFFFFFFFFFFFFFUL);
     }
 
     /// <summary>Returns a DecimalPayload128 with only the Sign bit set.</summary>
@@ -98,7 +98,7 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
 
     /// <summary>Returns a new DecimalPayload128 with the Sign flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DecimalPayload128 WithSign(bool value) => new(_w0, value ? (_w1 | 0x8000000000000000UL) : (_w1 & 0x7FFFFFFFFFFFFFFFUL));
+    public DecimalPayload128 WithSign(bool value) => new(__w0, value ? (__w1 | 0x8000000000000000UL) : (__w1 & 0x7FFFFFFFFFFFFFFFUL));
 
     /// <summary>Returns a new DecimalPayload128 with the Coefficient field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,23 +122,23 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DecimalPayload128 operator ~(DecimalPayload128 a) => new(~a._w0, ~a._w1);
+    public static DecimalPayload128 operator ~(DecimalPayload128 a) => new(~a.__w0, ~a.__w1);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DecimalPayload128 operator |(DecimalPayload128 a, DecimalPayload128 b) => new(a._w0 | b._w0, a._w1 | b._w1);
+    public static DecimalPayload128 operator |(DecimalPayload128 a, DecimalPayload128 b) => new(a.__w0 | b.__w0, a.__w1 | b.__w1);
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DecimalPayload128 operator &(DecimalPayload128 a, DecimalPayload128 b) => new(a._w0 & b._w0, a._w1 & b._w1);
+    public static DecimalPayload128 operator &(DecimalPayload128 a, DecimalPayload128 b) => new(a.__w0 & b.__w0, a.__w1 & b.__w1);
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DecimalPayload128 operator ^(DecimalPayload128 a, DecimalPayload128 b) => new(a._w0 ^ b._w0, a._w1 ^ b._w1);
+    public static DecimalPayload128 operator ^(DecimalPayload128 a, DecimalPayload128 b) => new(a.__w0 ^ b.__w0, a.__w1 ^ b.__w1);
 
     /// <summary>Bitwise AND operator with ulong (applied to lowest word).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DecimalPayload128 operator &(DecimalPayload128 a, ulong b) => new(a._w0 & b, 0UL);
+    public static DecimalPayload128 operator &(DecimalPayload128 a, ulong b) => new(a.__w0 & b, 0UL);
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -212,11 +212,11 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     public static DecimalPayload128 operator <<(DecimalPayload128 a, int amount)
     {
         if (amount <= 0) return a;
-        if (amount >= TOTAL_BITS) return default;
+        if (amount >= __TOTAL_BITS) return default;
         int wordShift = amount / 64;
         int bitShift = amount % 64;
         var result = default(DecimalPayload128);
-        for (int dst = WORD_COUNT - 1; dst >= 0; dst--)
+        for (int dst = __WORD_COUNT - 1; dst >= 0; dst--)
         {
             int src = dst - wordShift;
             if (src < 0) continue;
@@ -237,21 +237,21 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     public static DecimalPayload128 operator >>(DecimalPayload128 a, int amount)
     {
         if (amount <= 0) return a;
-        if (amount >= TOTAL_BITS) return default;
+        if (amount >= __TOTAL_BITS) return default;
         int wordShift = amount / 64;
         int bitShift = amount % 64;
         var result = default(DecimalPayload128);
-        for (int dst = 0; dst < WORD_COUNT; dst++)
+        for (int dst = 0; dst < __WORD_COUNT; dst++)
         {
             int src = dst + wordShift;
-            if (src >= WORD_COUNT) break;
+            if (src >= __WORD_COUNT) break;
             ulong val = GetWord(a, src);
             if (bitShift == 0)
                 SetWord(ref result, dst, val);
             else
             {
                 SetWord(ref result, dst, val >> bitShift);
-                if (src + 1 < WORD_COUNT)
+                if (src + 1 < __WORD_COUNT)
                     SetWord(ref result, dst, GetWord(result, dst) | (GetWord(a, src + 1) << (64 - bitShift)));
             }
         }
@@ -267,8 +267,8 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     {
         return index switch
         {
-            0 => v._w0,
-            1 => v._w1,
+            0 => v.__w0,
+            1 => v.__w1,
             _ => 0UL,
         };
     }
@@ -278,8 +278,8 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     {
         switch (index)
         {
-            case 0: v._w0 = value; break;
-            case 1: v._w1 = value; break;
+            case 0: v.__w0 = value; break;
+            case 1: v.__w1 = value; break;
         }
     }
 
@@ -301,7 +301,7 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(DecimalPayload128 a, DecimalPayload128 b) => a._w0 == b._w0 && a._w1 == b._w1;
+    public static bool operator ==(DecimalPayload128 a, DecimalPayload128 b) => a.__w0 == b.__w0 && a.__w1 == b.__w1;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -313,7 +313,7 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     /// <summary>Returns the hash code for this instance.</summary>
     public override int GetHashCode()
     {
-        return HashCode.Combine(_w0, _w1);
+        return HashCode.Combine(__w0, __w1);
     }
 
     /// <summary>Returns the decimal string representation of the value.</summary>
@@ -338,10 +338,10 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     /// <summary>Implicit conversion to decimal.</summary>
     public static implicit operator decimal(DecimalPayload128 value)
     {
-        int lo = (int)(uint)value._w0;
-        int mid = (int)(uint)(value._w0 >> 32);
-        int hi = (int)(uint)value._w1;
-        int flags = (int)(uint)(value._w1 >> 32);
+        int lo = (int)(uint)value.__w0;
+        int mid = (int)(uint)(value.__w0 >> 32);
+        int hi = (int)(uint)value.__w1;
+        int flags = (int)(uint)(value.__w1 >> 32);
         bool isNegative = (flags & unchecked((int)0x80000000)) != 0;
         byte scale = (byte)((flags >> 16) & 0x7F);
         return new decimal(lo, mid, hi, isNegative, scale);
@@ -359,7 +359,7 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
 
     /// <summary>Explicit conversion to raw bits (UInt128).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator UInt128(DecimalPayload128 value) => ((UInt128)value._w1 << 64) | value._w0;
+    public static explicit operator UInt128(DecimalPayload128 value) => ((UInt128)value.__w1 << 64) | value.__w0;
 
     /// <summary>Explicit conversion from raw bits (UInt128).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -368,15 +368,15 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     /// <summary>Converts this value to a BigInteger.</summary>
     public BigInteger ToBigInteger()
     {
-        BigInteger result = _w1;
-        result = (result << 64) | _w0;
+        BigInteger result = __w1;
+        result = (result << 64) | __w0;
         return result;
     }
 
     /// <summary>Creates a DecimalPayload128 from a BigInteger (truncated to 128 bits).</summary>
     public static DecimalPayload128 FromBigInteger(BigInteger value)
     {
-        if (value.Sign < 0) value = (BigInteger.One << TOTAL_BITS) + value;
+        if (value.Sign < 0) value = (BigInteger.One << __TOTAL_BITS) + value;
         ulong w0 = (ulong)(value & ulong.MaxValue);
         value >>= 64;
         ulong w1 = (ulong)(value & ulong.MaxValue);
@@ -390,8 +390,8 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     {
         if (bytes.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(bytes));
-        _w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
-        _w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
+        __w0 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0));
+        __w1 = BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8));
     }
 
     /// <summary>Creates a new DecimalPayload128 by reading <see cref="SIZE_IN_BYTES"/> bytes from a little-endian byte span.</summary>
@@ -407,8 +407,8 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), _w0);
-        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), _w1);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(0), __w0);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8), __w1);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>

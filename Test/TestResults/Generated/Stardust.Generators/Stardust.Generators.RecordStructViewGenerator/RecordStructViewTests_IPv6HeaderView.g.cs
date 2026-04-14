@@ -16,8 +16,8 @@ public partial class RecordStructViewTests
     [JsonConverter(typeof(IPv6HeaderViewJsonConverter))]
     public partial record struct IPv6HeaderView
     {
-        private readonly Memory<byte> _data;
-        private readonly byte _bitOffset;
+        private readonly Memory<byte> __data;
+        private readonly byte __bitOffset;
 
         /// <summary>Minimum number of bytes required in the backing buffer.</summary>
         public const int SIZE_IN_BYTES = 5;
@@ -30,8 +30,8 @@ public partial class RecordStructViewTests
         {
             if (data.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-            _data = data;
-            _bitOffset = 0;
+            __data = data;
+            __bitOffset = 0;
         }
 
         /// <summary>Creates a view over the specified byte array.</summary>
@@ -45,24 +45,24 @@ public partial class RecordStructViewTests
         /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
         internal IPv6HeaderView(Memory<byte> data, int bitOffset)
         {
-            _data = data;
-            _bitOffset = (byte)bitOffset;
+            __data = data;
+            __bitOffset = (byte)bitOffset;
         }
 
         /// <summary>Gets the underlying memory buffer.</summary>
-        public Memory<byte> Data => _data;
+        public Memory<byte> Data => __data;
 
         public partial byte Version
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((s[0] >> 4) & 0x0F);
                 }
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -71,14 +71,14 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     s[0] = (byte)((s[0] & 0x0F) | (((byte)value << 4) & 0xF0));
                 }
                 else
                 {
-                    int ep = 0 + _bitOffset;
+                    int ep = 0 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 3) - bi * 8;
                     int sh = 16 - 1 - endInWindow;
@@ -96,12 +96,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (byte)((BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) >> 4) & 0x00FF);
                 }
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -110,8 +110,8 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(0);
                     ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
@@ -120,7 +120,7 @@ public partial class RecordStructViewTests
                 }
                 else
                 {
-                    int ep = 4 + _bitOffset;
+                    int ep = 4 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 7) - bi * 8;
                     int sh = 16 - 1 - endInWindow;
@@ -138,12 +138,12 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     return (uint)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(1)) >> 8) & 0xFFFFFU);
                 }
-                int ep = 12 + _bitOffset;
+                int ep = 12 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 19) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -152,8 +152,8 @@ public partial class RecordStructViewTests
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var s = _data.Span;
-                if (_bitOffset == 0)
+                var s = __data.Span;
+                if (__bitOffset == 0)
                 {
                     var slice = s.Slice(1);
                     uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
@@ -162,7 +162,7 @@ public partial class RecordStructViewTests
                 }
                 else
                 {
-                    int ep = 12 + _bitOffset;
+                    int ep = 12 + __bitOffset;
                     int bi = ep >> 3;
                     int endInWindow = (ep + 19) - bi * 8;
                     int sh = 32 - 1 - endInWindow;
@@ -209,7 +209,7 @@ public partial class RecordStructViewTests
             /// <summary>Writes a IPv6HeaderView to JSON as a hex string.</summary>
             public override void Write(Utf8JsonWriter writer, IPv6HeaderView value, JsonSerializerOptions options)
             {
-                var s = value._data.Span;
+                var s = value.__data.Span;
                 // Find highest non-zero byte for minimal hex output
                 int top = SIZE_IN_BYTES - 1;
                 while (top > 0 && s[top] == 0) top--;

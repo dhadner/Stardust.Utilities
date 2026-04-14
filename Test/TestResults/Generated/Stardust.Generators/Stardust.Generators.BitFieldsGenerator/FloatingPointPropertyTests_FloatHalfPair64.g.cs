@@ -19,7 +19,7 @@ public partial class FloatingPointPropertyTests
     public partial struct FloatHalfPair64 : IComparable, IComparable<FloatHalfPair64>, IEquatable<FloatHalfPair64>,
                                  IFormattable, ISpanFormattable, IParsable<FloatHalfPair64>, ISpanParsable<FloatHalfPair64>
     {
-        private ulong Value;
+        private ulong __value;
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 8;
@@ -29,59 +29,59 @@ public partial class FloatingPointPropertyTests
 
         // --- Bit field mask constants ---
         // FloatVal: bits [0..31], width 32
-        private const int FLOAT_VAL_START_BIT = 0;
-        private const ulong FLOAT_VAL_MASK = 0x00000000FFFFFFFFUL;
-        private const ulong FLOAT_VAL_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~FLOAT_VAL_MASK
+        private const int __FLOAT_VAL_START_BIT = 0;
+        private const ulong __FLOAT_VAL_MASK = 0x00000000FFFFFFFFUL;
+        private const ulong __FLOAT_VAL_INVERTED_MASK = 0xFFFFFFFF00000000UL;  // ~__FLOAT_VAL_MASK
         // HalfVal: bits [32..47], width 16
-        private const int HALF_VAL_START_BIT = 32;
-        private const ulong HALF_VAL_MASK = 0x000000000000FFFFUL;
-        private const ulong HALF_VAL_SHIFTED_MASK = 0x0000FFFF00000000UL;  // HALF_VAL_MASK << HALF_VAL_START_BIT
-        private const ulong HALF_VAL_INVERTED_MASK = 0xFFFF0000FFFFFFFFUL;  // ~HALF_VAL_SHIFTED_MASK
+        private const int __HALF_VAL_START_BIT = 32;
+        private const ulong __HALF_VAL_MASK = 0x000000000000FFFFUL;
+        private const ulong __HALF_VAL_SHIFTED_MASK = 0x0000FFFF00000000UL;  // __HALF_VAL_MASK << __HALF_VAL_START_BIT
+        private const ulong __HALF_VAL_INVERTED_MASK = 0xFFFF0000FFFFFFFFUL;  // ~__HALF_VAL_SHIFTED_MASK
         // Tag: bits [48..63], width 16
-        private const int TAG_START_BIT = 48;
-        private const ulong TAG_MASK = 0x000000000000FFFFUL;
-        private const ulong TAG_SHIFTED_MASK = 0xFFFF000000000000UL;  // TAG_MASK << TAG_START_BIT
-        private const ulong TAG_INVERTED_MASK = 0x0000FFFFFFFFFFFFUL;  // ~TAG_SHIFTED_MASK
+        private const int __TAG_START_BIT = 48;
+        private const ulong __TAG_MASK = 0x000000000000FFFFUL;
+        private const ulong __TAG_SHIFTED_MASK = 0xFFFF000000000000UL;  // __TAG_MASK << __TAG_START_BIT
+        private const ulong __TAG_INVERTED_MASK = 0x0000FFFFFFFFFFFFUL;  // ~__TAG_SHIFTED_MASK
 
         /// <summary>Creates a new FloatHalfPair64 with the specified raw bits value.</summary>
-        public FloatHalfPair64(ulong value) { Value = value; }
+        public FloatHalfPair64(ulong value) { __value = value; }
 
         public partial float FloatVal
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => BitConverter.UInt32BitsToSingle((uint)(Value & FLOAT_VAL_MASK));
+            get => BitConverter.UInt32BitsToSingle((uint)(__value & __FLOAT_VAL_MASK));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { var __bits = BitConverter.SingleToUInt32Bits(value);
-                Value = (ulong)((Value & FLOAT_VAL_INVERTED_MASK) | (((ulong)__bits) & FLOAT_VAL_MASK));
+                __value = (ulong)((__value & __FLOAT_VAL_INVERTED_MASK) | (((ulong)__bits) & __FLOAT_VAL_MASK));
             }
         }
 
         public partial global::System.Half HalfVal
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => BitConverter.UInt16BitsToHalf((ushort)((Value >> HALF_VAL_START_BIT) & HALF_VAL_MASK));
+            get => BitConverter.UInt16BitsToHalf((ushort)((__value >> __HALF_VAL_START_BIT) & __HALF_VAL_MASK));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set { var __bits = BitConverter.HalfToUInt16Bits(value);
-                Value = (ulong)((Value & HALF_VAL_INVERTED_MASK) | ((((ulong)__bits) << HALF_VAL_START_BIT) & HALF_VAL_SHIFTED_MASK));
+                __value = (ulong)((__value & __HALF_VAL_INVERTED_MASK) | ((((ulong)__bits) << __HALF_VAL_START_BIT) & __HALF_VAL_SHIFTED_MASK));
             }
         }
 
         public partial ushort Tag
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)((Value >> TAG_START_BIT) & TAG_MASK);
+            get => (ushort)((__value >> __TAG_START_BIT) & __TAG_MASK);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Value = (ulong)((Value & TAG_INVERTED_MASK) | ((((ulong)value) << TAG_START_BIT) & TAG_SHIFTED_MASK));
+            set => __value = (ulong)((__value & __TAG_INVERTED_MASK) | ((((ulong)value) << __TAG_START_BIT) & __TAG_SHIFTED_MASK));
         }
 
         /// <summary>Returns a FloatHalfPair64 with the mask for the FloatVal field (bits 0-31).</summary>
-        public static FloatHalfPair64 FloatValMask => new(FLOAT_VAL_MASK);
+        public static FloatHalfPair64 FloatValMask => new(__FLOAT_VAL_MASK);
 
         /// <summary>Returns a FloatHalfPair64 with the mask for the HalfVal field (bits 32-47).</summary>
-        public static FloatHalfPair64 HalfValMask => new(HALF_VAL_SHIFTED_MASK);
+        public static FloatHalfPair64 HalfValMask => new(__HALF_VAL_SHIFTED_MASK);
 
         /// <summary>Returns a FloatHalfPair64 with the mask for the Tag field (bits 48-63).</summary>
-        public static FloatHalfPair64 TagMask => new(TAG_SHIFTED_MASK);
+        public static FloatHalfPair64 TagMask => new(__TAG_SHIFTED_MASK);
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -97,79 +97,79 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Returns a new FloatHalfPair64 with the FloatVal field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatHalfPair64 WithFloatVal(float value) => new((ulong)((Value & FLOAT_VAL_INVERTED_MASK) | ((ulong)BitConverter.SingleToUInt32Bits(value) & FLOAT_VAL_MASK)));
+        public FloatHalfPair64 WithFloatVal(float value) => new((ulong)((__value & __FLOAT_VAL_INVERTED_MASK) | ((ulong)BitConverter.SingleToUInt32Bits(value) & __FLOAT_VAL_MASK)));
 
         /// <summary>Returns a new FloatHalfPair64 with the HalfVal field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatHalfPair64 WithHalfVal(global::System.Half value) => new((ulong)((Value & HALF_VAL_INVERTED_MASK) | (((ulong)BitConverter.HalfToUInt16Bits(value) << HALF_VAL_START_BIT) & HALF_VAL_SHIFTED_MASK)));
+        public FloatHalfPair64 WithHalfVal(global::System.Half value) => new((ulong)((__value & __HALF_VAL_INVERTED_MASK) | (((ulong)BitConverter.HalfToUInt16Bits(value) << __HALF_VAL_START_BIT) & __HALF_VAL_SHIFTED_MASK)));
 
         /// <summary>Returns a new FloatHalfPair64 with the Tag field set to the specified value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FloatHalfPair64 WithTag(ushort value) => new((ulong)((Value & TAG_INVERTED_MASK) | (((ulong)value << TAG_START_BIT) & TAG_SHIFTED_MASK)));
+        public FloatHalfPair64 WithTag(ushort value) => new((ulong)((__value & __TAG_INVERTED_MASK) | (((ulong)value << __TAG_START_BIT) & __TAG_SHIFTED_MASK)));
 
         /// <summary>Bitwise complement operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator ~(FloatHalfPair64 a) => new((ulong)~a.Value);
+        public static FloatHalfPair64 operator ~(FloatHalfPair64 a) => new((ulong)~a.__value);
 
         /// <summary>Bitwise OR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator |(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.Value | b.Value));
+        public static FloatHalfPair64 operator |(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.__value | b.__value));
 
         /// <summary>Bitwise AND operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator &(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.Value & b.Value));
+        public static FloatHalfPair64 operator &(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.__value & b.__value));
 
         /// <summary>Bitwise XOR operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator ^(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.Value ^ b.Value));
+        public static FloatHalfPair64 operator ^(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.__value ^ b.__value));
 
         /// <summary>Bitwise AND operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator &(FloatHalfPair64 a, ulong b) => new(a.Value & b);
+        public static FloatHalfPair64 operator &(FloatHalfPair64 a, ulong b) => new(a.__value & b);
 
         /// <summary>Bitwise AND operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator &(ulong a, FloatHalfPair64 b) => new(a & b.Value);
+        public static FloatHalfPair64 operator &(ulong a, FloatHalfPair64 b) => new(a & b.__value);
 
         /// <summary>Bitwise OR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator |(FloatHalfPair64 a, ulong b) => new(a.Value | b);
+        public static FloatHalfPair64 operator |(FloatHalfPair64 a, ulong b) => new(a.__value | b);
 
         /// <summary>Bitwise OR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator |(ulong a, FloatHalfPair64 b) => new(a | b.Value);
+        public static FloatHalfPair64 operator |(ulong a, FloatHalfPair64 b) => new(a | b.__value);
 
         /// <summary>Bitwise XOR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator ^(FloatHalfPair64 a, ulong b) => new(a.Value ^ b);
+        public static FloatHalfPair64 operator ^(FloatHalfPair64 a, ulong b) => new(a.__value ^ b);
 
         /// <summary>Bitwise XOR operator with ulong.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator ^(ulong a, FloatHalfPair64 b) => new(a ^ b.Value);
+        public static FloatHalfPair64 operator ^(ulong a, FloatHalfPair64 b) => new(a ^ b.__value);
 
         /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator &(FloatHalfPair64 a, int b) => a.Value & (ulong)b;
+        public static ulong operator &(FloatHalfPair64 a, int b) => a.__value & (ulong)b;
 
         /// <summary>Bitwise AND operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator &(int a, FloatHalfPair64 b) => (ulong)a & b.Value;
+        public static ulong operator &(int a, FloatHalfPair64 b) => (ulong)a & b.__value;
 
         /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator |(FloatHalfPair64 a, int b) => a.Value | (ulong)b;
+        public static ulong operator |(FloatHalfPair64 a, int b) => a.__value | (ulong)b;
 
         /// <summary>Bitwise OR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator |(int a, FloatHalfPair64 b) => (ulong)a | b.Value;
+        public static ulong operator |(int a, FloatHalfPair64 b) => (ulong)a | b.__value;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator ^(FloatHalfPair64 a, int b) => a.Value ^ (ulong)b;
+        public static ulong operator ^(FloatHalfPair64 a, int b) => a.__value ^ (ulong)b;
 
         /// <summary>Bitwise XOR operator with int (widening). Returns ulong for correct semantics.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong operator ^(int a, FloatHalfPair64 b) => (ulong)a ^ b.Value;
+        public static ulong operator ^(int a, FloatHalfPair64 b) => (ulong)a ^ b.__value;
 
         /// <summary>Unary plus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -177,115 +177,115 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Unary negation operator. Returns two's complement negation.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator -(FloatHalfPair64 a) => new(unchecked((ulong)(0 - a.Value)));
+        public static FloatHalfPair64 operator -(FloatHalfPair64 a) => new(unchecked((ulong)(0 - a.__value)));
 
         /// <summary>Addition operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator +(FloatHalfPair64 a, FloatHalfPair64 b) => new(unchecked((ulong)(a.Value + b.Value)));
+        public static FloatHalfPair64 operator +(FloatHalfPair64 a, FloatHalfPair64 b) => new(unchecked((ulong)(a.__value + b.__value)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator +(FloatHalfPair64 a, ulong b) => new(unchecked((ulong)(a.Value + b)));
+        public static FloatHalfPair64 operator +(FloatHalfPair64 a, ulong b) => new(unchecked((ulong)(a.__value + b)));
 
         /// <summary>Addition operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator +(ulong a, FloatHalfPair64 b) => new(unchecked((ulong)(a + b.Value)));
+        public static FloatHalfPair64 operator +(ulong a, FloatHalfPair64 b) => new(unchecked((ulong)(a + b.__value)));
 
         /// <summary>Subtraction operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator -(FloatHalfPair64 a, FloatHalfPair64 b) => new(unchecked((ulong)(a.Value - b.Value)));
+        public static FloatHalfPair64 operator -(FloatHalfPair64 a, FloatHalfPair64 b) => new(unchecked((ulong)(a.__value - b.__value)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator -(FloatHalfPair64 a, ulong b) => new(unchecked((ulong)(a.Value - b)));
+        public static FloatHalfPair64 operator -(FloatHalfPair64 a, ulong b) => new(unchecked((ulong)(a.__value - b)));
 
         /// <summary>Subtraction operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator -(ulong a, FloatHalfPair64 b) => new(unchecked((ulong)(a - b.Value)));
+        public static FloatHalfPair64 operator -(ulong a, FloatHalfPair64 b) => new(unchecked((ulong)(a - b.__value)));
 
         /// <summary>Multiplication operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator *(FloatHalfPair64 a, FloatHalfPair64 b) => new(unchecked((ulong)(a.Value * b.Value)));
+        public static FloatHalfPair64 operator *(FloatHalfPair64 a, FloatHalfPair64 b) => new(unchecked((ulong)(a.__value * b.__value)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator *(FloatHalfPair64 a, ulong b) => new(unchecked((ulong)(a.Value * b)));
+        public static FloatHalfPair64 operator *(FloatHalfPair64 a, ulong b) => new(unchecked((ulong)(a.__value * b)));
 
         /// <summary>Multiplication operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator *(ulong a, FloatHalfPair64 b) => new(unchecked((ulong)(a * b.Value)));
+        public static FloatHalfPair64 operator *(ulong a, FloatHalfPair64 b) => new(unchecked((ulong)(a * b.__value)));
 
         /// <summary>Division operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator /(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.Value / b.Value));
+        public static FloatHalfPair64 operator /(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.__value / b.__value));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator /(FloatHalfPair64 a, ulong b) => new((ulong)(a.Value / b));
+        public static FloatHalfPair64 operator /(FloatHalfPair64 a, ulong b) => new((ulong)(a.__value / b));
 
         /// <summary>Division operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator /(ulong a, FloatHalfPair64 b) => new((ulong)(a / b.Value));
+        public static FloatHalfPair64 operator /(ulong a, FloatHalfPair64 b) => new((ulong)(a / b.__value));
 
         /// <summary>Modulus operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator %(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.Value % b.Value));
+        public static FloatHalfPair64 operator %(FloatHalfPair64 a, FloatHalfPair64 b) => new((ulong)(a.__value % b.__value));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator %(FloatHalfPair64 a, ulong b) => new((ulong)(a.Value % b));
+        public static FloatHalfPair64 operator %(FloatHalfPair64 a, ulong b) => new((ulong)(a.__value % b));
 
         /// <summary>Modulus operator with storage type.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator %(ulong a, FloatHalfPair64 b) => new((ulong)(a % b.Value));
+        public static FloatHalfPair64 operator %(ulong a, FloatHalfPair64 b) => new((ulong)(a % b.__value));
 
         /// <summary>Left shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator <<(FloatHalfPair64 a, int b) => new(unchecked((ulong)(a.Value << b)));
+        public static FloatHalfPair64 operator <<(FloatHalfPair64 a, int b) => new(unchecked((ulong)(a.__value << b)));
 
         /// <summary>Right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator >>(FloatHalfPair64 a, int b) => new(unchecked((ulong)(a.Value >> b)));
+        public static FloatHalfPair64 operator >>(FloatHalfPair64 a, int b) => new(unchecked((ulong)(a.__value >> b)));
 
         /// <summary>Unsigned right shift operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FloatHalfPair64 operator >>>(FloatHalfPair64 a, int b) => new(unchecked((ulong)(a.Value >>> b)));
+        public static FloatHalfPair64 operator >>>(FloatHalfPair64 a, int b) => new(unchecked((ulong)(a.__value >>> b)));
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(FloatHalfPair64 a, FloatHalfPair64 b) => a.Value < b.Value;
+        public static bool operator <(FloatHalfPair64 a, FloatHalfPair64 b) => a.__value < b.__value;
 
         /// <summary>Greater than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(FloatHalfPair64 a, FloatHalfPair64 b) => a.Value > b.Value;
+        public static bool operator >(FloatHalfPair64 a, FloatHalfPair64 b) => a.__value > b.__value;
 
         /// <summary>Less than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(FloatHalfPair64 a, FloatHalfPair64 b) => a.Value <= b.Value;
+        public static bool operator <=(FloatHalfPair64 a, FloatHalfPair64 b) => a.__value <= b.__value;
 
         /// <summary>Greater than or equal operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(FloatHalfPair64 a, FloatHalfPair64 b) => a.Value >= b.Value;
+        public static bool operator >=(FloatHalfPair64 a, FloatHalfPair64 b) => a.__value >= b.__value;
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(FloatHalfPair64 a, FloatHalfPair64 b) => a.Value == b.Value;
+        public static bool operator ==(FloatHalfPair64 a, FloatHalfPair64 b) => a.__value == b.__value;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(FloatHalfPair64 a, FloatHalfPair64 b) => a.Value != b.Value;
+        public static bool operator !=(FloatHalfPair64 a, FloatHalfPair64 b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is FloatHalfPair64 other && Value == other.Value;
+        public override bool Equals(object? obj) => obj is FloatHalfPair64 other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => Value.GetHashCode();
+        public override int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{Value:X}";
+        public override string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ulong(FloatHalfPair64 value) => value.Value;
+        public static implicit operator ulong(FloatHalfPair64 value) => value.__value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator FloatHalfPair64(ulong value) => new(value);
@@ -313,7 +313,7 @@ public partial class FloatingPointPropertyTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt64LittleEndian(destination, Value);
+            BinaryPrimitives.WriteUInt64LittleEndian(destination, __value);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -497,7 +497,7 @@ public partial class FloatingPointPropertyTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -506,7 +506,7 @@ public partial class FloatingPointPropertyTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => Value.TryFormat(destination, out charsWritten, format, provider);
+            => __value.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -523,13 +523,13 @@ public partial class FloatingPointPropertyTests
         /// <param name="other">A FloatHalfPair64 to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(FloatHalfPair64 other) => Value.CompareTo(other.Value);
+        public int CompareTo(FloatHalfPair64 other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another FloatHalfPair64.</summary>
         /// <param name="other">A FloatHalfPair64 to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(FloatHalfPair64 other) => Value == other.Value;
+        public bool Equals(FloatHalfPair64 other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes FloatHalfPair64 as a string.</summary>
         private sealed class FloatHalfPair64JsonConverter : JsonConverter<FloatHalfPair64>

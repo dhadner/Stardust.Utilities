@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Protocols;
 [JsonConverter(typeof(IPv6FullHeaderViewJsonConverter))]
 public partial record struct IPv6FullHeaderView
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 40;
@@ -28,8 +28,8 @@ public partial record struct IPv6FullHeaderView
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct IPv6FullHeaderView
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal IPv6FullHeaderView(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial byte Version
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((s[0] >> 4) & 0x0F);
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 3) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -69,14 +69,14 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0x0F) | (((byte)value << 4) & 0xF0));
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 3) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -94,12 +94,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)((BinaryPrimitives.ReadUInt16BigEndian(s.Slice(0)) >> 4) & 0x00FF);
             }
-            int ep = 4 + _bitOffset;
+            int ep = 4 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 7) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -108,8 +108,8 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(0);
                 ushort raw = BinaryPrimitives.ReadUInt16BigEndian(slice);
@@ -118,7 +118,7 @@ public partial record struct IPv6FullHeaderView
             }
             else
             {
-                int ep = 4 + _bitOffset;
+                int ep = 4 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -136,12 +136,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (uint)((BinaryPrimitives.ReadUInt32BigEndian(s.Slice(1)) >> 8) & 0xFFFFFU);
             }
-            int ep = 12 + _bitOffset;
+            int ep = 12 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 19) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -150,8 +150,8 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(1);
                 uint raw = BinaryPrimitives.ReadUInt32BigEndian(slice);
@@ -160,7 +160,7 @@ public partial record struct IPv6FullHeaderView
             }
             else
             {
-                int ep = 12 + _bitOffset;
+                int ep = 12 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 19) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -178,12 +178,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ushort)BinaryPrimitives.ReadUInt16BigEndian(s.Slice(4));
             }
-            int ep = 32 + _bitOffset;
+            int ep = 32 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 15) - bi * 8;
             int sh = 32 - 1 - endInWindow;
@@ -192,15 +192,15 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(4);
                 BinaryPrimitives.WriteUInt16BigEndian(slice, (ushort)value);
             }
             else
             {
-                int ep = 32 + _bitOffset;
+                int ep = 32 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 15) - bi * 8;
                 int sh = 32 - 1 - endInWindow;
@@ -218,12 +218,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)s[6];
             }
-            int ep = 48 + _bitOffset;
+            int ep = 48 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 7) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -232,14 +232,14 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[6] = (byte)value;
             }
             else
             {
-                int ep = 48 + _bitOffset;
+                int ep = 48 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -257,12 +257,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)s[7];
             }
-            int ep = 56 + _bitOffset;
+            int ep = 56 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 7) - bi * 8;
             int sh = 16 - 1 - endInWindow;
@@ -271,14 +271,14 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[7] = (byte)value;
             }
             else
             {
-                int ep = 56 + _bitOffset;
+                int ep = 56 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 7) - bi * 8;
                 int sh = 16 - 1 - endInWindow;
@@ -296,12 +296,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(8));
             }
-            int ep = 64 + _bitOffset;
+            int ep = 64 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 63) - bi * 8;
             int sh = 128 - 1 - endInWindow;
@@ -310,15 +310,15 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(8);
                 BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
             }
             else
             {
-                int ep = 64 + _bitOffset;
+                int ep = 64 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -336,12 +336,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(16));
             }
-            int ep = 128 + _bitOffset;
+            int ep = 128 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 63) - bi * 8;
             int sh = 128 - 1 - endInWindow;
@@ -350,15 +350,15 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(16);
                 BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
             }
             else
             {
-                int ep = 128 + _bitOffset;
+                int ep = 128 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -376,12 +376,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(24));
             }
-            int ep = 192 + _bitOffset;
+            int ep = 192 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 63) - bi * 8;
             int sh = 128 - 1 - endInWindow;
@@ -390,15 +390,15 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(24);
                 BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
             }
             else
             {
-                int ep = 192 + _bitOffset;
+                int ep = 192 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -416,12 +416,12 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (ulong)BinaryPrimitives.ReadUInt64BigEndian(s.Slice(32));
             }
-            int ep = 256 + _bitOffset;
+            int ep = 256 + __bitOffset;
             int bi = ep >> 3;
             int endInWindow = (ep + 63) - bi * 8;
             int sh = 128 - 1 - endInWindow;
@@ -430,15 +430,15 @@ public partial record struct IPv6FullHeaderView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(32);
                 BinaryPrimitives.WriteUInt64BigEndian(slice, (ulong)value);
             }
             else
             {
-                int ep = 256 + _bitOffset;
+                int ep = 256 + __bitOffset;
                 int bi = ep >> 3;
                 int endInWindow = (ep + 63) - bi * 8;
                 int sh = 128 - 1 - endInWindow;
@@ -492,7 +492,7 @@ public partial record struct IPv6FullHeaderView
         /// <summary>Writes a IPv6FullHeaderView to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, IPv6FullHeaderView value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;

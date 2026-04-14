@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte>, IEquatable<SatUnsignedByte>,
                              IFormattable, ISpanFormattable, IParsable<SatUnsignedByte>, ISpanParsable<SatUnsignedByte>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,44 +27,44 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
 
     // --- Bit field mask constants ---
     // Low: bits [0..2], width 3
-    private const int LOW_START_BIT = 0;
-    private const byte LOW_MASK = 0x07;
-    private const byte LOW_INVERTED_MASK = 0xF8;  // ~LOW_MASK
-    private const byte LOW_SAT_MAX = 0x7;  // saturating: max for 3-bit unsigned field
+    private const int __LOW_START_BIT = 0;
+    private const byte __LOW_MASK = 0x07;
+    private const byte __LOW_INVERTED_MASK = 0xF8;  // ~__LOW_MASK
+    private const byte __LOW_SAT_MAX = 0x7;  // saturating: max for 3-bit unsigned field
     // High: bits [3..6], width 4
-    private const int HIGH_START_BIT = 3;
-    private const byte HIGH_MASK = 0x0F;
-    private const byte HIGH_SHIFTED_MASK = 0x78;  // HIGH_MASK << HIGH_START_BIT
-    private const byte HIGH_INVERTED_MASK = 0x87;  // ~HIGH_SHIFTED_MASK
+    private const int __HIGH_START_BIT = 3;
+    private const byte __HIGH_MASK = 0x0F;
+    private const byte __HIGH_SHIFTED_MASK = 0x78;  // __HIGH_MASK << __HIGH_START_BIT
+    private const byte __HIGH_INVERTED_MASK = 0x87;  // ~__HIGH_SHIFTED_MASK
 
     /// <summary>Creates a new SatUnsignedByte with the specified raw bits value.</summary>
-    public SatUnsignedByte(byte value) { Value = value; }
+    public SatUnsignedByte(byte value) { __value = value; }
 
     public partial byte Low
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)(Value & LOW_MASK);
+        get => (byte)(__value & __LOW_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var __sat = value > LOW_SAT_MAX ? LOW_SAT_MAX : value;
-            Value = (byte)((Value & LOW_INVERTED_MASK) | (((byte)__sat) & LOW_MASK));
+            var __sat = value > __LOW_SAT_MAX ? __LOW_SAT_MAX : value;
+            __value = (byte)((__value & __LOW_INVERTED_MASK) | (((byte)__sat) & __LOW_MASK));
         }
     }
 
     public partial byte High
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (byte)((Value >> HIGH_START_BIT) & HIGH_MASK);
+        get => (byte)((__value >> __HIGH_START_BIT) & __HIGH_MASK);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = (byte)((Value & HIGH_INVERTED_MASK) | ((((byte)value) << HIGH_START_BIT) & HIGH_SHIFTED_MASK));
+        set => __value = (byte)((__value & __HIGH_INVERTED_MASK) | ((((byte)value) << __HIGH_START_BIT) & __HIGH_SHIFTED_MASK));
     }
 
     /// <summary>Returns a SatUnsignedByte with the mask for the Low field (bits 0-2).</summary>
-    public static SatUnsignedByte LowMask => new(LOW_MASK);
+    public static SatUnsignedByte LowMask => new(__LOW_MASK);
 
     /// <summary>Returns a SatUnsignedByte with the mask for the High field (bits 3-6).</summary>
-    public static SatUnsignedByte HighMask => new(HIGH_SHIFTED_MASK);
+    public static SatUnsignedByte HighMask => new(__HIGH_SHIFTED_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -81,29 +81,29 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SatUnsignedByte WithLow(byte value)
     {
-        var __sat = value > LOW_SAT_MAX ? LOW_SAT_MAX : value;
-        return new((byte)((Value & LOW_INVERTED_MASK) | ((byte)__sat & LOW_MASK)));
+        var __sat = value > __LOW_SAT_MAX ? __LOW_SAT_MAX : value;
+        return new((byte)((__value & __LOW_INVERTED_MASK) | ((byte)__sat & __LOW_MASK)));
     }
 
     /// <summary>Returns a new SatUnsignedByte with the High field set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SatUnsignedByte WithHigh(byte value) => new((byte)((Value & HIGH_INVERTED_MASK) | (((byte)value << HIGH_START_BIT) & HIGH_SHIFTED_MASK)));
+    public SatUnsignedByte WithHigh(byte value) => new((byte)((__value & __HIGH_INVERTED_MASK) | (((byte)value << __HIGH_START_BIT) & __HIGH_SHIFTED_MASK)));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator ~(SatUnsignedByte a) => new((byte)~a.Value);
+    public static SatUnsignedByte operator ~(SatUnsignedByte a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator |(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.Value | b.Value));
+    public static SatUnsignedByte operator |(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator &(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.Value & b.Value));
+    public static SatUnsignedByte operator &(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator ^(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.Value ^ b.Value));
+    public static SatUnsignedByte operator ^(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,115 +111,115 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator -(SatUnsignedByte a) => new(unchecked((byte)(0 - a.Value)));
+    public static SatUnsignedByte operator -(SatUnsignedByte a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator +(SatUnsignedByte a, SatUnsignedByte b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static SatUnsignedByte operator +(SatUnsignedByte a, SatUnsignedByte b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator +(SatUnsignedByte a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static SatUnsignedByte operator +(SatUnsignedByte a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator +(byte a, SatUnsignedByte b) => new(unchecked((byte)(a + b.Value)));
+    public static SatUnsignedByte operator +(byte a, SatUnsignedByte b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator -(SatUnsignedByte a, SatUnsignedByte b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static SatUnsignedByte operator -(SatUnsignedByte a, SatUnsignedByte b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator -(SatUnsignedByte a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static SatUnsignedByte operator -(SatUnsignedByte a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator -(byte a, SatUnsignedByte b) => new(unchecked((byte)(a - b.Value)));
+    public static SatUnsignedByte operator -(byte a, SatUnsignedByte b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator *(SatUnsignedByte a, SatUnsignedByte b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static SatUnsignedByte operator *(SatUnsignedByte a, SatUnsignedByte b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator *(SatUnsignedByte a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static SatUnsignedByte operator *(SatUnsignedByte a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator *(byte a, SatUnsignedByte b) => new(unchecked((byte)(a * b.Value)));
+    public static SatUnsignedByte operator *(byte a, SatUnsignedByte b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator /(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.Value / b.Value));
+    public static SatUnsignedByte operator /(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator /(SatUnsignedByte a, byte b) => new((byte)(a.Value / b));
+    public static SatUnsignedByte operator /(SatUnsignedByte a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator /(byte a, SatUnsignedByte b) => new((byte)(a / b.Value));
+    public static SatUnsignedByte operator /(byte a, SatUnsignedByte b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator %(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.Value % b.Value));
+    public static SatUnsignedByte operator %(SatUnsignedByte a, SatUnsignedByte b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator %(SatUnsignedByte a, byte b) => new((byte)(a.Value % b));
+    public static SatUnsignedByte operator %(SatUnsignedByte a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SatUnsignedByte operator %(byte a, SatUnsignedByte b) => new((byte)(a % b.Value));
+    public static SatUnsignedByte operator %(byte a, SatUnsignedByte b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SatUnsignedByte a, int b) => a.Value << b;
+    public static int operator <<(SatUnsignedByte a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SatUnsignedByte a, int b) => a.Value >> b;
+    public static int operator >>(SatUnsignedByte a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SatUnsignedByte a, int b) => a.Value >>> b;
+    public static int operator >>>(SatUnsignedByte a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(SatUnsignedByte a, SatUnsignedByte b) => a.Value < b.Value;
+    public static bool operator <(SatUnsignedByte a, SatUnsignedByte b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(SatUnsignedByte a, SatUnsignedByte b) => a.Value > b.Value;
+    public static bool operator >(SatUnsignedByte a, SatUnsignedByte b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(SatUnsignedByte a, SatUnsignedByte b) => a.Value <= b.Value;
+    public static bool operator <=(SatUnsignedByte a, SatUnsignedByte b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(SatUnsignedByte a, SatUnsignedByte b) => a.Value >= b.Value;
+    public static bool operator >=(SatUnsignedByte a, SatUnsignedByte b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SatUnsignedByte a, SatUnsignedByte b) => a.Value == b.Value;
+    public static bool operator ==(SatUnsignedByte a, SatUnsignedByte b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SatUnsignedByte a, SatUnsignedByte b) => a.Value != b.Value;
+    public static bool operator !=(SatUnsignedByte a, SatUnsignedByte b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SatUnsignedByte other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is SatUnsignedByte other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(SatUnsignedByte value) => value.Value;
+    public static implicit operator byte(SatUnsignedByte value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SatUnsignedByte(byte value) => new(value);
@@ -251,7 +251,7 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -435,7 +435,7 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -444,7 +444,7 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -461,13 +461,13 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     /// <param name="other">A SatUnsignedByte to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SatUnsignedByte other) => Value.CompareTo(other.Value);
+    public int CompareTo(SatUnsignedByte other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SatUnsignedByte.</summary>
     /// <param name="other">A SatUnsignedByte to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SatUnsignedByte other) => Value == other.Value;
+    public bool Equals(SatUnsignedByte other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SatUnsignedByte as a string.</summary>
     private sealed class SatUnsignedByteJsonConverter : JsonConverter<SatUnsignedByte>

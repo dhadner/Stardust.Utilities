@@ -17,7 +17,7 @@ namespace Stardust.Utilities.Tests;
 public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFlagsOnly>, IEquatable<AutoSizedFlagsOnly>,
                              IFormattable, ISpanFormattable, IParsable<AutoSizedFlagsOnly>, ISpanParsable<AutoSizedFlagsOnly>
 {
-    private byte Value;
+    private byte __value;
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
@@ -27,53 +27,53 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
 
     // --- Bit field mask constants ---
     // A: bit 0
-    private const int A_BIT = 0;
-    private const byte A_MASK = 0x01;  // 1 << A_BIT
-    private const byte A_INVERTED_MASK = 0xFE;  // ~A_MASK
+    private const int __A_BIT = 0;
+    private const byte __A_MASK = 0x01;  // 1 << __A_BIT
+    private const byte __A_INVERTED_MASK = 0xFE;  // ~__A_MASK
     // B: bit 3
-    private const int B_BIT = 3;
-    private const byte B_MASK = 0x08;  // 1 << B_BIT
-    private const byte B_INVERTED_MASK = 0xF7;  // ~B_MASK
+    private const int __B_BIT = 3;
+    private const byte __B_MASK = 0x08;  // 1 << __B_BIT
+    private const byte __B_INVERTED_MASK = 0xF7;  // ~__B_MASK
     // C: bit 7
-    private const int C_BIT = 7;
-    private const byte C_MASK = 0x80;  // 1 << C_BIT
-    private const byte C_INVERTED_MASK = 0x7F;  // ~C_MASK
+    private const int __C_BIT = 7;
+    private const byte __C_MASK = 0x80;  // 1 << __C_BIT
+    private const byte __C_INVERTED_MASK = 0x7F;  // ~__C_MASK
 
     /// <summary>Creates a new AutoSizedFlagsOnly with the specified raw bits value.</summary>
-    public AutoSizedFlagsOnly(byte value) { Value = value; }
+    public AutoSizedFlagsOnly(byte value) { __value = value; }
 
     public partial bool A
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & A_MASK) != 0;
+        get => (__value & __A_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | A_MASK) : (byte)(Value & A_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __A_MASK) : (byte)(__value & __A_INVERTED_MASK);
     }
 
     public partial bool B
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & B_MASK) != 0;
+        get => (__value & __B_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | B_MASK) : (byte)(Value & B_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __B_MASK) : (byte)(__value & __B_INVERTED_MASK);
     }
 
     public partial bool C
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (Value & C_MASK) != 0;
+        get => (__value & __C_MASK) != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Value = value ? (byte)(Value | C_MASK) : (byte)(Value & C_INVERTED_MASK);
+        set => __value = value ? (byte)(__value | __C_MASK) : (byte)(__value & __C_INVERTED_MASK);
     }
 
     /// <summary>Returns a AutoSizedFlagsOnly with only the A bit set.</summary>
-    public static AutoSizedFlagsOnly ABit => new(A_MASK);
+    public static AutoSizedFlagsOnly ABit => new(__A_MASK);
 
     /// <summary>Returns a AutoSizedFlagsOnly with only the B bit set.</summary>
-    public static AutoSizedFlagsOnly BBit => new(B_MASK);
+    public static AutoSizedFlagsOnly BBit => new(__B_MASK);
 
     /// <summary>Returns a AutoSizedFlagsOnly with only the C bit set.</summary>
-    public static AutoSizedFlagsOnly CBit => new(C_MASK);
+    public static AutoSizedFlagsOnly CBit => new(__C_MASK);
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -89,31 +89,31 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
 
     /// <summary>Returns a new AutoSizedFlagsOnly with the A flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedFlagsOnly WithA(bool value) => new(value ? (byte)(Value | A_MASK) : (byte)(Value & A_INVERTED_MASK));
+    public AutoSizedFlagsOnly WithA(bool value) => new(value ? (byte)(__value | __A_MASK) : (byte)(__value & __A_INVERTED_MASK));
 
     /// <summary>Returns a new AutoSizedFlagsOnly with the B flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedFlagsOnly WithB(bool value) => new(value ? (byte)(Value | B_MASK) : (byte)(Value & B_INVERTED_MASK));
+    public AutoSizedFlagsOnly WithB(bool value) => new(value ? (byte)(__value | __B_MASK) : (byte)(__value & __B_INVERTED_MASK));
 
     /// <summary>Returns a new AutoSizedFlagsOnly with the C flag set to the specified value.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AutoSizedFlagsOnly WithC(bool value) => new(value ? (byte)(Value | C_MASK) : (byte)(Value & C_INVERTED_MASK));
+    public AutoSizedFlagsOnly WithC(bool value) => new(value ? (byte)(__value | __C_MASK) : (byte)(__value & __C_INVERTED_MASK));
 
     /// <summary>Bitwise complement operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator ~(AutoSizedFlagsOnly a) => new((byte)~a.Value);
+    public static AutoSizedFlagsOnly operator ~(AutoSizedFlagsOnly a) => new((byte)~a.__value);
 
     /// <summary>Bitwise OR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator |(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.Value | b.Value));
+    public static AutoSizedFlagsOnly operator |(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.__value | b.__value));
 
     /// <summary>Bitwise AND operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator &(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.Value & b.Value));
+    public static AutoSizedFlagsOnly operator &(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.__value & b.__value));
 
     /// <summary>Bitwise XOR operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator ^(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.Value ^ b.Value));
+    public static AutoSizedFlagsOnly operator ^(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.__value ^ b.__value));
 
     /// <summary>Unary plus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -121,115 +121,115 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
 
     /// <summary>Unary negation operator. Returns two's complement negation.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator -(AutoSizedFlagsOnly a) => new(unchecked((byte)(0 - a.Value)));
+    public static AutoSizedFlagsOnly operator -(AutoSizedFlagsOnly a) => new(unchecked((byte)(0 - a.__value)));
 
     /// <summary>Addition operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator +(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a.Value + b.Value)));
+    public static AutoSizedFlagsOnly operator +(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a.__value + b.__value)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator +(AutoSizedFlagsOnly a, byte b) => new(unchecked((byte)(a.Value + b)));
+    public static AutoSizedFlagsOnly operator +(AutoSizedFlagsOnly a, byte b) => new(unchecked((byte)(a.__value + b)));
 
     /// <summary>Addition operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator +(byte a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a + b.Value)));
+    public static AutoSizedFlagsOnly operator +(byte a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a + b.__value)));
 
     /// <summary>Subtraction operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator -(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a.Value - b.Value)));
+    public static AutoSizedFlagsOnly operator -(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a.__value - b.__value)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator -(AutoSizedFlagsOnly a, byte b) => new(unchecked((byte)(a.Value - b)));
+    public static AutoSizedFlagsOnly operator -(AutoSizedFlagsOnly a, byte b) => new(unchecked((byte)(a.__value - b)));
 
     /// <summary>Subtraction operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator -(byte a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a - b.Value)));
+    public static AutoSizedFlagsOnly operator -(byte a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a - b.__value)));
 
     /// <summary>Multiplication operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator *(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a.Value * b.Value)));
+    public static AutoSizedFlagsOnly operator *(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a.__value * b.__value)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator *(AutoSizedFlagsOnly a, byte b) => new(unchecked((byte)(a.Value * b)));
+    public static AutoSizedFlagsOnly operator *(AutoSizedFlagsOnly a, byte b) => new(unchecked((byte)(a.__value * b)));
 
     /// <summary>Multiplication operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator *(byte a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a * b.Value)));
+    public static AutoSizedFlagsOnly operator *(byte a, AutoSizedFlagsOnly b) => new(unchecked((byte)(a * b.__value)));
 
     /// <summary>Division operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator /(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.Value / b.Value));
+    public static AutoSizedFlagsOnly operator /(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.__value / b.__value));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator /(AutoSizedFlagsOnly a, byte b) => new((byte)(a.Value / b));
+    public static AutoSizedFlagsOnly operator /(AutoSizedFlagsOnly a, byte b) => new((byte)(a.__value / b));
 
     /// <summary>Division operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator /(byte a, AutoSizedFlagsOnly b) => new((byte)(a / b.Value));
+    public static AutoSizedFlagsOnly operator /(byte a, AutoSizedFlagsOnly b) => new((byte)(a / b.__value));
 
     /// <summary>Modulus operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator %(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.Value % b.Value));
+    public static AutoSizedFlagsOnly operator %(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => new((byte)(a.__value % b.__value));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator %(AutoSizedFlagsOnly a, byte b) => new((byte)(a.Value % b));
+    public static AutoSizedFlagsOnly operator %(AutoSizedFlagsOnly a, byte b) => new((byte)(a.__value % b));
 
     /// <summary>Modulus operator with storage type.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AutoSizedFlagsOnly operator %(byte a, AutoSizedFlagsOnly b) => new((byte)(a % b.Value));
+    public static AutoSizedFlagsOnly operator %(byte a, AutoSizedFlagsOnly b) => new((byte)(a % b.__value));
 
     /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(AutoSizedFlagsOnly a, int b) => a.Value << b;
+    public static int operator <<(AutoSizedFlagsOnly a, int b) => a.__value << b;
 
     /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(AutoSizedFlagsOnly a, int b) => a.Value >> b;
+    public static int operator >>(AutoSizedFlagsOnly a, int b) => a.__value >> b;
 
     /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(AutoSizedFlagsOnly a, int b) => a.Value >>> b;
+    public static int operator >>>(AutoSizedFlagsOnly a, int b) => a.__value >>> b;
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.Value < b.Value;
+    public static bool operator <(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.__value < b.__value;
 
     /// <summary>Greater than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.Value > b.Value;
+    public static bool operator >(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.__value > b.__value;
 
     /// <summary>Less than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.Value <= b.Value;
+    public static bool operator <=(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.__value <= b.__value;
 
     /// <summary>Greater than or equal operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.Value >= b.Value;
+    public static bool operator >=(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.__value >= b.__value;
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.Value == b.Value;
+    public static bool operator ==(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.__value == b.__value;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.Value != b.Value;
+    public static bool operator !=(AutoSizedFlagsOnly a, AutoSizedFlagsOnly b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is AutoSizedFlagsOnly other && Value == other.Value;
+    public override bool Equals(object? obj) => obj is AutoSizedFlagsOnly other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{Value:X}";
+    public override string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(AutoSizedFlagsOnly value) => value.Value;
+    public static implicit operator byte(AutoSizedFlagsOnly value) => value.__value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AutoSizedFlagsOnly(byte value) => new(value);
@@ -261,7 +261,7 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)Value);
+        destination[0] = unchecked((byte)__value);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -445,7 +445,7 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -454,7 +454,7 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => Value.TryFormat(destination, out charsWritten, format, provider);
+        => __value.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -471,13 +471,13 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     /// <param name="other">A AutoSizedFlagsOnly to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(AutoSizedFlagsOnly other) => Value.CompareTo(other.Value);
+    public int CompareTo(AutoSizedFlagsOnly other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another AutoSizedFlagsOnly.</summary>
     /// <param name="other">A AutoSizedFlagsOnly to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(AutoSizedFlagsOnly other) => Value == other.Value;
+    public bool Equals(AutoSizedFlagsOnly other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes AutoSizedFlagsOnly as a string.</summary>
     private sealed class AutoSizedFlagsOnlyJsonConverter : JsonConverter<AutoSizedFlagsOnly>

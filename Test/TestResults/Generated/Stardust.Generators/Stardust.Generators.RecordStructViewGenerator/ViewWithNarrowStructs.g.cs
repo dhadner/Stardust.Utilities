@@ -14,8 +14,8 @@ namespace Stardust.Utilities.Tests;
 [JsonConverter(typeof(ViewWithNarrowStructsJsonConverter))]
 public partial record struct ViewWithNarrowStructs
 {
-    private readonly Memory<byte> _data;
-    private readonly byte _bitOffset;
+    private readonly Memory<byte> __data;
+    private readonly byte __bitOffset;
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 7;
@@ -28,8 +28,8 @@ public partial record struct ViewWithNarrowStructs
     {
         if (data.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Buffer must contain at least {SIZE_IN_BYTES} bytes, but was {data.Length}.", nameof(data));
-        _data = data;
-        _bitOffset = 0;
+        __data = data;
+        __bitOffset = 0;
     }
 
     /// <summary>Creates a view over the specified byte array.</summary>
@@ -43,24 +43,24 @@ public partial record struct ViewWithNarrowStructs
     /// <summary>Creates a sub-view at a bit offset within the specified memory buffer (used by nested views).</summary>
     internal ViewWithNarrowStructs(Memory<byte> data, int bitOffset)
     {
-        _data = data;
-        _bitOffset = (byte)bitOffset;
+        __data = data;
+        __bitOffset = (byte)bitOffset;
     }
 
     /// <summary>Gets the underlying memory buffer.</summary>
-    public Memory<byte> Data => _data;
+    public Memory<byte> Data => __data;
 
     public partial global::Stardust.Utilities.Tests.StatusCode5 Status
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.Tests.StatusCode5)(byte)(s[0] & 0x1F);
             }
-            int ep = 0 + _bitOffset;
+            int ep = 0 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.Tests.StatusCode5)(byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x001F);
@@ -68,14 +68,14 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[0] = (byte)((s[0] & 0xE0) | ((byte)(byte)value & 0x1F));
             }
             else
             {
-                int ep = 0 + _bitOffset;
+                int ep = 0 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -92,12 +92,12 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.Tests.SensorReading12)(ushort)(BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(1)) & 0x0FFF);
             }
-            int ep = 8 + _bitOffset;
+            int ep = 8 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.Tests.SensorReading12)(ushort)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFU);
@@ -105,8 +105,8 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(1);
                 ushort raw = BinaryPrimitives.ReadUInt16LittleEndian(slice);
@@ -115,7 +115,7 @@ public partial record struct ViewWithNarrowStructs
             }
             else
             {
-                int ep = 8 + _bitOffset;
+                int ep = 8 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -132,12 +132,12 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (global::Stardust.Utilities.Tests.RgbColor24)(uint)(BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(3)) & 0xFFFFFFU);
             }
-            int ep = 24 + _bitOffset;
+            int ep = 24 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (global::Stardust.Utilities.Tests.RgbColor24)(uint)((BinaryPrimitives.ReadUInt32LittleEndian(s.Slice(bi)) >> sh) & 0xFFFFFFU);
@@ -145,8 +145,8 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 var slice = s.Slice(3);
                 uint raw = BinaryPrimitives.ReadUInt32LittleEndian(slice);
@@ -155,7 +155,7 @@ public partial record struct ViewWithNarrowStructs
             }
             else
             {
-                int ep = 24 + _bitOffset;
+                int ep = 24 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -172,12 +172,12 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 return (byte)s[6];
             }
-            int ep = 48 + _bitOffset;
+            int ep = 48 + __bitOffset;
             int bi = ep >> 3;
             int sh = ep & 7;
             return (byte)((BinaryPrimitives.ReadUInt16LittleEndian(s.Slice(bi)) >> sh) & 0x00FF);
@@ -185,14 +185,14 @@ public partial record struct ViewWithNarrowStructs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
-            var s = _data.Span;
-            if (_bitOffset == 0)
+            var s = __data.Span;
+            if (__bitOffset == 0)
             {
                 s[6] = (byte)value;
             }
             else
             {
-                int ep = 48 + _bitOffset;
+                int ep = 48 + __bitOffset;
                 int bi = ep >> 3;
                 int sh = ep & 7;
                 var slice = s.Slice(bi);
@@ -239,7 +239,7 @@ public partial record struct ViewWithNarrowStructs
         /// <summary>Writes a ViewWithNarrowStructs to JSON as a hex string.</summary>
         public override void Write(Utf8JsonWriter writer, ViewWithNarrowStructs value, JsonSerializerOptions options)
         {
-            var s = value._data.Span;
+            var s = value.__data.Span;
             // Find highest non-zero byte for minimal hex output
             int top = SIZE_IN_BYTES - 1;
             while (top > 0 && s[top] == 0) top--;
