@@ -659,6 +659,12 @@ if ((status & StatusRegister.ReadyBit) != 0)
 var modeOnly = status & StatusRegister.ModeMask;
 ```
 
+> **Note:** These are struct instances, not compile-time constants (`const` is limited to
+> built-in primitives in C#). For `switch` statements use `when` guards; for xUnit
+> `[Theory]` tests use `[MemberData]` instead of `[InlineData]`. See
+> [Using Bit/Mask Values in Switch and Test Attributes](BITFIELDS.md#using-bitmask-values-in-switch-and-test-attributes)
+> in BITFIELDS.md for patterns and examples.
+
 ##### Interface Implementations
 
 Every BitFields type automatically implements:

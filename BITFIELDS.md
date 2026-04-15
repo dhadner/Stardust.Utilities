@@ -31,6 +31,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 - [Operators](#operators)
 - [Parsing and Formatting](#parsing-and-formatting)
 - [Static Bit and Mask Properties](#static-bit-and-mask-properties)
+- [Using Bit/Mask Values in Switch and Test Attributes](#using-bitmask-values-in-switch-and-test-attributes)
 - [Fluent With Methods](#fluent-with-methods)
 - [Undefined and Reserved Bits](#undefined-and-reserved-bits)
 - [Interface Implementations](#interface-implementations)
@@ -659,6 +660,78 @@ StatusRegister modeMask = StatusRegister.ModeMask;    // 0x1C
 // Use for testing and masking
 if ((status & StatusRegister.ReadyBit) != 0) { /* ready */ }
 var flags = StatusRegister.ReadyBit | StatusRegister.ErrorBit;
+```
+
+## Using Bit/Mask Values in Switch and Test Attributes
+
+The `{Flag}Bit` and `{Field}Mask` static properties return **struct instances**, not
+compile-time constants. C# only allows `const` on built-in primitives (`byte`, `int`,
+`string`, etc.), so user-defined struct values cannot appear in `switch` case labels,
+`[InlineData]` attributes, or other contexts that require constant expressions.
+
+The underlying mask constants (e.g., `__READY_MASK`) are `const`, but they are private
+implementation details. The public API intentionally exposes struct-typed values so you
+work in the domain type. Here are the idiomatic patterns for the two most common scenarios.
+
+### switch Statements
+
+Use a `switch` expression with `when` guards:
+
+```csharp
+var result = status switch
+{
+    _ when status == StatusRegister.ReadyBit => "ready",
+    _ when status == StatusRegister.ModeMask => "mode mask",
+    _ when (status & StatusRegister.ReadyBit) != 0 => "ready is set",
+    _ => "other"
+};
+```
+
+Or switch on the raw storage value using the implicit conversion:
+
+```csharp
+byte raw = status;
+var result = raw switch
+{
+    0x01 => "ready bit only",
+    0x1C => "mode mask only",
+    _ => "other"
+};
+```
+
+### xUnit `[Theory]` Tests
+
+`[InlineData]` requires compile-time constants, so it cannot accept struct instances.
+Use `[MemberData]` instead, which accepts runtime values:
+
+```csharp
+public static IEnumerable<object[]> BitPatterns =>
+[
+    [StatusRegister.ReadyBit,  "Ready"],
+    [StatusRegister.ErrorBit,  "Error"],
+    [StatusRegister.ModeMask,  "Mode"],
+];
+
+[Theory]
+[MemberData(nameof(BitPatterns))]
+public void Should_have_expected_bit_pattern(StatusRegister pattern, string name)
+{
+    Assert.NotEqual((StatusRegister)0, pattern);
+}
+```
+
+If you only need the raw numeric value, `[InlineData]` works with the storage type:
+
+```csharp
+[Theory]
+[InlineData(0x01)]  // ReadyBit
+[InlineData(0x02)]  // ErrorBit
+[InlineData(0x1C)]  // ModeMask
+public void Should_have_single_contiguous_region(byte raw)
+{
+    StatusRegister reg = raw;
+    Assert.NotEqual((StatusRegister)0, reg);
+}
 ```
 
 ## Fluent With Methods
