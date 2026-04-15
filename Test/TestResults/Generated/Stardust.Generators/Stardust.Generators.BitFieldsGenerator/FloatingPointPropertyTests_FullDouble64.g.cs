@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a FullDouble64 with all bits set to zero.</summary>
-        public static FullDouble64 Zero => default;
-
         // --- Bit field mask constants ---
         // DoubleVal: bits [0..63], width 64
         private const int __DOUBLE_VAL_START_BIT = 0;

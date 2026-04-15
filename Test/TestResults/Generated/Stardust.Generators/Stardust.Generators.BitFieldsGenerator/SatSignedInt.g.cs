@@ -24,9 +24,6 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a SatSignedInt with all bits set to zero.</summary>
-    public static SatSignedInt Zero => default;
-
     // --- Bit field mask constants ---
     // Signed: bits [0..4], width 5
     private const int __SIGNED_START_BIT = 0;

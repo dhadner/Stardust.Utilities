@@ -24,9 +24,6 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 33;
 
-    /// <summary>Returns a AutoSizedReg33 with all bits set to zero.</summary>
-    public static AutoSizedReg33 Zero => default;
-
     // --- Bit field mask constants ---
     // Lo: bits [0..31], width 32
     private const int __LO_START_BIT = 0;

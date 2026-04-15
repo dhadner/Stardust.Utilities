@@ -24,9 +24,6 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a SatShiftedField with all bits set to zero.</summary>
-    public static SatShiftedField Zero => default;
-
     // --- Bit field mask constants ---
     // Prefix: bits [0..3], width 4
     private const int __PREFIX_START_BIT = 0;

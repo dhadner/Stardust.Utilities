@@ -38,9 +38,6 @@ public partial class BitFieldSpecializationTests
 
         private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
-        /// <summary>Returns a U128Register with all bits set to zero.</summary>
-        public static U128Register Zero => default;
-
         /// <summary>Creates a new U128Register from individual word values.</summary>
         /// <param name="lower">Bits 0-63 (least significant).</param>
         /// <param name="upper">Bits 64-127 (most significant).</param>

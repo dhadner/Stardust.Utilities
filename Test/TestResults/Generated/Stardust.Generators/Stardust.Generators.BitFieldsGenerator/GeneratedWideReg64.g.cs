@@ -24,9 +24,6 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a GeneratedWideReg64 with all bits set to zero.</summary>
-    public static GeneratedWideReg64 Zero => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;

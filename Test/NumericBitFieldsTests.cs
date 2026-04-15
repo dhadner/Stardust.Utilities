@@ -195,7 +195,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Half_BuildFromParts()
     {
-        var h = IEEE754Half.Zero
+        var h = default(IEEE754Half)
             .WithSign(false)
             .WithBiasedExponent(15)
             .WithMantissa(0x200);
@@ -206,7 +206,7 @@ public class NumericBitFieldsTests
     public void Half_WithExponent_BuildsPowerOfTwo()
     {
         // 2^3 = 8.0
-        var h = IEEE754Half.Zero.WithExponent(3).WithMantissa(0);
+        var h = default(IEEE754Half).WithExponent(3).WithMantissa(0);
         ((Half)h).Should().Be((Half)8.0);
         h.Exponent.Should().Be(3);
     }
@@ -216,14 +216,14 @@ public class NumericBitFieldsTests
     {
         IEEE754Half h = (Half)4.0;
         int exp = h.Exponent!.Value;
-        var rebuilt = IEEE754Half.Zero.WithExponent(exp).WithMantissa(h.Mantissa);
+        var rebuilt = default(IEEE754Half).WithExponent(exp).WithMantissa(h.Mantissa);
         ((Half)rebuilt).Should().Be((Half)4.0);
     }
 
     [Fact]
     public void Half_WithExponent_MinExponent()
     {
-        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MIN_EXPONENT);
+        var h = default(IEEE754Half).WithExponent(IEEE754Half.MIN_EXPONENT);
         h.BiasedExponent.Should().Be(1);
         h.IsNormal.Should().BeTrue();
     }
@@ -231,7 +231,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Half_WithExponent_MaxTrueExponent()
     {
-        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MAX_EXPONENT);
+        var h = default(IEEE754Half).WithExponent(IEEE754Half.MAX_EXPONENT);
         h.BiasedExponent.Should().Be(IEEE754Half.MAX_BIASED_EXPONENT - 1);
         h.IsNormal.Should().BeTrue();
     }
@@ -239,14 +239,14 @@ public class NumericBitFieldsTests
     [Fact]
     public void Half_WithExponent_MasksBelowMin()
     {
-        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MIN_EXPONENT - 1);
+        var h = default(IEEE754Half).WithExponent(IEEE754Half.MIN_EXPONENT - 1);
         h.BiasedExponent.Should().Be(0, "out-of-range value is masked by WithBiasedExponent");
     }
 
     [Fact]
     public void Half_WithExponent_MasksAboveMax()
     {
-        var h = IEEE754Half.Zero.WithExponent(IEEE754Half.MAX_EXPONENT + 1);
+        var h = default(IEEE754Half).WithExponent(IEEE754Half.MAX_EXPONENT + 1);
         h.BiasedExponent.Should().BeLessThanOrEqualTo(IEEE754Half.MAX_BIASED_EXPONENT,
             "out-of-range value is masked by WithBiasedExponent");
     }
@@ -539,7 +539,7 @@ public class NumericBitFieldsTests
     public void Single_FluentBuild_OnePointFive()
     {
         // 1.5f: sign=0, biasedExponent=127, mantissa=0x400000
-        var f = IEEE754Single.Zero
+        var f = default(IEEE754Single)
             .WithSign(false)
             .WithBiasedExponent(127)
             .WithMantissa(0x400000u);
@@ -550,7 +550,7 @@ public class NumericBitFieldsTests
     public void Single_WithExponent_BuildsPowerOfTwo()
     {
         // 2^3 = 8.0f
-        var f = IEEE754Single.Zero.WithExponent(3).WithMantissa(0);
+        var f = default(IEEE754Single).WithExponent(3).WithMantissa(0);
         ((float)f).Should().Be(8.0f);
         f.Exponent.Should().Be(3);
     }
@@ -560,14 +560,14 @@ public class NumericBitFieldsTests
     {
         IEEE754Single f = 8.0f;
         int exp = f.Exponent!.Value;
-        var rebuilt = IEEE754Single.Zero.WithExponent(exp).WithMantissa(f.Mantissa);
+        var rebuilt = default(IEEE754Single).WithExponent(exp).WithMantissa(f.Mantissa);
         ((float)rebuilt).Should().Be(8.0f);
     }
 
     [Fact]
     public void Single_WithExponent_MinExponent()
     {
-        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MIN_EXPONENT);
+        var f = default(IEEE754Single).WithExponent(IEEE754Single.MIN_EXPONENT);
         f.BiasedExponent.Should().Be(1);
         f.IsNormal.Should().BeTrue();
     }
@@ -575,7 +575,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Single_WithExponent_MaxTrueExponent()
     {
-        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MAX_EXPONENT);
+        var f = default(IEEE754Single).WithExponent(IEEE754Single.MAX_EXPONENT);
         f.BiasedExponent.Should().Be(IEEE754Single.MAX_BIASED_EXPONENT - 1);
         f.IsNormal.Should().BeTrue();
     }
@@ -583,14 +583,14 @@ public class NumericBitFieldsTests
     [Fact]
     public void Single_WithExponent_MasksBelowMin()
     {
-        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MIN_EXPONENT - 1);
+        var f = default(IEEE754Single).WithExponent(IEEE754Single.MIN_EXPONENT - 1);
         f.BiasedExponent.Should().Be(0, "out-of-range value is masked by WithBiasedExponent");
     }
 
     [Fact]
     public void Single_WithExponent_MasksAboveMax()
     {
-        var f = IEEE754Single.Zero.WithExponent(IEEE754Single.MAX_EXPONENT + 1);
+        var f = default(IEEE754Single).WithExponent(IEEE754Single.MAX_EXPONENT + 1);
         f.BiasedExponent.Should().BeLessThanOrEqualTo(IEEE754Single.MAX_BIASED_EXPONENT,
             "out-of-range value is masked by WithBiasedExponent");
     }
@@ -939,7 +939,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Double_FluentBuild_OnePointFive()
     {
-        var d = IEEE754Double.Zero
+        var d = default(IEEE754Double)
             .WithSign(false)
             .WithBiasedExponent(1023)
             .WithMantissa(0x8_0000_0000_0000UL);
@@ -980,7 +980,7 @@ public class NumericBitFieldsTests
     public void Double_WithExponent_BuildsPowerOfTwo()
     {
         // 2^3 = 8.0
-        var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+        var d = default(IEEE754Double).WithExponent(3).WithMantissa(0);
         ((double)d).Should().Be(8.0);
         d.Exponent.Should().Be(3);
     }
@@ -990,7 +990,7 @@ public class NumericBitFieldsTests
     {
         IEEE754Double d = Math.PI;
         int exp = d.Exponent!.Value;
-        var rebuilt = IEEE754Double.Zero.WithExponent(exp).WithMantissa(d.Mantissa);
+        var rebuilt = default(IEEE754Double).WithExponent(exp).WithMantissa(d.Mantissa);
         ((double)rebuilt).Should().Be(Math.PI);
     }
 
@@ -998,14 +998,14 @@ public class NumericBitFieldsTests
     public void Double_WithExponent_NegativeExponent()
     {
         // 2^-1 = 0.5
-        var d = IEEE754Double.Zero.WithExponent(-1).WithMantissa(0);
+        var d = default(IEEE754Double).WithExponent(-1).WithMantissa(0);
         ((double)d).Should().Be(0.5);
     }
 
     [Fact]
     public void Double_WithExponent_MinExponent()
     {
-        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MIN_EXPONENT);
+        var d = default(IEEE754Double).WithExponent(IEEE754Double.MIN_EXPONENT);
         d.BiasedExponent.Should().Be(1);
         d.IsNormal.Should().BeTrue();
     }
@@ -1013,7 +1013,7 @@ public class NumericBitFieldsTests
     [Fact]
     public void Double_WithExponent_MaxTrueExponent()
     {
-        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MAX_EXPONENT);
+        var d = default(IEEE754Double).WithExponent(IEEE754Double.MAX_EXPONENT);
         d.BiasedExponent.Should().Be(IEEE754Double.MAX_BIASED_EXPONENT - 1);
         d.IsNormal.Should().BeTrue();
     }
@@ -1021,14 +1021,14 @@ public class NumericBitFieldsTests
     [Fact]
     public void Double_WithExponent_MasksBelowMin()
     {
-        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MIN_EXPONENT - 1);
+        var d = default(IEEE754Double).WithExponent(IEEE754Double.MIN_EXPONENT - 1);
         d.BiasedExponent.Should().Be(0, "out-of-range value is masked by WithBiasedExponent");
     }
 
     [Fact]
     public void Double_WithExponent_MasksAboveMax()
     {
-        var d = IEEE754Double.Zero.WithExponent(IEEE754Double.MAX_EXPONENT + 1);
+        var d = default(IEEE754Double).WithExponent(IEEE754Double.MAX_EXPONENT + 1);
         d.BiasedExponent.Should().BeLessThanOrEqualTo((ushort)IEEE754Double.MAX_BIASED_EXPONENT,
             "out-of-range value is masked by WithBiasedExponent");
     }

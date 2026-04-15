@@ -38,9 +38,6 @@ public partial class BitFieldMultiWordTests
 
         private const ulong __LAST_WORD_MASK = 0x00000000000000FFUL;
 
-        /// <summary>Returns a Bits72 with all bits set to zero.</summary>
-        public static Bits72 Zero => default;
-
         /// <summary>Creates a new Bits72 from individual word values.</summary>
         /// <param name="lower">Bits 0-63 (least significant).</param>
         /// <param name="upper">Bits 64-71 (most significant).</param>

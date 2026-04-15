@@ -37,9 +37,6 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
 
     private const ulong __LAST_WORD_MASK = 0x000000000000001FUL;
 
-    /// <summary>Returns a SatMultiWord with all bits set to zero.</summary>
-    public static SatMultiWord Zero => default;
-
     /// <summary>Creates a new SatMultiWord from individual word values.</summary>
     /// <param name="lower">Bits 0-63 (least significant).</param>
     /// <param name="middle">Bits 64-127.</param>

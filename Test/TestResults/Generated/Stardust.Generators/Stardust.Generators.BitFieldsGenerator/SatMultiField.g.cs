@@ -24,9 +24,6 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a SatMultiField with all bits set to zero.</summary>
-    public static SatMultiField Zero => default;
-
     // --- Bit field mask constants ---
     // FieldA: bits [0..3], width 4
     private const int __FIELD_A_START_BIT = 0;

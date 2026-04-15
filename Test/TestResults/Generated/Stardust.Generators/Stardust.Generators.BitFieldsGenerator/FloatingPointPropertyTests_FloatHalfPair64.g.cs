@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a FloatHalfPair64 with all bits set to zero.</summary>
-        public static FloatHalfPair64 Zero => default;
-
         // --- Bit field mask constants ---
         // FloatVal: bits [0..31], width 32
         private const int __FLOAT_VAL_START_BIT = 0;

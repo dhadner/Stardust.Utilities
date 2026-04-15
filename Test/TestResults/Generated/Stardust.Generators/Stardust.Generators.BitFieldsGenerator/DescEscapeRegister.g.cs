@@ -24,9 +24,6 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a DescEscapeRegister with all bits set to zero.</summary>
-    public static DescEscapeRegister Zero => default;
-
     // --- Bit field mask constants ---
     // AllAtOnce: bits [7..7], width 1
     private const int __ALL_AT_ONCE_START_BIT = 7;

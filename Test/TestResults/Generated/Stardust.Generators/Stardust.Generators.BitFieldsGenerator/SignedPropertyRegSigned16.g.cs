@@ -24,9 +24,6 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a SignedPropertyRegSigned16 with all bits set to zero.</summary>
-    public static SignedPropertyRegSigned16 Zero => default;
-
     // --- Bit field mask constants ---
     // Delta: bits [13..15], width 3
     private const int __DELTA_START_BIT = 13;

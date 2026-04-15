@@ -26,9 +26,6 @@ public partial class BitFieldSpecializationTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 16;
 
-        /// <summary>Returns a HalfRegister with all bits set to zero.</summary>
-        public static HalfRegister Zero => default;
-
         // --- Bit field mask constants ---
         // Mantissa: bits [0..9], width 10
         private const int __MANTISSA_START_BIT = 0;

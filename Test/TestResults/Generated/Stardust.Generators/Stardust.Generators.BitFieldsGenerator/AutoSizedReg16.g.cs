@@ -24,9 +24,6 @@ public partial struct AutoSizedReg16 : IComparable, IComparable<AutoSizedReg16>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a AutoSizedReg16 with all bits set to zero.</summary>
-    public static AutoSizedReg16 Zero => default;
-
     // --- Bit field mask constants ---
     // SecondKeyCode: bits [0..6], width 7
     private const int __SECOND_KEY_CODE_START_BIT = 0;

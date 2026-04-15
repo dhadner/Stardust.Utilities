@@ -1099,15 +1099,15 @@ public class BitFieldNativeIntTests
     [Fact]
     public void NintSafe32_Zero_IsDefault()
     {
-        NintSafe32Reg.Zero.Should().Be(default(NintSafe32Reg));
-        ((nint)NintSafe32Reg.Zero).Should().Be((nint)0);
+        default(NintSafe32Reg).Should().Be(default(NintSafe32Reg));
+        ((nint)default(NintSafe32Reg)).Should().Be((nint)0);
     }
 
     [Fact]
     public void NuintSafe32_Zero_IsDefault()
     {
-        NuintSafe32Reg.Zero.Should().Be(default(NuintSafe32Reg));
-        ((nuint)NuintSafe32Reg.Zero).Should().Be((nuint)0);
+        default(NuintSafe32Reg).Should().Be(default(NuintSafe32Reg));
+        ((nuint)default(NuintSafe32Reg)).Should().Be((nuint)0);
     }
 
     #endregion

@@ -24,9 +24,6 @@ public partial struct ReversedPositionalReg : IComparable, IComparable<ReversedP
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a ReversedPositionalReg with all bits set to zero.</summary>
-    public static ReversedPositionalReg Zero => default;
-
     // --- Bit field mask constants ---
     // AllBits: bits [0..7], width 8
     private const int __ALL_BITS_START_BIT = 0;

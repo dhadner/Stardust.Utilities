@@ -223,15 +223,15 @@ public partial class BitFieldMultiWordTests
     [Fact]
     public void ZeroProperty_IsDefault()
     {
-        Bits128.Zero.Low.Should().Be(0);
-        Bits128.Zero.High.Should().Be(0);
-        (Bits128.Zero == default(Bits128)).Should().BeTrue();
+        default(Bits128).Low.Should().Be(0);
+        default(Bits128).High.Should().Be(0);
+        (default(Bits128) == default(Bits128)).Should().BeTrue();
     }
 
     [Fact]
     public void ZeroProperty_FluentBuild()
     {
-        var b = Bits200.Zero.WithWord0(0xAAAA).WithValid(true).WithTag(42);
+        var b = default(Bits200).WithWord0(0xAAAA).WithValid(true).WithTag(42);
         b.Word0.Should().Be(0xAAAA);
         b.Valid.Should().BeTrue();
         b.Tag.Should().Be(42);

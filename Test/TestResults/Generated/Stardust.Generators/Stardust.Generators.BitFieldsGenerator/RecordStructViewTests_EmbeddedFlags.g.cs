@@ -26,9 +26,6 @@ public partial class RecordStructViewTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
-        /// <summary>Returns a EmbeddedFlags with all bits set to zero.</summary>
-        public static EmbeddedFlags Zero => default;
-
         // --- Bit field mask constants ---
         // Code: bits [4..7], width 4
         private const int __CODE_START_BIT = 4;

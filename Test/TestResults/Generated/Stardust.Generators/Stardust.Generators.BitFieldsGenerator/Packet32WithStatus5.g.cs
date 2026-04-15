@@ -24,9 +24,6 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a Packet32WithStatus5 with all bits set to zero.</summary>
-    public static Packet32WithStatus5 Zero => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..4], width 5
     private const int __STATUS_START_BIT = 0;

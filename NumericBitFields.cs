@@ -105,7 +105,7 @@ public partial struct IEEE754Half
     /// <example>
     /// <code>
     /// // Build 2^3 = 8.0 from parts
-    /// var h = IEEE754Half.Zero.WithExponent(3).WithMantissa(0);
+    /// var h = default(IEEE754Half).WithExponent(3).WithMantissa(0);
     /// h.Sign = false;
     /// Half value = h;  // 8.0
     /// </code>
@@ -219,7 +219,7 @@ public partial struct IEEE754Single
     /// <example>
     /// <code>
     /// // Build 2^3 = 8.0f from parts
-    /// var f = IEEE754Single.Zero.WithExponent(3).WithMantissa(0);
+    /// var f = default(IEEE754Single).WithExponent(3).WithMantissa(0);
     /// f.Sign = false;
     /// float value = f;  // 8.0f
     /// </code>
@@ -333,7 +333,7 @@ public partial struct IEEE754Double
     /// <example>
     /// <code>
     /// // Build 2^3 = 8.0 from parts
-    /// var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+    /// var d = default(IEEE754Double).WithExponent(3).WithMantissa(0);
     /// d.Sign = false;
     /// double value = d;  // 8.0
     /// </code>

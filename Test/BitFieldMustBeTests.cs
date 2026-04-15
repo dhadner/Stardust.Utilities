@@ -472,21 +472,163 @@ public class BitFieldMustBeTests
 
     #endregion
 
-    #region Zero Property with MustBe
+    #region default(T) Normalization
 
     [Fact]
-    public void Zero_WithMustBeOne_IsNotAllZeroes()
+    public void Default_WithMustBeOne_ProducesNormalizedOutput()
     {
-        // default struct has all-zero backing, but MustBe.One should NOT be enforced
-        // because Zero => default bypasses the constructor. This is an expected limitation.
-        // The struct's generated fields property still correctly reports MustBe metadata.
-        var zero = MustBeTestReg.Zero;
-        // Zero is `default` which doesn't go through the normalizing constructor.
-        // This is by design -- Zero represents the raw default state.
-        // Users should use `new MustBeTestReg(0)` for a normalized zero.
+        // default(T) bypasses the constructor, leaving __value as zero.
+        // However, the generated __normalizedValue property applies normalization
+        // on every outbound read, so observable output is always correct.
+        var zero = default(MustBeTestReg);
         var normalized = new MustBeTestReg(0);
-        byte raw = normalized;
-        (raw & 0x80).Should().Be(0x80, "normalized zero has MustBe.One set");
+
+        // Both should produce identical observable output
+        byte zeroRaw = zero;
+        byte normalizedRaw = normalized;
+        zeroRaw.Should().Be(normalizedRaw, "default(T) and new T(0) should produce the same output");
+        (zeroRaw & 0x80).Should().Be(0x80, "MustBe.One bit is set in default(T) output");
+    }
+
+    [Fact]
+    public void Default_WithMustBeOne_EqualityMatchesConstructed()
+    {
+        var zero = default(MustBeTestReg);
+        var constructed = new MustBeTestReg(0);
+
+        zero.Should().Be(constructed, "default(T) should be observably equal to new T(0)");
+        zero.GetHashCode().Should().Be(constructed.GetHashCode(), "hash codes should match");
+    }
+
+    [Fact]
+    public void Default_WithMustBeOne_ToStringMatchesConstructed()
+    {
+        var zero = default(MustBeTestReg);
+        var constructed = new MustBeTestReg(0);
+
+        zero.ToString().Should().Be(constructed.ToString(), "ToString output should match");
+    }
+
+    [Fact]
+    public void Default_WithMustBeOne_WriteToMatchesConstructed()
+    {
+        var zero = default(MustBeTestReg);
+        var constructed = new MustBeTestReg(0);
+
+        var zeroBytes = zero.ToByteArray();
+        var constructedBytes = constructed.ToByteArray();
+
+        zeroBytes.Should().BeEquivalentTo(constructedBytes, "serialized bytes should match");
+    }
+
+    #endregion
+
+    #region Iterative Shift Normalization
+
+    [Fact]
+    public void LeftShift_Identity_ShiftByN_EqualsNSingleShifts()
+    {
+        // MustBeTestReg: bit 7 MustBe.One, bits 1-2 MustBe.Zero
+        // AND_MASK = 0xF9, OR_MASK = 0x80
+        // x << 2 must equal (x << 1) << 1
+        MustBeTestReg x = 0x81; // bit 0 and bit 7 (Sync) set
+        int shiftBy2 = x << 2;
+        int shiftBy1Then1 = (MustBeTestReg)(byte)(x << 1) << 1;
+        shiftBy2.Should().Be(shiftBy1Then1, "(x << 2) must equal ((x << 1) << 1)");
+    }
+
+    [Fact]
+    public void LeftShift_BitAbsorbedByMustBeZero()
+    {
+        // Bit 0 set, shifting left by 1 moves it to bit 1 which is MustBe.Zero — bit is absorbed.
+        MustBeTestReg x = 0x81; // Active=1, Sync=1
+        int shifted = x << 1;
+        // Bit 0 shifted to bit 1 (MustBe.Zero) → absorbed → only OR_MASK (0x80) survives
+        ((byte)shifted & 0x06).Should().Be(0x00, "bit shifted into MustBe.Zero position is absorbed");
+        ((byte)shifted & 0x80).Should().Be(0x80, "MustBe.One bit (Sync) is preserved");
+    }
+
+    [Fact]
+    public void LeftShift_BitCannotTeleportPastMustBeZero()
+    {
+        // Without iterative normalization, 1 << 2 would skip past the MustBe.Zero bits 1-2
+        // and land on bit 2 (0x04). With iterative normalization, the bit is absorbed at bit 1.
+        MustBeTestReg x = 0x81; // bit 0 and bit 7
+        int shifted = x << 2;
+        // Bit 0 → bit 1 (MustBe.Zero, absorbed) → nothing left to shift
+        ((byte)shifted & 0x04).Should().Be(0x00, "bit must not teleport past MustBe.Zero constraint");
+    }
+
+    [Fact]
+    public void RightShift_NormalizesAfterEachStep()
+    {
+        // Bit 3 set (Data field LSB), shifting right through MustBe.Zero bits 1-2
+        MustBeTestReg x = 0x88; // bit 3 and bit 7 (Sync)
+        int shifted = x >> 2;
+        // Bit 3 → bit 2 → bit 1 (MustBe.Zero, absorbed)
+        ((byte)shifted & 0x06).Should().Be(0x00, "bit shifted into MustBe.Zero position is absorbed");
+        ((byte)shifted & 0x80).Should().Be(0x80, "MustBe.One bit (Sync) preserved during right shift");
+    }
+
+    [Fact]
+    public void RightShift_Identity_ShiftByN_EqualsNSingleShifts()
+    {
+        MustBeTestReg x = 0xF9; // all bits except MustBe.Zero (bits 1-2 cleared by constructor)
+        int shiftBy2 = x >> 2;
+        int shiftBy1Then1 = (MustBeTestReg)(byte)(x >> 1) >> 1;
+        shiftBy2.Should().Be(shiftBy1Then1, "(x >> 2) must equal ((x >> 1) >> 1)");
+    }
+
+    [Fact]
+    public void UnsignedRightShift_Identity_ShiftByN_EqualsNSingleShifts()
+    {
+        MustBeTestReg x = 0xF9;
+        int shiftBy2 = x >>> 2;
+        int shiftBy1Then1 = (MustBeTestReg)(byte)(x >>> 1) >>> 1;
+        shiftBy2.Should().Be(shiftBy1Then1, "(x >>> 2) must equal ((x >>> 1) >>> 1)");
+    }
+
+    [Fact]
+    public void LeftShift_ByZero_ReturnsNormalizedValue()
+    {
+        MustBeTestReg x = 0x89; // Active=1, bit 3, Sync=1
+        int shifted = x << 0;
+        ((byte)shifted).Should().Be(0x89, "shift by 0 returns the normalized value unchanged");
+    }
+
+    [Fact]
+    public void LeftShift_Default_ProducesNormalizedResult()
+    {
+        // default(T) should produce correct shift results via __normalizedValue
+        var x = default(MustBeTestReg);
+        int shifted = x << 1;
+        // default(T).__normalizedValue = 0x80 (only MustBe.One set)
+        // 0x80 << 1 = 0x00, normalize → 0x80
+        ((byte)shifted & 0x80).Should().Be(0x80, "MustBe.One bit preserved in default(T) shift");
+    }
+
+    [Fact]
+    public void LeftShift_SignedType_Identity()
+    {
+        // Verify iterative shift works correctly with signed backing type
+        SignedMustBeReg x = unchecked((sbyte)0x09); // Data=1, MustBeSet=1
+        // Shift left by 3: each step normalizes through constructor
+        int shiftBy3 = x << 3;
+        int step1 = (SignedMustBeReg)unchecked((sbyte)(byte)(x << 1)) << 2;
+        shiftBy3.Should().Be(step1, "signed type iterative shift identity must hold");
+    }
+
+    [Fact]
+    public void UnsignedRightShift_SignedType_NoSignExtension()
+    {
+        // SignedMustBeReg has sbyte storage, MustBeSet at bit 3 (OR_MASK includes 0x08)
+        // Verify >>> doesn't produce sign-extension artifacts
+        SignedMustBeReg x = unchecked((sbyte)0x0F); // bits 0-3 set (Data=7, MustBeSet=1)
+        int shifted = x >>> 1;
+        // After constructor normalization: value = (sbyte)(((byte)0x0F & AND_MASK) | OR_MASK) = 0x0F
+        // >>> 1: (byte)0x0F >>> 1 = 0x07, normalize: (0x07 & AND) | OR = 0x08 | 0x07... 
+        // The exact value depends on the masks, but sign bits should not leak
+        ((byte)shifted & 0xC0).Should().Be(0x00, "unsigned right shift must not produce sign-extension artifacts");
     }
 
     #endregion

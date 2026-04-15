@@ -24,9 +24,6 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a StatusFlags with all bits set to zero.</summary>
-    public static StatusFlags Zero => default;
-
     // --- Bit field mask constants ---
     // Priority: bits [4..7], width 4
     private const int __PRIORITY_START_BIT = 4;

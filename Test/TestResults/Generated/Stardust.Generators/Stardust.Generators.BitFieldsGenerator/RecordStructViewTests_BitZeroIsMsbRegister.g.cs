@@ -26,9 +26,6 @@ public partial class RecordStructViewTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
-        /// <summary>Returns a BitZeroIsMsbRegister with all bits set to zero.</summary>
-        public static BitZeroIsMsbRegister Zero => default;
-
         // --- Bit field mask constants ---
         // HighNibble: bits [4..7], width 4
         private const int __HIGH_NIBBLE_START_BIT = 4;

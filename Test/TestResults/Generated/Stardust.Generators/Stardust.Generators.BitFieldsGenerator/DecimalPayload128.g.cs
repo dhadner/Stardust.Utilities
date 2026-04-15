@@ -36,9 +36,6 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
 
     private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
-    /// <summary>Returns a DecimalPayload128 with all bits set to zero.</summary>
-    public static DecimalPayload128 Zero => default;
-
     /// <summary>Creates a new DecimalPayload128 from individual word values.</summary>
     /// <param name="lower">Bits 0-63 (least significant).</param>
     /// <param name="upper">Bits 64-127 (most significant).</param>

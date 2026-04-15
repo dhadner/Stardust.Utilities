@@ -38,9 +38,6 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
 
     private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
-    /// <summary>Returns a WidePayload256 with all bits set to zero.</summary>
-    public static WidePayload256 Zero => default;
-
     /// <summary>Creates a new WidePayload256 from individual word values.</summary>
     /// <param name="lower">Bits 0-63 (least significant).</param>
     /// <param name="midLower">Bits 64-127.</param>

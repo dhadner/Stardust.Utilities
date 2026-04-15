@@ -483,7 +483,7 @@ ushort raw = sub;         // raw == 0x01FF (undefined bits masked off)
 | `.Zeroes` | Always masked to zero | Protocol headers, serialization |
 | `.Ones` | Always set to one | Reserved-high protocols |
 
-This works with **sparse** undefined bits too (gaps between fields, not just high bits), and is enforced in the constructor so all operations — conversions, arithmetic, bitwise — produce consistent results.
+This works with **sparse** undefined bits too (gaps between fields, not just high bits).
 
 Individual fields and flags can also override their bits with `MustBe`:
 
@@ -496,6 +496,14 @@ public partial struct PacketFlags
     [BitField(1, MustBe.Zero, 3)] public partial byte Reserved { get; set; }  // Always 0
 }
 ```
+
+> **Constraint guarantee:** `MustBe` and `UndefinedBitsMustBe` constraints are enforced at every
+> entry point -- construction, implicit/explicit conversion, all operators, `With` methods,
+> `Parse`, `ReadFrom`, and outbound reads. It is impossible to observe a value that violates
+> its declared constraints, regardless of how the value is produced. Property getters and
+> setters have zero performance overhead from constraints; construction and bitwise operations
+> add under 2 ns. See [BITFIELDS.md -- Constraint Overhead](BITFIELDS.md#constraint-overhead-mustbe--undefinedbitsmustbe)
+> for detailed benchmarks.
 
 See [BITFIELDS.md](BITFIELDS.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
 

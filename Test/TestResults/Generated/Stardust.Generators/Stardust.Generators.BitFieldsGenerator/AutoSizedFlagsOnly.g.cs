@@ -24,9 +24,6 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a AutoSizedFlagsOnly with all bits set to zero.</summary>
-    public static AutoSizedFlagsOnly Zero => default;
-
     // --- Bit field mask constants ---
     // A: bit 0
     private const int __A_BIT = 0;

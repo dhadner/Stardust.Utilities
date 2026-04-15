@@ -24,9 +24,6 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a ProtocolHeader16 with all bits set to zero.</summary>
-    public static ProtocolHeader16 Zero => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;

@@ -727,6 +727,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         // Calculate combined enforcement masks (per-field MustBe + UndefinedBitsMustBe)
         var (mustClearMask, mustSetMask) = CalculateNormalizationMasks(info, undefinedBitsMask);
         bool needsNormalization = mustClearMask != 0 || mustSetMask != 0;
+        info.NeedsNormalization = needsNormalization;
 
         // Generate private __value field and constructor
         sb.AppendLine($"{memberIndent}private {info.StorageType} __value;");
@@ -747,15 +748,39 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             sb.AppendLine($"{memberIndent}public const int BIT_WIDTH = {info.TotalBits};");
         }
         sb.AppendLine();
-        sb.AppendLine($"{memberIndent}/// <summary>Returns a {info.TypeName} with all bits set to zero.</summary>");
-        sb.AppendLine($"{memberIndent}public static {info.TypeName} Zero => default;");
-        sb.AppendLine();
 
         // Generate named mask constants for all fields and flags
         GenerateFieldConstants(sb, info, memberIndent);
 
         // Generate normalization constants (if MustBe/UndefinedBitsMustBe constraints exist)
         GenerateNormalizationConstants(sb, info, mustClearMask, mustSetMask, allBitsMask, memberIndent);
+
+        // Emit __normalizedValue property so that default(T) produces correct output
+        // (default bypasses the constructor, so __value is zero-initialized without masks applied)
+        if (needsNormalization)
+        {
+            string normExpr;
+            if (mustSetMask == 0)
+            {
+                normExpr = info.NeedsUnsignedCast
+                    ? $"({info.StorageType})(({info.UnsignedStorageType})__value & __NORMALIZATION_AND_MASK)"
+                    : $"({info.StorageType})(__value & __NORMALIZATION_AND_MASK)";
+            }
+            else if (mustClearMask == 0)
+            {
+                normExpr = info.NeedsUnsignedCast
+                    ? $"({info.StorageType})(({info.UnsignedStorageType})__value | __NORMALIZATION_OR_MASK)"
+                    : $"({info.StorageType})(__value | __NORMALIZATION_OR_MASK)";
+            }
+            else
+            {
+                normExpr = info.NeedsUnsignedCast
+                    ? $"({info.StorageType})((({info.UnsignedStorageType})__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK)"
+                    : $"({info.StorageType})((__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK)";
+            }
+            sb.AppendLine($"{memberIndent}private {info.StorageType} __normalizedValue {{ [MethodImpl(MethodImplOptions.AggressiveInlining)] get => {normExpr}; }}");
+            sb.AppendLine();
+        }
 
         sb.AppendLine($"{memberIndent}/// <summary>Creates a new {info.TypeName} with the specified raw bits value.</summary>");
 

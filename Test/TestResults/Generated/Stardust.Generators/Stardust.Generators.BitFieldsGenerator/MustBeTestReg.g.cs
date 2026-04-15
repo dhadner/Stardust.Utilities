@@ -24,9 +24,6 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a MustBeTestReg with all bits set to zero.</summary>
-    public static MustBeTestReg Zero => default;
-
     // --- Bit field mask constants ---
     // Reserved: bits [1..2], width 2
     private const int __RESERVED_START_BIT = 1;
@@ -50,6 +47,8 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     // --- Constructor normalization masks ---
     private const byte __NORMALIZATION_AND_MASK = 0xF9;  // Clears: Reserved (MustBe.Zero)
     private const byte __NORMALIZATION_OR_MASK = 0x80;  // Sets: Sync (MustBe.One)
+
+    private byte __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (byte)((__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }
 
     /// <summary>Creates a new MustBeTestReg with the specified raw bits value.</summary>
     public MustBeTestReg(byte value) { __value = (byte)((value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }
@@ -211,17 +210,38 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static MustBeTestReg operator %(byte a, MustBeTestReg b) => new((byte)(a % b.__value));
 
-    /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(MustBeTestReg a, int b) => a.__value << b;
+    private static byte __IterativeShiftLeft(byte value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new MustBeTestReg(unchecked((byte)(value << 1))).__value;
+        return value;
+    }
 
-    /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(MustBeTestReg a, int b) => a.__value >> b;
+    private static byte __IterativeShiftRight(byte value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new MustBeTestReg(unchecked((byte)(value >> 1))).__value;
+        return value;
+    }
 
-    /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
+    private static byte __IterativeUnsignedShiftRight(byte value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new MustBeTestReg(unchecked((byte)(value >>> 1))).__value;
+        return value;
+    }
+
+    /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(MustBeTestReg a, int b) => a.__value >>> b;
+    public static int operator <<(MustBeTestReg a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);
+
+    /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int operator >>(MustBeTestReg a, int b) => __IterativeShiftRight(a.__normalizedValue, b);
+
+    /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int operator >>>(MustBeTestReg a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -241,23 +261,23 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(MustBeTestReg a, MustBeTestReg b) => a.__value == b.__value;
+    public static bool operator ==(MustBeTestReg a, MustBeTestReg b) => a.__normalizedValue == b.__normalizedValue;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(MustBeTestReg a, MustBeTestReg b) => a.__value != b.__value;
+    public static bool operator !=(MustBeTestReg a, MustBeTestReg b) => a.__normalizedValue != b.__normalizedValue;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is MustBeTestReg other && __value == other.__value;
+    public override bool Equals(object? obj) => obj is MustBeTestReg other && __normalizedValue == other.__normalizedValue;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __value.GetHashCode();
+    public override int GetHashCode() => __normalizedValue.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__value:X}";
+    public override string ToString() => $"0x{__normalizedValue:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(MustBeTestReg value) => value.__value;
+    public static implicit operator byte(MustBeTestReg value) => value.__normalizedValue;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator MustBeTestReg(byte value) => new(value);
@@ -289,7 +309,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)__value);
+        destination[0] = unchecked((byte)__normalizedValue);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -473,7 +493,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -482,7 +502,7 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __value.TryFormat(destination, out charsWritten, format, provider);
+        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -499,13 +519,13 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <param name="other">A MustBeTestReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(MustBeTestReg other) => __value.CompareTo(other.__value);
+    public int CompareTo(MustBeTestReg other) => __normalizedValue.CompareTo(other.__normalizedValue);
 
     /// <summary>Indicates whether this instance is equal to another MustBeTestReg.</summary>
     /// <param name="other">A MustBeTestReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(MustBeTestReg other) => __value == other.__value;
+    public bool Equals(MustBeTestReg other) => __normalizedValue == other.__normalizedValue;
 
     /// <summary>JSON converter that serializes MustBeTestReg as a string.</summary>
     private sealed class MustBeTestRegJsonConverter : JsonConverter<MustBeTestReg>

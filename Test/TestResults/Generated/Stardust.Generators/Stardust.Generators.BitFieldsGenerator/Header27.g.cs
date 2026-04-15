@@ -24,9 +24,6 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a Header27 with all bits set to zero.</summary>
-    public static Header27 Zero => default;
-
     // --- Bit field mask constants ---
     // SubHeader: bits [0..8], width 9
     private const int __SUB_HEADER_START_BIT = 0;
@@ -45,6 +42,8 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     // --- Constructor normalization masks ---
     private const uint __NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
+    private uint __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (uint)(__value & __NORMALIZATION_AND_MASK); }
 
     /// <summary>Creates a new Header27 with the specified raw bits value.</summary>
     public Header27(uint value) { __value = (uint)(value & __NORMALIZATION_AND_MASK); }
@@ -240,17 +239,38 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Header27 operator %(uint a, Header27 b) => new((uint)(a % b.__value));
 
-    /// <summary>Left shift operator.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator <<(Header27 a, int b) => new(unchecked((uint)(a.__value << b)));
+    private static uint __IterativeShiftLeft(uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new Header27(unchecked((uint)(value << 1))).__value;
+        return value;
+    }
 
-    /// <summary>Right shift operator.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator >>(Header27 a, int b) => new(unchecked((uint)(a.__value >> b)));
+    private static uint __IterativeShiftRight(uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new Header27(unchecked((uint)(value >> 1))).__value;
+        return value;
+    }
 
-    /// <summary>Unsigned right shift operator.</summary>
+    private static uint __IterativeUnsignedShiftRight(uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new Header27(unchecked((uint)(value >>> 1))).__value;
+        return value;
+    }
+
+    /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Header27 operator >>>(Header27 a, int b) => new(unchecked((uint)(a.__value >>> b)));
+    public static Header27 operator <<(Header27 a, int b) => new(__IterativeShiftLeft(a.__normalizedValue, b));
+
+    /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Header27 operator >>(Header27 a, int b) => new(__IterativeShiftRight(a.__normalizedValue, b));
+
+    /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Header27 operator >>>(Header27 a, int b) => new(__IterativeUnsignedShiftRight(a.__normalizedValue, b));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -270,23 +290,23 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Header27 a, Header27 b) => a.__value == b.__value;
+    public static bool operator ==(Header27 a, Header27 b) => a.__normalizedValue == b.__normalizedValue;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Header27 a, Header27 b) => a.__value != b.__value;
+    public static bool operator !=(Header27 a, Header27 b) => a.__normalizedValue != b.__normalizedValue;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is Header27 other && __value == other.__value;
+    public override bool Equals(object? obj) => obj is Header27 other && __normalizedValue == other.__normalizedValue;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __value.GetHashCode();
+    public override int GetHashCode() => __normalizedValue.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__value:X}";
+    public override string ToString() => $"0x{__normalizedValue:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(Header27 value) => value.__value;
+    public static implicit operator uint(Header27 value) => value.__normalizedValue;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Header27(uint value) => new(value);
@@ -314,7 +334,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __normalizedValue);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -498,7 +518,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -507,7 +527,7 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __value.TryFormat(destination, out charsWritten, format, provider);
+        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -524,13 +544,13 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <param name="other">A Header27 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Header27 other) => __value.CompareTo(other.__value);
+    public int CompareTo(Header27 other) => __normalizedValue.CompareTo(other.__normalizedValue);
 
     /// <summary>Indicates whether this instance is equal to another Header27.</summary>
     /// <param name="other">A Header27 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Header27 other) => __value == other.__value;
+    public bool Equals(Header27 other) => __normalizedValue == other.__normalizedValue;
 
     /// <summary>JSON converter that serializes Header27 as a string.</summary>
     private sealed class Header27JsonConverter : JsonConverter<Header27>

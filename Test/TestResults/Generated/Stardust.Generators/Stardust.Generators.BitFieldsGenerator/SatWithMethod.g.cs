@@ -24,9 +24,6 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a SatWithMethod with all bits set to zero.</summary>
-    public static SatWithMethod Zero => default;
-
     // --- Bit field mask constants ---
     // Clamped: bits [0..5], width 6
     private const int __CLAMPED_START_BIT = 0;

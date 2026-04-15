@@ -728,7 +728,7 @@ public partial class BitFieldSpecializationTests
     {
         // 1.5 = 1 + 0.5 ? exponent=1023 (2^0), mantissa MSB set (0.5 contribution)
         // mantissa bit 51 = 0.5 ? mantissa value = 2^51 = 0x8000000000000
-        var reg = DoubleRegister.Zero
+        var reg = default(DoubleRegister)
             .WithSign(false)
             .WithExponent(1023)
             .WithMantissa(0x8_0000_0000_0000);
@@ -1300,7 +1300,7 @@ public partial class BitFieldSpecializationTests
     public void HalfRegister_FluentBuild_OnePointFive()
     {
         // 1.5 = sign:0, exponent:15 (bias), mantissa:0x200
-        var reg = HalfRegister.Zero
+        var reg = default(HalfRegister)
             .WithSign(false)
             .WithExponent(15)
             .WithMantissa(0x200);

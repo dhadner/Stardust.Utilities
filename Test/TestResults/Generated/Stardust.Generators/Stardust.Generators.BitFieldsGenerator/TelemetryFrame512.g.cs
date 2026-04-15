@@ -42,9 +42,6 @@ public partial struct TelemetryFrame512 : IComparable, IComparable<TelemetryFram
 
     private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
-    /// <summary>Returns a TelemetryFrame512 with all bits set to zero.</summary>
-    public static TelemetryFrame512 Zero => default;
-
     /// <summary>Creates a new TelemetryFrame512 from a ulong value (zero-extended).</summary>
     public TelemetryFrame512(ulong value)
     {

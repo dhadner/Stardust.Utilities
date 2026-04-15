@@ -24,9 +24,6 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a SparseUndefinedNative with all bits set to zero.</summary>
-    public static SparseUndefinedNative Zero => default;
-
     // --- Bit field mask constants ---
     // LowField: bits [1..2], width 2
     private const int __LOW_FIELD_START_BIT = 1;

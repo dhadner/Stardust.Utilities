@@ -24,9 +24,6 @@ public partial struct EndAndWidthOnlyReg : IComparable, IComparable<EndAndWidthO
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a EndAndWidthOnlyReg with all bits set to zero.</summary>
-    public static EndAndWidthOnlyReg Zero => default;
-
     // --- Bit field mask constants ---
     // UpperNibble: bits [4..7], width 4
     private const int __UPPER_NIBBLE_START_BIT = 4;

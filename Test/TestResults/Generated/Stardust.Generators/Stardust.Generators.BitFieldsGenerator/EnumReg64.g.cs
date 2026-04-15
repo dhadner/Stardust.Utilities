@@ -24,9 +24,6 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a EnumReg64 with all bits set to zero.</summary>
-    public static EnumReg64 Zero => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;

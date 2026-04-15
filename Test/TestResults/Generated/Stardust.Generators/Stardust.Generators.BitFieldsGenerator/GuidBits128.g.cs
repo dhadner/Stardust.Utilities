@@ -36,9 +36,6 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
 
     private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
-    /// <summary>Returns a GuidBits128 with all bits set to zero.</summary>
-    public static GuidBits128 Zero => default;
-
     /// <summary>Creates a new GuidBits128 from individual word values.</summary>
     /// <param name="lower">Bits 0-63 (least significant).</param>
     /// <param name="upper">Bits 64-127 (most significant).</param>

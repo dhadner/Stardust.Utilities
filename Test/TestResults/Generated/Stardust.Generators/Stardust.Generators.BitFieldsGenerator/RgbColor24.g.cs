@@ -24,9 +24,6 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 24;
 
-    /// <summary>Returns a RgbColor24 with all bits set to zero.</summary>
-    public static RgbColor24 Zero => default;
-
     // --- Bit field mask constants ---
     // Red: bits [0..7], width 8
     private const int __RED_START_BIT = 0;
@@ -45,6 +42,8 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     // --- Constructor normalization masks ---
     private const uint __NORMALIZATION_AND_MASK = 0x00FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
+    private uint __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (uint)(__value & __NORMALIZATION_AND_MASK); }
 
     /// <summary>Creates a new RgbColor24 with the specified raw bits value.</summary>
     public RgbColor24(uint value) { __value = (uint)(value & __NORMALIZATION_AND_MASK); }
@@ -238,17 +237,38 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RgbColor24 operator %(uint a, RgbColor24 b) => new((uint)(a % b.__value));
 
-    /// <summary>Left shift operator.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator <<(RgbColor24 a, int b) => new(unchecked((uint)(a.__value << b)));
+    private static uint __IterativeShiftLeft(uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new RgbColor24(unchecked((uint)(value << 1))).__value;
+        return value;
+    }
 
-    /// <summary>Right shift operator.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator >>(RgbColor24 a, int b) => new(unchecked((uint)(a.__value >> b)));
+    private static uint __IterativeShiftRight(uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new RgbColor24(unchecked((uint)(value >> 1))).__value;
+        return value;
+    }
 
-    /// <summary>Unsigned right shift operator.</summary>
+    private static uint __IterativeUnsignedShiftRight(uint value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            value = new RgbColor24(unchecked((uint)(value >>> 1))).__value;
+        return value;
+    }
+
+    /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator >>>(RgbColor24 a, int b) => new(unchecked((uint)(a.__value >>> b)));
+    public static RgbColor24 operator <<(RgbColor24 a, int b) => new(__IterativeShiftLeft(a.__normalizedValue, b));
+
+    /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RgbColor24 operator >>(RgbColor24 a, int b) => new(__IterativeShiftRight(a.__normalizedValue, b));
+
+    /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RgbColor24 operator >>>(RgbColor24 a, int b) => new(__IterativeUnsignedShiftRight(a.__normalizedValue, b));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -268,23 +288,23 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(RgbColor24 a, RgbColor24 b) => a.__value == b.__value;
+    public static bool operator ==(RgbColor24 a, RgbColor24 b) => a.__normalizedValue == b.__normalizedValue;
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(RgbColor24 a, RgbColor24 b) => a.__value != b.__value;
+    public static bool operator !=(RgbColor24 a, RgbColor24 b) => a.__normalizedValue != b.__normalizedValue;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is RgbColor24 other && __value == other.__value;
+    public override bool Equals(object? obj) => obj is RgbColor24 other && __normalizedValue == other.__normalizedValue;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __value.GetHashCode();
+    public override int GetHashCode() => __normalizedValue.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__value:X}";
+    public override string ToString() => $"0x{__normalizedValue:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(RgbColor24 value) => value.__value;
+    public static implicit operator uint(RgbColor24 value) => value.__normalizedValue;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator RgbColor24(uint value) => new(value);
@@ -312,7 +332,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, __value);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __normalizedValue);
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -496,7 +516,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -505,7 +525,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __value.TryFormat(destination, out charsWritten, format, provider);
+        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -522,13 +542,13 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="other">A RgbColor24 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(RgbColor24 other) => __value.CompareTo(other.__value);
+    public int CompareTo(RgbColor24 other) => __normalizedValue.CompareTo(other.__normalizedValue);
 
     /// <summary>Indicates whether this instance is equal to another RgbColor24.</summary>
     /// <param name="other">A RgbColor24 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(RgbColor24 other) => __value == other.__value;
+    public bool Equals(RgbColor24 other) => __normalizedValue == other.__normalizedValue;
 
     /// <summary>JSON converter that serializes RgbColor24 as a string.</summary>
     private sealed class RgbColor24JsonConverter : JsonConverter<RgbColor24>

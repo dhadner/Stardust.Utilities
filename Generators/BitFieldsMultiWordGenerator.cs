@@ -94,9 +94,6 @@ internal static partial class BitFieldsMultiWordGenerator
         ulong lastWordMask = lwBits == 64 ? ulong.MaxValue : (1UL << lwBits) - 1;
         sb.AppendLine($"{mind}private const ulong __LAST_WORD_MASK = 0x{lastWordMask:X16}UL;");
         sb.AppendLine();
-        sb.AppendLine($"{mind}/// <summary>Returns a {t} with all bits set to zero.</summary>");
-        sb.AppendLine($"{mind}public static {t} Zero => default;");
-        sb.AppendLine();
 
         GenerateConstructors(sb, info, layout, mind);
 

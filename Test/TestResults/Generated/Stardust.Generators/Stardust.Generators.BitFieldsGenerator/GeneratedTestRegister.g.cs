@@ -24,9 +24,6 @@ public partial struct GeneratedTestRegister : IComparable, IComparable<Generated
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a GeneratedTestRegister with all bits set to zero.</summary>
-    public static GeneratedTestRegister Zero => default;
-
     // --- Bit field mask constants ---
     // Mode: bits [2..4], width 3
     private const int __MODE_START_BIT = 2;

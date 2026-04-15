@@ -24,9 +24,6 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a CommandCode with all bits set to zero.</summary>
-    public static CommandCode Zero => default;
-
     // --- Bit field mask constants ---
     // Code: bits [0..3], width 4
     private const int __CODE_START_BIT = 0;

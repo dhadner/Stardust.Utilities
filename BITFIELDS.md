@@ -70,6 +70,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 **Reference**
 - [Generated API Surface](#generated-api-surface)
 - [Performance](#performance)
+  - [Constraint Overhead (MustBe / UndefinedBitsMustBe)](#constraint-overhead-mustbe--undefinedbitsmustbe)
 - [Generated Code Listing](#generated-code-listing)
 
 ---
@@ -2184,6 +2185,64 @@ Benchmarks show generated code performs within **1%** of hand-coded bit manipula
 
 All masks and shifts are compile-time constants. `[MethodImpl(MethodImplOptions.AggressiveInlining)]`
 eliminates all property call overhead. No heap allocations, no reflection, no boxing.
+
+### Constraint Overhead (MustBe / UndefinedBitsMustBe)
+
+`MustBe` and `UndefinedBitsMustBe` constraints are **always enforced** -- it is impossible to
+observe a value that violates them, regardless of how the value is produced. This guarantee
+covers construction, implicit/explicit conversion, all operators, `With` methods, `Parse`,
+`ReadFrom`, and outbound reads via the `__normalizedValue` property.
+
+The cost of this guarantee depends on the operation:
+
+**Property getters and setters** are completely unaffected by constraints. They use pure
+shift-and-mask on the backing field, identical to unconstrained types.
+
+**Atomic operations** (construction, bitwise AND/OR/XOR, complement) apply a single
+`(value & AND_MASK) | OR_MASK` normalization pass. The overhead is a single AND + single OR
+instruction -- typically under 2 ns per operation.
+
+**Shift operators** (`<<`, `>>`, `>>>`) use iterative single-step shifts with normalization
+after each step to prevent constraint-violating intermediate values from contaminating bits
+that shift into defined field positions. The overhead scales linearly with the shift count.
+
+**Constraint Overhead** (50M iterations, .NET 10):
+
+| Operation | Unconstrained | Constrained | Overhead |
+|-----------|--------------|-------------|----------|
+| Construction | 236 ms | 324 ms | +39% (1.4x) |
+| Bitwise OR | 1,359 ms | 1,430 ms | ~0% (noise) |
+| Shift << 1 | 249 ms | 780 ms | 3.1x |
+| Shift << 4 | 250 ms | 1,928 ms | 7.8x |
+| Shift << 7 | 247 ms | 3,077 ms | 12.5x |
+| Shift >> 4 | 248 ms | 1,931 ms | 7.8x |
+
+*Unconstrained: `GeneratedTestRegister` (byte, no MustBe). Constrained: `MustBeTestReg`
+(byte, `MustBe.One` on bit 7, `MustBe.Zero` on bits 1-2).*
+
+**Interpreting the numbers:**
+
+- **Construction overhead (+39%)** sounds large as a percentage, but the absolute cost is
+  ~1.8 ns per construction (324 - 236 = 88 ms over 50M iterations). In practice this is
+  dwarfed by any real work.
+- **Bitwise OR** shows no measurable overhead because the normalization AND+OR is a tiny
+  fraction of the overall loop cost (which includes constructing both operands).
+- **Shift overhead** is proportional to the shift count. Each step costs ~10 ns
+  (shift + construct + normalize + read). A `<< 4` on a constrained byte costs ~39 ns total
+  vs ~5 ns unconstrained. The **absolute** cost is small, but the **relative** multiplier is
+  significant for large shift counts.
+- **Shift << 7** is the worst case for a byte because 7 is the maximum meaningful shift
+  distance. For wider types (`uint`, `ulong`), the same 4-position shift costs the same ~10 ns
+  per step, but represents a smaller fraction of the type's bit width.
+
+**Practical guidance:**
+
+- If your constrained type is used primarily for construction, property access, and bitwise
+  operations, the overhead is negligible -- under 2 ns per operation.
+- If you shift constrained types in a tight inner loop, consider shifting the raw storage value
+  and re-wrapping: `new MyType(unchecked((byte)((byte)value << count)))`. This bypasses the
+  iterative normalization and applies constraints once at construction.
+- Property getters and setters are **zero overhead** regardless of constraints.
 
 ## Generated Code Listing
 

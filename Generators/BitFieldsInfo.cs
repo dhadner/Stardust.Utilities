@@ -95,6 +95,12 @@ internal sealed class BitFieldsInfo
     public bool NeedsUnsignedCast => StorageTypeIsSigned || UnsignedStorageType != StorageType;
     /// <summary>True when the storage type is nint or nuint (platform-dependent width).</summary>
     public bool IsNativeIntegerType => StorageType == "nint" || StorageType == "nuint";
+    /// <summary>
+    /// Set by the generator after computing normalization masks.
+    /// True when the type has effective MustBe or UndefinedBitsMustBe constraints
+    /// (i.e., non-zero normalization masks exist).
+    /// </summary>
+    public bool NeedsNormalization { get; set; }
     /// <summary>The source location of the struct declaration, for diagnostic reporting.</summary>
     public Location? Location { get; }
     /// <summary>Optional struct-level description from the [BitFields] attribute.</summary>

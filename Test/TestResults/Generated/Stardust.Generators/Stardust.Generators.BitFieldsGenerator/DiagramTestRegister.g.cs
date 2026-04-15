@@ -24,9 +24,6 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a DiagramTestRegister with all bits set to zero.</summary>
-    public static DiagramTestRegister Zero => default;
-
     // --- Bit field mask constants ---
     // Mode: bits [2..4], width 3
     private const int __MODE_START_BIT = 2;

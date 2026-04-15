@@ -24,9 +24,6 @@ public partial struct SatFullWidth : IComparable, IComparable<SatFullWidth>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a SatFullWidth with all bits set to zero.</summary>
-    public static SatFullWidth Zero => default;
-
     // --- Bit field mask constants ---
     // Full: bits [0..7], width 8
     private const int __FULL_START_BIT = 0;

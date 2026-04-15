@@ -24,9 +24,6 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a SignedPropertyReg64 with all bits set to zero.</summary>
-    public static SignedPropertyReg64 Zero => default;
-
     // --- Bit field mask constants ---
     // HighInt: bits [32..63], width 32
     private const int __HIGH_INT_START_BIT = 32;

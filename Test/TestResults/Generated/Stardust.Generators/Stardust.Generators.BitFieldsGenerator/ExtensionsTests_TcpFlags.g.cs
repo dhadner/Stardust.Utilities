@@ -26,9 +26,6 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 16;
 
-        /// <summary>Returns a TcpFlags with all bits set to zero.</summary>
-        public static TcpFlags Zero => default;
-
         // --- Bit field mask constants ---
         // FIN: bit 0
         private const int __FIN_BIT = 0;
@@ -69,6 +66,8 @@ public partial class ExtensionsTests
 
         // --- Constructor normalization masks ---
         private const ushort __NORMALIZATION_AND_MASK = 0x01FF;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
+
+        private ushort __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (ushort)(__value & __NORMALIZATION_AND_MASK); }
 
         /// <summary>Creates a new TcpFlags with the specified raw bits value.</summary>
         public TcpFlags(ushort value) { __value = (ushort)(value & __NORMALIZATION_AND_MASK); }
@@ -310,17 +309,38 @@ public partial class ExtensionsTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TcpFlags operator %(ushort a, TcpFlags b) => new((ushort)(a % b.__value));
 
-        /// <summary>Left shift operator. Returns int for intuitive bitwise operations with literals.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(TcpFlags a, int b) => a.__value << b;
+        private static ushort __IterativeShiftLeft(ushort value, int count)
+        {
+            for (int i = 0; i < count; i++)
+                value = new TcpFlags(unchecked((ushort)(value << 1))).__value;
+            return value;
+        }
 
-        /// <summary>Right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(TcpFlags a, int b) => a.__value >> b;
+        private static ushort __IterativeShiftRight(ushort value, int count)
+        {
+            for (int i = 0; i < count; i++)
+                value = new TcpFlags(unchecked((ushort)(value >> 1))).__value;
+            return value;
+        }
 
-        /// <summary>Unsigned right shift operator. Returns int for intuitive bitwise operations with literals.</summary>
+        private static ushort __IterativeUnsignedShiftRight(ushort value, int count)
+        {
+            for (int i = 0; i < count; i++)
+                value = new TcpFlags(unchecked((ushort)(value >>> 1))).__value;
+            return value;
+        }
+
+        /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(TcpFlags a, int b) => a.__value >>> b;
+        public static int operator <<(TcpFlags a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);
+
+        /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int operator >>(TcpFlags a, int b) => __IterativeShiftRight(a.__normalizedValue, b);
+
+        /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int operator >>>(TcpFlags a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -340,23 +360,23 @@ public partial class ExtensionsTests
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(TcpFlags a, TcpFlags b) => a.__value == b.__value;
+        public static bool operator ==(TcpFlags a, TcpFlags b) => a.__normalizedValue == b.__normalizedValue;
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(TcpFlags a, TcpFlags b) => a.__value != b.__value;
+        public static bool operator !=(TcpFlags a, TcpFlags b) => a.__normalizedValue != b.__normalizedValue;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is TcpFlags other && __value == other.__value;
+        public override bool Equals(object? obj) => obj is TcpFlags other && __normalizedValue == other.__normalizedValue;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => __value.GetHashCode();
+        public override int GetHashCode() => __normalizedValue.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{__value:X}";
+        public override string ToString() => $"0x{__normalizedValue:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ushort(TcpFlags value) => value.__value;
+        public static implicit operator ushort(TcpFlags value) => value.__normalizedValue;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator TcpFlags(ushort value) => new(value);
@@ -388,7 +408,7 @@ public partial class ExtensionsTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt16LittleEndian(destination, __value);
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, __normalizedValue);
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -572,7 +592,7 @@ public partial class ExtensionsTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -581,7 +601,7 @@ public partial class ExtensionsTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => __value.TryFormat(destination, out charsWritten, format, provider);
+            => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -598,13 +618,13 @@ public partial class ExtensionsTests
         /// <param name="other">A TcpFlags to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(TcpFlags other) => __value.CompareTo(other.__value);
+        public int CompareTo(TcpFlags other) => __normalizedValue.CompareTo(other.__normalizedValue);
 
         /// <summary>Indicates whether this instance is equal to another TcpFlags.</summary>
         /// <param name="other">A TcpFlags to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(TcpFlags other) => __value == other.__value;
+        public bool Equals(TcpFlags other) => __normalizedValue == other.__normalizedValue;
 
         /// <summary>JSON converter that serializes TcpFlags as a string.</summary>
         private sealed class TcpFlagsJsonConverter : JsonConverter<TcpFlags>

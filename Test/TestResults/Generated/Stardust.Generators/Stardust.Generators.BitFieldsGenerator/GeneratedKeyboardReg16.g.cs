@@ -24,9 +24,6 @@ public partial struct GeneratedKeyboardReg16 : IComparable, IComparable<Generate
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a GeneratedKeyboardReg16 with all bits set to zero.</summary>
-    public static GeneratedKeyboardReg16 Zero => default;
-
     // --- Bit field mask constants ---
     // SecondKeyCode: bits [0..6], width 7
     private const int __SECOND_KEY_CODE_START_BIT = 0;

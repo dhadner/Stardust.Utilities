@@ -24,9 +24,6 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a FileHeader with all bits set to zero.</summary>
-    public static FileHeader Zero => default;
-
     // --- Bit field mask constants ---
     // Magic: bits [0..15], width 16
     private const int __MAGIC_START_BIT = 0;

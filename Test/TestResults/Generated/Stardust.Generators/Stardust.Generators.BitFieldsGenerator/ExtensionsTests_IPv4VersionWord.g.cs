@@ -26,9 +26,6 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a IPv4VersionWord with all bits set to zero.</summary>
-        public static IPv4VersionWord Zero => default;
-
         // --- Bit field mask constants ---
         // Version: bits [28..31], width 4
         private const int __VERSION_START_BIT = 28;

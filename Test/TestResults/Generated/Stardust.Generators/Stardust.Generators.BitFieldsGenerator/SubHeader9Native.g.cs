@@ -24,9 +24,6 @@ public partial struct SubHeader9Native : IComparable, IComparable<SubHeader9Nati
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a SubHeader9Native with all bits set to zero.</summary>
-    public static SubHeader9Native Zero => default;
-
     // --- Bit field mask constants ---
     // TypeCode: bits [0..3], width 4
     private const int __TYPE_CODE_START_BIT = 0;

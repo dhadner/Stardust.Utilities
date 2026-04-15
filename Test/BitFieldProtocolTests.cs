@@ -94,7 +94,7 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void IPv4Flags_DontFragment()
     {
-        var flags = IPv4Flags.Zero.WithDontFragment(true);
+        var flags = default(IPv4Flags).WithDontFragment(true);
         flags.DontFragment.Should().BeTrue();
         flags.MoreFragments.Should().BeFalse();
         flags.Reserved.Should().BeFalse();
@@ -126,7 +126,7 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void TcpFlags_SynAck()
     {
-        var flags = TcpFlags.Zero.WithSYN(true).WithACK(true);
+        var flags = default(TcpFlags).WithSYN(true).WithACK(true);
         flags.SYN.Should().BeTrue();
         flags.ACK.Should().BeTrue();
         flags.FIN.Should().BeFalse();
@@ -181,7 +181,7 @@ public partial class BitFieldProtocolTests
     {
         // Version=4 (0100) at bits 28-31, IHL=5 (0101) at bits 24-27
         // Binary: 0100_0101_0000_0000_0000_0000_0000_0000
-        var word = IPv4VersionWord.Zero
+        var word = default(IPv4VersionWord)
             .WithVersion(4)
             .WithIHL(5);
 
@@ -191,7 +191,7 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void IPv4VersionWord_RoundTrip()
     {
-        var original = IPv4VersionWord.Zero
+        var original = default(IPv4VersionWord)
             .WithVersion(4)
             .WithIHL(5)
             .WithDSCP(46)              // Expedited Forwarding
@@ -211,10 +211,10 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void IPv4TtlWord_ProtocolConstants()
     {
-        var tcp = IPv4TtlWord.Zero.WithTTL(64).WithProtocol(6);
+        var tcp = default(IPv4TtlWord).WithTTL(64).WithProtocol(6);
         tcp.Protocol.Should().Be(6, "6 = TCP");
 
-        var udp = IPv4TtlWord.Zero.WithTTL(128).WithProtocol(17);
+        var udp = default(IPv4TtlWord).WithTTL(128).WithProtocol(17);
         udp.Protocol.Should().Be(17, "17 = UDP");
     }
 
@@ -225,9 +225,9 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void IPv4FragmentWord_EmbeddedFlags()
     {
-        var word = IPv4FragmentWord.Zero
+        var word = default(IPv4FragmentWord)
             .WithIdentification(0xABCD)
-            .WithFlags(IPv4Flags.Zero.WithDontFragment(true))
+            .WithFlags(default(IPv4Flags).WithDontFragment(true))
             .WithFragmentOffset(0);
 
         // Read through composition: word ? Flags ? DontFragment
@@ -240,13 +240,13 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void IPv4FragmentWord_ModifyEmbeddedFlags()
     {
-        var word = IPv4FragmentWord.Zero.WithIdentification(0x1234);
+        var word = default(IPv4FragmentWord).WithIdentification(0x1234);
 
         // Set flags via composition
         var flags = word.Flags;
         flags.DontFragment.Should().BeFalse("initially clear");
 
-        word = word.WithFlags(IPv4Flags.Zero.WithDontFragment(true));
+        word = word.WithFlags(default(IPv4Flags).WithDontFragment(true));
         word.Flags.DontFragment.Should().BeTrue("now set via WithFlags");
         word.Identification.Should().Be(0x1234, "other fields unchanged");
     }
@@ -254,9 +254,9 @@ public partial class BitFieldProtocolTests
     [Fact]
     public void TcpControlWord_EmbeddedFlags()
     {
-        var word = TcpControlWord.Zero
+        var word = default(TcpControlWord)
             .WithDataOffset(5)
-            .WithFlags(TcpFlags.Zero.WithPSH(true).WithACK(true))
+            .WithFlags(default(TcpFlags).WithPSH(true).WithACK(true))
             .WithWindowSize(65535);
 
         word.DataOffset.Should().Be(5);
@@ -271,12 +271,12 @@ public partial class BitFieldProtocolTests
     public void TcpControlWord_FlagsRoundTrip()
     {
         // Build flags, embed in control word, extract, verify
-        var originalFlags = TcpFlags.Zero
+        var originalFlags = default(TcpFlags)
             .WithSYN(true)
             .WithACK(true)
             .WithECE(true);
 
-        var word = TcpControlWord.Zero
+        var word = default(TcpControlWord)
             .WithDataOffset(5)
             .WithFlags(originalFlags);
 
@@ -309,9 +309,9 @@ public partial class BitFieldProtocolTests
         ushort tcpSrcPort = 49152;  // ephemeral source port
         ushort tcpDstPort = 80;     // HTTP destination port
 
-        var tcpControl = TcpControlWord.Zero
+        var tcpControl = default(TcpControlWord)
             .WithDataOffset(5)      // 20-byte TCP header (minimum)
-            .WithFlags(TcpFlags.Zero.WithPSH(true).WithACK(true))
+            .WithFlags(default(TcpFlags).WithPSH(true).WithACK(true))
             .WithWindowSize(65535);
 
         int tcpHeaderBytes = tcpControl.DataOffset * 4;
@@ -320,16 +320,16 @@ public partial class BitFieldProtocolTests
         // ?? Layer 3: IPv4 ????????????????????????????????????????????
         int ipPayloadBytes = tcpHeaderBytes + payload.Length; // 32
 
-        var ipVersion = IPv4VersionWord.Zero
+        var ipVersion = default(IPv4VersionWord)
             .WithVersion(4)
             .WithIHL(5)             // 20-byte IP header (minimum)
             .WithTotalLength((ushort)(5 * 4 + ipPayloadBytes));
 
-        var ipFragment = IPv4FragmentWord.Zero
+        var ipFragment = default(IPv4FragmentWord)
             .WithIdentification(0x1A2B)
-            .WithFlags(IPv4Flags.Zero.WithDontFragment(true));
+            .WithFlags(default(IPv4Flags).WithDontFragment(true));
 
-        var ipTtl = IPv4TtlWord.Zero
+        var ipTtl = default(IPv4TtlWord)
             .WithTTL(64)
             .WithProtocol(6);       // TCP
 
