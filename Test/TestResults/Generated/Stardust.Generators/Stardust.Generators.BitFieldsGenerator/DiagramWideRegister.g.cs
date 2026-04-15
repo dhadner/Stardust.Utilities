@@ -21,6 +21,8 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 32;
 
     /// <summary>Returns a DiagramWideRegister with all bits set to zero.</summary>
     public static DiagramWideRegister Zero => default;

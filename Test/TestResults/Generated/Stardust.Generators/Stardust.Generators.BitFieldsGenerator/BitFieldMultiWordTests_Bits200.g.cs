@@ -35,6 +35,8 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 25;
+        /// <summary>Total number of bits in this struct.</summary>
+        public const int BIT_WIDTH = 200;
 
         private const ulong __LAST_WORD_MASK = 0x00000000000000FFUL;
 

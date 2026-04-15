@@ -21,6 +21,8 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 48;
 
     /// <summary>Returns a Timestamp48 with all bits set to zero.</summary>
     public static Timestamp48 Zero => default;

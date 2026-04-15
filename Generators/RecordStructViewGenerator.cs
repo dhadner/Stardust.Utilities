@@ -408,6 +408,7 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         (int bitWidth, int computedMinBytes) = ComputeMinBytes(info);
         sb.AppendLine($"{mind}/// <summary>Minimum number of bytes required in the backing buffer.</summary>");
         sb.AppendLine($"{mind}public const int SIZE_IN_BYTES = {computedMinBytes};");
+        sb.AppendLine($"{mind}/// <summary>Total number of bits in this view.</summary>");
         sb.AppendLine($"{mind}public const int BIT_WIDTH = {bitWidth};");
         sb.AppendLine();
 
@@ -1310,6 +1311,10 @@ public class RecordStructViewGenerator : IIncrementalGenerator
             ? $", StructDescription: \"{GeneratorUtils.EscapeStringLiteral(info.Description)}\""
             : "";
 
+        sb.AppendLine($"{ind}/// <summary>Optional description (title) for this view.</summary>");
+        sb.AppendLine($"{ind}public static string? StructDescription => {(info.Description != null ? $"\"{GeneratorUtils.EscapeStringLiteral(info.Description)}\"" : "null")};");
+        sb.AppendLine($"{ind}/// <summary>Optional resource type for the struct description.</summary>");
+        sb.AppendLine($"{ind}public static Type? StructDescriptionResourceType => {(info.DescriptionResourceType != null ? $"typeof({StripGlobalPrefix(info.DescriptionResourceType.FullName)})" : "null")};");
         sb.AppendLine($"{ind}/// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>");
         sb.AppendLine($"{ind}public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]");
         sb.AppendLine($"{ind}{{");

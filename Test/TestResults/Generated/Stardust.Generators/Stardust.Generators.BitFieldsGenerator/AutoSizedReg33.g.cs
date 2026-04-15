@@ -21,6 +21,8 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 33;
 
     /// <summary>Returns a AutoSizedReg33 with all bits set to zero.</summary>
     public static AutoSizedReg33 Zero => default;

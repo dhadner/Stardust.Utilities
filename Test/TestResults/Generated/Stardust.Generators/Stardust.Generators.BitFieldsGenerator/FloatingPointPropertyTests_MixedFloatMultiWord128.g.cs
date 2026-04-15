@@ -33,6 +33,8 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 16;
+        /// <summary>Total number of bits in this struct.</summary>
+        public const int BIT_WIDTH = 128;
 
         private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 

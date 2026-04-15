@@ -84,6 +84,8 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine();
         sb.AppendLine($"{mind}/// <summary>Size of this struct in bytes.</summary>");
         sb.AppendLine($"{mind}public const int SIZE_IN_BYTES = {layout.StructBytes};");
+        sb.AppendLine($"{mind}/// <summary>Total number of bits in this struct.</summary>");
+        sb.AppendLine($"{mind}public const int BIT_WIDTH = {info.TotalBits};");
         sb.AppendLine();
 
         // Last-word mask

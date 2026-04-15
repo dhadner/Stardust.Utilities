@@ -23,6 +23,8 @@ public partial class ParsingFuzzTests
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 1;
+        /// <summary>Total number of bits in this struct.</summary>
+        public const int BIT_WIDTH = 8;
 
         /// <summary>Returns a FuzzTestReg8 with all bits set to zero.</summary>
         public static FuzzTestReg8 Zero => default;

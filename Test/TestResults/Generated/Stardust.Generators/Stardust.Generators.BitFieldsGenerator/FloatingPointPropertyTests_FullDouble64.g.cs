@@ -23,6 +23,8 @@ public partial class FloatingPointPropertyTests
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 8;
+        /// <summary>Total number of bits in this struct.</summary>
+        public const int BIT_WIDTH = 64;
 
         /// <summary>Returns a FullDouble64 with all bits set to zero.</summary>
         public static FullDouble64 Zero => default;

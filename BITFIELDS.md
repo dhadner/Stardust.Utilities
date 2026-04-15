@@ -68,6 +68,7 @@ Both share the same `[BitField]` and `[BitFlag]` property attributes. Learn one,
 - [Demo Application](#demo-application)
 
 **Reference**
+- [Generated API Surface](#generated-api-surface)
 - [Performance](#performance)
 - [Generated Code Listing](#generated-code-listing)
 
@@ -892,7 +893,7 @@ var view = new IPv4HeaderView(packetBytes);        // from byte[]
 var view = new IPv4HeaderView(frameBytes, 14);     // from byte[] with offset
 ```
 
-All constructors validate that the buffer contains at least `SizeInBytes` bytes.
+All constructors validate that the buffer contains at least `SIZE_IN_BYTES` bytes.
 
 ## Zero-Copy Semantics
 
@@ -920,16 +921,10 @@ Console.WriteLine(v2.Version);   // 4
 
 ## Generated Members
 
-For each record struct view, the generator produces:
-
-| Member | Description |
-|--------|-------------|
-| `__data` | Private `Memory<byte>` field |
-| Constructors | `Memory<byte>`, `byte[]`, `byte[] + offset` |
-| `Data` property | Exposes the underlying `Memory<byte>` |
-| `SizeInBytes` constant | Minimum buffer size required |
-| Property accessors | Inline `BinaryPrimitives` reads/writes with `AggressiveInlining` |
-| JSON converter | Private nested `JsonConverter<T>` serializing bytes as `"0x..."` hex string |
+For each record struct view, the generator produces constructors, a `Data` property, `SIZE_IN_BYTES`
+and `BIT_WIDTH` constants, inline property accessors using `BinaryPrimitives`, a `Fields` metadata
+span, and a private JSON converter. For the complete list of all generated names (including value
+types and multi-word structs), see [Generated API Surface](#generated-api-surface).
 
 ## Record Struct Equality
 
@@ -2107,6 +2102,74 @@ The source code includes two demo apps:
 
 ---
 
+## Generated API Surface
+
+When you apply `[BitFields]` to a struct, the generator adds members to your type. This section
+lists every generated name so you know which identifiers are reserved. Your `[BitField]` and
+`[BitFlag]` property names are yours to choose freely -- the generator will never collide with them.
+
+### Public API
+
+The table below shows every public member the generator produces. The **struct** and **view**
+columns indicate whether the member is generated for value types (`partial struct`) and/or
+zero-copy views (`partial record struct`).
+
+| Name | struct | view | Description | Rationale for difference |
+|------|:------:|:----:|-------------|-------------------------|
+| `SIZE_IN_BYTES` | ✔ | ✔ | Struct size / minimum buffer size in bytes | Both need to know their byte footprint |
+| `BIT_WIDTH` | ✔ | ✔ | Total number of defined bits (may be < `SIZE_IN_BYTES * 8`) | Both need to expose their logical bit width |
+| `Fields` | ✔ | ✔ | `public static ReadOnlySpan<BitFieldInfo>` -- metadata for all declared fields/flags | Diagrams, reflection, and extension methods need this on both |
+| `StructDescription` | ✔ | ✔ | `public static string?` -- description from `[BitFields(Description = ...)]` | Programmatic access to the description for both types |
+| `StructDescriptionResourceType` | ✔ | ✔ | `public static Type?` -- resource type for localized descriptions | Companion to `StructDescription` |
+| `Data` | | ✔ | `public Memory<byte>` -- exposes the underlying buffer | Views are references to external memory; value types have no buffer to expose |
+| `Zero` | ✔ | | `public static T` -- instance with all bits zero | Value types are self-contained; a "zero view" would be a view over an empty buffer, which is a different concept |
+| `{Flag}Bit` | ✔ | | `public static T` -- instance with only the named flag bit set | Returns a value-type instance; views have no "instance value" to return |
+| `{Field}Mask` | ✔ | | `public static T` -- instance with the named field's mask bits set | Same: returns a value-type instance |
+| `With{Name}(value)` | ✔ | | `public T` -- fluent immutable setter for each field/flag | Value types are immutable on assignment; views mutate in-place via property setters |
+| Constructors | ✔ | ✔ | Create from raw value / byte span (struct) or `Memory<byte>` / `byte[]` (view) | Different backing stores require different construction |
+| `ReadFrom` | ✔ | | `public static T` -- create from byte span | View constructors already serve this role |
+| `WriteTo` | ✔ | | `public void` -- write raw bytes to a span | Views write through their buffer directly; no separate serialization needed |
+| `TryWriteTo` | ✔ | | `public bool` -- try to write raw bytes | Same as `WriteTo` |
+| `ToByteArray` | ✔ | | `public byte[]` -- return raw bytes as a new array | Views already expose `Data`; value types need an explicit conversion |
+| `Parse` / `TryParse` | ✔ | | Parse from string (hex, binary, decimal) | Value types have a natural string representation; views are buffers, not parseable values |
+| `ToString` / `TryFormat` | ✔ | | Format as hex string | Same: value types are formattable; views are not |
+| `CompareTo` / `Equals` | ✔ | | Interface implementations (`IComparable`, `IEquatable`) | Value types compare by bits; record structs get compiler-generated equality (reference equality on `Memory<byte>`) |
+| `GetHashCode` | ✔ | | Hash based on raw bits | Same: record structs get compiler-generated hashing |
+| Operators | ✔ | | `~`, `\|`, `&`, `^`, `+`, `-`, `*`, `/`, `%`, `<<`, `>>`, `>>>`, comparisons, equality | Views are references to buffers, not numeric values; arithmetic doesn't apply |
+| Implicit conversions | ✔ | | To/from storage type and `int` | Views don't have a scalar value to convert |
+| JSON converter | ✔ | ✔ | Private nested `JsonConverter<T>` -- hex string serialization | Both types serialize as `"0x..."` hex strings for JSON round-tripping |
+
+> **Note:** For `nint`/`nuint` storage types, `SIZE_IN_BYTES` and `BIT_WIDTH` are `public static int`
+> properties (not `const`) because they are platform-dependent (32 or 64 bits at runtime).
+
+### Private Implementation Details (prefixed with `__`)
+
+All private fields and constants use a `__` prefix to stay out of your namespace:
+
+| Pattern | Example | Used in |
+|---------|---------|---------|
+| `__value` | `private byte __value` | Single-word value types |
+| `__w0`, `__w1`, ... | `private ulong __w0` | Multi-word value types |
+| `__data` | `private readonly Memory<byte> __data` | Record struct views |
+| `__bitOffset` | `private readonly byte __bitOffset` | Record struct views |
+| `__{FIELD}_MASK` | `private const byte __MODE_MASK` | Per-field mask |
+| `__{FIELD}_SHIFTED_MASK` | `private const byte __MODE_SHIFTED_MASK` | Per-field shifted mask |
+| `__{FIELD}_INVERTED_MASK` | `private const byte __MODE_INVERTED_MASK` | Per-field inverted mask |
+| `__{FIELD}_START_BIT` | `private const int __MODE_START_BIT` | Per-field bit offset |
+| `__{FLAG}_BIT` | `private const int __READY_BIT` | Per-flag bit position |
+| `__{FIELD}_SAT_MIN/MAX` | `private const byte __MODE_SAT_MIN` | Saturating clamp bounds |
+| `__NORMALIZATION_AND_MASK` | `private const byte ...` | UndefinedBitsMustBe enforcement |
+| `__NORMALIZATION_OR_MASK` | `private const byte ...` | UndefinedBitsMustBe enforcement |
+| `__WORD_COUNT` | `private const int __WORD_COUNT` | Multi-word structs |
+| `__TOTAL_BITS` | `private const int __TOTAL_BITS` | Multi-word structs |
+| `__LAST_WORD_MASK` | `private const ulong __LAST_WORD_MASK` | Multi-word structs |
+
+The `__` prefix follows the C# convention for compiler/generator-reserved identifiers. You should
+never need to access these directly -- if you find yourself reaching for them, there is likely a
+public API member that provides the same functionality safely.
+
+---
+
 ## Performance
 
 Benchmarks show generated code performs within **1%** of hand-coded bit manipulation.
@@ -2148,7 +2211,8 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
 {
     private byte __value;
 
-    public const int SizeInBytes = 1;
+    public const int SIZE_IN_BYTES = 1;
+    public const int BIT_WIDTH = 8;
     public static StatusRegister Zero => default;
 
     public StatusRegister(byte value) { __value = value; }
@@ -2263,8 +2327,8 @@ public partial record struct ByteFlagsView
     private readonly Memory<byte> __data;
     private readonly byte __bitOffset;
 
-    public const int SizeInBytes = 1;
-    public const int BitWidth = 8;
+    public const int SIZE_IN_BYTES = 1;
+    public const int BIT_WIDTH = 8;
 
     // ── Constructors ────────────────────────────────────────────
     public ByteFlagsView(Memory<byte> data) { /* validates length */ __data = data; __bitOffset = 0; }

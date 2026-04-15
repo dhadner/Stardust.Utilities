@@ -21,6 +21,8 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 32;
 
     /// <summary>Returns a Header27 with all bits set to zero.</summary>
     public static Header27 Zero => default;

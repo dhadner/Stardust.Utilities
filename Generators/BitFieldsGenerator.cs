@@ -735,12 +735,16 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         {
             sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes (platform-dependent: 4 on 32-bit, 8 on 64-bit).</summary>");
             sb.AppendLine($"{memberIndent}public static int SIZE_IN_BYTES => nint.Size;");
+            sb.AppendLine($"{memberIndent}/// <summary>Total number of bits in this struct (platform-dependent: 32 on 32-bit, 64 on 64-bit).</summary>");
+            sb.AppendLine($"{memberIndent}public static int BIT_WIDTH => nint.Size * 8;");
         }
         else
         {
             int sizeInBytes = GetStorageTypeBitWidth(info.StorageType) / 8;
             sb.AppendLine($"{memberIndent}/// <summary>Size of this struct in bytes.</summary>");
             sb.AppendLine($"{memberIndent}public const int SIZE_IN_BYTES = {sizeInBytes};");
+            sb.AppendLine($"{memberIndent}/// <summary>Total number of bits in this struct.</summary>");
+            sb.AppendLine($"{memberIndent}public const int BIT_WIDTH = {info.TotalBits};");
         }
         sb.AppendLine();
         sb.AppendLine($"{memberIndent}/// <summary>Returns a {info.TypeName} with all bits set to zero.</summary>");

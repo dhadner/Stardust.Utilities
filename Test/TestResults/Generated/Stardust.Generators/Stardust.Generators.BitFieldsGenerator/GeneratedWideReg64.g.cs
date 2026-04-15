@@ -21,6 +21,8 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 8;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 64;
 
     /// <summary>Returns a GeneratedWideReg64 with all bits set to zero.</summary>
     public static GeneratedWideReg64 Zero => default;

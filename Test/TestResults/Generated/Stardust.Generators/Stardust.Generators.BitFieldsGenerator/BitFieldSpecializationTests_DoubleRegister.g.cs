@@ -23,6 +23,8 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Size of this struct in bytes.</summary>
         public const int SIZE_IN_BYTES = 8;
+        /// <summary>Total number of bits in this struct.</summary>
+        public const int BIT_WIDTH = 64;
 
         /// <summary>Returns a DoubleRegister with all bits set to zero.</summary>
         public static DoubleRegister Zero => default;

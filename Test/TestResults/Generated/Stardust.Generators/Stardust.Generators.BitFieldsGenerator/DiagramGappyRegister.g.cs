@@ -21,6 +21,8 @@ public partial struct DiagramGappyRegister : IComparable, IComparable<DiagramGap
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 16;
 
     /// <summary>Returns a DiagramGappyRegister with all bits set to zero.</summary>
     public static DiagramGappyRegister Zero => default;

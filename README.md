@@ -1312,26 +1312,13 @@ to your `[BitField]`/`[BitFlag]` property declarations (see
 
 ### Generated private members renamed with `__` prefix (v0.9.9)
 
-In v0.9.9, all generated private fields and constants were prefixed with `__` to eliminate
-naming collisions with user-declared members. This includes single-word backing fields
-(`Value` to `__value`), multi-word word fields (`_w0`/`_w1` to `__w0`/`__w1`), view fields
-(`_data`/`_bitOffset` to `__data`/`__bitOffset`), per-field mask/shift/bit constants
-(e.g., `MODE_MASK` to `__MODE_MASK`), normalization constants, and multi-word fixed constants.
-This change does not affect the public API -- all generated properties, operators, conversions,
-and methods work identically.
+In v0.9.9, all generated private fields and constants were prefixed with `__` to avoid naming
+collisions with user-declared members. The public API (`SIZE_IN_BYTES`, `Zero`, `Fields`,
+operators, conversions, `With` methods, etc.) is unchanged. Only code that accessed private
+members via reflection or `Unsafe` is affected.
 
-**Who is affected:** Only code that accessed generated private members directly via reflection,
-`Unsafe` operations, or other non-public access patterns. Normal usage through generated
-properties, operators, and conversions is completely unaffected.
-
-**Migration:** Update any reflection-based access to use the `__` prefix:
-```csharp
-// Before (v0.9.8 and earlier)
-var field = typeof(MyStruct).GetField("Value", BindingFlags.NonPublic | BindingFlags.Instance);
-
-// After (v0.9.9+)
-var field = typeof(MyStruct).GetField("__value", BindingFlags.NonPublic | BindingFlags.Instance);
-```
+For the complete list of reserved names, see
+[Generated API Surface](BITFIELDS.md#generated-api-surface) in BITFIELDS.md.
 
 ### DemoWeb shows a welcome page instead of loading automatically in Edge
 

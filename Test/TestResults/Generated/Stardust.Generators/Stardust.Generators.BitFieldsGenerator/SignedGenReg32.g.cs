@@ -21,6 +21,8 @@ public partial struct SignedGenReg32 : IComparable, IComparable<SignedGenReg32>,
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 32;
 
     /// <summary>Returns a SignedGenReg32 with all bits set to zero.</summary>
     public static SignedGenReg32 Zero => default;

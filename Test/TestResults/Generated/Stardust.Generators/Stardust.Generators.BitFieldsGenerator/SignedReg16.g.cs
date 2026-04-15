@@ -21,6 +21,8 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 16;
 
     /// <summary>Returns a SignedReg16 with all bits set to zero.</summary>
     public static SignedReg16 Zero => default;

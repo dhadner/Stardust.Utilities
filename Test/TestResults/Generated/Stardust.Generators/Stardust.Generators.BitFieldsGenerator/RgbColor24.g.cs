@@ -21,6 +21,8 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 4;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 24;
 
     /// <summary>Returns a RgbColor24 with all bits set to zero.</summary>
     public static RgbColor24 Zero => default;

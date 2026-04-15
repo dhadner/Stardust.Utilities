@@ -19,6 +19,7 @@ public partial record struct FrameViewWith128
 
     /// <summary>Minimum number of bytes required in the backing buffer.</summary>
     public const int SIZE_IN_BYTES = 24;
+    /// <summary>Total number of bits in this view.</summary>
     public const int BIT_WIDTH = 192;
 
     /// <summary>Creates a view over the specified memory buffer.</summary>
@@ -134,6 +135,10 @@ public partial record struct FrameViewWith128
         }
     }
 
+    /// <summary>Optional description (title) for this view.</summary>
+    public static string? StructDescription => null;
+    /// <summary>Optional resource type for the struct description.</summary>
+    public static Type? StructDescriptionResourceType => null;
     /// <summary>Metadata for every field and flag declared on this view, in declaration order.</summary>
     public static ReadOnlySpan<BitFieldInfo> Fields => new BitFieldInfo[]
     {

@@ -21,6 +21,8 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 8;
 
     /// <summary>Returns a SatUnsignedByte with all bits set to zero.</summary>
     public static SatUnsignedByte Zero => default;

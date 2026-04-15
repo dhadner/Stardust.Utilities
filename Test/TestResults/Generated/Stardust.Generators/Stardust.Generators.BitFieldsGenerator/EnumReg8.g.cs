@@ -21,6 +21,8 @@ public partial struct EnumReg8 : IComparable, IComparable<EnumReg8>, IEquatable<
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 1;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 8;
 
     /// <summary>Returns a EnumReg8 with all bits set to zero.</summary>
     public static EnumReg8 Zero => default;

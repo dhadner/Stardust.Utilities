@@ -21,6 +21,8 @@ public partial struct GeneratedWideRegNint : IComparable, IComparable<GeneratedW
 
     /// <summary>Size of this struct in bytes (platform-dependent: 4 on 32-bit, 8 on 64-bit).</summary>
     public static int SIZE_IN_BYTES => nint.Size;
+    /// <summary>Total number of bits in this struct (platform-dependent: 32 on 32-bit, 64 on 64-bit).</summary>
+    public static int BIT_WIDTH => nint.Size * 8;
 
     /// <summary>Returns a GeneratedWideRegNint with all bits set to zero.</summary>
     public static GeneratedWideRegNint Zero => default;

@@ -21,6 +21,8 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 16;
 
     /// <summary>Returns a SubHeader9 with all bits set to zero.</summary>
     public static SubHeader9 Zero => default;

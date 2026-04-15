@@ -21,6 +21,8 @@ public partial struct SensorReading12 : IComparable, IComparable<SensorReading12
 
     /// <summary>Size of this struct in bytes.</summary>
     public const int SIZE_IN_BYTES = 2;
+    /// <summary>Total number of bits in this struct.</summary>
+    public const int BIT_WIDTH = 12;
 
     /// <summary>Returns a SensorReading12 with all bits set to zero.</summary>
     public static SensorReading12 Zero => default;
