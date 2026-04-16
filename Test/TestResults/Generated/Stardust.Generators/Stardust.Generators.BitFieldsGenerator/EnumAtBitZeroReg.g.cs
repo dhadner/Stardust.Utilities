@@ -24,6 +24,9 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static EnumAtBitZeroReg Default => default;
+
     // --- Bit field mask constants ---
     // Command: bits [0..2], width 3
     private const int __COMMAND_START_BIT = 0;

@@ -24,6 +24,9 @@ public partial struct MustBeTestReg : IComparable, IComparable<MustBeTestReg>, I
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static MustBeTestReg Default => default;
+
     // --- Bit field mask constants ---
     // Reserved: bits [1..2], width 2
     private const int __RESERVED_START_BIT = 1;

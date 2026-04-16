@@ -24,6 +24,9 @@ public partial struct SatUnsignedUshort : IComparable, IComparable<SatUnsignedUs
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SatUnsignedUshort Default => default;
+
     // --- Bit field mask constants ---
     // Clamped: bits [0..9], width 10
     private const int __CLAMPED_START_BIT = 0;

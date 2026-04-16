@@ -26,6 +26,9 @@ public partial class BitFieldProtocolTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static IPv4FragmentWord Default => default;
+
         // --- Bit field mask constants ---
         // Identification: bits [16..31], width 16
         private const int __IDENTIFICATION_START_BIT = 16;

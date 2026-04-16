@@ -24,6 +24,9 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SignedReg8 Default => default;
+
     // --- Bit field mask constants ---
     // LowField: bits [2..4], width 3
     private const int __LOW_FIELD_START_BIT = 2;

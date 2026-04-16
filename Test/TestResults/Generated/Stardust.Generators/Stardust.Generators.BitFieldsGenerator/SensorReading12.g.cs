@@ -24,6 +24,9 @@ public partial struct SensorReading12 : IComparable, IComparable<SensorReading12
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 12;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SensorReading12 Default => default;
+
     // --- Bit field mask constants ---
     // AdcValue: bits [0..9], width 10
     private const int __ADC_VALUE_START_BIT = 0;

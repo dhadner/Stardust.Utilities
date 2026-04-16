@@ -24,6 +24,9 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static PacketWithNarrowFields Default => default;
+
     // --- Bit field mask constants ---
     // Status: bits [0..4], width 5
     private const int __STATUS_START_BIT = 0;

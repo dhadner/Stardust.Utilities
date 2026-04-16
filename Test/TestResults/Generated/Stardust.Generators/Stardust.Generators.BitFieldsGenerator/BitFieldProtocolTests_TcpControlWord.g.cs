@@ -26,6 +26,9 @@ public partial class BitFieldProtocolTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static TcpControlWord Default => default;
+
         // --- Bit field mask constants ---
         // DataOffset: bits [28..31], width 4
         private const int __DATA_OFFSET_START_BIT = 28;

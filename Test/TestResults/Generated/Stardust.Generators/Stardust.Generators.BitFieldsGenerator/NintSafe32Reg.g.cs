@@ -24,6 +24,9 @@ public partial struct NintSafe32Reg : IComparable, IComparable<NintSafe32Reg>, I
     /// <summary>Total number of bits in this struct (platform-dependent: 32 on 32-bit, 64 on 64-bit).</summary>
     public static int BIT_WIDTH => nint.Size * 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static NintSafe32Reg Default => default;
+
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;

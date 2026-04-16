@@ -24,6 +24,9 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 5;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static AutoSizedUndefinedZeroes Default => default;
+
     // --- Bit field mask constants ---
     // Low: bits [0..2], width 3
     private const int __LOW_START_BIT = 0;

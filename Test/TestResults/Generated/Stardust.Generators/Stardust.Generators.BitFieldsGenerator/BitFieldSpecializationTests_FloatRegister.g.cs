@@ -26,6 +26,9 @@ public partial class BitFieldSpecializationTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static FloatRegister Default => default;
+
         // --- Bit field mask constants ---
         // Mantissa: bits [0..22], width 23
         private const int __MANTISSA_START_BIT = 0;

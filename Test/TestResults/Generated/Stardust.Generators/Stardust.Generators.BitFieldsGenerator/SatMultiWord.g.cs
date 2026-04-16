@@ -35,6 +35,9 @@ public partial struct SatMultiWord : IComparable, IComparable<SatMultiWord>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 133;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SatMultiWord Default => default;
+
     private const ulong __LAST_WORD_MASK = 0x000000000000001FUL;
 
     /// <summary>Creates a new SatMultiWord from individual word values.</summary>

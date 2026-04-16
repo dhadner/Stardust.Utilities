@@ -26,6 +26,9 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static IPv4TtlWord Default => default;
+
         // --- Bit field mask constants ---
         // TTL: bits [24..31], width 8
         private const int __TTL_START_BIT = 24;

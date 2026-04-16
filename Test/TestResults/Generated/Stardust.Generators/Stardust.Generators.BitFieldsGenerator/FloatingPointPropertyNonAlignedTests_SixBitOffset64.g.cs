@@ -26,6 +26,9 @@ public partial class FloatingPointPropertyNonAlignedTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static SixBitOffset64 Default => default;
+
         // --- Bit field mask constants ---
         // LowPad: bits [0..5], width 6
         private const int __LOW_PAD_START_BIT = 0;

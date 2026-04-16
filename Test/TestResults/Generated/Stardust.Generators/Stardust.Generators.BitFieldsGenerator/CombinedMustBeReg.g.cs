@@ -24,6 +24,9 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static CombinedMustBeReg Default => default;
+
     // --- Bit field mask constants ---
     // Flags: bits [0..2], width 3
     private const int __FLAGS_START_BIT = 0;

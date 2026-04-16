@@ -24,6 +24,9 @@ public partial struct AutoSizedReg10 : IComparable, IComparable<AutoSizedReg10>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 10;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static AutoSizedReg10 Default => default;
+
     // --- Bit field mask constants ---
     // Lo: bits [0..7], width 8
     private const int __LO_START_BIT = 0;

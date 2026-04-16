@@ -26,6 +26,9 @@ public partial class ParsingFuzzTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static FuzzTestReg8 Default => default;
+
         // --- Bit field mask constants ---
         // Field1: bits [1..4], width 4
         private const int __FIELD1_START_BIT = 1;

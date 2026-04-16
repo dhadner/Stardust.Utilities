@@ -26,6 +26,9 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static IPv4Flags Default => default;
+
         // --- Bit field mask constants ---
         // MoreFragments: bit 0
         private const int __MORE_FRAGMENTS_BIT = 0;

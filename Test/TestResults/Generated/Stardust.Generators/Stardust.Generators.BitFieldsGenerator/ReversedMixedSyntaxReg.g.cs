@@ -24,6 +24,9 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static ReversedMixedSyntaxReg Default => default;
+
     // --- Bit field mask constants ---
     // UpperFive: bits [3..7], width 5
     private const int __UPPER_FIVE_START_BIT = 3;

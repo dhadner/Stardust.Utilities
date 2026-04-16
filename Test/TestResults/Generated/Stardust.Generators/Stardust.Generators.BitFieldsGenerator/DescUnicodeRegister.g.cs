@@ -24,6 +24,9 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static DescUnicodeRegister Default => default;
+
     // --- Bit field mask constants ---
     // Japanese: bits [2..7], width 6
     private const int __JAPANESE_START_BIT = 2;

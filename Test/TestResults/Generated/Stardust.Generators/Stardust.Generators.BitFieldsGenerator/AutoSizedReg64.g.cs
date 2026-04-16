@@ -24,6 +24,9 @@ public partial struct AutoSizedReg64 : IComparable, IComparable<AutoSizedReg64>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 58;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static AutoSizedReg64 Default => default;
+
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;

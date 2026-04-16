@@ -24,6 +24,9 @@ public partial struct SignedGenReg32 : IComparable, IComparable<SignedGenReg32>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SignedGenReg32 Default => default;
+
     // --- Bit field mask constants ---
     // LowWord: bits [1..15], width 15
     private const int __LOW_WORD_START_BIT = 1;

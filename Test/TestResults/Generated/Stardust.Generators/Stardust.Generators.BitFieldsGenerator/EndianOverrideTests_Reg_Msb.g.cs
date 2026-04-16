@@ -26,6 +26,9 @@ public partial class EndianOverrideTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static Reg_Msb Default => default;
+
         // --- Bit field mask constants ---
         // BeU16: bits [48..63], width 16
         private const int __BE_U16_START_BIT = 48;

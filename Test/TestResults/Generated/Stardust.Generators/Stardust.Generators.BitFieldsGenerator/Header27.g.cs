@@ -24,6 +24,9 @@ public partial struct Header27 : IComparable, IComparable<Header27>, IEquatable<
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static Header27 Default => default;
+
     // --- Bit field mask constants ---
     // SubHeader: bits [0..8], width 9
     private const int __SUB_HEADER_START_BIT = 0;

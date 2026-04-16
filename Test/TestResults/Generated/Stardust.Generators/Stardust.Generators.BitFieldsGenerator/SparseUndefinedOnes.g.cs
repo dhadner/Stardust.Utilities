@@ -24,6 +24,9 @@ public partial struct SparseUndefinedOnes : IComparable, IComparable<SparseUndef
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SparseUndefinedOnes Default => default;
+
     // --- Bit field mask constants ---
     // LowField: bits [1..2], width 2
     private const int __LOW_FIELD_START_BIT = 1;

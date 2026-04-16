@@ -749,6 +749,10 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
         sb.AppendLine();
 
+        sb.AppendLine($"{memberIndent}/// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>");
+        sb.AppendLine($"{memberIndent}public static {info.TypeName} Default => default;");
+        sb.AppendLine();
+
         // Generate named mask constants for all fields and flags
         GenerateFieldConstants(sb, info, memberIndent);
 

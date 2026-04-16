@@ -24,6 +24,9 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static DiagramWideRegister Default => default;
+
     // --- Bit field mask constants ---
     // LowHalf: bits [0..15], width 16
     private const int __LOW_HALF_START_BIT = 0;

@@ -24,6 +24,9 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static MainHeader64 Default => default;
+
     // --- Bit field mask constants ---
     // Protocol: bits [0..26], width 27
     private const int __PROTOCOL_START_BIT = 0;

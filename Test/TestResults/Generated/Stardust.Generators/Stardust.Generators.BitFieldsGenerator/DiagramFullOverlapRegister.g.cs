@@ -24,6 +24,9 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static DiagramFullOverlapRegister Default => default;
+
     // --- Bit field mask constants ---
     // ModeA: bits [0..3], width 4
     private const int __MODE_A_START_BIT = 0;

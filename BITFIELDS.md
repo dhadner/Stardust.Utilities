@@ -576,7 +576,7 @@ public partial struct CommandReg
     [BitField(6, 7)] public partial byte Flags { get; set; }
 }
 
-var reg = CommandReg.Zero
+var reg = CommandReg.Default
     .WithCommand(OpMode.Run)
     .WithStatus(OpMode.Sleep)
     .WithFlags(3);
@@ -669,35 +669,76 @@ compile-time constants. C# only allows `const` on built-in primitives (`byte`, `
 `string`, etc.), so user-defined struct values cannot appear in `switch` case labels,
 `[InlineData]` attributes, or other contexts that require constant expressions.
 
+### Why not provide `public const` companions?
+
+A natural question is: why not emit `public const byte READY_BIT = 0x01;` alongside
+`ReadyBit`? We considered this carefully and decided against it for one reason:
+**consistency across all struct sizes.**
+
+`[BitFields]` structs range from 8-bit registers to arbitrary-width multi-word types
+(`[BitFields(159)]`, `[BitFields(256)]`, etc.). For single-word structs (<=64 bits),
+a `const ulong` could represent any flag's bit mask. But for multi-word structs, a
+single flag's mask can span multiple `ulong` words -- there is no primitive type that
+can hold it as a `const`.
+
+This creates a cliff edge: a developer writes a 64-bit struct, uses `READY_BIT` in
+`switch` statements and `[InlineData]` attributes throughout their test suite, then
+adds one more field that pushes the struct to 65 bits. The generator switches from
+single-word to multi-word storage, the `const` members vanish, and every `switch`
+and `[InlineData]` referencing them becomes a compile error. The developer didn't
+change any flag -- they just widened the struct.
+
+Rather than ship an API that works for some struct sizes and silently disappears for
+others, we keep the public API consistent: struct-typed static properties for all sizes,
+with the workaround patterns below for contexts that require compile-time constants.
+
 The underlying mask constants (e.g., `__READY_MASK`) are `const`, but they are private
 implementation details. The public API intentionally exposes struct-typed values so you
 work in the domain type. Here are the idiomatic patterns for the two most common scenarios.
 
 ### switch Statements
 
-Use a `switch` expression with `when` guards:
+Use `when` guards with the struct-typed static properties:
+
+**Switch expression:**
 
 ```csharp
+StatusRegister status = ReadFromHardware();
+
 var result = status switch
 {
-    _ when status == StatusRegister.ReadyBit => "ready",
-    _ when status == StatusRegister.ModeMask => "mode mask",
-    _ when (status & StatusRegister.ReadyBit) != 0 => "ready is set",
-    _ => "other"
+    _ when status.Ready && status.Error => "ready with error",
+    _ when status.Ready                => "ready",
+    _ when status.Mode == 5            => "mode 5",
+    _ => "idle"
 };
 ```
 
-Or switch on the raw storage value using the implicit conversion:
+**Switch statement:**
 
 ```csharp
-byte raw = status;
-var result = raw switch
+StatusRegister status = ReadFromHardware();
+
+switch (status)
 {
-    0x01 => "ready bit only",
-    0x1C => "mode mask only",
-    _ => "other"
-};
+    case var _ when status.Ready && status.Error:
+        Console.WriteLine("ready with error");
+        break;
+    case var _ when status.Ready:
+        Console.WriteLine("ready");
+        break;
+    case var _ when status.Mode == 5:
+        Console.WriteLine("mode 5");
+        break;
+    default:
+        Console.WriteLine("idle");
+        break;
+}
 ```
+
+The switch statement uses the generated property getters directly -- `status.Ready`,
+`status.Error`, `status.Mode` -- rather than manual bit masking. This is the primary
+value of `[BitFields]`: type-safe, self-documenting field access with zero overhead.
 
 ### xUnit `[Theory]` Tests
 
@@ -709,7 +750,7 @@ public static IEnumerable<object[]> BitPatterns =>
 [
     [StatusRegister.ReadyBit,  "Ready"],
     [StatusRegister.ErrorBit,  "Error"],
-    [StatusRegister.ModeMask,  "Mode"],
+    [StatusRegister.Default.WithReady(true).WithError(true),  "Ready with Error"],
 ];
 
 [Theory]
@@ -717,20 +758,6 @@ public static IEnumerable<object[]> BitPatterns =>
 public void Should_have_expected_bit_pattern(StatusRegister pattern, string name)
 {
     Assert.NotEqual((StatusRegister)0, pattern);
-}
-```
-
-If you only need the raw numeric value, `[InlineData]` works with the storage type:
-
-```csharp
-[Theory]
-[InlineData(0x01)]  // ReadyBit
-[InlineData(0x02)]  // ErrorBit
-[InlineData(0x1C)]  // ModeMask
-public void Should_have_single_contiguous_region(byte raw)
-{
-    StatusRegister reg = raw;
-    Assert.NotEqual((StatusRegister)0, reg);
 }
 ```
 
@@ -1482,7 +1509,7 @@ f.Exponent;        // 0   (true power: 1.5 is in [1, 2), so 2^0)
 f.Mantissa;        // 0x400000 (bit 22 set = 0.5)
 
 // Build from parts
-var built = IEEE754Single.Zero
+var built = IEEE754Single.Default
     .WithSign(false)
     .WithBiasedExponent(127)
     .WithMantissa(0x400000u);
@@ -1603,13 +1630,13 @@ sets `BiasedExponent`; assigning `null` sets `BiasedExponent` to 0.
 
 ```csharp
 // Build 2^3 = 8.0 from a true exponent
-var d = IEEE754Double.Zero.WithExponent(3).WithMantissa(0);
+var d = IEEE754Double.Default.WithExponent(3).WithMantissa(0);
 double value = d;  // 8.0
 
 // Round-trip: read Exponent, rebuild with WithExponent
 IEEE754Double pi = Math.PI;
 int exp = pi.Exponent!.Value;           // 1
-var rebuilt = IEEE754Double.Zero
+var rebuilt = IEEE754Double.Default
     .WithExponent(exp)
     .WithMantissa(pi.Mantissa);
 double result = rebuilt;                 // == Math.PI
@@ -1620,7 +1647,7 @@ d2.Exponent = 3;                         // BiasedExponent = 3 + 1023 = 1026
 d2.Exponent = null;                      // BiasedExponent = 0
 
 // Out-of-range values are masked (no exception)
-var h = IEEE754Half.Zero.WithExponent(16);  // biased value masked to 5-bit field
+var h = IEEE754Half.Default.WithExponent(16);  // biased value masked to 5-bit field
 ```
 
 ## Network Protocol Headers (RFC)
@@ -1669,9 +1696,9 @@ public partial struct TcpControlWord
 }
 
 // Fluent construction
-var tcp = TcpControlWord.Zero
+var tcp = TcpControlWord.Default
     .WithDataOffset(5)
-    .WithFlags(TcpFlags.Zero.WithSYN(true).WithACK(true))
+    .WithFlags(TcpFlags.Default.WithSYN(true).WithACK(true))
     .WithWindowSize(65535);
 
 tcp.Flags.SYN;  // true
@@ -2196,7 +2223,7 @@ zero-copy views (`partial record struct`).
 | `StructDescription` | ✔ | ✔ | `public static string?` -- description from `[BitFields(Description = ...)]` | Programmatic access to the description for both types |
 | `StructDescriptionResourceType` | ✔ | ✔ | `public static Type?` -- resource type for localized descriptions | Companion to `StructDescription` |
 | `Data` | | ✔ | `public Memory<byte>` -- exposes the underlying buffer | Views are references to external memory; value types have no buffer to expose |
-| `Zero` | ✔ | | `public static T` -- instance with all bits zero | Value types are self-contained; a "zero view" would be a view over an empty buffer, which is a different concept |
+| `Default` | ✔ | | `public static T` -- normalized `default(T)` instance (all bits zero, then MustBe/UndefinedBitsMustBe constraints applied) | Value types are self-contained; a "default view" would be a view over an empty buffer, which is a different concept |
 | `{Flag}Bit` | ✔ | | `public static T` -- instance with only the named flag bit set | Returns a value-type instance; views have no "instance value" to return |
 | `{Field}Mask` | ✔ | | `public static T` -- instance with the named field's mask bits set | Same: returns a value-type instance |
 | `With{Name}(value)` | ✔ | | `public T` -- fluent immutable setter for each field/flag | Value types are immutable on assignment; views mutate in-place via property setters |
@@ -2345,7 +2372,7 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
 
     public const int SIZE_IN_BYTES = 1;
     public const int BIT_WIDTH = 8;
-    public static StatusRegister Zero => default;
+    public static StatusRegister Default => default;
 
     public StatusRegister(byte value) { __value = value; }
 

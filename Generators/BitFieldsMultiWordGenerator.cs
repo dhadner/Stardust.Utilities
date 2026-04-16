@@ -88,6 +88,10 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{mind}public const int BIT_WIDTH = {info.TotalBits};");
         sb.AppendLine();
 
+        sb.AppendLine($"{mind}/// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>");
+        sb.AppendLine($"{mind}public static {info.TypeName} Default => default;");
+        sb.AppendLine();
+
         // Last-word mask
         int lwBits = info.TotalBits % 64;
         if (lwBits == 0) lwBits = 64;

@@ -40,6 +40,9 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 512;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static UnalignedFrame512 Default => default;
+
     private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
     /// <summary>Creates a new UnalignedFrame512 from a ulong value (zero-extended).</summary>

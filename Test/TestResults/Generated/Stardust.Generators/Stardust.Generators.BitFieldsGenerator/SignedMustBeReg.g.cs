@@ -24,6 +24,9 @@ public partial struct SignedMustBeReg : IComparable, IComparable<SignedMustBeReg
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
+    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+    public static SignedMustBeReg Default => default;
+
     // --- Bit field mask constants ---
     // Data: bits [0..2], width 3
     private const int __DATA_START_BIT = 0;

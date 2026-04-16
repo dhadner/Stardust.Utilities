@@ -26,6 +26,9 @@ public partial class BitFieldProtocolTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 16;
 
+        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+        public static TcpFlags Default => default;
+
         // --- Bit field mask constants ---
         // FIN: bit 0
         private const int __FIN_BIT = 0;

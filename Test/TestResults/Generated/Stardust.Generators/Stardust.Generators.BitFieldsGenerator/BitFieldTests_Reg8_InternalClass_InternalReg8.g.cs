@@ -28,6 +28,9 @@ public partial class BitFieldTests
             /// <summary>Total number of bits in this struct.</summary>
             public const int BIT_WIDTH = 8;
 
+            /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
+            public static InternalReg8 Default => default;
+
             // --- Bit field mask constants ---
             // FieldC: bits [3..4], width 2
             private const int __FIELD_C_START_BIT = 3;

@@ -1772,6 +1772,92 @@ public partial class BitFieldTests
     }
 
     #endregion
+
+    #region Default Static Property Tests
+
+    /// <summary>
+    /// Default on an unconstrained type returns all-zero value.
+    /// </summary>
+    [Fact]
+    public void Default_Unconstrained_ReturnsZero()
+    {
+        var reg = GeneratedStatusReg8.Default;
+        ((byte)reg).Should().Be(0x00);
+        reg.Ready.Should().BeFalse();
+        reg.Error.Should().BeFalse();
+        reg.Mode.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Default on a constrained type applies MustBe normalization.
+    /// MustBeTestReg: bit 7 = MustBe.One, bits 1-2 = MustBe.Zero.
+    /// Default should read Sync = true (bit 7 forced on).
+    /// </summary>
+    [Fact]
+    public void Default_Constrained_MustBe_AppliesNormalization()
+    {
+        var reg = MustBeTestReg.Default;
+        reg.Sync.Should().BeTrue("bit 7 is MustBe.One so Default must read as true");
+        reg.Reserved.Should().Be(0, "bits 1-2 are MustBe.Zero so Default must read as 0");
+        reg.Active.Should().BeFalse();
+        reg.Data.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Default on a 16-bit unconstrained type returns all-zero.
+    /// </summary>
+    [Fact]
+    public void Default_16Bit_ReturnsZero()
+    {
+        var reg = GeneratedKeyboardReg16.Default;
+        ((ushort)reg).Should().Be(0x0000);
+    }
+
+    /// <summary>
+    /// Default on a 32-bit unconstrained type returns all-zero.
+    /// </summary>
+    [Fact]
+    public void Default_32Bit_ReturnsZero()
+    {
+        var reg = GeneratedControlReg32.Default;
+        ((uint)reg).Should().Be(0x00000000);
+    }
+
+    /// <summary>
+    /// Default on a 64-bit unconstrained type returns all-zero.
+    /// </summary>
+    [Fact]
+    public void Default_64Bit_ReturnsZero()
+    {
+        var reg = GeneratedWideReg64.Default;
+        ((ulong)reg).Should().Be(0UL);
+    }
+
+    /// <summary>
+    /// Default on a CombinedMustBeReg (UndefinedBitsMustBe.Zeroes + MustBe.One on bit 3)
+    /// reads AlwaysHigh = true and all undefined bits zeroed.
+    /// </summary>
+    [Fact]
+    public void Default_CombinedConstraints_AppliesNormalization()
+    {
+        var reg = CombinedMustBeReg.Default;
+        reg.AlwaysHigh.Should().BeTrue("bit 3 is MustBe.One");
+        reg.Flags.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Default used as fluent builder base produces correct results.
+    /// </summary>
+    [Fact]
+    public void Default_FluentBuilder_ProducesCorrectResult()
+    {
+        var reg = GeneratedStatusReg8.Default.WithReady(true).WithMode(OpMode.Mode1);
+        reg.Ready.Should().BeTrue();
+        reg.Mode.Should().Be(OpMode.Mode1);
+        reg.Error.Should().BeFalse();
+    }
+
+    #endregion
 }
 
 /// <summary>
