@@ -155,28 +155,80 @@ namespace Stardust.Utilities
         #region Operators
 
         /// <summary>Returns the value of the operand (unary plus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int16Le operator +(Int16Le a) => a;
         /// <summary>Negates the value (unary minus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int16Le operator -(Int16Le a) => new((short)-(short)a);
         /// <summary>Adds two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int16Le operator +(Int16Le a, Int16Le b) => new((short)((short)a + (short)b));
         /// <summary>Subtracts two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int16Le operator -(Int16Le a, Int16Le b) => new((short)((short)a - (short)b));
         /// <summary>Determines whether the left operand is greater than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >(Int16Le a, Int16Le b) => (short)a > (short)b;
         /// <summary>Determines whether the left operand is less than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(Int16Le a, Int16Le b) => (short)a < (short)b;
         /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >=(Int16Le a, Int16Le b) => (short)a >= (short)b;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <=(Int16Le a, Int16Le b) => (short)a <= (short)b;
         /// <summary>Determines whether two values are equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Int16Le a, Int16Le b) => (short)a == (short)b;
         /// <summary>Determines whether two values are not equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Int16Le a, Int16Le b) => (short)a != (short)b;
+        /// <summary>Multiplies two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator *(Int16Le a, Int16Le b) => new((short)((short)a * (short)b));
+        /// <summary>Divides two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator /(Int16Le a, Int16Le b)
+        {
+            if ((short)b == 0) throw new DivideByZeroException();
+            return new((short)((short)a / (short)b));
+        }
+        /// <summary>Computes the bitwise AND of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator &(Int16Le a, Int16Le b) => new((short)((short)a & (short)b));
+        /// <summary>Computes the bitwise OR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator |(Int16Le a, Int16Le b) => new((short)((short)a | (short)b));
+        /// <summary>Computes the bitwise XOR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator ^(Int16Le a, Int16Le b) => new((short)((short)a ^ (short)b));
+        /// <summary>Computes the bitwise complement of the value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator ~(Int16Le a) => new((short)~(short)a);
+        /// <summary>Shifts the value right by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator >>(Int16Le a, int b) => new((short)((short)a >> b));
+        /// <summary>Performs an unsigned (logical) right shift by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator >>>(Int16Le a, int b) => new((short)((ushort)(short)a >> b));
+        /// <summary>Shifts the value left by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator <<(Int16Le a, int b) => new((short)((short)a << b));
+        /// <summary>Computes the remainder of dividing two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le operator %(Int16Le a, Int16Le b)
+        {
+            if ((short)b == 0) throw new DivideByZeroException();
+            return new((short)((short)a % (short)b));
+        }
         /// <summary>Increments the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int16Le operator ++(Int16Le a) => new((short)((short)a + 1));
         /// <summary>Decrements the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int16Le operator --(Int16Le a) => new((short)((short)a - 1));
 
         #endregion

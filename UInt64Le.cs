@@ -166,48 +166,100 @@ namespace Stardust.Utilities
         #region Operators
 
         /// <summary>Returns the value of the operand (unary plus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator +(UInt64Le a) => a;
         /// <summary>Negates the value (unary minus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator -(UInt64Le a) => new((ulong)-(long)(ulong)a);
         /// <summary>Adds two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator +(UInt64Le a, UInt64Le b) => new((ulong)a + (ulong)b);
         /// <summary>Subtracts two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator -(UInt64Le a, UInt64Le b) => new((ulong)a - (ulong)b);
         /// <summary>Determines whether the left operand is greater than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >(UInt64Le a, UInt64Le b) => (ulong)a > (ulong)b;
         /// <summary>Determines whether the left operand is less than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <(UInt64Le a, UInt64Le b) => (ulong)a < (ulong)b;
         /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >=(UInt64Le a, UInt64Le b) => (ulong)a >= (ulong)b;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <=(UInt64Le a, UInt64Le b) => (ulong)a <= (ulong)b;
         /// <summary>Determines whether two values are equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator ==(UInt64Le a, UInt64Le b) => (ulong)a == (ulong)b;
         /// <summary>Determines whether two values are not equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator !=(UInt64Le a, UInt64Le b) => (ulong)a != (ulong)b;
         /// <summary>Multiplies two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator *(UInt64Le a, UInt64Le b) => new((ulong)a * (ulong)b);
         /// <summary>Divides two values.</summary>
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator /(UInt64Le a, UInt64Le b)
         {
             if ((ulong)b == 0) throw new DivideByZeroException();
             return new((ulong)a / (ulong)b);
         }
         /// <summary>Computes the bitwise AND of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator &(UInt64Le a, UInt64Le b) => new((ulong)a & (ulong)b);
         /// <summary>Computes the bitwise OR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator |(UInt64Le a, UInt64Le b) => new((ulong)a | (ulong)b);
         /// <summary>Shifts the value right by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator >>(UInt64Le a, int b) => new((ulong)a >> b);
+        /// <summary>Performs an unsigned (logical) right shift. For unsigned types this is identical to <c>&gt;&gt;</c>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le operator >>>(UInt64Le a, int b) => new((ulong)a >> b);
         /// <summary>Shifts the value left by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator <<(UInt64Le a, int b) => new((ulong)a << b);
         /// <summary>Computes the bitwise complement of the value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator ~(UInt64Le a) => new(~(ulong)a);
         /// <summary>Increments the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator ++(UInt64Le a) => new((ulong)a + 1);
         /// <summary>Decrements the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt64Le operator --(UInt64Le a) => new((ulong)a - 1);
+        /// <summary>Computes the remainder of dividing two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le operator %(UInt64Le a, UInt64Le b)
+        {
+            if ((ulong)b == 0) throw new DivideByZeroException();
+            return new((ulong)a % (ulong)b);
+        }
+        /// <summary>Computes the bitwise XOR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le operator ^(UInt64Le a, UInt64Le b) => new((ulong)a ^ (ulong)b);
 
         #endregion
 
@@ -222,20 +274,32 @@ namespace Stardust.Utilities
         public static implicit operator UInt64Le(ulong a) => new(a);
 
         /// <summary>Explicitly converts a <see cref="UInt64Le"/> to a <see cref="uint"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator uint(UInt64Le a) => (uint)(ulong)a;
         /// <summary>Explicitly converts a <see cref="UInt64Le"/> to a <see cref="long"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator long(UInt64Le a) => (long)(ulong)a;
 
         /// <summary>Widening conversion from a 32-bit little-endian unsigned value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static implicit operator UInt64Le(UInt32Le a) => new((uint)a);
 
         /// <summary>Widening conversion from a 16-bit little-endian unsigned value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static implicit operator UInt64Le(UInt16Le a) => new((ulong)(ushort)a);
 
         /// <summary>Narrowing conversion to a 32-bit little-endian unsigned value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator UInt32Le(UInt64Le a) => new((uint)(ulong)a);
 
         /// <summary>Narrowing conversion to a 16-bit little-endian unsigned value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator UInt16Le(UInt64Le a) => new((ushort)(ulong)a);
 
         #endregion

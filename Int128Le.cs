@@ -161,29 +161,53 @@ namespace Stardust.Utilities
         #region Operators
 
         /// <summary>Returns the value of the operand (unary plus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator +(Int128Le a) => a;
         /// <summary>Negates the value (unary minus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator -(Int128Le a) => new(-(Int128)a);
         /// <summary>Adds two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator +(Int128Le a, Int128Le b) => new((Int128)a + (Int128)b);
         /// <summary>Subtracts two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator -(Int128Le a, Int128Le b) => new((Int128)a - (Int128)b);
         /// <summary>Determines whether the left operand is greater than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >(Int128Le a, Int128Le b) => (Int128)a > (Int128)b;
         /// <summary>Determines whether the left operand is less than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <(Int128Le a, Int128Le b) => (Int128)a < (Int128)b;
         /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >=(Int128Le a, Int128Le b) => (Int128)a >= (Int128)b;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <=(Int128Le a, Int128Le b) => (Int128)a <= (Int128)b;
         /// <summary>Determines whether two values are equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator ==(Int128Le a, Int128Le b) => (Int128)a == (Int128)b;
         /// <summary>Determines whether two values are not equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator !=(Int128Le a, Int128Le b) => (Int128)a != (Int128)b;
         /// <summary>Multiplies two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator *(Int128Le a, Int128Le b) => new((Int128)a * (Int128)b);
         /// <summary>Divides two values.</summary>
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator /(Int128Le a, Int128Le b)
         {
             if ((Int128)b == 0) throw new DivideByZeroException();
@@ -191,26 +215,47 @@ namespace Stardust.Utilities
         }
         /// <summary>Computes the remainder of two values.</summary>
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator %(Int128Le a, Int128Le b)
         {
             if ((Int128)b == 0) throw new DivideByZeroException();
             return new((Int128)a % (Int128)b);
         }
         /// <summary>Computes the bitwise AND of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator &(Int128Le a, Int128Le b) => new((Int128)((UInt128)(Int128)a & (UInt128)(Int128)b));
         /// <summary>Computes the bitwise OR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator |(Int128Le a, Int128Le b) => new((Int128)((UInt128)(Int128)a | (UInt128)(Int128)b));
         /// <summary>Computes the bitwise XOR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator ^(Int128Le a, Int128Le b) => new((Int128)((UInt128)(Int128)a ^ (UInt128)(Int128)b));
         /// <summary>Shifts the value right by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator >>(Int128Le a, int b) => new((Int128)a >> b);
+        /// <summary>Performs an unsigned (logical) right shift by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Le operator >>>(Int128Le a, int b) => new((Int128)((UInt128)(Int128)a >> b));
         /// <summary>Shifts the value left by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator <<(Int128Le a, int b) => new((Int128)a << b);
         /// <summary>Computes the bitwise complement of the value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator ~(Int128Le a) => new((Int128)(~(UInt128)(Int128)a));
         /// <summary>Increments the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator ++(Int128Le a) => new((Int128)a + 1);
         /// <summary>Decrements the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int128Le operator --(Int128Le a) => new((Int128)a - 1);
 
         #endregion
@@ -226,20 +271,32 @@ namespace Stardust.Utilities
         public static implicit operator Int128Le(Int128 a) => new(a);
 
         /// <summary>Explicitly converts an <see cref="Int128Le"/> to a <see cref="long"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator long(Int128Le a) => (long)(Int128)a;
         /// <summary>Explicitly converts an <see cref="Int128Le"/> to a <see cref="UInt128"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator UInt128(Int128Le a) => (UInt128)(Int128)a;
 
         /// <summary>Widening conversion from a 64-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static implicit operator Int128Le(Int64Le a) => new((long)a);
 
         /// <summary>Widening conversion from a 32-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static implicit operator Int128Le(Int32Le a) => new((long)(int)a);
 
         /// <summary>Narrowing conversion to a 64-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator Int64Le(Int128Le a) => new((long)(Int128)a);
 
         /// <summary>Narrowing conversion to a 32-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator Int32Le(Int128Le a) => new((int)(Int128)a);
 
         #endregion

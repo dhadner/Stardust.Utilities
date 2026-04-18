@@ -217,51 +217,96 @@ namespace Stardust.Utilities
         #region Operators
 
         /// <summary>Returns the value of the operand (unary plus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator +(UInt16Le a) => a;
         /// <summary>Negates the value (unary minus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator -(UInt16Le a) => new((ushort)-(ushort)a);
         /// <summary>Adds two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator +(UInt16Le a, UInt16Le b) => new((ushort)((ushort)a + (ushort)b));
         /// <summary>Subtracts two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator -(UInt16Le a, UInt16Le b) => a + (-b);
         /// <summary>Determines whether the left operand is greater than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >(UInt16Le a, UInt16Le b) => (ushort)a > (ushort)b;
         /// <summary>Determines whether the left operand is less than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <(UInt16Le a, UInt16Le b) => (ushort)a < (ushort)b;
         /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >=(UInt16Le a, UInt16Le b) => (ushort)a >= (ushort)b;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <=(UInt16Le a, UInt16Le b) => (ushort)a <= (ushort)b;
         /// <summary>Determines whether two values are equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator ==(UInt16Le a, UInt16Le b) => (ushort)a == (ushort)b;
         /// <summary>Determines whether two values are not equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator !=(UInt16Le a, UInt16Le b) => (ushort)a != (ushort)b;
         /// <summary>Multiplies two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator *(UInt16Le a, UInt16Le b) => new((ushort)((ushort)a * (ushort)b));
         /// <summary>Divides two values.</summary>
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator /(UInt16Le a, UInt16Le b)
         {
             if (b.hi == 0 && b.lo == 0) throw new DivideByZeroException();
             return new((ushort)((ushort)a / (ushort)b));
         }
         /// <summary>Computes the bitwise AND of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator &(UInt16Le a, UInt16Le b) => new((ushort)((ushort)a & (ushort)b));
         /// <summary>Computes the bitwise OR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator |(UInt16Le a, UInt16Le b) => new((ushort)((ushort)a | (ushort)b));
         /// <summary>Shifts the value right by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator >>(UInt16Le a, uint b) => new((ushort)((ushort)a >> (byte)b));
+        /// <summary>Performs an unsigned (logical) right shift. For unsigned types this is identical to <c>&gt;&gt;</c>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le operator >>>(UInt16Le a, int b) => new((ushort)((ushort)a >> b));
         /// <summary>Shifts the value left by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator <<(UInt16Le a, uint b) => new((ushort)((ushort)a << (byte)b));
         /// <summary>Computes the modulo of a value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator %(UInt16Le a, uint b) => new((ushort)((ushort)a % b));
         /// <summary>Computes the bitwise XOR of a value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator ^(UInt16Le a, uint b) => new((ushort)((ushort)a ^ b));
         /// <summary>Computes the bitwise complement of the value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator ~(UInt16Le a) => new((ushort)~(ushort)a);
         /// <summary>Increments the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator ++(UInt16Le a) => new((ushort)((ushort)a + 1));
         /// <summary>Decrements the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt16Le operator --(UInt16Le a) => new((ushort)((ushort)a - 1));
 
         #endregion
@@ -281,10 +326,14 @@ namespace Stardust.Utilities
         public static implicit operator UInt16Le(ushort a) => new(a);
 
         /// <summary>Explicitly converts a <see cref="UInt16Le"/> to a <see cref="byte"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator byte(UInt16Le a) => a.lo;
 
         /// <summary>Explicitly converts a <see cref="uint"/> to a <see cref="UInt16Le"/>.</summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="a"/> exceeds <see cref="ushort.MaxValue"/>.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator UInt16Le(uint a)
         {
             if (a > ushort.MaxValue) throw new ArgumentOutOfRangeException(nameof(a));
@@ -292,6 +341,8 @@ namespace Stardust.Utilities
         }
 
         /// <summary>Explicitly converts an <see cref="int"/> to a <see cref="UInt16Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator UInt16Le(int a) => (UInt16Le)(uint)a;
 
         /// <summary>Widening conversion from a 16-bit little-endian value to a 32-bit little-endian value.</summary>

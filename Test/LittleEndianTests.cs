@@ -1042,6 +1042,108 @@ public class LittleEndianTests
         wide.Should().Be(-1000);
     }
 
+    [Fact]
+    public void Int16Le_Arithmetic_Multiply()
+    {
+        Int16Le a = 100;
+        Int16Le b = 3;
+        short result = (short)(a * b);
+        result.Should().Be(300);
+    }
+
+    [Fact]
+    public void Int16Le_Arithmetic_Divide()
+    {
+        Int16Le a = 300;
+        Int16Le b = 3;
+        short result = (short)(a / b);
+        result.Should().Be(100);
+    }
+
+    [Fact]
+    public void Int16Le_Arithmetic_DivideByZero_Throws()
+    {
+        Int16Le a = 1;
+        Int16Le zero = 0;
+        FluentActions.Invoking(() => { var _ = a / zero; }).Should().Throw<DivideByZeroException>();
+    }
+
+    [Fact]
+    public void Int16Le_Arithmetic_Modulo()
+    {
+        Int16Le a = 10;
+        Int16Le b = 3;
+        short result = (short)(a % b);
+        result.Should().Be(1);
+    }
+
+    [Fact]
+    public void Int16Le_Bitwise_And()
+    {
+        Int16Le a = unchecked((short)0xFF0F);
+        Int16Le b = unchecked((short)0x0FFF);
+        short result = (short)(a & b);
+        result.Should().Be(unchecked((short)0x0F0F));
+    }
+
+    [Fact]
+    public void Int16Le_Bitwise_Or()
+    {
+        Int16Le a = unchecked((short)0xFF00);
+        Int16Le b = 0x00FF;
+        short result = (short)(a | b);
+        result.Should().Be(unchecked((short)0xFFFF));
+    }
+
+    [Fact]
+    public void Int16Le_Bitwise_Xor()
+    {
+        Int16Le a = unchecked((short)0xFF00);
+        Int16Le b = unchecked((short)0xF0F0);
+        short result = (short)(a ^ b);
+        result.Should().Be(0x0FF0);
+    }
+
+    [Fact]
+    public void Int16Le_Bitwise_Not()
+    {
+        Int16Le a = 0x00FF;
+        short result = (short)~a;
+        result.Should().Be(unchecked((short)0xFF00));
+    }
+
+    [Fact]
+    public void Int16Le_Shift_Left()
+    {
+        Int16Le a = 1;
+        short result = (short)(a << 4);
+        result.Should().Be(16);
+    }
+
+    [Fact]
+    public void Int16Le_Shift_Right()
+    {
+        Int16Le a = 256;
+        short result = (short)(a >> 4);
+        result.Should().Be(16);
+    }
+
+    [Fact]
+    public void Int16Le_Shift_Right_SignExtends()
+    {
+        Int16Le a = -256;
+        short result = (short)(a >> 4);
+        result.Should().Be(-16);
+    }
+
+    [Fact]
+    public void Int16Le_UnsignedShift_Right_ZeroFills()
+    {
+        Int16Le a = unchecked((short)0xFF00); // -256
+        short result = (short)(a >>> 4);
+        result.Should().Be(0x0FF0);
+    }
+
     #endregion
 
     #region Int32Le Tests
@@ -1216,6 +1318,108 @@ public class LittleEndianTests
         Int32Le small = -1000000;
         long wide = small;
         wide.Should().Be(-1000000L);
+    }
+
+    [Fact]
+    public void Int32Le_Arithmetic_Multiply()
+    {
+        Int32Le a = 1000;
+        Int32Le b = 42;
+        int result = a * b;
+        result.Should().Be(42000);
+    }
+
+    [Fact]
+    public void Int32Le_Arithmetic_Divide()
+    {
+        Int32Le a = 42000;
+        Int32Le b = 42;
+        int result = a / b;
+        result.Should().Be(1000);
+    }
+
+    [Fact]
+    public void Int32Le_Arithmetic_DivideByZero_Throws()
+    {
+        Int32Le a = 1;
+        Int32Le zero = 0;
+        FluentActions.Invoking(() => { var _ = a / zero; }).Should().Throw<DivideByZeroException>();
+    }
+
+    [Fact]
+    public void Int32Le_Arithmetic_Modulo()
+    {
+        Int32Le a = 10;
+        Int32Le b = 3;
+        int result = a % b;
+        result.Should().Be(1);
+    }
+
+    [Fact]
+    public void Int32Le_Bitwise_And()
+    {
+        Int32Le a = unchecked((int)0xFF00FF00);
+        Int32Le b = 0x0FFF0FFF;
+        int result = a & b;
+        result.Should().Be(0x0F000F00);
+    }
+
+    [Fact]
+    public void Int32Le_Bitwise_Or()
+    {
+        Int32Le a = unchecked((int)0xFF000000);
+        Int32Le b = 0x00FF00FF;
+        int result = a | b;
+        result.Should().Be(unchecked((int)0xFFFF00FF));
+    }
+
+    [Fact]
+    public void Int32Le_Bitwise_Xor()
+    {
+        Int32Le a = unchecked((int)0xFF00FF00);
+        Int32Le b = unchecked((int)0xF0F0F0F0);
+        int result = a ^ b;
+        result.Should().Be(0x0FF00FF0);
+    }
+
+    [Fact]
+    public void Int32Le_Bitwise_Not()
+    {
+        Int32Le a = 0x00FF00FF;
+        int result = ~a;
+        result.Should().Be(unchecked((int)0xFF00FF00));
+    }
+
+    [Fact]
+    public void Int32Le_Shift_Left()
+    {
+        Int32Le a = 1;
+        int result = a << 8;
+        result.Should().Be(256);
+    }
+
+    [Fact]
+    public void Int32Le_Shift_Right()
+    {
+        Int32Le a = 256;
+        int result = a >> 4;
+        result.Should().Be(16);
+    }
+
+    [Fact]
+    public void Int32Le_Shift_Right_SignExtends()
+    {
+        Int32Le a = -256;
+        int result = a >> 4;
+        result.Should().Be(-16);
+    }
+
+    [Fact]
+    public void Int32Le_UnsignedShift_Right_ZeroFills()
+    {
+        Int32Le a = unchecked((int)0xFF000000);
+        int result = a >>> 8;
+        result.Should().Be(0x00FF0000);
     }
 
     #endregion
@@ -1427,6 +1631,108 @@ public class LittleEndianTests
         Int64Le a = -9999999L;
         Int64Le b = -9999999L;
         a.GetHashCode().Should().Be(b.GetHashCode());
+    }
+
+    [Fact]
+    public void Int64Le_Arithmetic_Multiply()
+    {
+        Int64Le a = 100000L;
+        Int64Le b = 42L;
+        long result = a * b;
+        result.Should().Be(4200000L);
+    }
+
+    [Fact]
+    public void Int64Le_Arithmetic_Divide()
+    {
+        Int64Le a = 4200000L;
+        Int64Le b = 42L;
+        long result = a / b;
+        result.Should().Be(100000L);
+    }
+
+    [Fact]
+    public void Int64Le_Arithmetic_DivideByZero_Throws()
+    {
+        Int64Le a = 1L;
+        Int64Le zero = 0L;
+        FluentActions.Invoking(() => { var _ = a / zero; }).Should().Throw<DivideByZeroException>();
+    }
+
+    [Fact]
+    public void Int64Le_Arithmetic_Modulo()
+    {
+        Int64Le a = 10L;
+        Int64Le b = 3L;
+        long result = a % b;
+        result.Should().Be(1L);
+    }
+
+    [Fact]
+    public void Int64Le_Bitwise_And()
+    {
+        Int64Le a = unchecked((long)0xFF00FF00FF00FF00);
+        Int64Le b = 0x0FFF0FFF0FFF0FFF;
+        long result = a & b;
+        result.Should().Be(0x0F000F000F000F00L);
+    }
+
+    [Fact]
+    public void Int64Le_Bitwise_Or()
+    {
+        Int64Le a = unchecked((long)0xFF00000000000000);
+        Int64Le b = 0x00000000000000FF;
+        long result = a | b;
+        result.Should().Be(unchecked((long)0xFF000000000000FF));
+    }
+
+    [Fact]
+    public void Int64Le_Bitwise_Xor()
+    {
+        Int64Le a = unchecked((long)0xFF00FF00FF00FF00);
+        Int64Le b = unchecked((long)0xF0F0F0F0F0F0F0F0);
+        long result = a ^ b;
+        result.Should().Be(0x0FF00FF00FF00FF0L);
+    }
+
+    [Fact]
+    public void Int64Le_Bitwise_Not()
+    {
+        Int64Le a = 0x00FF00FF00FF00FF;
+        long result = ~a;
+        result.Should().Be(unchecked((long)0xFF00FF00FF00FF00));
+    }
+
+    [Fact]
+    public void Int64Le_Shift_Left()
+    {
+        Int64Le a = 1L;
+        long result = a << 16;
+        result.Should().Be(65536L);
+    }
+
+    [Fact]
+    public void Int64Le_Shift_Right()
+    {
+        Int64Le a = 65536L;
+        long result = a >> 8;
+        result.Should().Be(256L);
+    }
+
+    [Fact]
+    public void Int64Le_Shift_Right_SignExtends()
+    {
+        Int64Le a = -65536L;
+        long result = a >> 8;
+        result.Should().Be(-256L);
+    }
+
+    [Fact]
+    public void Int64Le_UnsignedShift_Right_ZeroFills()
+    {
+        Int64Le a = unchecked((long)0xFF00000000000000);
+        long result = a >>> 8;
+        result.Should().Be(0x00FF000000000000L);
     }
 
     #endregion
@@ -2098,6 +2404,22 @@ public class LittleEndianTests
         Int128Le b = new((Int128)0);
         var act = () => { var _ = a / b; };
         act.Should().Throw<DivideByZeroException>();
+    }
+
+    [Fact]
+    public void Int128Le_ShiftRight_SignExtends()
+    {
+        Int128Le a = new((Int128)(-8));
+        Int128Le shifted = a >> 2;
+        ((Int128)shifted).Should().Be((Int128)(-2));
+    }
+
+    [Fact]
+    public void Int128Le_UnsignedShiftRight_ZeroFills()
+    {
+        Int128Le a = new((Int128)(-1));
+        Int128Le shifted = a >>> 64;
+        ((Int128)shifted).Should().Be((Int128)((UInt128)ulong.MaxValue));
     }
 
     #endregion

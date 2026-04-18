@@ -178,48 +178,100 @@ namespace Stardust.Utilities
         #region Operators
 
         /// <summary>Returns the value of the operand (unary plus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator +(UInt32Le a) => a;
         /// <summary>Negates the value (unary minus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator -(UInt32Le a) => new((uint)-(int)(uint)a);
         /// <summary>Adds two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator +(UInt32Le a, UInt32Le b) => new((uint)a + (uint)b);
         /// <summary>Subtracts two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator -(UInt32Le a, UInt32Le b) => new((uint)a - (uint)b);
         /// <summary>Determines whether the left operand is greater than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >(UInt32Le a, UInt32Le b) => (uint)a > (uint)b;
         /// <summary>Determines whether the left operand is less than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <(UInt32Le a, UInt32Le b) => (uint)a < (uint)b;
         /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >=(UInt32Le a, UInt32Le b) => (uint)a >= (uint)b;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <=(UInt32Le a, UInt32Le b) => (uint)a <= (uint)b;
         /// <summary>Determines whether two values are equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator ==(UInt32Le a, UInt32Le b) => (uint)a == (uint)b;
         /// <summary>Determines whether two values are not equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator !=(UInt32Le a, UInt32Le b) => (uint)a != (uint)b;
         /// <summary>Multiplies two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator *(UInt32Le a, UInt32Le b) => new((uint)a * (uint)b);
         /// <summary>Divides two values.</summary>
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator /(UInt32Le a, UInt32Le b)
         {
             if ((uint)b == 0) throw new DivideByZeroException();
             return new((uint)a / (uint)b);
         }
         /// <summary>Computes the bitwise AND of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator &(UInt32Le a, UInt32Le b) => new((uint)a & (uint)b);
         /// <summary>Computes the bitwise OR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator |(UInt32Le a, UInt32Le b) => new((uint)a | (uint)b);
         /// <summary>Shifts the value right by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator >>(UInt32Le a, int b) => new((uint)a >> b);
+        /// <summary>Performs an unsigned (logical) right shift. For unsigned types this is identical to <c>&gt;&gt;</c>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le operator >>>(UInt32Le a, int b) => new((uint)a >> b);
         /// <summary>Shifts the value left by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator <<(UInt32Le a, int b) => new((uint)a << b);
         /// <summary>Computes the bitwise complement of the value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator ~(UInt32Le a) => new(~(uint)a);
         /// <summary>Increments the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator ++(UInt32Le a) => new((uint)a + 1);
         /// <summary>Decrements the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static UInt32Le operator --(UInt32Le a) => new((uint)a - 1);
+        /// <summary>Computes the remainder of dividing two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le operator %(UInt32Le a, UInt32Le b)
+        {
+            if ((uint)b == 0) throw new DivideByZeroException();
+            return new((uint)a % (uint)b);
+        }
+        /// <summary>Computes the bitwise XOR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le operator ^(UInt32Le a, UInt32Le b) => new((uint)a ^ (uint)b);
 
         #endregion
 
@@ -238,11 +290,17 @@ namespace Stardust.Utilities
         public static implicit operator ulong(UInt32Le a) => (uint)a;
 
         /// <summary>Explicitly converts a <see cref="UInt32Le"/> to a <see cref="ushort"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator ushort(UInt32Le a) => (ushort)(uint)a;
         /// <summary>Explicitly converts a <see cref="UInt32Le"/> to an <see cref="int"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator int(UInt32Le a) => (int)(uint)a;
 
         /// <summary>Narrowing conversion to a 16-bit little-endian unsigned value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator UInt16Le(UInt32Le a) => new((ushort)(uint)a);
 
         #endregion

@@ -185,6 +185,8 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="a">The value.</param>
         /// <returns>The same value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator +(Int16Be a) => a;
 
         /// <summary>
@@ -192,6 +194,8 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="a">The value to negate.</param>
         /// <returns>The negated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator -(Int16Be a) => new((short)-(short)a);
 
         /// <summary>
@@ -200,6 +204,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns>The sum of the values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator +(Int16Be a, Int16Be b)
             => new((short)((short)a + (short)b));
 
@@ -209,6 +215,8 @@ namespace Stardust.Utilities
         /// <param name="a">The value to subtract from.</param>
         /// <param name="b">The value to subtract.</param>
         /// <returns>The difference of the values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator -(Int16Be a, Int16Be b)
             => a + (-b);
 
@@ -218,6 +226,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns><see langword="true"/> if <paramref name="a"/> is greater than <paramref name="b"/>; otherwise, <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >(Int16Be a, Int16Be b)
            => (short)a > (short)b;
 
@@ -227,6 +237,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns><see langword="true"/> if <paramref name="a"/> is less than <paramref name="b"/>; otherwise, <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <(Int16Be a, Int16Be b)
            => (short)a < (short)b;
 
@@ -236,6 +248,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns><see langword="true"/> if <paramref name="a"/> is greater than or equal to <paramref name="b"/>; otherwise, <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator >=(Int16Be a, Int16Be b)
            => (short)a >= (short)b;
 
@@ -245,6 +259,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns><see langword="true"/> if <paramref name="a"/> is less than or equal to <paramref name="b"/>; otherwise, <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator <=(Int16Be a, Int16Be b)
            => (short)a <= (short)b;
 
@@ -254,6 +270,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns><see langword="true"/> if the values are equal; otherwise, <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator ==(Int16Be a, Int16Be b)
            => (short)a == (short)b;
 
@@ -263,6 +281,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns><see langword="true"/> if the values are not equal; otherwise, <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static bool operator !=(Int16Be a, Int16Be b)
            => (short)a != (short)b;
 
@@ -272,6 +292,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns>The product of the values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator *(Int16Be a, Int16Be b)
             => new((short)((short)a * (short)b));
 
@@ -282,6 +304,8 @@ namespace Stardust.Utilities
         /// <param name="b">The divisor.</param>
         /// <returns>The quotient of the division.</returns>
         /// <exception cref="DivideByZeroException">Thrown when <paramref name="b"/> is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator /(Int16Be a, Int16Be b)
         {
             if (b.hi == 0 && b.lo == 0)
@@ -297,6 +321,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns>The bitwise AND of the values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator &(Int16Be a, Int16Be b)
             => new((short)((short)a & (short)b));
 
@@ -306,6 +332,8 @@ namespace Stardust.Utilities
         /// <param name="a">The first value.</param>
         /// <param name="b">The second value.</param>
         /// <returns>The bitwise OR of the values.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator |(Int16Be a, Int16Be b)
             => new((short)((short)a | (short)b));
 
@@ -315,8 +343,15 @@ namespace Stardust.Utilities
         /// <param name="a">The value to shift.</param>
         /// <param name="b">The number of bits to shift.</param>
         /// <returns>The shifted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator >>(Int16Be a, int b)
             => new((short)((short)a >> (byte)b));
+
+        /// <summary>Performs an unsigned (logical) right shift by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Be operator >>>(Int16Be a, int b)
+            => new((short)((ushort)(short)a >> b));
 
         /// <summary>
         /// Shift left loses bits on the left side.
@@ -327,6 +362,8 @@ namespace Stardust.Utilities
         /// <param name="a">The value to shift.</param>
         /// <param name="b">The number of bits to shift.</param>
         /// <returns>The shifted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator <<(Int16Be a, int b)
             => new((short)((short)a << (byte)b));
 
@@ -336,6 +373,8 @@ namespace Stardust.Utilities
         /// <param name="a">The dividend.</param>
         /// <param name="b">The divisor.</param>
         /// <returns>The remainder of the division.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator %(Int16Be a, int b)
             => new((short)((short)a % b));
 
@@ -345,6 +384,8 @@ namespace Stardust.Utilities
         /// <param name="a">The value to mask.</param>
         /// <param name="b">The mask value.</param>
         /// <returns>The bitwise XOR of the inputs.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator ^(Int16Be a, int b)
             => new((short)((short)a ^ b));
 
@@ -353,6 +394,8 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="a">The value to complement.</param>
         /// <returns>The bitwise complement.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator ~(Int16Be a)
             => new((short)~(short)a);
 
@@ -361,6 +404,8 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="a">The value to increment.</param>
         /// <returns>The incremented value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator ++(Int16Be a)
             => new((short)((short)a + 1));
 
@@ -369,6 +414,8 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="a">The value to decrement.</param>
         /// <returns>The decremented value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static Int16Be operator --(Int16Be a)
             => new((short)((short)a - 1));
 
@@ -413,6 +460,8 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="a">The big-endian value.</param>
         /// <returns>The high byte.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator byte(Int16Be a) => a.hi;
 
         /// <summary>
@@ -421,6 +470,8 @@ namespace Stardust.Utilities
         /// <param name="a">The native value.</param>
         /// <returns>The big-endian value.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="a"/> is outside the range of <see cref="short"/>.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public static explicit operator Int16Be(uint a)
         {
             if (a > short.MaxValue || (int)a < short.MinValue)

@@ -150,28 +150,80 @@ namespace Stardust.Utilities
         #region Operators
 
         /// <summary>Returns the value of the operand (unary plus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64Le operator +(Int64Le a) => a;
         /// <summary>Negates the value (unary minus).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64Le operator -(Int64Le a) => new(-(long)a);
         /// <summary>Adds two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64Le operator +(Int64Le a, Int64Le b) => new((long)a + (long)b);
         /// <summary>Subtracts two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64Le operator -(Int64Le a, Int64Le b) => new((long)a - (long)b);
         /// <summary>Determines whether the left operand is greater than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >(Int64Le a, Int64Le b) => (long)a > (long)b;
         /// <summary>Determines whether the left operand is less than the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(Int64Le a, Int64Le b) => (long)a < (long)b;
         /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >=(Int64Le a, Int64Le b) => (long)a >= (long)b;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <=(Int64Le a, Int64Le b) => (long)a <= (long)b;
         /// <summary>Determines whether two values are equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Int64Le a, Int64Le b) => (long)a == (long)b;
         /// <summary>Determines whether two values are not equal.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Int64Le a, Int64Le b) => (long)a != (long)b;
+        /// <summary>Multiplies two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator *(Int64Le a, Int64Le b) => new((long)a * (long)b);
+        /// <summary>Divides two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator /(Int64Le a, Int64Le b)
+        {
+            if ((long)b == 0) throw new DivideByZeroException();
+            return new((long)a / (long)b);
+        }
+        /// <summary>Computes the bitwise AND of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator &(Int64Le a, Int64Le b) => new((long)a & (long)b);
+        /// <summary>Computes the bitwise OR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator |(Int64Le a, Int64Le b) => new((long)a | (long)b);
+        /// <summary>Computes the bitwise XOR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator ^(Int64Le a, Int64Le b) => new((long)a ^ (long)b);
+        /// <summary>Computes the bitwise complement of the value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator ~(Int64Le a) => new(~(long)a);
+        /// <summary>Shifts the value right by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator >>(Int64Le a, int b) => new((long)a >> b);
+        /// <summary>Performs an unsigned (logical) right shift by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator >>>(Int64Le a, int b) => new((long)((ulong)(long)a >> b));
+        /// <summary>Shifts the value left by the specified amount.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator <<(Int64Le a, int b) => new((long)a << b);
+        /// <summary>Computes the remainder of dividing two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le operator %(Int64Le a, Int64Le b)
+        {
+            if ((long)b == 0) throw new DivideByZeroException();
+            return new((long)a % (long)b);
+        }
         /// <summary>Increments the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64Le operator ++(Int64Le a) => new((long)a + 1);
         /// <summary>Decrements the value by one.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64Le operator --(Int64Le a) => new((long)a - 1);
 
         #endregion
@@ -187,18 +239,23 @@ namespace Stardust.Utilities
         public static implicit operator Int64Le(long a) => new(a);
 
         /// <summary>Explicitly converts an <see cref="Int64Le"/> to a <see cref="ulong"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator ulong(Int64Le a) => (ulong)(long)a;
 
         /// <summary>Widening conversion from a 32-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Int64Le(Int32Le a) => new((int)a);
 
         /// <summary>Widening conversion from a 16-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Int64Le(Int16Le a) => new((short)a);
 
         /// <summary>Narrowing conversion to a 32-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator Int32Le(Int64Le a) => new((int)(long)a);
 
         /// <summary>Narrowing conversion to a 16-bit little-endian signed value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator Int16Le(Int64Le a) => new((short)(long)a);
 
         #endregion

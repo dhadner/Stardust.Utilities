@@ -194,6 +194,22 @@ public class BigEndianTests
         ((short)value).Should().Be(-100);
     }
 
+    [Fact]
+    public void Int16Be_ShiftRight_SignExtends()
+    {
+        Int16Be a = -256;
+        short result = (short)(a >> 4);
+        result.Should().Be(-16);
+    }
+
+    [Fact]
+    public void Int16Be_UnsignedShiftRight_ZeroFills()
+    {
+        Int16Be a = unchecked((short)0xFF00);
+        short result = (short)(a >>> 4);
+        result.Should().Be(0x0FF0);
+    }
+
     #endregion
 
     #region Int32Be Tests
@@ -224,6 +240,22 @@ public class BigEndianTests
         Int16Be small = -100;
         Int32Be large = (Int32Be)small;
         ((int)large).Should().Be(-100);
+    }
+
+    [Fact]
+    public void Int32Be_ShiftRight_SignExtends()
+    {
+        Int32Be a = -256;
+        int result = (int)(a >> 4);
+        result.Should().Be(-16);
+    }
+
+    [Fact]
+    public void Int32Be_UnsignedShiftRight_ZeroFills()
+    {
+        Int32Be a = unchecked((int)0xFF000000);
+        int result = (int)(a >>> 8);
+        result.Should().Be(0x00FF0000);
     }
 
     #endregion
@@ -614,6 +646,14 @@ public class BigEndianTests
         Int64Be negative = -8L;
         Int64Be shifted = negative >> 2;
         ((long)shifted).Should().Be(-2L);
+    }
+
+    [Fact]
+    public void Int64Be_UnsignedShiftRight_ZeroFills()
+    {
+        Int64Be a = unchecked((long)0xFF00000000000000);
+        long result = (long)(a >>> 8);
+        result.Should().Be(0x00FF000000000000L);
     }
 
     #endregion
@@ -1057,6 +1097,14 @@ public class BigEndianTests
         Int128Be negative = new((Int128)(-8));
         Int128Be shifted = negative >> 2;
         ((Int128)shifted).Should().Be((Int128)(-2));
+    }
+
+    [Fact]
+    public void Int128Be_UnsignedShiftRight_ZeroFills()
+    {
+        Int128Be a = new((Int128)(-1));
+        Int128Be shifted = a >>> 64;
+        ((Int128)shifted).Should().Be((Int128)((UInt128)ulong.MaxValue));
     }
 
     [Fact]
