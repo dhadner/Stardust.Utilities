@@ -24,9 +24,6 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatShiftedField Default => default;
-
     // --- Bit field mask constants ---
     // Prefix: bits [0..3], width 4
     private const int __PREFIX_START_BIT = 0;
@@ -63,10 +60,10 @@ public partial struct SatShiftedField : IComparable, IComparable<SatShiftedField
     }
 
     /// <summary>Returns a SatShiftedField with the mask for the Prefix field (bits 0-3).</summary>
-    public static SatShiftedField PrefixMask => new(__PREFIX_MASK);
+    public static SatShiftedField PrefixMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PREFIX_MASK); }
 
     /// <summary>Returns a SatShiftedField with the mask for the Clamped field (bits 4-8).</summary>
-    public static SatShiftedField ClampedMask => new(__CLAMPED_SHIFTED_MASK);
+    public static SatShiftedField ClampedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CLAMPED_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

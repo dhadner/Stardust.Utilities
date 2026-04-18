@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyNonAlignedTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static OddStart64 Default => default;
-
         // --- Bit field mask constants ---
         // LowPad: bits [0..12], width 13
         private const int __LOW_PAD_START_BIT = 0;
@@ -102,19 +99,19 @@ public partial class FloatingPointPropertyNonAlignedTests
         }
 
         /// <summary>Returns a OddStart64 with only the TopFlag bit set.</summary>
-        public static OddStart64 TopFlagBit => new(__TOP_FLAG_MASK);
+        public static OddStart64 TopFlagBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TOP_FLAG_MASK); }
 
         /// <summary>Returns a OddStart64 with the mask for the LowPad field (bits 0-12).</summary>
-        public static OddStart64 LowPadMask => new(__LOW_PAD_MASK);
+        public static OddStart64 LowPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_PAD_MASK); }
 
         /// <summary>Returns a OddStart64 with the mask for the HalfVal field (bits 13-28).</summary>
-        public static OddStart64 HalfValMask => new(__HALF_VAL_SHIFTED_MASK);
+        public static OddStart64 HalfValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HALF_VAL_SHIFTED_MASK); }
 
         /// <summary>Returns a OddStart64 with the mask for the MidPad field (bits 29-30).</summary>
-        public static OddStart64 MidPadMask => new(__MID_PAD_SHIFTED_MASK);
+        public static OddStart64 MidPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MID_PAD_SHIFTED_MASK); }
 
         /// <summary>Returns a OddStart64 with the mask for the FloatVal field (bits 31-62).</summary>
-        public static OddStart64 FloatValMask => new(__FLOAT_VAL_SHIFTED_MASK);
+        public static OddStart64 FloatValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLOAT_VAL_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

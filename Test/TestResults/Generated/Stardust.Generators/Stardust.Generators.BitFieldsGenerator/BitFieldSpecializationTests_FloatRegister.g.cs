@@ -26,9 +26,6 @@ public partial class BitFieldSpecializationTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static FloatRegister Default => default;
-
         // --- Bit field mask constants ---
         // Mantissa: bits [0..22], width 23
         private const int __MANTISSA_START_BIT = 0;
@@ -76,13 +73,13 @@ public partial class BitFieldSpecializationTests
         }
 
         /// <summary>Returns a FloatRegister with only the Sign bit set.</summary>
-        public static FloatRegister SignBit => new(__SIGN_MASK);
+        public static FloatRegister SignBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SIGN_MASK); }
 
         /// <summary>Returns a FloatRegister with the mask for the Mantissa field (bits 0-22).</summary>
-        public static FloatRegister MantissaMask => new(__MANTISSA_MASK);
+        public static FloatRegister MantissaMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MANTISSA_MASK); }
 
         /// <summary>Returns a FloatRegister with the mask for the Exponent field (bits 23-30).</summary>
-        public static FloatRegister ExponentMask => new(__EXPONENT_SHIFTED_MASK);
+        public static FloatRegister ExponentMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__EXPONENT_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

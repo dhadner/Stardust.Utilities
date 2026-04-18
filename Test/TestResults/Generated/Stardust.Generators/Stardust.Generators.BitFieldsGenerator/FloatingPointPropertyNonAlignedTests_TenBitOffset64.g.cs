@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyNonAlignedTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static TenBitOffset64 Default => default;
-
         // --- Bit field mask constants ---
         // LowPad: bits [0..9], width 10
         private const int __LOW_PAD_START_BIT = 0;
@@ -103,19 +100,19 @@ public partial class FloatingPointPropertyNonAlignedTests
         }
 
         /// <summary>Returns a TenBitOffset64 with the mask for the LowPad field (bits 0-9).</summary>
-        public static TenBitOffset64 LowPadMask => new(__LOW_PAD_MASK);
+        public static TenBitOffset64 LowPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_PAD_MASK); }
 
         /// <summary>Returns a TenBitOffset64 with the mask for the FloatVal field (bits 10-41).</summary>
-        public static TenBitOffset64 FloatValMask => new(__FLOAT_VAL_SHIFTED_MASK);
+        public static TenBitOffset64 FloatValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLOAT_VAL_SHIFTED_MASK); }
 
         /// <summary>Returns a TenBitOffset64 with the mask for the MidPad field (bits 42-43).</summary>
-        public static TenBitOffset64 MidPadMask => new(__MID_PAD_SHIFTED_MASK);
+        public static TenBitOffset64 MidPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MID_PAD_SHIFTED_MASK); }
 
         /// <summary>Returns a TenBitOffset64 with the mask for the HalfVal field (bits 44-59).</summary>
-        public static TenBitOffset64 HalfValMask => new(__HALF_VAL_SHIFTED_MASK);
+        public static TenBitOffset64 HalfValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HALF_VAL_SHIFTED_MASK); }
 
         /// <summary>Returns a TenBitOffset64 with the mask for the HighPad field (bits 60-63).</summary>
-        public static TenBitOffset64 HighPadMask => new(__HIGH_PAD_SHIFTED_MASK);
+        public static TenBitOffset64 HighPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_PAD_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

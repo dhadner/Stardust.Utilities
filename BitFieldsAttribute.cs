@@ -60,7 +60,7 @@ namespace Stardust.Utilities;
 /// </code>
 /// The generator creates for value types (<c>struct</c>):
 /// <list type="bullet">
-/// <item>A private Value field of the specified storage type (or multiple ulong fields for arbitrary sizes)</item>
+/// <item>A private <c>__value</c> field of the specified storage type (or multiple <c>__w0</c>, <c>__w1</c>, ... fields for arbitrary sizes)</item>
 /// <item>A constructor taking the storage type</item>
 /// <item>Property implementations with inline bit manipulation</item>
 /// <item>Implicit conversion operators to/from the storage type</item>
@@ -70,7 +70,7 @@ namespace Stardust.Utilities;
 /// <item>A <c>Memory&lt;byte&gt;</c> field referencing the external buffer</item>
 /// <item>Constructors accepting <c>Memory&lt;byte&gt;</c> and <c>byte[]</c></item>
 /// <item>Property implementations that read/write directly through the span</item>
-/// <item>A <c>SizeInBytes</c> constant for the minimum required buffer size</item>
+/// <item>A <c>SIZE_IN_BYTES</c> constant for the minimum required buffer size</item>
 /// </list>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Struct)]

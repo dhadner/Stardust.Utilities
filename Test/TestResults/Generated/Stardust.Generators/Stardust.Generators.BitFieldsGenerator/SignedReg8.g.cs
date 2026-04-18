@@ -24,9 +24,6 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SignedReg8 Default => default;
-
     // --- Bit field mask constants ---
     // LowField: bits [2..4], width 3
     private const int __LOW_FIELD_START_BIT = 2;
@@ -95,19 +92,19 @@ public partial struct SignedReg8 : IComparable, IComparable<SignedReg8>, IEquata
     }
 
     /// <summary>Returns a SignedReg8 with only the Flag0 bit set.</summary>
-    public static SignedReg8 Flag0Bit => new(unchecked((sbyte)__FLAG0_MASK));
+    public static SignedReg8 Flag0Bit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__FLAG0_MASK)); }
 
     /// <summary>Returns a SignedReg8 with only the Flag1 bit set.</summary>
-    public static SignedReg8 Flag1Bit => new(unchecked((sbyte)__FLAG1_MASK));
+    public static SignedReg8 Flag1Bit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__FLAG1_MASK)); }
 
     /// <summary>Returns a SignedReg8 with only the Sign bit set.</summary>
-    public static SignedReg8 SignBit => new(unchecked((sbyte)__SIGN_MASK));
+    public static SignedReg8 SignBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__SIGN_MASK)); }
 
     /// <summary>Returns a SignedReg8 with the mask for the LowField field (bits 2-4).</summary>
-    public static SignedReg8 LowFieldMask => new(unchecked((sbyte)__LOW_FIELD_SHIFTED_MASK));
+    public static SignedReg8 LowFieldMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__LOW_FIELD_SHIFTED_MASK)); }
 
     /// <summary>Returns a SignedReg8 with the mask for the HighField field (bits 5-6).</summary>
-    public static SignedReg8 HighFieldMask => new(unchecked((sbyte)__HIGH_FIELD_SHIFTED_MASK));
+    public static SignedReg8 HighFieldMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__HIGH_FIELD_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

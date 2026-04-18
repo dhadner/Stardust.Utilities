@@ -24,9 +24,6 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 33;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static AutoSizedReg33 Default => default;
-
     // --- Bit field mask constants ---
     // Lo: bits [0..31], width 32
     private const int __LO_START_BIT = 0;
@@ -57,10 +54,10 @@ public partial struct AutoSizedReg33 : IComparable, IComparable<AutoSizedReg33>,
     }
 
     /// <summary>Returns a AutoSizedReg33 with only the Hi bit set.</summary>
-    public static AutoSizedReg33 HiBit => new(__HI_MASK);
+    public static AutoSizedReg33 HiBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HI_MASK); }
 
     /// <summary>Returns a AutoSizedReg33 with the mask for the Lo field (bits 0-31).</summary>
-    public static AutoSizedReg33 LoMask => new(__LO_MASK);
+    public static AutoSizedReg33 LoMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LO_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

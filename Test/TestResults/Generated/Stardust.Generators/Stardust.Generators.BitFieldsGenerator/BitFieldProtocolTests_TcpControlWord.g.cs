@@ -26,9 +26,6 @@ public partial class BitFieldProtocolTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static TcpControlWord Default => default;
-
         // --- Bit field mask constants ---
         // DataOffset: bits [28..31], width 4
         private const int __DATA_OFFSET_START_BIT = 28;
@@ -88,16 +85,16 @@ public partial class BitFieldProtocolTests
         }
 
         /// <summary>Returns a TcpControlWord with the mask for the DataOffset field (bits 28-31).</summary>
-        public static TcpControlWord DataOffsetMask => new(__DATA_OFFSET_SHIFTED_MASK);
+        public static TcpControlWord DataOffsetMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DATA_OFFSET_SHIFTED_MASK); }
 
         /// <summary>Returns a TcpControlWord with the mask for the Reserved field (bits 25-27).</summary>
-        public static TcpControlWord ReservedMask => new(__RESERVED_SHIFTED_MASK);
+        public static TcpControlWord ReservedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__RESERVED_SHIFTED_MASK); }
 
         /// <summary>Returns a TcpControlWord with the mask for the Flags field (bits 16-24).</summary>
-        public static TcpControlWord FlagsMask => new(__FLAGS_SHIFTED_MASK);
+        public static TcpControlWord FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_SHIFTED_MASK); }
 
         /// <summary>Returns a TcpControlWord with the mask for the WindowSize field (bits 0-15).</summary>
-        public static TcpControlWord WindowSizeMask => new(__WINDOW_SIZE_MASK);
+        public static TcpControlWord WindowSizeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__WINDOW_SIZE_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

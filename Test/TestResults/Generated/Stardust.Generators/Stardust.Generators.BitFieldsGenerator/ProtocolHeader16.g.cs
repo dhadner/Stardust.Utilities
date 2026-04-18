@@ -24,9 +24,6 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static ProtocolHeader16 Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -60,10 +57,10 @@ public partial struct ProtocolHeader16 : IComparable, IComparable<ProtocolHeader
     }
 
     /// <summary>Returns a ProtocolHeader16 with the mask for the Status field (bits 0-7).</summary>
-    public static ProtocolHeader16 StatusMask => new(__STATUS_MASK);
+    public static ProtocolHeader16 StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a ProtocolHeader16 with the mask for the Length field (bits 8-15).</summary>
-    public static ProtocolHeader16 LengthMask => new(__LENGTH_SHIFTED_MASK);
+    public static ProtocolHeader16 LengthMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LENGTH_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

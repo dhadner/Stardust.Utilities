@@ -24,9 +24,6 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static AutoSizedFlagsOnly Default => default;
-
     // --- Bit field mask constants ---
     // A: bit 0
     private const int __A_BIT = 0;
@@ -69,13 +66,13 @@ public partial struct AutoSizedFlagsOnly : IComparable, IComparable<AutoSizedFla
     }
 
     /// <summary>Returns a AutoSizedFlagsOnly with only the A bit set.</summary>
-    public static AutoSizedFlagsOnly ABit => new(__A_MASK);
+    public static AutoSizedFlagsOnly ABit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__A_MASK); }
 
     /// <summary>Returns a AutoSizedFlagsOnly with only the B bit set.</summary>
-    public static AutoSizedFlagsOnly BBit => new(__B_MASK);
+    public static AutoSizedFlagsOnly BBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__B_MASK); }
 
     /// <summary>Returns a AutoSizedFlagsOnly with only the C bit set.</summary>
-    public static AutoSizedFlagsOnly CBit => new(__C_MASK);
+    public static AutoSizedFlagsOnly CBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__C_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

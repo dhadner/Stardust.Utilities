@@ -24,9 +24,6 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static DiagramTestRegister Default => default;
-
     // --- Bit field mask constants ---
     // Mode: bits [2..4], width 3
     private const int __MODE_START_BIT = 2;
@@ -95,19 +92,19 @@ public partial struct DiagramTestRegister : IComparable, IComparable<DiagramTest
     }
 
     /// <summary>Returns a DiagramTestRegister with only the Ready bit set.</summary>
-    public static DiagramTestRegister ReadyBit => new(__READY_MASK);
+    public static DiagramTestRegister ReadyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__READY_MASK); }
 
     /// <summary>Returns a DiagramTestRegister with only the Error bit set.</summary>
-    public static DiagramTestRegister ErrorBit => new(__ERROR_MASK);
+    public static DiagramTestRegister ErrorBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ERROR_MASK); }
 
     /// <summary>Returns a DiagramTestRegister with only the Busy bit set.</summary>
-    public static DiagramTestRegister BusyBit => new(__BUSY_MASK);
+    public static DiagramTestRegister BusyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BUSY_MASK); }
 
     /// <summary>Returns a DiagramTestRegister with the mask for the Mode field (bits 2-4).</summary>
-    public static DiagramTestRegister ModeMask => new(__MODE_SHIFTED_MASK);
+    public static DiagramTestRegister ModeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MODE_SHIFTED_MASK); }
 
     /// <summary>Returns a DiagramTestRegister with the mask for the Priority field (bits 5-6).</summary>
-    public static DiagramTestRegister PriorityMask => new(__PRIORITY_SHIFTED_MASK);
+    public static DiagramTestRegister PriorityMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PRIORITY_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => "8-bit test status register";

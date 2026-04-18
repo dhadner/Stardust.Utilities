@@ -24,9 +24,6 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatWithMethod Default => default;
-
     // --- Bit field mask constants ---
     // Clamped: bits [0..5], width 6
     private const int __CLAMPED_START_BIT = 0;
@@ -51,7 +48,7 @@ public partial struct SatWithMethod : IComparable, IComparable<SatWithMethod>, I
     }
 
     /// <summary>Returns a SatWithMethod with the mask for the Clamped field (bits 0-5).</summary>
-    public static SatWithMethod ClampedMask => new(unchecked((short)__CLAMPED_MASK));
+    public static SatWithMethod ClampedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__CLAMPED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

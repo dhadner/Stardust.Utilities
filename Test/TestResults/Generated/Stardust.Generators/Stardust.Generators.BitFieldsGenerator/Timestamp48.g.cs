@@ -24,9 +24,6 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 48;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static Timestamp48 Default => default;
-
     // --- Bit field mask constants ---
     // Seconds: bits [0..31], width 32
     private const int __SECONDS_START_BIT = 0;
@@ -41,7 +38,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     // --- Constructor normalization masks ---
     private const ulong __NORMALIZATION_AND_MASK = 0x0000FFFFFFFFFFFFUL;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    private ulong __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (ulong)(__value & __NORMALIZATION_AND_MASK); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private ulong __GetNormalizedValue() => (ulong)(__value & __NORMALIZATION_AND_MASK);
 
     /// <summary>Creates a new Timestamp48 with the specified raw bits value.</summary>
     public Timestamp48(ulong value) { __value = (ulong)(value & __NORMALIZATION_AND_MASK); }
@@ -63,10 +60,10 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     }
 
     /// <summary>Returns a Timestamp48 with the mask for the Seconds field (bits 0-31).</summary>
-    public static Timestamp48 SecondsMask => new(__SECONDS_MASK);
+    public static Timestamp48 SecondsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SECONDS_MASK); }
 
     /// <summary>Returns a Timestamp48 with the mask for the Millis field (bits 32-47).</summary>
-    public static Timestamp48 MillisMask => new(__MILLIS_SHIFTED_MASK);
+    public static Timestamp48 MillisMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MILLIS_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -219,6 +216,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Timestamp48 operator %(ulong a, Timestamp48 b) => new((ulong)(a % b.__value));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong __IterativeShiftLeft(ulong value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -226,6 +224,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong __IterativeShiftRight(ulong value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -233,6 +232,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong __IterativeUnsignedShiftRight(ulong value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -242,15 +242,15 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
 
     /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timestamp48 operator <<(Timestamp48 a, int b) => new(__IterativeShiftLeft(a.__normalizedValue, b));
+    public static Timestamp48 operator <<(Timestamp48 a, int b) => new(__IterativeShiftLeft(a.__GetNormalizedValue(), b));
 
     /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timestamp48 operator >>(Timestamp48 a, int b) => new(__IterativeShiftRight(a.__normalizedValue, b));
+    public static Timestamp48 operator >>(Timestamp48 a, int b) => new(__IterativeShiftRight(a.__GetNormalizedValue(), b));
 
     /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timestamp48 operator >>>(Timestamp48 a, int b) => new(__IterativeUnsignedShiftRight(a.__normalizedValue, b));
+    public static Timestamp48 operator >>>(Timestamp48 a, int b) => new(__IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -270,23 +270,23 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Timestamp48 a, Timestamp48 b) => a.__normalizedValue == b.__normalizedValue;
+    public static bool operator ==(Timestamp48 a, Timestamp48 b) => a.__GetNormalizedValue() == b.__GetNormalizedValue();
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Timestamp48 a, Timestamp48 b) => a.__normalizedValue != b.__normalizedValue;
+    public static bool operator !=(Timestamp48 a, Timestamp48 b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is Timestamp48 other && __normalizedValue == other.__normalizedValue;
+    public override bool Equals(object? obj) => obj is Timestamp48 other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __normalizedValue.GetHashCode();
+    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__normalizedValue:X}";
+    public override string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(Timestamp48 value) => value.__normalizedValue;
+    public static implicit operator ulong(Timestamp48 value) => value.__GetNormalizedValue();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Timestamp48(ulong value) => new(value);
@@ -314,7 +314,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt64LittleEndian(destination, __normalizedValue);
+        BinaryPrimitives.WriteUInt64LittleEndian(destination, __GetNormalizedValue());
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -498,7 +498,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -507,7 +507,7 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
+        => __GetNormalizedValue().TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -524,13 +524,13 @@ public partial struct Timestamp48 : IComparable, IComparable<Timestamp48>, IEqua
     /// <param name="other">A Timestamp48 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Timestamp48 other) => __normalizedValue.CompareTo(other.__normalizedValue);
+    public int CompareTo(Timestamp48 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another Timestamp48.</summary>
     /// <param name="other">A Timestamp48 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Timestamp48 other) => __normalizedValue == other.__normalizedValue;
+    public bool Equals(Timestamp48 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes Timestamp48 as a string.</summary>
     private sealed class Timestamp48JsonConverter : JsonConverter<Timestamp48>

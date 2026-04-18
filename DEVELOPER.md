@@ -42,31 +42,35 @@ This guide explains how to modify the source generators and update consuming pro
 
 ## Quick Reference: Build Workflow
 
-**To build a new version (e.g., 0.9.7):**
+**To build a new version:**
 
 ```powershell
 # Navigate to the Stardust.Utilities directory
 cd Stardust.Utilities
 
-# Build both NuGet packages (automatically publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.7
+# Build both NuGet packages (version read from Directory.Build.props)
+.\Build-Combined-NuGetPackages.ps1
 
 # Or skip tests for faster iteration during development
-.\Build-Combined-NuGetPackages.ps1 0.9.7 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 -SkipTests
+
+# Or override the version explicitly
+.\Build-Combined-NuGetPackages.ps1 0.9.9
 ```
 
 **What happens automatically:**
-1. Builds the generator and library
-2. Runs unit tests (unless `-SkipTests`)
-3. Creates packages in `./nupkg/`
-4. Publishes to local NuGet feed (`~/.nuget/local-packages/`)
-5. Clears NuGet cache so consuming projects pick up changes
+1. Reads the version from `Directory.Build.props` (unless overridden on the command line)
+2. Builds the generator and library
+3. Runs unit tests (unless `-SkipTests`)
+4. Creates packages in `./nupkg/`
+5. Publishes to local NuGet feed (`~/.nuget/local-packages/`)
+6. Clears NuGet cache so consuming projects pick up changes
 
 **Then update consuming projects:**
 1. Update `PackageReference` version in each .csproj that uses `Stardust.Utilities`
 2. Rebuild the consuming solution
 
-> **Note:** Version is specified at build time and is NOT stored in .csproj files. This keeps source control clean and avoids accidental version mismatches.
+> **Note:** The package version is defined in `Directory.Build.props` at the repo root. Demo app .csproj files reference it via `$(Version)` automatically. The build script reads this version by default; you can override it by passing a version argument.
 
 ## Getting Started
 
@@ -226,21 +230,24 @@ git pull origin main
 # Show help
 .\Build-Combined-NuGetPackages.ps1 -Help
 
-# Build version 0.9.7 (runs tests, publishes to local feed)
-.\Build-Combined-NuGetPackages.ps1 0.9.7
+# Build using version from Directory.Build.props (runs tests, publishes to local feed)
+.\Build-Combined-NuGetPackages.ps1
 
 # Skip tests for faster iteration
-.\Build-Combined-NuGetPackages.ps1 0.9.7 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 -SkipTests
+
+# Override version explicitly
+.\Build-Combined-NuGetPackages.ps1 0.9.9
 
 # Use Debug configuration
-.\Build-Combined-NuGetPackages.ps1 0.9.7 -Configuration Debug
+.\Build-Combined-NuGetPackages.ps1 0.9.9 -Configuration Debug
 ```
 
 **Parameters:**
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `<version>` | Yes | Version number (e.g., `0.9.7`, `1.0.0-beta1`) |
+| `<version>` | No | Version number (e.g., `0.9.9`, `1.0.0-beta1`). Defaults to the value in `Directory.Build.props`. |
 | `-SkipTests` | No | Skip running unit tests |
 | `-Configuration` | No | `Debug` or `Release` (default: Release) |
 | `-Help` | No | Show help message |
@@ -307,7 +314,7 @@ Builds only the `Stardust.Generators.x.y.z.nupkg` standalone generator package *
 
 ```powershell
 # Rebuild both packages (recommended)
-.\Build-Combined-NuGetPackages.ps1 0.9.7 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 -SkipTests
 ```
 
 **Step 3:**
@@ -813,7 +820,7 @@ Prior to v0.3.0, BitFields supported two patterns:
 2. **Generator-created Value field**: `[BitFields(typeof(byte))]` with private Value
 
 Performance testing showed no benefit to the user-declared pattern.  That is, directly
-accessing the Value field from user code vs. implicit conversions had negligible affect 
+accessing the Value field from user code vs. implicit conversions had negligible effect 
 on speed.
 
 ```
@@ -826,8 +833,8 @@ public partial struct RegisterWithVisibleValue
 {
     public byte Value; 
 
-    [BitField(0, End = 3)] public byte Field1 { get; set; }
-    [BitField(4, End = 7)] public byte Field2 { get; set; }
+    [BitField(0, End = 3)] public partial byte Field1 { get; set; }
+    [BitField(4, End = 7)] public partial byte Field2 { get; set; }
 }
 
 // Attribute determines type, generator creates private Value field
@@ -835,8 +842,8 @@ public partial struct RegisterWithVisibleValue
 [BitFields(typeof(byte))] 
 public partial struct RegisterWithConversion
 {
-    [BitField(0, End = 3)] public byte Field1 { get; set; }
-    [BitField(4, End = 7)] public byte Field2 { get; set; }
+    [BitField(0, End = 3)] public partial byte Field1 { get; set; }
+    [BitField(4, End = 7)] public partial byte Field2 { get; set; }
 }
 
 // Compare use of both patterns, same performance either way

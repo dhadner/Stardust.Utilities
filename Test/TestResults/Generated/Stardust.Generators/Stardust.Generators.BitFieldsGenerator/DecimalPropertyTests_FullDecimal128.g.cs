@@ -36,9 +36,6 @@ public partial class DecimalPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 128;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static FullDecimal128 Default => default;
-
         private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
         /// <summary>Creates a new FullDecimal128 from individual word values.</summary>

@@ -24,9 +24,6 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static DiagramOverlapRegister Default => default;
-
     // --- Bit field mask constants ---
     // Address: bits [4..7], width 4
     private const int __ADDRESS_START_BIT = 4;
@@ -83,16 +80,16 @@ public partial struct DiagramOverlapRegister : IComparable, IComparable<DiagramO
     }
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Address field (bits 4-7).</summary>
-    public static DiagramOverlapRegister AddressMask => new(__ADDRESS_SHIFTED_MASK);
+    public static DiagramOverlapRegister AddressMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ADDRESS_SHIFTED_MASK); }
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Command field (bits 2-3).</summary>
-    public static DiagramOverlapRegister CommandMask => new(__COMMAND_SHIFTED_MASK);
+    public static DiagramOverlapRegister CommandMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__COMMAND_SHIFTED_MASK); }
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the Register field (bits 0-1).</summary>
-    public static DiagramOverlapRegister RegisterMask => new(__REGISTER_MASK);
+    public static DiagramOverlapRegister RegisterMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__REGISTER_MASK); }
 
     /// <summary>Returns a DiagramOverlapRegister with the mask for the ExtendedCommand field (bits 0-3).</summary>
-    public static DiagramOverlapRegister ExtendedCommandMask => new(__EXTENDED_COMMAND_MASK);
+    public static DiagramOverlapRegister ExtendedCommandMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__EXTENDED_COMMAND_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

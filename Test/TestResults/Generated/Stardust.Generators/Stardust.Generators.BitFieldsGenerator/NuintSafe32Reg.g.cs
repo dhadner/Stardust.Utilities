@@ -24,9 +24,6 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
     /// <summary>Total number of bits in this struct (platform-dependent: 32 on 32-bit, 64 on 64-bit).</summary>
     public static int BIT_WIDTH => nint.Size * 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static NuintSafe32Reg Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -82,16 +79,16 @@ public partial struct NuintSafe32Reg : IComparable, IComparable<NuintSafe32Reg>,
     }
 
     /// <summary>Returns a NuintSafe32Reg with only the Enabled bit set.</summary>
-    public static NuintSafe32Reg EnabledBit => new(unchecked((nuint)__ENABLED_MASK));
+    public static NuintSafe32Reg EnabledBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__ENABLED_MASK)); }
 
     /// <summary>Returns a NuintSafe32Reg with only the Active bit set.</summary>
-    public static NuintSafe32Reg ActiveBit => new(unchecked((nuint)__ACTIVE_MASK));
+    public static NuintSafe32Reg ActiveBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__ACTIVE_MASK)); }
 
     /// <summary>Returns a NuintSafe32Reg with the mask for the Status field (bits 0-7).</summary>
-    public static NuintSafe32Reg StatusMask => new(unchecked((nuint)__STATUS_MASK));
+    public static NuintSafe32Reg StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__STATUS_MASK)); }
 
     /// <summary>Returns a NuintSafe32Reg with the mask for the Command field (bits 8-11).</summary>
-    public static NuintSafe32Reg CommandMask => new(unchecked((nuint)__COMMAND_SHIFTED_MASK));
+    public static NuintSafe32Reg CommandMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__COMMAND_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

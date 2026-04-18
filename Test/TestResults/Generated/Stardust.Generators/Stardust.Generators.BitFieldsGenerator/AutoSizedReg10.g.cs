@@ -24,9 +24,6 @@ public partial struct AutoSizedReg10 : IComparable, IComparable<AutoSizedReg10>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 10;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static AutoSizedReg10 Default => default;
-
     // --- Bit field mask constants ---
     // Lo: bits [0..7], width 8
     private const int __LO_START_BIT = 0;
@@ -58,10 +55,10 @@ public partial struct AutoSizedReg10 : IComparable, IComparable<AutoSizedReg10>,
     }
 
     /// <summary>Returns a AutoSizedReg10 with the mask for the Lo field (bits 0-7).</summary>
-    public static AutoSizedReg10 LoMask => new(__LO_MASK);
+    public static AutoSizedReg10 LoMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LO_MASK); }
 
     /// <summary>Returns a AutoSizedReg10 with the mask for the Hi field (bits 8-9).</summary>
-    public static AutoSizedReg10 HiMask => new(__HI_SHIFTED_MASK);
+    public static AutoSizedReg10 HiMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HI_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

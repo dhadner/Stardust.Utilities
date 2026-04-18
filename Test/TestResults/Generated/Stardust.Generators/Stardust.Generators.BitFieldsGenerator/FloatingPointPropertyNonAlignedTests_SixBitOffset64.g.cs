@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyNonAlignedTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static SixBitOffset64 Default => default;
-
         // --- Bit field mask constants ---
         // LowPad: bits [0..5], width 6
         private const int __LOW_PAD_START_BIT = 0;
@@ -90,16 +87,16 @@ public partial class FloatingPointPropertyNonAlignedTests
         }
 
         /// <summary>Returns a SixBitOffset64 with the mask for the LowPad field (bits 0-5).</summary>
-        public static SixBitOffset64 LowPadMask => new(__LOW_PAD_MASK);
+        public static SixBitOffset64 LowPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_PAD_MASK); }
 
         /// <summary>Returns a SixBitOffset64 with the mask for the FloatVal field (bits 6-37).</summary>
-        public static SixBitOffset64 FloatValMask => new(__FLOAT_VAL_SHIFTED_MASK);
+        public static SixBitOffset64 FloatValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLOAT_VAL_SHIFTED_MASK); }
 
         /// <summary>Returns a SixBitOffset64 with the mask for the HalfVal field (bits 38-53).</summary>
-        public static SixBitOffset64 HalfValMask => new(__HALF_VAL_SHIFTED_MASK);
+        public static SixBitOffset64 HalfValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HALF_VAL_SHIFTED_MASK); }
 
         /// <summary>Returns a SixBitOffset64 with the mask for the HighPad field (bits 54-63).</summary>
-        public static SixBitOffset64 HighPadMask => new(__HIGH_PAD_SHIFTED_MASK);
+        public static SixBitOffset64 HighPadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_PAD_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

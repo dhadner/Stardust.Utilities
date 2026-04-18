@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 16;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static FullHalf16 Default => default;
-
         // --- Bit field mask constants ---
         // HalfVal: bits [0..15], width 16
         private const int __HALF_VAL_START_BIT = 0;
@@ -49,7 +46,7 @@ public partial class FloatingPointPropertyTests
         }
 
         /// <summary>Returns a FullHalf16 with the mask for the HalfVal field (bits 0-15).</summary>
-        public static FullHalf16 HalfValMask => new(__HALF_VAL_MASK);
+        public static FullHalf16 HalfValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HALF_VAL_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

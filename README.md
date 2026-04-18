@@ -32,10 +32,10 @@ The included demo app is a showcase of the library's capabilities, not a standal
   - [Endian Types](#endian-types)
   - [Extension Methods](#extension-methods)
 - [Troubleshooting](#troubleshooting)
+- [License](#license)
 - [Contributing](#contributing)
 - [Security](#security)
 - [Privacy](#privacy)
-- [License](#license)
 
 ---
 
@@ -63,7 +63,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
 <PackageReference Include="Stardust.Utilities" Version="0.9.9" />
 ```
 
-That's it
+That's it.
 
 ---
 
@@ -108,9 +108,9 @@ bit manipulation** and comparable performance to optimized C when working with b
 
 | Operation | Raw Bit Ops | Generated Properties | Difference |
 |-----------|-------------|---------------------|------------|
-| Boolean GET | 271 ms | 263 ms | ≈0% (noise) |
-| Boolean SET | 506 ms | 494 ms | ≈0% (noise) |
-| Field GET (shift+mask) | 124 ms | 123 ms | ≈0% (noise) |
+| Boolean GET | 271 ms | 263 ms | ~0% (noise) |
+| Boolean SET | 506 ms | 494 ms | ~0% (noise) |
+| Field GET (shift+mask) | 124 ms | 123 ms | ~0% (noise) |
 
 *All differences are within measurement noise. The generated code is statistically indistinguishable from raw inline bit manipulation.*
 
@@ -502,7 +502,7 @@ public partial struct PacketFlags
 > `Parse`, `ReadFrom`, and outbound reads. It is impossible to observe a value that violates
 > its declared constraints, regardless of how the value is produced. Property getters and
 > setters have zero performance overhead from constraints; construction and bitwise operations
-> add under 2 ns. See [BITFIELDS.md -- Constraint Overhead](BITFIELDS.md#constraint-overhead-mustbe--undefinedbitsmustbe)
+> add under 1 ns. See [BITFIELDS.md -- Constraint Overhead](BITFIELDS.md#constraint-overhead-mustbe--undefinedbitsmustbe)
 > for detailed benchmarks.
 
 See [BITFIELDS.md](BITFIELDS.md) for full details on undefined bits, sparse patterns, and composition with partial-width structs.
@@ -1120,9 +1120,9 @@ See [OPTION.md](OPTION.md) for comprehensive documentation and examples.
 
 | Operation | Option&lt;T&gt; | T? | Difference |
 |-----------|------------|------|------------|
-| Create Some | 35 ms | 34 ms | ≈0% (noise) |
-| IsSome check | 46 ms | 49 ms | ≈0% (noise) |
-| UnwrapOr (??) | 122 ms | 127 ms | ≈0% (noise) |
+| Create Some | 35 ms | 34 ms | ~0% (noise) |
+| IsSome check | 46 ms | 49 ms | ~0% (noise) |
+| UnwrapOr (??) | 122 ms | 127 ms | ~0% (noise) |
 
 *Use zero-cost methods freely in hot paths. Delegate methods (`Map`, `AndThen`, `Filter`) add ~1-2 ns/call -- negligible outside tight inner loops.*
 

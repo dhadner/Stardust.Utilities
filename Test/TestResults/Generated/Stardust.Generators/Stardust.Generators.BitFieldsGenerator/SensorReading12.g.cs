@@ -24,9 +24,6 @@ public partial struct SensorReading12 : IComparable, IComparable<SensorReading12
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 12;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SensorReading12 Default => default;
-
     // --- Bit field mask constants ---
     // AdcValue: bits [0..9], width 10
     private const int __ADC_VALUE_START_BIT = 0;
@@ -58,10 +55,10 @@ public partial struct SensorReading12 : IComparable, IComparable<SensorReading12
     }
 
     /// <summary>Returns a SensorReading12 with the mask for the AdcValue field (bits 0-9).</summary>
-    public static SensorReading12 AdcValueMask => new(__ADC_VALUE_MASK);
+    public static SensorReading12 AdcValueMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ADC_VALUE_MASK); }
 
     /// <summary>Returns a SensorReading12 with the mask for the Channel field (bits 10-11).</summary>
-    public static SensorReading12 ChannelMask => new(__CHANNEL_SHIFTED_MASK);
+    public static SensorReading12 ChannelMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CHANNEL_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

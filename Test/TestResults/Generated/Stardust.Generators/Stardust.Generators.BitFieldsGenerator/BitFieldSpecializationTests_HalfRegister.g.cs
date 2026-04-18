@@ -26,9 +26,6 @@ public partial class BitFieldSpecializationTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 16;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static HalfRegister Default => default;
-
         // --- Bit field mask constants ---
         // Mantissa: bits [0..9], width 10
         private const int __MANTISSA_START_BIT = 0;
@@ -76,13 +73,13 @@ public partial class BitFieldSpecializationTests
         }
 
         /// <summary>Returns a HalfRegister with only the Sign bit set.</summary>
-        public static HalfRegister SignBit => new(__SIGN_MASK);
+        public static HalfRegister SignBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SIGN_MASK); }
 
         /// <summary>Returns a HalfRegister with the mask for the Mantissa field (bits 0-9).</summary>
-        public static HalfRegister MantissaMask => new(__MANTISSA_MASK);
+        public static HalfRegister MantissaMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MANTISSA_MASK); }
 
         /// <summary>Returns a HalfRegister with the mask for the Exponent field (bits 10-14).</summary>
-        public static HalfRegister ExponentMask => new(__EXPONENT_SHIFTED_MASK);
+        public static HalfRegister ExponentMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__EXPONENT_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

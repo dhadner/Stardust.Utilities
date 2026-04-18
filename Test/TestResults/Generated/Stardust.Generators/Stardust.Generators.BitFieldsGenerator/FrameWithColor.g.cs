@@ -24,9 +24,6 @@ public partial struct FrameWithColor : IComparable, IComparable<FrameWithColor>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static FrameWithColor Default => default;
-
     // --- Bit field mask constants ---
     // Color: bits [0..23], width 24
     private const int __COLOR_START_BIT = 0;
@@ -75,13 +72,13 @@ public partial struct FrameWithColor : IComparable, IComparable<FrameWithColor>,
     }
 
     /// <summary>Returns a FrameWithColor with the mask for the Color field (bits 0-23).</summary>
-    public static FrameWithColor ColorMask => new(__COLOR_MASK);
+    public static FrameWithColor ColorMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__COLOR_MASK); }
 
     /// <summary>Returns a FrameWithColor with the mask for the Status field (bits 24-28).</summary>
-    public static FrameWithColor StatusMask => new(__STATUS_SHIFTED_MASK);
+    public static FrameWithColor StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_SHIFTED_MASK); }
 
     /// <summary>Returns a FrameWithColor with the mask for the Payload field (bits 32-63).</summary>
-    public static FrameWithColor PayloadMask => new(__PAYLOAD_SHIFTED_MASK);
+    public static FrameWithColor PayloadMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PAYLOAD_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

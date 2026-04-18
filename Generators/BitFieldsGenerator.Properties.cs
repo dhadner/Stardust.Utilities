@@ -328,7 +328,7 @@ public partial class BitFieldsGenerator
                 : maskRef;
 
         sb.AppendLine($"{indent}/// <summary>Returns a {info.TypeName} with only the {flag.Name} bit set.</summary>");
-        sb.AppendLine($"{indent}public static {info.TypeName} {flag.Name}Bit => new({castExpr});");
+        sb.AppendLine($"{indent}public static {info.TypeName} {flag.Name}Bit {{ [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new({castExpr}); }}");
         sb.AppendLine();
     }
 
@@ -347,7 +347,7 @@ public partial class BitFieldsGenerator
                 : shiftedMaskRef;
 
         sb.AppendLine($"{indent}/// <summary>Returns a {info.TypeName} with the mask for the {field.Name} field (bits {field.Shift}-{field.Shift + field.Width - 1}).</summary>");
-        sb.AppendLine($"{indent}public static {info.TypeName} {field.Name}Mask => new({castExpr});");
+        sb.AppendLine($"{indent}public static {info.TypeName} {field.Name}Mask {{ [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new({castExpr}); }}");
         sb.AppendLine();
     }
 

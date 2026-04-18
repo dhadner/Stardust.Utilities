@@ -26,9 +26,6 @@ public partial class BitFieldProtocolTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static IPv4VersionWord Default => default;
-
         // --- Bit field mask constants ---
         // Version: bits [28..31], width 4
         private const int __VERSION_START_BIT = 28;
@@ -99,19 +96,19 @@ public partial class BitFieldProtocolTests
         }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the Version field (bits 28-31).</summary>
-        public static IPv4VersionWord VersionMask => new(__VERSION_SHIFTED_MASK);
+        public static IPv4VersionWord VersionMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VERSION_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the IHL field (bits 24-27).</summary>
-        public static IPv4VersionWord IHLMask => new(__IHL_SHIFTED_MASK);
+        public static IPv4VersionWord IHLMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__IHL_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the DSCP field (bits 18-23).</summary>
-        public static IPv4VersionWord DSCPMask => new(__DSCP_SHIFTED_MASK);
+        public static IPv4VersionWord DSCPMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DSCP_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the ECN field (bits 16-17).</summary>
-        public static IPv4VersionWord ECNMask => new(__ECN_SHIFTED_MASK);
+        public static IPv4VersionWord ECNMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ECN_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4VersionWord with the mask for the TotalLength field (bits 0-15).</summary>
-        public static IPv4VersionWord TotalLengthMask => new(__TOTAL_LENGTH_MASK);
+        public static IPv4VersionWord TotalLengthMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TOTAL_LENGTH_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

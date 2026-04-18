@@ -12,7 +12,9 @@ namespace Stardust.Utilities;
 /// </para>
 /// <para>
 /// The property must be declared as <c>public partial {type}</c> where type is
-/// byte, ushort, uint, or ulong. The generator will implement the getter/setter
+/// any supported numeric type (byte, sbyte, ushort, short, uint, int, ulong, long,
+/// nint, nuint, Half, float, double, decimal, UInt128, Int128), an enum, or an
+/// embedded <c>[BitFields]</c> struct. The generator will implement the getter/setter
 /// using inline bit manipulation.
 /// </para>
 /// <example>
@@ -64,7 +66,7 @@ public sealed class BitFieldAttribute : Attribute
 
     /// <summary>
     /// Normally set to <see cref="MustBe.Any"/> and has no effect.
-    /// When set to <see cref="MustBe.Zero"/> or <see cref="MustBe.Ones"/>, it overrides the behavior of the field's 
+    /// When set to <see cref="MustBe.Zero"/> or <see cref="MustBe.One"/>, it overrides the behavior of the field's 
     /// bits on write and during conversion of the underlying BitFields struct to/from other types.
     /// </summary>
     public MustBe ValueOverride { get; set; } = MustBe.Any;

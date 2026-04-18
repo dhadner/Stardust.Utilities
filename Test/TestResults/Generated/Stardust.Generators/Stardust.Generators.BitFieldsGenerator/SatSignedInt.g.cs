@@ -24,9 +24,6 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatSignedInt Default => default;
-
     // --- Bit field mask constants ---
     // Signed: bits [0..4], width 5
     private const int __SIGNED_START_BIT = 0;
@@ -64,10 +61,10 @@ public partial struct SatSignedInt : IComparable, IComparable<SatSignedInt>, IEq
     }
 
     /// <summary>Returns a SatSignedInt with the mask for the Signed field (bits 0-4).</summary>
-    public static SatSignedInt SignedMask => new(unchecked((int)__SIGNED_MASK));
+    public static SatSignedInt SignedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((int)__SIGNED_MASK)); }
 
     /// <summary>Returns a SatSignedInt with the mask for the Other field (bits 5-8).</summary>
-    public static SatSignedInt OtherMask => new(unchecked((int)__OTHER_SHIFTED_MASK));
+    public static SatSignedInt OtherMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((int)__OTHER_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

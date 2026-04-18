@@ -24,9 +24,6 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static DescEscapeRegister Default => default;
-
     // --- Bit field mask constants ---
     // AllAtOnce: bits [7..7], width 1
     private const int __ALL_AT_ONCE_START_BIT = 7;
@@ -130,28 +127,28 @@ public partial struct DescEscapeRegister : IComparable, IComparable<DescEscapeRe
     }
 
     /// <summary>Returns a DescEscapeRegister with only the Newline bit set.</summary>
-    public static DescEscapeRegister NewlineBit => new(__NEWLINE_MASK);
+    public static DescEscapeRegister NewlineBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__NEWLINE_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with only the Tab bit set.</summary>
-    public static DescEscapeRegister TabBit => new(__TAB_MASK);
+    public static DescEscapeRegister TabBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TAB_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with only the Quotes bit set.</summary>
-    public static DescEscapeRegister QuotesBit => new(__QUOTES_MASK);
+    public static DescEscapeRegister QuotesBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__QUOTES_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with only the Backslash bit set.</summary>
-    public static DescEscapeRegister BackslashBit => new(__BACKSLASH_MASK);
+    public static DescEscapeRegister BackslashBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BACKSLASH_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with only the CarriageReturn bit set.</summary>
-    public static DescEscapeRegister CarriageReturnBit => new(__CARRIAGE_RETURN_MASK);
+    public static DescEscapeRegister CarriageReturnBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CARRIAGE_RETURN_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with only the NullChar bit set.</summary>
-    public static DescEscapeRegister NullCharBit => new(__NULL_CHAR_MASK);
+    public static DescEscapeRegister NullCharBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__NULL_CHAR_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with only the ControlChars bit set.</summary>
-    public static DescEscapeRegister ControlCharsBit => new(__CONTROL_CHARS_MASK);
+    public static DescEscapeRegister ControlCharsBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CONTROL_CHARS_MASK); }
 
     /// <summary>Returns a DescEscapeRegister with the mask for the AllAtOnce field (bits 7-7).</summary>
-    public static DescEscapeRegister AllAtOnceMask => new(__ALL_AT_ONCE_SHIFTED_MASK);
+    public static DescEscapeRegister AllAtOnceMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ALL_AT_ONCE_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

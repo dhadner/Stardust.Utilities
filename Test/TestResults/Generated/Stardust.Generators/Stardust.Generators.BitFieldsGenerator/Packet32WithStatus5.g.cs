@@ -24,9 +24,6 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static Packet32WithStatus5 Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..4], width 5
     private const int __STATUS_START_BIT = 0;
@@ -73,13 +70,13 @@ public partial struct Packet32WithStatus5 : IComparable, IComparable<Packet32Wit
     }
 
     /// <summary>Returns a Packet32WithStatus5 with the mask for the Status field (bits 0-4).</summary>
-    public static Packet32WithStatus5 StatusMask => new(__STATUS_MASK);
+    public static Packet32WithStatus5 StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a Packet32WithStatus5 with the mask for the DataField field (bits 5-15).</summary>
-    public static Packet32WithStatus5 DataFieldMask => new(__DATA_FIELD_SHIFTED_MASK);
+    public static Packet32WithStatus5 DataFieldMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DATA_FIELD_SHIFTED_MASK); }
 
     /// <summary>Returns a Packet32WithStatus5 with the mask for the Checksum field (bits 16-31).</summary>
-    public static Packet32WithStatus5 ChecksumMask => new(__CHECKSUM_SHIFTED_MASK);
+    public static Packet32WithStatus5 ChecksumMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CHECKSUM_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

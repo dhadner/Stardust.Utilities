@@ -24,9 +24,6 @@ public partial struct ReversedPositionalReg : IComparable, IComparable<ReversedP
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static ReversedPositionalReg Default => default;
-
     // --- Bit field mask constants ---
     // AllBits: bits [0..7], width 8
     private const int __ALL_BITS_START_BIT = 0;
@@ -45,7 +42,7 @@ public partial struct ReversedPositionalReg : IComparable, IComparable<ReversedP
     }
 
     /// <summary>Returns a ReversedPositionalReg with the mask for the AllBits field (bits 0-7).</summary>
-    public static ReversedPositionalReg AllBitsMask => new(__ALL_BITS_MASK);
+    public static ReversedPositionalReg AllBitsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ALL_BITS_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

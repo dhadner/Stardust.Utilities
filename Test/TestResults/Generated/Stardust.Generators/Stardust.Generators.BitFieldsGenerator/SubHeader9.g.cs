@@ -24,9 +24,6 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SubHeader9 Default => default;
-
     // --- Bit field mask constants ---
     // TypeCode: bits [0..3], width 4
     private const int __TYPE_CODE_START_BIT = 0;
@@ -41,7 +38,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     // --- Constructor normalization masks ---
     private const ushort __NORMALIZATION_AND_MASK = 0x01FF;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    private ushort __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (ushort)(__value & __NORMALIZATION_AND_MASK); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private ushort __GetNormalizedValue() => (ushort)(__value & __NORMALIZATION_AND_MASK);
 
     /// <summary>Creates a new SubHeader9 with the specified raw bits value.</summary>
     public SubHeader9(ushort value) { __value = (ushort)(value & __NORMALIZATION_AND_MASK); }
@@ -63,10 +60,10 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     }
 
     /// <summary>Returns a SubHeader9 with the mask for the TypeCode field (bits 0-3).</summary>
-    public static SubHeader9 TypeCodeMask => new(__TYPE_CODE_MASK);
+    public static SubHeader9 TypeCodeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TYPE_CODE_MASK); }
 
     /// <summary>Returns a SubHeader9 with the mask for the Flags field (bits 4-8).</summary>
-    public static SubHeader9 FlagsMask => new(__FLAGS_SHIFTED_MASK);
+    public static SubHeader9 FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -171,6 +168,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SubHeader9 operator %(ushort a, SubHeader9 b) => new((ushort)(a % b.__value));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ushort __IterativeShiftLeft(ushort value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -178,6 +176,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ushort __IterativeShiftRight(ushort value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -185,6 +184,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ushort __IterativeUnsignedShiftRight(ushort value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -194,15 +194,15 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
 
     /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(SubHeader9 a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);
+    public static int operator <<(SubHeader9 a, int b) => __IterativeShiftLeft(a.__GetNormalizedValue(), b);
 
     /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(SubHeader9 a, int b) => __IterativeShiftRight(a.__normalizedValue, b);
+    public static int operator >>(SubHeader9 a, int b) => __IterativeShiftRight(a.__GetNormalizedValue(), b);
 
     /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(SubHeader9 a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);
+    public static int operator >>>(SubHeader9 a, int b) => __IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b);
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,23 +222,23 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SubHeader9 a, SubHeader9 b) => a.__normalizedValue == b.__normalizedValue;
+    public static bool operator ==(SubHeader9 a, SubHeader9 b) => a.__GetNormalizedValue() == b.__GetNormalizedValue();
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SubHeader9 a, SubHeader9 b) => a.__normalizedValue != b.__normalizedValue;
+    public static bool operator !=(SubHeader9 a, SubHeader9 b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SubHeader9 other && __normalizedValue == other.__normalizedValue;
+    public override bool Equals(object? obj) => obj is SubHeader9 other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __normalizedValue.GetHashCode();
+    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__normalizedValue:X}";
+    public override string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(SubHeader9 value) => value.__normalizedValue;
+    public static implicit operator ushort(SubHeader9 value) => value.__GetNormalizedValue();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SubHeader9(ushort value) => new(value);
@@ -270,7 +270,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, __normalizedValue);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, __GetNormalizedValue());
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -454,7 +454,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -463,7 +463,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
+        => __GetNormalizedValue().TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -480,13 +480,13 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <param name="other">A SubHeader9 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SubHeader9 other) => __normalizedValue.CompareTo(other.__normalizedValue);
+    public int CompareTo(SubHeader9 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another SubHeader9.</summary>
     /// <param name="other">A SubHeader9 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SubHeader9 other) => __normalizedValue == other.__normalizedValue;
+    public bool Equals(SubHeader9 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes SubHeader9 as a string.</summary>
     private sealed class SubHeader9JsonConverter : JsonConverter<SubHeader9>

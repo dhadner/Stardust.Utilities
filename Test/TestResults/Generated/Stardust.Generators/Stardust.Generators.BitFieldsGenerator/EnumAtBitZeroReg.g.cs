@@ -24,9 +24,6 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static EnumAtBitZeroReg Default => default;
-
     // --- Bit field mask constants ---
     // Command: bits [0..2], width 3
     private const int __COMMAND_START_BIT = 0;
@@ -71,13 +68,13 @@ public partial struct EnumAtBitZeroReg : IComparable, IComparable<EnumAtBitZeroR
     }
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Command field (bits 0-2).</summary>
-    public static EnumAtBitZeroReg CommandMask => new(__COMMAND_MASK);
+    public static EnumAtBitZeroReg CommandMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__COMMAND_MASK); }
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Status field (bits 3-5).</summary>
-    public static EnumAtBitZeroReg StatusMask => new(__STATUS_SHIFTED_MASK);
+    public static EnumAtBitZeroReg StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_SHIFTED_MASK); }
 
     /// <summary>Returns a EnumAtBitZeroReg with the mask for the Flags field (bits 6-7).</summary>
-    public static EnumAtBitZeroReg FlagsMask => new(__FLAGS_SHIFTED_MASK);
+    public static EnumAtBitZeroReg FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

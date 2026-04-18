@@ -24,9 +24,6 @@ public partial struct SatFullWidth : IComparable, IComparable<SatFullWidth>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatFullWidth Default => default;
-
     // --- Bit field mask constants ---
     // Full: bits [0..7], width 8
     private const int __FULL_START_BIT = 0;
@@ -45,7 +42,7 @@ public partial struct SatFullWidth : IComparable, IComparable<SatFullWidth>, IEq
     }
 
     /// <summary>Returns a SatFullWidth with the mask for the Full field (bits 0-7).</summary>
-    public static SatFullWidth FullMask => new(__FULL_MASK);
+    public static SatFullWidth FullMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FULL_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

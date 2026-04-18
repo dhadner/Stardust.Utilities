@@ -24,9 +24,6 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatMultiField Default => default;
-
     // --- Bit field mask constants ---
     // FieldA: bits [0..3], width 4
     private const int __FIELD_A_START_BIT = 0;
@@ -81,13 +78,13 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     }
 
     /// <summary>Returns a SatMultiField with the mask for the FieldA field (bits 0-3).</summary>
-    public static SatMultiField FieldAMask => new(__FIELD_A_MASK);
+    public static SatMultiField FieldAMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIELD_A_MASK); }
 
     /// <summary>Returns a SatMultiField with the mask for the FieldB field (bits 4-7).</summary>
-    public static SatMultiField FieldBMask => new(__FIELD_B_SHIFTED_MASK);
+    public static SatMultiField FieldBMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIELD_B_SHIFTED_MASK); }
 
     /// <summary>Returns a SatMultiField with the mask for the FieldC field (bits 8-11).</summary>
-    public static SatMultiField FieldCMask => new(__FIELD_C_SHIFTED_MASK);
+    public static SatMultiField FieldCMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIELD_C_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

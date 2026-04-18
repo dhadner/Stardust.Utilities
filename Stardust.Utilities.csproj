@@ -47,19 +47,23 @@
 		<Compile Remove="Test\**" />
 		<Compile Remove="Demo\**" />
 		<Compile Remove="DiagramGen\**" />
+		<Compile Remove="BenchmarkSuite1\**" />
 		<None Remove="Generators\**" />
 		<None Remove="Test\**" />
 		<None Remove="Demo\**" />
 		<None Remove="DiagramGen\**" />
+		<None Remove="BenchmarkSuite1\**" />
 		<EmbeddedResource Remove="Generators\**" />
 		<EmbeddedResource Remove="Test\**" />
 		<EmbeddedResource Remove="Demo\**" />
 		<EmbeddedResource Remove="DiagramGen\**" />
+		<EmbeddedResource Remove="BenchmarkSuite1\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Remove="Stardust.Utilities.csproj.Backup.tmp" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Include="Demo\BenchmarkSuite1\ShiftOperatorBenchmarks.cs" />
 	  <Compile Include="Demo\BitFields.DemoApp\Utilities\AssemblyStructDiscovery.cs" />
 	</ItemGroup>
 

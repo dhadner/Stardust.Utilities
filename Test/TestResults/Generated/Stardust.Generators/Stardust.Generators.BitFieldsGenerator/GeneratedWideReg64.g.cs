@@ -24,9 +24,6 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static GeneratedWideReg64 Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -95,19 +92,19 @@ public partial struct GeneratedWideReg64 : IComparable, IComparable<GeneratedWid
     }
 
     /// <summary>Returns a GeneratedWideReg64 with only the Valid bit set.</summary>
-    public static GeneratedWideReg64 ValidBit => new(__VALID_MASK);
+    public static GeneratedWideReg64 ValidBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VALID_MASK); }
 
     /// <summary>Returns a GeneratedWideReg64 with only the Ready bit set.</summary>
-    public static GeneratedWideReg64 ReadyBit => new(__READY_MASK);
+    public static GeneratedWideReg64 ReadyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__READY_MASK); }
 
     /// <summary>Returns a GeneratedWideReg64 with the mask for the Status field (bits 0-7).</summary>
-    public static GeneratedWideReg64 StatusMask => new(__STATUS_MASK);
+    public static GeneratedWideReg64 StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a GeneratedWideReg64 with the mask for the Data field (bits 8-23).</summary>
-    public static GeneratedWideReg64 DataMask => new(__DATA_SHIFTED_MASK);
+    public static GeneratedWideReg64 DataMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DATA_SHIFTED_MASK); }
 
     /// <summary>Returns a GeneratedWideReg64 with the mask for the Address field (bits 24-55).</summary>
-    public static GeneratedWideReg64 AddressMask => new(__ADDRESS_SHIFTED_MASK);
+    public static GeneratedWideReg64 AddressMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ADDRESS_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

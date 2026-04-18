@@ -26,9 +26,6 @@ public partial class RecordStructViewTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static BitZeroIsMsbRegister Default => default;
-
         // --- Bit field mask constants ---
         // HighNibble: bits [4..7], width 4
         private const int __HIGH_NIBBLE_START_BIT = 4;
@@ -84,16 +81,16 @@ public partial class RecordStructViewTests
         }
 
         /// <summary>Returns a BitZeroIsMsbRegister with only the MsbFlag bit set.</summary>
-        public static BitZeroIsMsbRegister MsbFlagBit => new(__MSB_FLAG_MASK);
+        public static BitZeroIsMsbRegister MsbFlagBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MSB_FLAG_MASK); }
 
         /// <summary>Returns a BitZeroIsMsbRegister with only the LsbFlag bit set.</summary>
-        public static BitZeroIsMsbRegister LsbFlagBit => new(__LSB_FLAG_MASK);
+        public static BitZeroIsMsbRegister LsbFlagBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LSB_FLAG_MASK); }
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the HighNibble field (bits 4-7).</summary>
-        public static BitZeroIsMsbRegister HighNibbleMask => new(__HIGH_NIBBLE_SHIFTED_MASK);
+        public static BitZeroIsMsbRegister HighNibbleMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_NIBBLE_SHIFTED_MASK); }
 
         /// <summary>Returns a BitZeroIsMsbRegister with the mask for the LowNibble field (bits 0-3).</summary>
-        public static BitZeroIsMsbRegister LowNibbleMask => new(__LOW_NIBBLE_MASK);
+        public static BitZeroIsMsbRegister LowNibbleMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_NIBBLE_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

@@ -36,9 +36,6 @@ public partial class BitFieldMultiWordTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 65;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static Bits65 Default => default;
-
         private const ulong __LAST_WORD_MASK = 0x0000000000000001UL;
 
         /// <summary>Creates a new Bits65 from individual word values.</summary>

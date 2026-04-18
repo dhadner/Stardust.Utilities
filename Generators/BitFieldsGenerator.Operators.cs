@@ -296,34 +296,34 @@ public partial class BitFieldsGenerator
                 // Small types: shift returns int
                 sb.AppendLine($"{indent}/// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static int operator <<({t} a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);");
+                sb.AppendLine($"{indent}public static int operator <<({t} a, int b) => __IterativeShiftLeft(a.__GetNormalizedValue(), b);");
                 sb.AppendLine();
 
                 sb.AppendLine($"{indent}/// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static int operator >>({t} a, int b) => __IterativeShiftRight(a.__normalizedValue, b);");
+                sb.AppendLine($"{indent}public static int operator >>({t} a, int b) => __IterativeShiftRight(a.__GetNormalizedValue(), b);");
                 sb.AppendLine();
 
                 sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static int operator >>>({t} a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);");
+                sb.AppendLine($"{indent}public static int operator >>>({t} a, int b) => __IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b);");
                 sb.AppendLine();
             }
             else
             {
                 sb.AppendLine($"{indent}/// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static {t} operator <<({t} a, int b) => new(__IterativeShiftLeft(a.__normalizedValue, b));");
+                sb.AppendLine($"{indent}public static {t} operator <<({t} a, int b) => new(__IterativeShiftLeft(a.__GetNormalizedValue(), b));");
                 sb.AppendLine();
 
                 sb.AppendLine($"{indent}/// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static {t} operator >>({t} a, int b) => new(__IterativeShiftRight(a.__normalizedValue, b));");
+                sb.AppendLine($"{indent}public static {t} operator >>({t} a, int b) => new(__IterativeShiftRight(a.__GetNormalizedValue(), b));");
                 sb.AppendLine();
 
                 sb.AppendLine($"{indent}/// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>");
                 sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-                sb.AppendLine($"{indent}public static {t} operator >>>({t} a, int b) => new(__IterativeUnsignedShiftRight(a.__normalizedValue, b));");
+                sb.AppendLine($"{indent}public static {t} operator >>>({t} a, int b) => new(__IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b));");
                 sb.AppendLine();
             }
             return;
@@ -387,6 +387,7 @@ public partial class BitFieldsGenerator
             ? $"({info.UnsignedStorageType})value >>> 1"
             : "value >>> 1";
 
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{indent}private static {s} __IterativeShiftLeft({s} value, int count)");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    for (int i = 0; i < count; i++)");
@@ -395,6 +396,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{indent}private static {s} __IterativeShiftRight({s} value, int count)");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    for (int i = 0; i < count; i++)");
@@ -403,6 +405,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}}}");
         sb.AppendLine();
 
+        sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         sb.AppendLine($"{indent}private static {s} __IterativeUnsignedShiftRight({s} value, int count)");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    for (int i = 0; i < count; i++)");
@@ -451,7 +454,7 @@ public partial class BitFieldsGenerator
     private static void GenerateEqualityOperators(StringBuilder sb, BitFieldsInfo info, string indent)
     {
         string t = info.TypeName;
-        string v = info.NeedsNormalization ? "__normalizedValue" : "__value";
+        string v = info.NeedsNormalization ? "__GetNormalizedValue()" : "__value";
 
         sb.AppendLine($"{indent}/// <summary>Equality operator.</summary>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");

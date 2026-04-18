@@ -24,9 +24,6 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static MainHeader64 Default => default;
-
     // --- Bit field mask constants ---
     // Protocol: bits [0..26], width 27
     private const int __PROTOCOL_START_BIT = 0;
@@ -73,13 +70,13 @@ public partial struct MainHeader64 : IComparable, IComparable<MainHeader64>, IEq
     }
 
     /// <summary>Returns a MainHeader64 with the mask for the Protocol field (bits 0-26).</summary>
-    public static MainHeader64 ProtocolMask => new(__PROTOCOL_MASK);
+    public static MainHeader64 ProtocolMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PROTOCOL_MASK); }
 
     /// <summary>Returns a MainHeader64 with the mask for the Priority field (bits 27-31).</summary>
-    public static MainHeader64 PriorityMask => new(__PRIORITY_SHIFTED_MASK);
+    public static MainHeader64 PriorityMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PRIORITY_SHIFTED_MASK); }
 
     /// <summary>Returns a MainHeader64 with the mask for the Timestamp field (bits 32-63).</summary>
-    public static MainHeader64 TimestampMask => new(__TIMESTAMP_SHIFTED_MASK);
+    public static MainHeader64 TimestampMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TIMESTAMP_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

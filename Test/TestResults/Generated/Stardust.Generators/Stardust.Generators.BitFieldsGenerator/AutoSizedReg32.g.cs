@@ -24,9 +24,6 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 30;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static AutoSizedReg32 Default => default;
-
     // --- Bit field mask constants ---
     // Address: bits [0..23], width 24
     private const int __ADDRESS_START_BIT = 0;
@@ -82,16 +79,16 @@ public partial struct AutoSizedReg32 : IComparable, IComparable<AutoSizedReg32>,
     }
 
     /// <summary>Returns a AutoSizedReg32 with only the Enable bit set.</summary>
-    public static AutoSizedReg32 EnableBit => new(__ENABLE_MASK);
+    public static AutoSizedReg32 EnableBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ENABLE_MASK); }
 
     /// <summary>Returns a AutoSizedReg32 with only the Interrupt bit set.</summary>
-    public static AutoSizedReg32 InterruptBit => new(__INTERRUPT_MASK);
+    public static AutoSizedReg32 InterruptBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__INTERRUPT_MASK); }
 
     /// <summary>Returns a AutoSizedReg32 with the mask for the Address field (bits 0-23).</summary>
-    public static AutoSizedReg32 AddressMask => new(__ADDRESS_MASK);
+    public static AutoSizedReg32 AddressMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ADDRESS_MASK); }
 
     /// <summary>Returns a AutoSizedReg32 with the mask for the Command field (bits 24-27).</summary>
-    public static AutoSizedReg32 CommandMask => new(__COMMAND_SHIFTED_MASK);
+    public static AutoSizedReg32 CommandMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__COMMAND_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

@@ -24,9 +24,6 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatUnsignedByte Default => default;
-
     // --- Bit field mask constants ---
     // Low: bits [0..2], width 3
     private const int __LOW_START_BIT = 0;
@@ -63,10 +60,10 @@ public partial struct SatUnsignedByte : IComparable, IComparable<SatUnsignedByte
     }
 
     /// <summary>Returns a SatUnsignedByte with the mask for the Low field (bits 0-2).</summary>
-    public static SatUnsignedByte LowMask => new(__LOW_MASK);
+    public static SatUnsignedByte LowMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_MASK); }
 
     /// <summary>Returns a SatUnsignedByte with the mask for the High field (bits 3-6).</summary>
-    public static SatUnsignedByte HighMask => new(__HIGH_SHIFTED_MASK);
+    public static SatUnsignedByte HighMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

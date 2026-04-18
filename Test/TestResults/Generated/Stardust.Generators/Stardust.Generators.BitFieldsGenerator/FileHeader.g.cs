@@ -24,9 +24,6 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static FileHeader Default => default;
-
     // --- Bit field mask constants ---
     // Magic: bits [0..15], width 16
     private const int __MAGIC_START_BIT = 0;
@@ -99,19 +96,19 @@ public partial struct FileHeader : IComparable, IComparable<FileHeader>, IEquata
     }
 
     /// <summary>Returns a FileHeader with the mask for the Magic field (bits 0-15).</summary>
-    public static FileHeader MagicMask => new(__MAGIC_MASK);
+    public static FileHeader MagicMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MAGIC_MASK); }
 
     /// <summary>Returns a FileHeader with the mask for the Flags field (bits 16-23).</summary>
-    public static FileHeader FlagsMask => new(__FLAGS_SHIFTED_MASK);
+    public static FileHeader FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_SHIFTED_MASK); }
 
     /// <summary>Returns a FileHeader with the mask for the VersionMajor field (bits 24-31).</summary>
-    public static FileHeader VersionMajorMask => new(__VERSION_MAJOR_SHIFTED_MASK);
+    public static FileHeader VersionMajorMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VERSION_MAJOR_SHIFTED_MASK); }
 
     /// <summary>Returns a FileHeader with the mask for the VersionMinor field (bits 32-39).</summary>
-    public static FileHeader VersionMinorMask => new(__VERSION_MINOR_SHIFTED_MASK);
+    public static FileHeader VersionMinorMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VERSION_MINOR_SHIFTED_MASK); }
 
     /// <summary>Returns a FileHeader with the mask for the Reserved field (bits 40-63).</summary>
-    public static FileHeader ReservedMask => new(__RESERVED_SHIFTED_MASK);
+    public static FileHeader ReservedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__RESERVED_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

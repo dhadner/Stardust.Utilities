@@ -26,9 +26,6 @@ public partial class BitFieldProtocolTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 16;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static TcpFlags Default => default;
-
         // --- Bit field mask constants ---
         // FIN: bit 0
         private const int __FIN_BIT = 0;
@@ -70,7 +67,7 @@ public partial class BitFieldProtocolTests
         // --- Constructor normalization masks ---
         private const ushort __NORMALIZATION_AND_MASK = 0x01FF;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-        private ushort __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (ushort)(__value & __NORMALIZATION_AND_MASK); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] private ushort __GetNormalizedValue() => (ushort)(__value & __NORMALIZATION_AND_MASK);
 
         /// <summary>Creates a new TcpFlags with the specified raw bits value.</summary>
         public TcpFlags(ushort value) { __value = (ushort)(value & __NORMALIZATION_AND_MASK); }
@@ -148,31 +145,31 @@ public partial class BitFieldProtocolTests
         }
 
         /// <summary>Returns a TcpFlags with only the FIN bit set.</summary>
-        public static TcpFlags FINBit => new(__FIN_MASK);
+        public static TcpFlags FINBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIN_MASK); }
 
         /// <summary>Returns a TcpFlags with only the SYN bit set.</summary>
-        public static TcpFlags SYNBit => new(__SYN_MASK);
+        public static TcpFlags SYNBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SYN_MASK); }
 
         /// <summary>Returns a TcpFlags with only the RST bit set.</summary>
-        public static TcpFlags RSTBit => new(__RST_MASK);
+        public static TcpFlags RSTBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__RST_MASK); }
 
         /// <summary>Returns a TcpFlags with only the PSH bit set.</summary>
-        public static TcpFlags PSHBit => new(__PSH_MASK);
+        public static TcpFlags PSHBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PSH_MASK); }
 
         /// <summary>Returns a TcpFlags with only the ACK bit set.</summary>
-        public static TcpFlags ACKBit => new(__ACK_MASK);
+        public static TcpFlags ACKBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ACK_MASK); }
 
         /// <summary>Returns a TcpFlags with only the URG bit set.</summary>
-        public static TcpFlags URGBit => new(__URG_MASK);
+        public static TcpFlags URGBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__URG_MASK); }
 
         /// <summary>Returns a TcpFlags with only the ECE bit set.</summary>
-        public static TcpFlags ECEBit => new(__ECE_MASK);
+        public static TcpFlags ECEBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ECE_MASK); }
 
         /// <summary>Returns a TcpFlags with only the CWR bit set.</summary>
-        public static TcpFlags CWRBit => new(__CWR_MASK);
+        public static TcpFlags CWRBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CWR_MASK); }
 
         /// <summary>Returns a TcpFlags with only the NS bit set.</summary>
-        public static TcpFlags NSBit => new(__NS_MASK);
+        public static TcpFlags NSBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__NS_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -312,6 +309,7 @@ public partial class BitFieldProtocolTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TcpFlags operator %(ushort a, TcpFlags b) => new((ushort)(a % b.__value));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort __IterativeShiftLeft(ushort value, int count)
         {
             for (int i = 0; i < count; i++)
@@ -319,6 +317,7 @@ public partial class BitFieldProtocolTests
             return value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort __IterativeShiftRight(ushort value, int count)
         {
             for (int i = 0; i < count; i++)
@@ -326,6 +325,7 @@ public partial class BitFieldProtocolTests
             return value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort __IterativeUnsignedShiftRight(ushort value, int count)
         {
             for (int i = 0; i < count; i++)
@@ -335,15 +335,15 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(TcpFlags a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);
+        public static int operator <<(TcpFlags a, int b) => __IterativeShiftLeft(a.__GetNormalizedValue(), b);
 
         /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(TcpFlags a, int b) => __IterativeShiftRight(a.__normalizedValue, b);
+        public static int operator >>(TcpFlags a, int b) => __IterativeShiftRight(a.__GetNormalizedValue(), b);
 
         /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(TcpFlags a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);
+        public static int operator >>>(TcpFlags a, int b) => __IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b);
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -363,23 +363,23 @@ public partial class BitFieldProtocolTests
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(TcpFlags a, TcpFlags b) => a.__normalizedValue == b.__normalizedValue;
+        public static bool operator ==(TcpFlags a, TcpFlags b) => a.__GetNormalizedValue() == b.__GetNormalizedValue();
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(TcpFlags a, TcpFlags b) => a.__normalizedValue != b.__normalizedValue;
+        public static bool operator !=(TcpFlags a, TcpFlags b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is TcpFlags other && __normalizedValue == other.__normalizedValue;
+        public override bool Equals(object? obj) => obj is TcpFlags other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => __normalizedValue.GetHashCode();
+        public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{__normalizedValue:X}";
+        public override string ToString() => $"0x{__GetNormalizedValue():X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ushort(TcpFlags value) => value.__normalizedValue;
+        public static implicit operator ushort(TcpFlags value) => value.__GetNormalizedValue();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator TcpFlags(ushort value) => new(value);
@@ -411,7 +411,7 @@ public partial class BitFieldProtocolTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            BinaryPrimitives.WriteUInt16LittleEndian(destination, __normalizedValue);
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, __GetNormalizedValue());
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -595,7 +595,7 @@ public partial class BitFieldProtocolTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -604,7 +604,7 @@ public partial class BitFieldProtocolTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
+            => __GetNormalizedValue().TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -621,13 +621,13 @@ public partial class BitFieldProtocolTests
         /// <param name="other">A TcpFlags to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(TcpFlags other) => __normalizedValue.CompareTo(other.__normalizedValue);
+        public int CompareTo(TcpFlags other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
         /// <summary>Indicates whether this instance is equal to another TcpFlags.</summary>
         /// <param name="other">A TcpFlags to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(TcpFlags other) => __normalizedValue == other.__normalizedValue;
+        public bool Equals(TcpFlags other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
         /// <summary>JSON converter that serializes TcpFlags as a string.</summary>
         private sealed class TcpFlagsJsonConverter : JsonConverter<TcpFlags>

@@ -24,9 +24,6 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SignedPropertyReg64 Default => default;
-
     // --- Bit field mask constants ---
     // HighInt: bits [32..63], width 32
     private const int __HIGH_INT_START_BIT = 32;
@@ -58,10 +55,10 @@ public partial struct SignedPropertyReg64 : IComparable, IComparable<SignedPrope
     }
 
     /// <summary>Returns a SignedPropertyReg64 with the mask for the HighInt field (bits 32-63).</summary>
-    public static SignedPropertyReg64 HighIntMask => new(__HIGH_INT_SHIFTED_MASK);
+    public static SignedPropertyReg64 HighIntMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_INT_SHIFTED_MASK); }
 
     /// <summary>Returns a SignedPropertyReg64 with the mask for the LowUInt field (bits 0-31).</summary>
-    public static SignedPropertyReg64 LowUIntMask => new(__LOW_U_INT_MASK);
+    public static SignedPropertyReg64 LowUIntMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_U_INT_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

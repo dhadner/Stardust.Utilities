@@ -24,9 +24,6 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 64;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static EnumReg64 Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -70,13 +67,13 @@ public partial struct EnumReg64 : IComparable, IComparable<EnumReg64>, IEquatabl
     }
 
     /// <summary>Returns a EnumReg64 with only the Valid bit set.</summary>
-    public static EnumReg64 ValidBit => new(__VALID_MASK);
+    public static EnumReg64 ValidBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VALID_MASK); }
 
     /// <summary>Returns a EnumReg64 with the mask for the Status field (bits 0-7).</summary>
-    public static EnumReg64 StatusMask => new(__STATUS_MASK);
+    public static EnumReg64 StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a EnumReg64 with the mask for the Data field (bits 8-23).</summary>
-    public static EnumReg64 DataMask => new(__DATA_SHIFTED_MASK);
+    public static EnumReg64 DataMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DATA_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

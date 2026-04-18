@@ -24,9 +24,6 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SignedReg16 Default => default;
-
     // --- Bit field mask constants ---
     // LowByte: bits [1..7], width 7
     private const int __LOW_BYTE_START_BIT = 1;
@@ -83,16 +80,16 @@ public partial struct SignedReg16 : IComparable, IComparable<SignedReg16>, IEqua
     }
 
     /// <summary>Returns a SignedReg16 with only the Flag0 bit set.</summary>
-    public static SignedReg16 Flag0Bit => new(unchecked((short)__FLAG0_MASK));
+    public static SignedReg16 Flag0Bit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__FLAG0_MASK)); }
 
     /// <summary>Returns a SignedReg16 with only the Sign bit set.</summary>
-    public static SignedReg16 SignBit => new(unchecked((short)__SIGN_MASK));
+    public static SignedReg16 SignBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__SIGN_MASK)); }
 
     /// <summary>Returns a SignedReg16 with the mask for the LowByte field (bits 1-7).</summary>
-    public static SignedReg16 LowByteMask => new(unchecked((short)__LOW_BYTE_SHIFTED_MASK));
+    public static SignedReg16 LowByteMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__LOW_BYTE_SHIFTED_MASK)); }
 
     /// <summary>Returns a SignedReg16 with the mask for the HighByte field (bits 8-14).</summary>
-    public static SignedReg16 HighByteMask => new(unchecked((short)__HIGH_BYTE_SHIFTED_MASK));
+    public static SignedReg16 HighByteMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__HIGH_BYTE_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

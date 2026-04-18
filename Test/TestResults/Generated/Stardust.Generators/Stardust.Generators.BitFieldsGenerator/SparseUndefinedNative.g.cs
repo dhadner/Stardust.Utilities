@@ -24,9 +24,6 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SparseUndefinedNative Default => default;
-
     // --- Bit field mask constants ---
     // LowField: bits [1..2], width 2
     private const int __LOW_FIELD_START_BIT = 1;
@@ -59,10 +56,10 @@ public partial struct SparseUndefinedNative : IComparable, IComparable<SparseUnd
     }
 
     /// <summary>Returns a SparseUndefinedNative with the mask for the LowField field (bits 1-2).</summary>
-    public static SparseUndefinedNative LowFieldMask => new(unchecked((sbyte)__LOW_FIELD_SHIFTED_MASK));
+    public static SparseUndefinedNative LowFieldMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__LOW_FIELD_SHIFTED_MASK)); }
 
     /// <summary>Returns a SparseUndefinedNative with the mask for the HighField field (bits 4-6).</summary>
-    public static SparseUndefinedNative HighFieldMask => new(unchecked((sbyte)__HIGH_FIELD_SHIFTED_MASK));
+    public static SparseUndefinedNative HighFieldMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__HIGH_FIELD_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

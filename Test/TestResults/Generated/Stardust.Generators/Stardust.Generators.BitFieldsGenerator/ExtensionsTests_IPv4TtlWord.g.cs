@@ -26,9 +26,6 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static IPv4TtlWord Default => default;
-
         // --- Bit field mask constants ---
         // TTL: bits [24..31], width 8
         private const int __TTL_START_BIT = 24;
@@ -73,13 +70,13 @@ public partial class ExtensionsTests
         }
 
         /// <summary>Returns a IPv4TtlWord with the mask for the TTL field (bits 24-31).</summary>
-        public static IPv4TtlWord TTLMask => new(__TTL_SHIFTED_MASK);
+        public static IPv4TtlWord TTLMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TTL_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4TtlWord with the mask for the Protocol field (bits 16-23).</summary>
-        public static IPv4TtlWord ProtocolMask => new(__PROTOCOL_SHIFTED_MASK);
+        public static IPv4TtlWord ProtocolMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PROTOCOL_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4TtlWord with the mask for the HeaderChecksum field (bits 0-15).</summary>
-        public static IPv4TtlWord HeaderChecksumMask => new(__HEADER_CHECKSUM_MASK);
+        public static IPv4TtlWord HeaderChecksumMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HEADER_CHECKSUM_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

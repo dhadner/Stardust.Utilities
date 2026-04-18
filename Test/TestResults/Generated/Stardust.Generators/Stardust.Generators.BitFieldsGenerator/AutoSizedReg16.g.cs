@@ -24,9 +24,6 @@ public partial struct AutoSizedReg16 : IComparable, IComparable<AutoSizedReg16>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static AutoSizedReg16 Default => default;
-
     // --- Bit field mask constants ---
     // SecondKeyCode: bits [0..6], width 7
     private const int __SECOND_KEY_CODE_START_BIT = 0;
@@ -82,16 +79,16 @@ public partial struct AutoSizedReg16 : IComparable, IComparable<AutoSizedReg16>,
     }
 
     /// <summary>Returns a AutoSizedReg16 with only the SecondKeyUp bit set.</summary>
-    public static AutoSizedReg16 SecondKeyUpBit => new(__SECOND_KEY_UP_MASK);
+    public static AutoSizedReg16 SecondKeyUpBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SECOND_KEY_UP_MASK); }
 
     /// <summary>Returns a AutoSizedReg16 with only the FirstKeyUp bit set.</summary>
-    public static AutoSizedReg16 FirstKeyUpBit => new(__FIRST_KEY_UP_MASK);
+    public static AutoSizedReg16 FirstKeyUpBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIRST_KEY_UP_MASK); }
 
     /// <summary>Returns a AutoSizedReg16 with the mask for the SecondKeyCode field (bits 0-6).</summary>
-    public static AutoSizedReg16 SecondKeyCodeMask => new(__SECOND_KEY_CODE_MASK);
+    public static AutoSizedReg16 SecondKeyCodeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SECOND_KEY_CODE_MASK); }
 
     /// <summary>Returns a AutoSizedReg16 with the mask for the FirstKeyCode field (bits 8-14).</summary>
-    public static AutoSizedReg16 FirstKeyCodeMask => new(__FIRST_KEY_CODE_SHIFTED_MASK);
+    public static AutoSizedReg16 FirstKeyCodeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIRST_KEY_CODE_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

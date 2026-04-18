@@ -24,9 +24,6 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static DiagramFullOverlapRegister Default => default;
-
     // --- Bit field mask constants ---
     // ModeA: bits [0..3], width 4
     private const int __MODE_A_START_BIT = 0;
@@ -70,13 +67,13 @@ public partial struct DiagramFullOverlapRegister : IComparable, IComparable<Diag
     }
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the ModeA field (bits 0-3).</summary>
-    public static DiagramFullOverlapRegister ModeAMask => new(__MODE_A_MASK);
+    public static DiagramFullOverlapRegister ModeAMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MODE_A_MASK); }
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the ModeB field (bits 0-3).</summary>
-    public static DiagramFullOverlapRegister ModeBMask => new(__MODE_B_MASK);
+    public static DiagramFullOverlapRegister ModeBMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MODE_B_MASK); }
 
     /// <summary>Returns a DiagramFullOverlapRegister with the mask for the Upper field (bits 4-7).</summary>
-    public static DiagramFullOverlapRegister UpperMask => new(__UPPER_SHIFTED_MASK);
+    public static DiagramFullOverlapRegister UpperMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__UPPER_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

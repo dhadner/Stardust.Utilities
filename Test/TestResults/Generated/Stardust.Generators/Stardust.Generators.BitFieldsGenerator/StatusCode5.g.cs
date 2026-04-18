@@ -24,9 +24,6 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 5;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static StatusCode5 Default => default;
-
     // --- Bit field mask constants ---
     // Category: bits [0..2], width 3
     private const int __CATEGORY_START_BIT = 0;
@@ -69,13 +66,13 @@ public partial struct StatusCode5 : IComparable, IComparable<StatusCode5>, IEqua
     }
 
     /// <summary>Returns a StatusCode5 with only the Urgent bit set.</summary>
-    public static StatusCode5 UrgentBit => new(__URGENT_MASK);
+    public static StatusCode5 UrgentBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__URGENT_MASK); }
 
     /// <summary>Returns a StatusCode5 with only the Acknowledged bit set.</summary>
-    public static StatusCode5 AcknowledgedBit => new(__ACKNOWLEDGED_MASK);
+    public static StatusCode5 AcknowledgedBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ACKNOWLEDGED_MASK); }
 
     /// <summary>Returns a StatusCode5 with the mask for the Category field (bits 0-2).</summary>
-    public static StatusCode5 CategoryMask => new(__CATEGORY_MASK);
+    public static StatusCode5 CategoryMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CATEGORY_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

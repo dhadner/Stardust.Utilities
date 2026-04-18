@@ -24,9 +24,6 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SignedPropertyRegSigned16 Default => default;
-
     // --- Bit field mask constants ---
     // Delta: bits [13..15], width 3
     private const int __DELTA_START_BIT = 13;
@@ -59,10 +56,10 @@ public partial struct SignedPropertyRegSigned16 : IComparable, IComparable<Signe
     }
 
     /// <summary>Returns a SignedPropertyRegSigned16 with the mask for the Delta field (bits 13-15).</summary>
-    public static SignedPropertyRegSigned16 DeltaMask => new(unchecked((short)__DELTA_SHIFTED_MASK));
+    public static SignedPropertyRegSigned16 DeltaMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__DELTA_SHIFTED_MASK)); }
 
     /// <summary>Returns a SignedPropertyRegSigned16 with the mask for the SignedNibble field (bits 9-12).</summary>
-    public static SignedPropertyRegSigned16 SignedNibbleMask => new(unchecked((short)__SIGNED_NIBBLE_SHIFTED_MASK));
+    public static SignedPropertyRegSigned16 SignedNibbleMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((short)__SIGNED_NIBBLE_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

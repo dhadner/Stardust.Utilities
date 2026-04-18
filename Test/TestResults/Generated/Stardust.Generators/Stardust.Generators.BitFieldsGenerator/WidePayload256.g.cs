@@ -36,9 +36,6 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 256;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static WidePayload256 Default => default;
-
     private const ulong __LAST_WORD_MASK = 0xFFFFFFFFFFFFFFFFUL;
 
     /// <summary>Creates a new WidePayload256 from individual word values.</summary>

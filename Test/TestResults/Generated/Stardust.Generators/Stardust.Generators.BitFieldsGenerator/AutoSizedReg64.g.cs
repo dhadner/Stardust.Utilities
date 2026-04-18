@@ -24,9 +24,6 @@ public partial struct AutoSizedReg64 : IComparable, IComparable<AutoSizedReg64>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 58;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static AutoSizedReg64 Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -95,19 +92,19 @@ public partial struct AutoSizedReg64 : IComparable, IComparable<AutoSizedReg64>,
     }
 
     /// <summary>Returns a AutoSizedReg64 with only the Valid bit set.</summary>
-    public static AutoSizedReg64 ValidBit => new(__VALID_MASK);
+    public static AutoSizedReg64 ValidBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VALID_MASK); }
 
     /// <summary>Returns a AutoSizedReg64 with only the Ready bit set.</summary>
-    public static AutoSizedReg64 ReadyBit => new(__READY_MASK);
+    public static AutoSizedReg64 ReadyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__READY_MASK); }
 
     /// <summary>Returns a AutoSizedReg64 with the mask for the Status field (bits 0-7).</summary>
-    public static AutoSizedReg64 StatusMask => new(__STATUS_MASK);
+    public static AutoSizedReg64 StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a AutoSizedReg64 with the mask for the Data field (bits 8-23).</summary>
-    public static AutoSizedReg64 DataMask => new(__DATA_SHIFTED_MASK);
+    public static AutoSizedReg64 DataMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DATA_SHIFTED_MASK); }
 
     /// <summary>Returns a AutoSizedReg64 with the mask for the Address field (bits 24-55).</summary>
-    public static AutoSizedReg64 AddressMask => new(__ADDRESS_SHIFTED_MASK);
+    public static AutoSizedReg64 AddressMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ADDRESS_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

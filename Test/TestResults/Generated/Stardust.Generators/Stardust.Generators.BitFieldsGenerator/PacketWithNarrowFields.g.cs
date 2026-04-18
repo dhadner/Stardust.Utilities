@@ -24,9 +24,6 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static PacketWithNarrowFields Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..4], width 5
     private const int __STATUS_START_BIT = 0;
@@ -75,13 +72,13 @@ public partial struct PacketWithNarrowFields : IComparable, IComparable<PacketWi
     }
 
     /// <summary>Returns a PacketWithNarrowFields with the mask for the Status field (bits 0-4).</summary>
-    public static PacketWithNarrowFields StatusMask => new(__STATUS_MASK);
+    public static PacketWithNarrowFields StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a PacketWithNarrowFields with the mask for the Sensor field (bits 5-16).</summary>
-    public static PacketWithNarrowFields SensorMask => new(__SENSOR_SHIFTED_MASK);
+    public static PacketWithNarrowFields SensorMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SENSOR_SHIFTED_MASK); }
 
     /// <summary>Returns a PacketWithNarrowFields with the mask for the SequenceNum field (bits 17-31).</summary>
-    public static PacketWithNarrowFields SequenceNumMask => new(__SEQUENCE_NUM_SHIFTED_MASK);
+    public static PacketWithNarrowFields SequenceNumMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SEQUENCE_NUM_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

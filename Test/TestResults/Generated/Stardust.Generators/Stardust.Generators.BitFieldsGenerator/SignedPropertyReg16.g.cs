@@ -24,9 +24,6 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SignedPropertyReg16 Default => default;
-
     // --- Bit field mask constants ---
     // Delta: bits [13..15], width 3
     private const int __DELTA_START_BIT = 13;
@@ -84,16 +81,16 @@ public partial struct SignedPropertyReg16 : IComparable, IComparable<SignedPrope
     }
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Delta field (bits 13-15).</summary>
-    public static SignedPropertyReg16 DeltaMask => new(__DELTA_SHIFTED_MASK);
+    public static SignedPropertyReg16 DeltaMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DELTA_SHIFTED_MASK); }
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the UnsignedField field (bits 10-12).</summary>
-    public static SignedPropertyReg16 UnsignedFieldMask => new(__UNSIGNED_FIELD_SHIFTED_MASK);
+    public static SignedPropertyReg16 UnsignedFieldMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__UNSIGNED_FIELD_SHIFTED_MASK); }
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the SignedNibble field (bits 6-9).</summary>
-    public static SignedPropertyReg16 SignedNibbleMask => new(__SIGNED_NIBBLE_SHIFTED_MASK);
+    public static SignedPropertyReg16 SignedNibbleMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SIGNED_NIBBLE_SHIFTED_MASK); }
 
     /// <summary>Returns a SignedPropertyReg16 with the mask for the Offset field (bits 0-5).</summary>
-    public static SignedPropertyReg16 OffsetMask => new(__OFFSET_MASK);
+    public static SignedPropertyReg16 OffsetMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__OFFSET_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

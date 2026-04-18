@@ -26,9 +26,6 @@ public partial class RecordStructViewTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static EmbeddedFlags Default => default;
-
         // --- Bit field mask constants ---
         // Code: bits [4..7], width 4
         private const int __CODE_START_BIT = 4;
@@ -72,13 +69,13 @@ public partial class RecordStructViewTests
         }
 
         /// <summary>Returns a EmbeddedFlags with only the Active bit set.</summary>
-        public static EmbeddedFlags ActiveBit => new(__ACTIVE_MASK);
+        public static EmbeddedFlags ActiveBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ACTIVE_MASK); }
 
         /// <summary>Returns a EmbeddedFlags with only the Valid bit set.</summary>
-        public static EmbeddedFlags ValidBit => new(__VALID_MASK);
+        public static EmbeddedFlags ValidBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VALID_MASK); }
 
         /// <summary>Returns a EmbeddedFlags with the mask for the Code field (bits 4-7).</summary>
-        public static EmbeddedFlags CodeMask => new(__CODE_SHIFTED_MASK);
+        public static EmbeddedFlags CodeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CODE_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

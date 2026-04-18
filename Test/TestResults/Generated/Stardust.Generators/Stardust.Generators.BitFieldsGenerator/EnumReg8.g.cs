@@ -24,9 +24,6 @@ public partial struct EnumReg8 : IComparable, IComparable<EnumReg8>, IEquatable<
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static EnumReg8 Default => default;
-
     // --- Bit field mask constants ---
     // Mode: bits [2..4], width 3
     private const int __MODE_START_BIT = 2;
@@ -95,19 +92,19 @@ public partial struct EnumReg8 : IComparable, IComparable<EnumReg8>, IEquatable<
     }
 
     /// <summary>Returns a EnumReg8 with only the Ready bit set.</summary>
-    public static EnumReg8 ReadyBit => new(__READY_MASK);
+    public static EnumReg8 ReadyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__READY_MASK); }
 
     /// <summary>Returns a EnumReg8 with only the Error bit set.</summary>
-    public static EnumReg8 ErrorBit => new(__ERROR_MASK);
+    public static EnumReg8 ErrorBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ERROR_MASK); }
 
     /// <summary>Returns a EnumReg8 with only the Busy bit set.</summary>
-    public static EnumReg8 BusyBit => new(__BUSY_MASK);
+    public static EnumReg8 BusyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BUSY_MASK); }
 
     /// <summary>Returns a EnumReg8 with the mask for the Mode field (bits 2-4).</summary>
-    public static EnumReg8 ModeMask => new(__MODE_SHIFTED_MASK);
+    public static EnumReg8 ModeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MODE_SHIFTED_MASK); }
 
     /// <summary>Returns a EnumReg8 with the mask for the Priority field (bits 5-6).</summary>
-    public static EnumReg8 PriorityMask => new(__PRIORITY_SHIFTED_MASK);
+    public static EnumReg8 PriorityMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PRIORITY_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

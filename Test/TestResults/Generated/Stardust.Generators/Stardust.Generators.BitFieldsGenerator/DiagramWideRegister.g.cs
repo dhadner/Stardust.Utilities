@@ -24,9 +24,6 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static DiagramWideRegister Default => default;
-
     // --- Bit field mask constants ---
     // LowHalf: bits [0..15], width 16
     private const int __LOW_HALF_START_BIT = 0;
@@ -58,10 +55,10 @@ public partial struct DiagramWideRegister : IComparable, IComparable<DiagramWide
     }
 
     /// <summary>Returns a DiagramWideRegister with the mask for the LowHalf field (bits 0-15).</summary>
-    public static DiagramWideRegister LowHalfMask => new(__LOW_HALF_MASK);
+    public static DiagramWideRegister LowHalfMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_HALF_MASK); }
 
     /// <summary>Returns a DiagramWideRegister with the mask for the HighHalf field (bits 16-31).</summary>
-    public static DiagramWideRegister HighHalfMask => new(__HIGH_HALF_SHIFTED_MASK);
+    public static DiagramWideRegister HighHalfMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_HALF_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

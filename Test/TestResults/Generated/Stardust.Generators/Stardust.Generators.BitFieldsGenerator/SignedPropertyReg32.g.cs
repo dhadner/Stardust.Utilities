@@ -24,9 +24,6 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SignedPropertyReg32 Default => default;
-
     // --- Bit field mask constants ---
     // HighByte: bits [24..31], width 8
     private const int __HIGH_BYTE_START_BIT = 24;
@@ -71,13 +68,13 @@ public partial struct SignedPropertyReg32 : IComparable, IComparable<SignedPrope
     }
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the HighByte field (bits 24-31).</summary>
-    public static SignedPropertyReg32 HighByteMask => new(__HIGH_BYTE_SHIFTED_MASK);
+    public static SignedPropertyReg32 HighByteMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HIGH_BYTE_SHIFTED_MASK); }
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the MiddleWord field (bits 8-23).</summary>
-    public static SignedPropertyReg32 MiddleWordMask => new(__MIDDLE_WORD_SHIFTED_MASK);
+    public static SignedPropertyReg32 MiddleWordMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MIDDLE_WORD_SHIFTED_MASK); }
 
     /// <summary>Returns a SignedPropertyReg32 with the mask for the LowByte field (bits 0-7).</summary>
-    public static SignedPropertyReg32 LowByteMask => new(__LOW_BYTE_MASK);
+    public static SignedPropertyReg32 LowByteMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOW_BYTE_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

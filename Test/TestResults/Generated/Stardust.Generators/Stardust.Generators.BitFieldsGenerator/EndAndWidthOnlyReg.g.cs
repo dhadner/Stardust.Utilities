@@ -24,9 +24,6 @@ public partial struct EndAndWidthOnlyReg : IComparable, IComparable<EndAndWidthO
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static EndAndWidthOnlyReg Default => default;
-
     // --- Bit field mask constants ---
     // UpperNibble: bits [4..7], width 4
     private const int __UPPER_NIBBLE_START_BIT = 4;
@@ -58,10 +55,10 @@ public partial struct EndAndWidthOnlyReg : IComparable, IComparable<EndAndWidthO
     }
 
     /// <summary>Returns a EndAndWidthOnlyReg with the mask for the UpperNibble field (bits 4-7).</summary>
-    public static EndAndWidthOnlyReg UpperNibbleMask => new(__UPPER_NIBBLE_SHIFTED_MASK);
+    public static EndAndWidthOnlyReg UpperNibbleMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__UPPER_NIBBLE_SHIFTED_MASK); }
 
     /// <summary>Returns a EndAndWidthOnlyReg with the mask for the LowerNibble field (bits 0-3).</summary>
-    public static EndAndWidthOnlyReg LowerNibbleMask => new(__LOWER_NIBBLE_MASK);
+    public static EndAndWidthOnlyReg LowerNibbleMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOWER_NIBBLE_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

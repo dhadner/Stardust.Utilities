@@ -24,9 +24,6 @@ public partial struct SubHeader9Native : IComparable, IComparable<SubHeader9Nati
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SubHeader9Native Default => default;
-
     // --- Bit field mask constants ---
     // TypeCode: bits [0..3], width 4
     private const int __TYPE_CODE_START_BIT = 0;
@@ -58,10 +55,10 @@ public partial struct SubHeader9Native : IComparable, IComparable<SubHeader9Nati
     }
 
     /// <summary>Returns a SubHeader9Native with the mask for the TypeCode field (bits 0-3).</summary>
-    public static SubHeader9Native TypeCodeMask => new(__TYPE_CODE_MASK);
+    public static SubHeader9Native TypeCodeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TYPE_CODE_MASK); }
 
     /// <summary>Returns a SubHeader9Native with the mask for the Flags field (bits 4-8).</summary>
-    public static SubHeader9Native FlagsMask => new(__FLAGS_SHIFTED_MASK);
+    public static SubHeader9Native FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

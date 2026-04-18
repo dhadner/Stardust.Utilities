@@ -24,9 +24,6 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static CombinedMustBeReg Default => default;
-
     // --- Bit field mask constants ---
     // Flags: bits [0..2], width 3
     private const int __FLAGS_START_BIT = 0;
@@ -41,7 +38,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     private const byte __NORMALIZATION_AND_MASK = 0x0F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
     private const byte __NORMALIZATION_OR_MASK = 0x08;  // Sets: AlwaysHigh (MustBe.One)
 
-    private byte __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (byte)((__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private byte __GetNormalizedValue() => (byte)((__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK);
 
     /// <summary>Creates a new CombinedMustBeReg with the specified raw bits value.</summary>
     public CombinedMustBeReg(byte value) { __value = (byte)((value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK); }
@@ -63,10 +60,10 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     }
 
     /// <summary>Returns a CombinedMustBeReg with only the AlwaysHigh bit set.</summary>
-    public static CombinedMustBeReg AlwaysHighBit => new(__ALWAYS_HIGH_MASK);
+    public static CombinedMustBeReg AlwaysHighBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ALWAYS_HIGH_MASK); }
 
     /// <summary>Returns a CombinedMustBeReg with the mask for the Flags field (bits 0-2).</summary>
-    public static CombinedMustBeReg FlagsMask => new(__FLAGS_MASK);
+    public static CombinedMustBeReg FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -171,6 +168,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CombinedMustBeReg operator %(byte a, CombinedMustBeReg b) => new((byte)(a % b.__value));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte __IterativeShiftLeft(byte value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -178,6 +176,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte __IterativeShiftRight(byte value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -185,6 +184,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte __IterativeUnsignedShiftRight(byte value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -194,15 +194,15 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
 
     /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator <<(CombinedMustBeReg a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);
+    public static int operator <<(CombinedMustBeReg a, int b) => __IterativeShiftLeft(a.__GetNormalizedValue(), b);
 
     /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>(CombinedMustBeReg a, int b) => __IterativeShiftRight(a.__normalizedValue, b);
+    public static int operator >>(CombinedMustBeReg a, int b) => __IterativeShiftRight(a.__GetNormalizedValue(), b);
 
     /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int operator >>>(CombinedMustBeReg a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);
+    public static int operator >>>(CombinedMustBeReg a, int b) => __IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b);
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,23 +222,23 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(CombinedMustBeReg a, CombinedMustBeReg b) => a.__normalizedValue == b.__normalizedValue;
+    public static bool operator ==(CombinedMustBeReg a, CombinedMustBeReg b) => a.__GetNormalizedValue() == b.__GetNormalizedValue();
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(CombinedMustBeReg a, CombinedMustBeReg b) => a.__normalizedValue != b.__normalizedValue;
+    public static bool operator !=(CombinedMustBeReg a, CombinedMustBeReg b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is CombinedMustBeReg other && __normalizedValue == other.__normalizedValue;
+    public override bool Equals(object? obj) => obj is CombinedMustBeReg other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __normalizedValue.GetHashCode();
+    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__normalizedValue:X}";
+    public override string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(CombinedMustBeReg value) => value.__normalizedValue;
+    public static implicit operator byte(CombinedMustBeReg value) => value.__GetNormalizedValue();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator CombinedMustBeReg(byte value) => new(value);
@@ -270,7 +270,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        destination[0] = unchecked((byte)__normalizedValue);
+        destination[0] = unchecked((byte)__GetNormalizedValue());
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -454,7 +454,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -463,7 +463,7 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
+        => __GetNormalizedValue().TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -480,13 +480,13 @@ public partial struct CombinedMustBeReg : IComparable, IComparable<CombinedMustB
     /// <param name="other">A CombinedMustBeReg to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(CombinedMustBeReg other) => __normalizedValue.CompareTo(other.__normalizedValue);
+    public int CompareTo(CombinedMustBeReg other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another CombinedMustBeReg.</summary>
     /// <param name="other">A CombinedMustBeReg to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(CombinedMustBeReg other) => __normalizedValue == other.__normalizedValue;
+    public bool Equals(CombinedMustBeReg other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes CombinedMustBeReg as a string.</summary>
     private sealed class CombinedMustBeRegJsonConverter : JsonConverter<CombinedMustBeReg>

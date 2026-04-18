@@ -24,9 +24,6 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 24;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static RgbColor24 Default => default;
-
     // --- Bit field mask constants ---
     // Red: bits [0..7], width 8
     private const int __RED_START_BIT = 0;
@@ -46,7 +43,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     // --- Constructor normalization masks ---
     private const uint __NORMALIZATION_AND_MASK = 0x00FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    private uint __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (uint)(__value & __NORMALIZATION_AND_MASK); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private uint __GetNormalizedValue() => (uint)(__value & __NORMALIZATION_AND_MASK);
 
     /// <summary>Creates a new RgbColor24 with the specified raw bits value.</summary>
     public RgbColor24(uint value) { __value = (uint)(value & __NORMALIZATION_AND_MASK); }
@@ -76,13 +73,13 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     }
 
     /// <summary>Returns a RgbColor24 with the mask for the Red field (bits 0-7).</summary>
-    public static RgbColor24 RedMask => new(__RED_MASK);
+    public static RgbColor24 RedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__RED_MASK); }
 
     /// <summary>Returns a RgbColor24 with the mask for the Green field (bits 8-15).</summary>
-    public static RgbColor24 GreenMask => new(__GREEN_SHIFTED_MASK);
+    public static RgbColor24 GreenMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__GREEN_SHIFTED_MASK); }
 
     /// <summary>Returns a RgbColor24 with the mask for the Blue field (bits 16-23).</summary>
-    public static RgbColor24 BlueMask => new(__BLUE_SHIFTED_MASK);
+    public static RgbColor24 BlueMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BLUE_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;
@@ -240,6 +237,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RgbColor24 operator %(uint a, RgbColor24 b) => new((uint)(a % b.__value));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static uint __IterativeShiftLeft(uint value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -247,6 +245,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static uint __IterativeShiftRight(uint value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -254,6 +253,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static uint __IterativeUnsignedShiftRight(uint value, int count)
     {
         for (int i = 0; i < count; i++)
@@ -263,15 +263,15 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator <<(RgbColor24 a, int b) => new(__IterativeShiftLeft(a.__normalizedValue, b));
+    public static RgbColor24 operator <<(RgbColor24 a, int b) => new(__IterativeShiftLeft(a.__GetNormalizedValue(), b));
 
     /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator >>(RgbColor24 a, int b) => new(__IterativeShiftRight(a.__normalizedValue, b));
+    public static RgbColor24 operator >>(RgbColor24 a, int b) => new(__IterativeShiftRight(a.__GetNormalizedValue(), b));
 
     /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RgbColor24 operator >>>(RgbColor24 a, int b) => new(__IterativeUnsignedShiftRight(a.__normalizedValue, b));
+    public static RgbColor24 operator >>>(RgbColor24 a, int b) => new(__IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b));
 
     /// <summary>Less than operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -291,23 +291,23 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
 
     /// <summary>Equality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(RgbColor24 a, RgbColor24 b) => a.__normalizedValue == b.__normalizedValue;
+    public static bool operator ==(RgbColor24 a, RgbColor24 b) => a.__GetNormalizedValue() == b.__GetNormalizedValue();
 
     /// <summary>Inequality operator.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(RgbColor24 a, RgbColor24 b) => a.__normalizedValue != b.__normalizedValue;
+    public static bool operator !=(RgbColor24 a, RgbColor24 b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is RgbColor24 other && __normalizedValue == other.__normalizedValue;
+    public override bool Equals(object? obj) => obj is RgbColor24 other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __normalizedValue.GetHashCode();
+    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__normalizedValue:X}";
+    public override string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(RgbColor24 value) => value.__normalizedValue;
+    public static implicit operator uint(RgbColor24 value) => value.__GetNormalizedValue();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator RgbColor24(uint value) => new(value);
@@ -335,7 +335,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     {
         if (destination.Length < SIZE_IN_BYTES)
             throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-        BinaryPrimitives.WriteUInt32LittleEndian(destination, __normalizedValue);
+        BinaryPrimitives.WriteUInt32LittleEndian(destination, __GetNormalizedValue());
     }
 
     /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -519,7 +519,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
+    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -528,7 +528,7 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="provider">The provider to use for culture-specific formatting.</param>
     /// <returns>true if the formatting was successful; otherwise, false.</returns>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
+        => __GetNormalizedValue().TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
     /// <param name="obj">An object to compare, or null.</param>
@@ -545,13 +545,13 @@ public partial struct RgbColor24 : IComparable, IComparable<RgbColor24>, IEquata
     /// <param name="other">A RgbColor24 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(RgbColor24 other) => __normalizedValue.CompareTo(other.__normalizedValue);
+    public int CompareTo(RgbColor24 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another RgbColor24.</summary>
     /// <param name="other">A RgbColor24 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(RgbColor24 other) => __normalizedValue == other.__normalizedValue;
+    public bool Equals(RgbColor24 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes RgbColor24 as a string.</summary>
     private sealed class RgbColor24JsonConverter : JsonConverter<RgbColor24>

@@ -24,9 +24,6 @@ public partial struct SatSignedSbyte : IComparable, IComparable<SatSignedSbyte>,
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static SatSignedSbyte Default => default;
-
     // --- Bit field mask constants ---
     // Val: bits [0..2], width 3
     private const int __VAL_START_BIT = 0;
@@ -51,7 +48,7 @@ public partial struct SatSignedSbyte : IComparable, IComparable<SatSignedSbyte>,
     }
 
     /// <summary>Returns a SatSignedSbyte with the mask for the Val field (bits 0-2).</summary>
-    public static SatSignedSbyte ValMask => new(unchecked((sbyte)__VAL_MASK));
+    public static SatSignedSbyte ValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((sbyte)__VAL_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

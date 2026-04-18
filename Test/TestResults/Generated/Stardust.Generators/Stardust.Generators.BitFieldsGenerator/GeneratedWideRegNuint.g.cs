@@ -24,9 +24,6 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
     /// <summary>Total number of bits in this struct (platform-dependent: 32 on 32-bit, 64 on 64-bit).</summary>
     public static int BIT_WIDTH => nint.Size * 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static GeneratedWideRegNuint Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -95,19 +92,19 @@ public partial struct GeneratedWideRegNuint : IComparable, IComparable<Generated
     }
 
     /// <summary>Returns a GeneratedWideRegNuint with only the Valid bit set.</summary>
-    public static GeneratedWideRegNuint ValidBit => new(unchecked((nuint)__VALID_MASK));
+    public static GeneratedWideRegNuint ValidBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__VALID_MASK)); }
 
     /// <summary>Returns a GeneratedWideRegNuint with only the Ready bit set.</summary>
-    public static GeneratedWideRegNuint ReadyBit => new(unchecked((nuint)__READY_MASK));
+    public static GeneratedWideRegNuint ReadyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__READY_MASK)); }
 
     /// <summary>Returns a GeneratedWideRegNuint with the mask for the Status field (bits 0-7).</summary>
-    public static GeneratedWideRegNuint StatusMask => new(unchecked((nuint)__STATUS_MASK));
+    public static GeneratedWideRegNuint StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__STATUS_MASK)); }
 
     /// <summary>Returns a GeneratedWideRegNuint with the mask for the Data field (bits 8-23).</summary>
-    public static GeneratedWideRegNuint DataMask => new(unchecked((nuint)__DATA_SHIFTED_MASK));
+    public static GeneratedWideRegNuint DataMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__DATA_SHIFTED_MASK)); }
 
     /// <summary>Returns a GeneratedWideRegNuint with the mask for the Address field (bits 24-55).</summary>
-    public static GeneratedWideRegNuint AddressMask => new(unchecked((nuint)__ADDRESS_SHIFTED_MASK));
+    public static GeneratedWideRegNuint AddressMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(unchecked((nuint)__ADDRESS_SHIFTED_MASK)); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

@@ -58,14 +58,14 @@ public class BitFieldDiagram
     /// <summary>
     /// Create a new diagram with a list of structs to render.
     /// </summary>
-    /// <param name="structs"></param>
-    /// <param name="description"></param>
-    /// <param name="commentPrefix"></param>
-    /// <param name="bitsPerRow"></param>
-    /// <param name="includeDescriptions"></param>
-    /// <param name="showByteOffset"></param>
-    /// <param name="descriptionResourceType"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="structs">The struct types to render, each decorated with <c>[BitFields]</c>.</param>
+    /// <param name="description">Optional description/caption for the diagram.</param>
+    /// <param name="commentPrefix">Optional prefix prepended to every output line (e.g., <c>"// "</c>).</param>
+    /// <param name="bitsPerRow">Number of bits per diagram row. Defaults to 32.</param>
+    /// <param name="includeDescriptions">When true, appends a legend with field descriptions below the diagram.</param>
+    /// <param name="showByteOffset">When true, shows hex byte offset at the left of each content row.</param>
+    /// <param name="descriptionResourceType">Optional resource type for localizing <paramref name="description"/>.</param>
+    /// <exception cref="ArgumentException">Thrown when a type is not a valid <c>[BitFields]</c> struct.</exception>
     public BitFieldDiagram(ReadOnlySpan<Type> structs, string? description = null, string? commentPrefix = null, int bitsPerRow = 32, bool includeDescriptions = true, bool showByteOffset = false, Type? descriptionResourceType = null)
         : this(description, commentPrefix, bitsPerRow, includeDescriptions, showByteOffset, descriptionResourceType)
     {
@@ -78,14 +78,14 @@ public class BitFieldDiagram
     /// <summary>
     /// Create a new diagram with a list of structs to render.
     /// </summary>
-    /// <param name="structs"></param>
-    /// <param name="description"></param>
-    /// <param name="commentPrefix"></param>
-    /// <param name="bitsPerRow"></param>
-    /// <param name="includeDescriptions"></param>
-    /// <param name="showByteOffset"></param>
-    /// <param name="descriptionResourceType"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="structs">The struct types to render, each decorated with <c>[BitFields]</c>.</param>
+    /// <param name="description">Optional description/caption for the diagram.</param>
+    /// <param name="commentPrefix">Optional prefix prepended to every output line (e.g., <c>"// "</c>).</param>
+    /// <param name="bitsPerRow">Number of bits per diagram row. Defaults to 32.</param>
+    /// <param name="includeDescriptions">When true, appends a legend with field descriptions below the diagram.</param>
+    /// <param name="showByteOffset">When true, shows hex byte offset at the left of each content row.</param>
+    /// <param name="descriptionResourceType">Optional resource type for localizing <paramref name="description"/>.</param>
+    /// <exception cref="ArgumentException">Thrown when a type is not a valid <c>[BitFields]</c> struct.</exception>
     public BitFieldDiagram(IEnumerable<Type> structs, string? description = null, string? commentPrefix = null, int bitsPerRow = 32, bool includeDescriptions = true, bool showByteOffset = false, Type? descriptionResourceType = null)
         : this(description, commentPrefix, bitsPerRow, includeDescriptions, showByteOffset, descriptionResourceType)
     {
@@ -96,16 +96,16 @@ public class BitFieldDiagram
     }
 
     /// <summary>
-    /// Create a new diagram with struct to render.
+    /// Create a new diagram with a struct to render.
     /// </summary>
-    /// <param name="bitStruct"></param>
-    /// <param name="description"></param>
-    /// <param name="commentPrefix"></param>
-    /// <param name="bitsPerRow"></param>
-    /// <param name="includeDescriptions"></param>
-    /// <param name="showByteOffset"></param>
-    /// <param name="descriptionResourceType"></param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="bitStruct">The struct type to render, decorated with <c>[BitFields]</c>.</param>
+    /// <param name="description">Optional description/caption for the diagram.</param>
+    /// <param name="commentPrefix">Optional prefix prepended to every output line (e.g., <c>"// "</c>).</param>
+    /// <param name="bitsPerRow">Number of bits per diagram row. Defaults to 32.</param>
+    /// <param name="includeDescriptions">When true, appends a legend with field descriptions below the diagram.</param>
+    /// <param name="showByteOffset">When true, shows hex byte offset at the left of each content row.</param>
+    /// <param name="descriptionResourceType">Optional resource type for localizing <paramref name="description"/>.</param>
+    /// <exception cref="ArgumentException">Thrown when the type is not a valid <c>[BitFields]</c> struct.</exception>
     public BitFieldDiagram(Type bitStruct, string? description = null, string? commentPrefix = null, int bitsPerRow = 32, bool includeDescriptions = true, bool showByteOffset = false, Type? descriptionResourceType = null)
         : this([bitStruct], description, commentPrefix, bitsPerRow, includeDescriptions, showByteOffset, descriptionResourceType)
     {

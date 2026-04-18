@@ -26,9 +26,6 @@ public partial class EndianOverrideTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static Reg_Lsb Default => default;
-
         // --- Bit field mask constants ---
         // BeU16: bits [0..15], width 16
         private const int __BE_U16_START_BIT = 0;
@@ -73,13 +70,13 @@ public partial class EndianOverrideTests
         }
 
         /// <summary>Returns a Reg_Lsb with the mask for the BeU16 field (bits 0-15).</summary>
-        public static Reg_Lsb BeU16Mask => new(__BE_U16_MASK);
+        public static Reg_Lsb BeU16Mask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BE_U16_MASK); }
 
         /// <summary>Returns a Reg_Lsb with the mask for the LeU16 field (bits 16-31).</summary>
-        public static Reg_Lsb LeU16Mask => new(__LE_U16_SHIFTED_MASK);
+        public static Reg_Lsb LeU16Mask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LE_U16_SHIFTED_MASK); }
 
         /// <summary>Returns a Reg_Lsb with the mask for the BeU32 field (bits 32-63).</summary>
-        public static Reg_Lsb BeU32Mask => new(__BE_U32_SHIFTED_MASK);
+        public static Reg_Lsb BeU32Mask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BE_U32_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

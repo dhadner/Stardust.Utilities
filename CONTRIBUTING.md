@@ -106,11 +106,11 @@ dotnet build
 # Run tests
 dotnet test Test/Stardust.Utilities.Tests.csproj
 
-# Build NuGet packages (version is required)
-.\Build-Combined-NuGetPackages.ps1 0.9.0
+# Build NuGet packages (version from Directory.Build.props)
+.\Build-Combined-NuGetPackages.ps1
 
 # Skip tests for faster iteration
-.\Build-Combined-NuGetPackages.ps1 0.9.0 -SkipTests
+.\Build-Combined-NuGetPackages.ps1 -SkipTests
 ```
 
 ### Build Scripts
@@ -123,8 +123,7 @@ The repository includes PowerShell build scripts to simplify package development
 | `Build-Generator-NuGetPackage.ps1` | Builds the standalone generator package (for local development only) |
 
 **Key behavior of `Build-Combined-NuGetPackages.ps1`:**
-- Version is specified as a **required** command-line argument (e.g., `0.9.0`)
-- Version is NOT stored in .csproj files
+- Version defaults from `Directory.Build.props` (can be overridden via command-line argument)
 - Packages are automatically published to the local NuGet feed (`~/.nuget/local-packages/`)
 - NuGet cache is automatically cleared so consuming projects pick up changes
 - Packages appear in Visual Studio's NuGet Package Manager under the local feed
@@ -179,6 +178,7 @@ We follow standard C# conventions with these specifics:
 - `PascalCase` for public members
 - `_camelCase` for private fields
 - `camelCase` for local variables and parameters
+- `SCREAMING_SNAKE_CASE` for all constants (`const` fields and `const` locals)
 
 ### Example
 
@@ -232,7 +232,7 @@ public void Ok_WithValue_ReturnsSuccessResult()
 {
     var result = Result<int, string>.Ok(42);
     
-    result.IsSuccess.Should().BeTrue();
+    result.IsOk.Should().BeTrue();
     result.Value.Should().Be(42);
 }
 ```

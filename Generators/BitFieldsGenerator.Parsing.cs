@@ -9,7 +9,7 @@ public partial class BitFieldsGenerator
     /// </summary>
     private static void GenerateConversions(StringBuilder sb, BitFieldsInfo info, string indent)
     {
-        string v = info.NeedsNormalization ? "__normalizedValue" : "__value";
+        string v = info.NeedsNormalization ? "__GetNormalizedValue()" : "__value";
 
         if (info.Mode == StorageMode.NativeFloat)
         {
@@ -42,7 +42,7 @@ public partial class BitFieldsGenerator
         else
         {
             // NativeInteger: standard implicit conversions
-            // Note: The constructor normalizes inbound values; __normalizedValue normalizes outbound reads.
+            // Note: The constructor normalizes inbound values; __GetNormalizedValue() normalizes outbound reads.
             sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
             sb.AppendLine($"{indent}public static implicit operator {info.StorageType}({info.TypeName} value) => value.{v};");
             sb.AppendLine();
@@ -306,7 +306,7 @@ public partial class BitFieldsGenerator
     private static void GenerateFormattingMethods(StringBuilder sb, BitFieldsInfo info, string indent)
     {
         string t = info.TypeName;
-        string v = info.NeedsNormalization ? "__normalizedValue" : "__value";
+        string v = info.NeedsNormalization ? "__GetNormalizedValue()" : "__value";
 
         // For NativeFloat, format the floating-point value rather than raw bits
         string fmtExpr = info.Mode == StorageMode.NativeFloat
@@ -337,7 +337,7 @@ public partial class BitFieldsGenerator
     private static void GenerateComparisonMethods(StringBuilder sb, BitFieldsInfo info, string indent)
     {
         string t = info.TypeName;
-        string v = info.NeedsNormalization ? "__normalizedValue" : "__value";
+        string v = info.NeedsNormalization ? "__GetNormalizedValue()" : "__value";
 
         sb.AppendLine($"{indent}/// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>");
         sb.AppendLine($"{indent}/// <param name=\"obj\">An object to compare, or null.</param>");
@@ -381,7 +381,7 @@ public partial class BitFieldsGenerator
     {
         string t = info.TypeName;
         string s = info.StorageType;
-        string v = info.NeedsNormalization ? "__normalizedValue" : "__value";
+        string v = info.NeedsNormalization ? "__GetNormalizedValue()" : "__value";
         int sizeInBytes = GetStorageTypeBitWidth(s) / 8;
         bool isBE = info.ByteOrder == ByteOrder.BigEndian;
         string? readMethod = GetBinaryPrimitivesReadMethod(s, isBE);

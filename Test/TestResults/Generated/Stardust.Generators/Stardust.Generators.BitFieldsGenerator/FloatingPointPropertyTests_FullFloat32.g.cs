@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static FullFloat32 Default => default;
-
         // --- Bit field mask constants ---
         // FloatVal: bits [0..31], width 32
         private const int __FLOAT_VAL_START_BIT = 0;
@@ -49,7 +46,7 @@ public partial class FloatingPointPropertyTests
         }
 
         /// <summary>Returns a FullFloat32 with the mask for the FloatVal field (bits 0-31).</summary>
-        public static FullFloat32 FloatValMask => new(__FLOAT_VAL_MASK);
+        public static FullFloat32 FloatValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLOAT_VAL_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

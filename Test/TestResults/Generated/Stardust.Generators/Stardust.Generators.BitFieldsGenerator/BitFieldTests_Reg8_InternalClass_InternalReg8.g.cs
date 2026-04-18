@@ -28,9 +28,6 @@ public partial class BitFieldTests
             /// <summary>Total number of bits in this struct.</summary>
             public const int BIT_WIDTH = 8;
 
-            /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-            public static InternalReg8 Default => default;
-
             // --- Bit field mask constants ---
             // FieldC: bits [3..4], width 2
             private const int __FIELD_C_START_BIT = 3;
@@ -74,13 +71,13 @@ public partial class BitFieldTests
             }
 
             /// <summary>Returns a InternalReg8 with only the FlagA bit set.</summary>
-            public static InternalReg8 FlagABit => new(__FLAG_A_MASK);
+            public static InternalReg8 FlagABit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAG_A_MASK); }
 
             /// <summary>Returns a InternalReg8 with only the FlagB bit set.</summary>
-            public static InternalReg8 FlagBBit => new(__FLAG_B_MASK);
+            public static InternalReg8 FlagBBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAG_B_MASK); }
 
             /// <summary>Returns a InternalReg8 with the mask for the FieldC field (bits 3-4).</summary>
-            public static InternalReg8 FieldCMask => new(__FIELD_C_SHIFTED_MASK);
+            public static InternalReg8 FieldCMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FIELD_C_SHIFTED_MASK); }
 
             /// <summary>Optional description (title) for this struct.</summary>
             public static string? StructDescription => null;

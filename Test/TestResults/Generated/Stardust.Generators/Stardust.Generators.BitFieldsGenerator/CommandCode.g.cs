@@ -24,9 +24,6 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static CommandCode Default => default;
-
     // --- Bit field mask constants ---
     // Code: bits [0..3], width 4
     private const int __CODE_START_BIT = 0;
@@ -45,7 +42,7 @@ public partial struct CommandCode : IComparable, IComparable<CommandCode>, IEqua
     }
 
     /// <summary>Returns a CommandCode with the mask for the Code field (bits 0-3).</summary>
-    public static CommandCode CodeMask => new(__CODE_MASK);
+    public static CommandCode CodeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CODE_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

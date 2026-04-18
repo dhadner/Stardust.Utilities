@@ -24,9 +24,6 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static ReversedMixedSyntaxReg Default => default;
-
     // --- Bit field mask constants ---
     // UpperFive: bits [3..7], width 5
     private const int __UPPER_FIVE_START_BIT = 3;
@@ -58,10 +55,10 @@ public partial struct ReversedMixedSyntaxReg : IComparable, IComparable<Reversed
     }
 
     /// <summary>Returns a ReversedMixedSyntaxReg with the mask for the UpperFive field (bits 3-7).</summary>
-    public static ReversedMixedSyntaxReg UpperFiveMask => new(__UPPER_FIVE_SHIFTED_MASK);
+    public static ReversedMixedSyntaxReg UpperFiveMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__UPPER_FIVE_SHIFTED_MASK); }
 
     /// <summary>Returns a ReversedMixedSyntaxReg with the mask for the LowerThree field (bits 0-2).</summary>
-    public static ReversedMixedSyntaxReg LowerThreeMask => new(__LOWER_THREE_MASK);
+    public static ReversedMixedSyntaxReg LowerThreeMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__LOWER_THREE_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

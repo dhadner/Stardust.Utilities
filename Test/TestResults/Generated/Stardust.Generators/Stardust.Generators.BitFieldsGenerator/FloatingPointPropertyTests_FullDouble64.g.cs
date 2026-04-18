@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static FullDouble64 Default => default;
-
         // --- Bit field mask constants ---
         // DoubleVal: bits [0..63], width 64
         private const int __DOUBLE_VAL_START_BIT = 0;
@@ -49,7 +46,7 @@ public partial class FloatingPointPropertyTests
         }
 
         /// <summary>Returns a FullDouble64 with the mask for the DoubleVal field (bits 0-63).</summary>
-        public static FullDouble64 DoubleValMask => new(__DOUBLE_VAL_MASK);
+        public static FullDouble64 DoubleValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DOUBLE_VAL_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

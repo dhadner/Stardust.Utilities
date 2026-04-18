@@ -26,9 +26,6 @@ public partial class FloatingPointPropertyTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 64;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static FloatHalfPair64 Default => default;
-
         // --- Bit field mask constants ---
         // FloatVal: bits [0..31], width 32
         private const int __FLOAT_VAL_START_BIT = 0;
@@ -77,13 +74,13 @@ public partial class FloatingPointPropertyTests
         }
 
         /// <summary>Returns a FloatHalfPair64 with the mask for the FloatVal field (bits 0-31).</summary>
-        public static FloatHalfPair64 FloatValMask => new(__FLOAT_VAL_MASK);
+        public static FloatHalfPair64 FloatValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLOAT_VAL_MASK); }
 
         /// <summary>Returns a FloatHalfPair64 with the mask for the HalfVal field (bits 32-47).</summary>
-        public static FloatHalfPair64 HalfValMask => new(__HALF_VAL_SHIFTED_MASK);
+        public static FloatHalfPair64 HalfValMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__HALF_VAL_SHIFTED_MASK); }
 
         /// <summary>Returns a FloatHalfPair64 with the mask for the Tag field (bits 48-63).</summary>
-        public static FloatHalfPair64 TagMask => new(__TAG_SHIFTED_MASK);
+        public static FloatHalfPair64 TagMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__TAG_SHIFTED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;

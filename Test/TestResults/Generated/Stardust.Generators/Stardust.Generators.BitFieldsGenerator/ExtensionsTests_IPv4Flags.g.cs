@@ -26,9 +26,6 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 8;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static IPv4Flags Default => default;
-
         // --- Bit field mask constants ---
         // MoreFragments: bit 0
         private const int __MORE_FRAGMENTS_BIT = 0;
@@ -46,7 +43,7 @@ public partial class ExtensionsTests
         // --- Constructor normalization masks ---
         private const byte __NORMALIZATION_AND_MASK = 0x03;  // Clears: Reserved (MustBe.Zero), undefined bits (UndefinedBitsMustBe.Zeroes)
 
-        private byte __normalizedValue { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (byte)(__value & __NORMALIZATION_AND_MASK); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] private byte __GetNormalizedValue() => (byte)(__value & __NORMALIZATION_AND_MASK);
 
         /// <summary>Creates a new IPv4Flags with the specified raw bits value.</summary>
         public IPv4Flags(byte value) { __value = (byte)(value & __NORMALIZATION_AND_MASK); }
@@ -76,13 +73,13 @@ public partial class ExtensionsTests
         }
 
         /// <summary>Returns a IPv4Flags with only the MoreFragments bit set.</summary>
-        public static IPv4Flags MoreFragmentsBit => new(__MORE_FRAGMENTS_MASK);
+        public static IPv4Flags MoreFragmentsBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__MORE_FRAGMENTS_MASK); }
 
         /// <summary>Returns a IPv4Flags with only the DontFragment bit set.</summary>
-        public static IPv4Flags DontFragmentBit => new(__DONT_FRAGMENT_MASK);
+        public static IPv4Flags DontFragmentBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__DONT_FRAGMENT_MASK); }
 
         /// <summary>Returns a IPv4Flags with only the Reserved bit set.</summary>
-        public static IPv4Flags ReservedBit => new(__RESERVED_MASK);
+        public static IPv4Flags ReservedBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__RESERVED_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
@@ -192,6 +189,7 @@ public partial class ExtensionsTests
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPv4Flags operator %(byte a, IPv4Flags b) => new((byte)(a % b.__value));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte __IterativeShiftLeft(byte value, int count)
         {
             for (int i = 0; i < count; i++)
@@ -199,6 +197,7 @@ public partial class ExtensionsTests
             return value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte __IterativeShiftRight(byte value, int count)
         {
             for (int i = 0; i < count; i++)
@@ -206,6 +205,7 @@ public partial class ExtensionsTests
             return value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte __IterativeUnsignedShiftRight(byte value, int count)
         {
             for (int i = 0; i < count; i++)
@@ -215,15 +215,15 @@ public partial class ExtensionsTests
 
         /// <summary>Left shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator <<(IPv4Flags a, int b) => __IterativeShiftLeft(a.__normalizedValue, b);
+        public static int operator <<(IPv4Flags a, int b) => __IterativeShiftLeft(a.__GetNormalizedValue(), b);
 
         /// <summary>Right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>(IPv4Flags a, int b) => __IterativeShiftRight(a.__normalizedValue, b);
+        public static int operator >>(IPv4Flags a, int b) => __IterativeShiftRight(a.__GetNormalizedValue(), b);
 
         /// <summary>Unsigned right shift operator. Iterative: normalizes MustBe constraints after each bit position. Returns int for intuitive bitwise operations with literals.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int operator >>>(IPv4Flags a, int b) => __IterativeUnsignedShiftRight(a.__normalizedValue, b);
+        public static int operator >>>(IPv4Flags a, int b) => __IterativeUnsignedShiftRight(a.__GetNormalizedValue(), b);
 
         /// <summary>Less than operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -243,23 +243,23 @@ public partial class ExtensionsTests
 
         /// <summary>Equality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(IPv4Flags a, IPv4Flags b) => a.__normalizedValue == b.__normalizedValue;
+        public static bool operator ==(IPv4Flags a, IPv4Flags b) => a.__GetNormalizedValue() == b.__GetNormalizedValue();
 
         /// <summary>Inequality operator.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(IPv4Flags a, IPv4Flags b) => a.__normalizedValue != b.__normalizedValue;
+        public static bool operator !=(IPv4Flags a, IPv4Flags b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is IPv4Flags other && __normalizedValue == other.__normalizedValue;
+        public override bool Equals(object? obj) => obj is IPv4Flags other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => __normalizedValue.GetHashCode();
+        public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{__normalizedValue:X}";
+        public override string ToString() => $"0x{__GetNormalizedValue():X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator byte(IPv4Flags value) => value.__normalizedValue;
+        public static implicit operator byte(IPv4Flags value) => value.__GetNormalizedValue();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator IPv4Flags(byte value) => new(value);
@@ -291,7 +291,7 @@ public partial class ExtensionsTests
         {
             if (destination.Length < SIZE_IN_BYTES)
                 throw new ArgumentException($"Span must contain at least {SIZE_IN_BYTES} bytes.", nameof(destination));
-            destination[0] = unchecked((byte)__normalizedValue);
+            destination[0] = unchecked((byte)__GetNormalizedValue());
         }
 
         /// <summary>Attempts to write the value as little-endian bytes into the destination span.</summary>
@@ -475,7 +475,7 @@ public partial class ExtensionsTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => __normalizedValue.ToString(format, formatProvider);
+        public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -484,7 +484,7 @@ public partial class ExtensionsTests
         /// <param name="provider">The provider to use for culture-specific formatting.</param>
         /// <returns>true if the formatting was successful; otherwise, false.</returns>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-            => __normalizedValue.TryFormat(destination, out charsWritten, format, provider);
+            => __GetNormalizedValue().TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object and returns an integer indicating their relative order.</summary>
         /// <param name="obj">An object to compare, or null.</param>
@@ -501,13 +501,13 @@ public partial class ExtensionsTests
         /// <param name="other">A IPv4Flags to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(IPv4Flags other) => __normalizedValue.CompareTo(other.__normalizedValue);
+        public int CompareTo(IPv4Flags other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
         /// <summary>Indicates whether this instance is equal to another IPv4Flags.</summary>
         /// <param name="other">A IPv4Flags to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(IPv4Flags other) => __normalizedValue == other.__normalizedValue;
+        public bool Equals(IPv4Flags other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
         /// <summary>JSON converter that serializes IPv4Flags as a string.</summary>
         private sealed class IPv4FlagsJsonConverter : JsonConverter<IPv4Flags>

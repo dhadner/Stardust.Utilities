@@ -24,9 +24,6 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 32;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static ProtocolHeader32 Default => default;
-
     // --- Bit field mask constants ---
     // Status: bits [0..7], width 8
     private const int __STATUS_START_BIT = 0;
@@ -88,16 +85,16 @@ public partial struct ProtocolHeader32 : IComparable, IComparable<ProtocolHeader
     }
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Status field (bits 0-7).</summary>
-    public static ProtocolHeader32 StatusMask => new(__STATUS_MASK);
+    public static ProtocolHeader32 StatusMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__STATUS_MASK); }
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Command field (bits 8-11).</summary>
-    public static ProtocolHeader32 CommandMask => new(__COMMAND_SHIFTED_MASK);
+    public static ProtocolHeader32 CommandMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__COMMAND_SHIFTED_MASK); }
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Version field (bits 12-15).</summary>
-    public static ProtocolHeader32 VersionMask => new(__VERSION_SHIFTED_MASK);
+    public static ProtocolHeader32 VersionMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__VERSION_SHIFTED_MASK); }
 
     /// <summary>Returns a ProtocolHeader32 with the mask for the Sequence field (bits 16-31).</summary>
-    public static ProtocolHeader32 SequenceMask => new(__SEQUENCE_SHIFTED_MASK);
+    public static ProtocolHeader32 SequenceMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__SEQUENCE_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

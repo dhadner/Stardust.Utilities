@@ -24,9 +24,6 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 16;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static DescUnicodeRegister Default => default;
-
     // --- Bit field mask constants ---
     // Japanese: bits [2..7], width 6
     private const int __JAPANESE_START_BIT = 2;
@@ -83,16 +80,16 @@ public partial struct DescUnicodeRegister : IComparable, IComparable<DescUnicode
     }
 
     /// <summary>Returns a DescUnicodeRegister with only the Check bit set.</summary>
-    public static DescUnicodeRegister CheckBit => new(__CHECK_MASK);
+    public static DescUnicodeRegister CheckBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__CHECK_MASK); }
 
     /// <summary>Returns a DescUnicodeRegister with only the Rocket bit set.</summary>
-    public static DescUnicodeRegister RocketBit => new(__ROCKET_MASK);
+    public static DescUnicodeRegister RocketBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ROCKET_MASK); }
 
     /// <summary>Returns a DescUnicodeRegister with the mask for the Japanese field (bits 2-7).</summary>
-    public static DescUnicodeRegister JapaneseMask => new(__JAPANESE_SHIFTED_MASK);
+    public static DescUnicodeRegister JapaneseMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__JAPANESE_SHIFTED_MASK); }
 
     /// <summary>Returns a DescUnicodeRegister with the mask for the Accented field (bits 8-15).</summary>
-    public static DescUnicodeRegister AccentedMask => new(__ACCENTED_SHIFTED_MASK);
+    public static DescUnicodeRegister AccentedMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ACCENTED_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

@@ -576,7 +576,7 @@ public partial struct CommandReg
     [BitField(6, 7)] public partial byte Flags { get; set; }
 }
 
-var reg = CommandReg.Default
+var reg = new CommandReg(0)
     .WithCommand(OpMode.Run)
     .WithStatus(OpMode.Sleep)
     .WithFlags(3);
@@ -750,7 +750,7 @@ public static IEnumerable<object[]> BitPatterns =>
 [
     [StatusRegister.ReadyBit,  "Ready"],
     [StatusRegister.ErrorBit,  "Error"],
-    [StatusRegister.Default.WithReady(true).WithError(true),  "Ready with Error"],
+    [new StatusRegister(0).WithReady(true).WithError(true),  "Ready with Error"],
 ];
 
 [Theory]
@@ -1509,7 +1509,7 @@ f.Exponent;        // 0   (true power: 1.5 is in [1, 2), so 2^0)
 f.Mantissa;        // 0x400000 (bit 22 set = 0.5)
 
 // Build from parts
-var built = IEEE754Single.Default
+var built = default(IEEE754Single)
     .WithSign(false)
     .WithBiasedExponent(127)
     .WithMantissa(0x400000u);
@@ -1630,13 +1630,13 @@ sets `BiasedExponent`; assigning `null` sets `BiasedExponent` to 0.
 
 ```csharp
 // Build 2^3 = 8.0 from a true exponent
-var d = IEEE754Double.Default.WithExponent(3).WithMantissa(0);
+var d = default(IEEE754Double).WithExponent(3).WithMantissa(0);
 double value = d;  // 8.0
 
 // Round-trip: read Exponent, rebuild with WithExponent
 IEEE754Double pi = Math.PI;
 int exp = pi.Exponent!.Value;           // 1
-var rebuilt = IEEE754Double.Default
+var rebuilt = default(IEEE754Double)
     .WithExponent(exp)
     .WithMantissa(pi.Mantissa);
 double result = rebuilt;                 // == Math.PI
@@ -1647,7 +1647,7 @@ d2.Exponent = 3;                         // BiasedExponent = 3 + 1023 = 1026
 d2.Exponent = null;                      // BiasedExponent = 0
 
 // Out-of-range values are masked (no exception)
-var h = IEEE754Half.Default.WithExponent(16);  // biased value masked to 5-bit field
+var h = default(IEEE754Half).WithExponent(16);
 ```
 
 ## Network Protocol Headers (RFC)
@@ -1696,9 +1696,9 @@ public partial struct TcpControlWord
 }
 
 // Fluent construction
-var tcp = TcpControlWord.Default
+var tcp = new TcpControlWord(0)
     .WithDataOffset(5)
-    .WithFlags(TcpFlags.Default.WithSYN(true).WithACK(true))
+    .WithFlags(new TcpFlags(0).WithSYN(true).WithACK(true))
     .WithWindowSize(65535);
 
 tcp.Flags.SYN;  // true
@@ -2223,8 +2223,7 @@ zero-copy views (`partial record struct`).
 | `StructDescription` | ✔ | ✔ | `public static string?` -- description from `[BitFields(Description = ...)]` | Programmatic access to the description for both types |
 | `StructDescriptionResourceType` | ✔ | ✔ | `public static Type?` -- resource type for localized descriptions | Companion to `StructDescription` |
 | `Data` | | ✔ | `public Memory<byte>` -- exposes the underlying buffer | Views are references to external memory; value types have no buffer to expose |
-| `Default` | ✔ | | `public static T` -- normalized `default(T)` instance (all bits zero, then MustBe/UndefinedBitsMustBe constraints applied) | Value types are self-contained; a "default view" would be a view over an empty buffer, which is a different concept |
-| `{Flag}Bit` | ✔ | | `public static T` -- instance with only the named flag bit set | Returns a value-type instance; views have no "instance value" to return |
+| `{Flag}Bit` |
 | `{Field}Mask` | ✔ | | `public static T` -- instance with the named field's mask bits set | Same: returns a value-type instance |
 | `With{Name}(value)` | ✔ | | `public T` -- fluent immutable setter for each field/flag | Value types are immutable on assignment; views mutate in-place via property setters |
 | Constructors | ✔ | ✔ | Create from raw value / byte span (struct) or `Memory<byte>` / `byte[]` (view) | Different backing stores require different construction |
@@ -2291,7 +2290,7 @@ eliminates all property call overhead. No heap allocations, no reflection, no bo
 `MustBe` and `UndefinedBitsMustBe` constraints are **always enforced** -- it is impossible to
 observe a value that violates them, regardless of how the value is produced. This guarantee
 covers construction, implicit/explicit conversion, all operators, `With` methods, `Parse`,
-`ReadFrom`, and outbound reads via the `__normalizedValue` property.
+`ReadFrom`, and outbound reads via the normalized backing value.
 
 The cost of this guarantee depends on the operation:
 
@@ -2310,35 +2309,42 @@ that shift into defined field positions. The overhead scales linearly with the s
 
 | Operation | Unconstrained | Constrained | Overhead |
 |-----------|--------------|-------------|----------|
-| Construction | 236 ms | 324 ms | +39% (1.4x) |
-| Bitwise OR | 1,359 ms | 1,430 ms | ~0% (noise) |
-| Shift << 1 | 249 ms | 780 ms | 3.1x |
-| Shift << 4 | 250 ms | 1,928 ms | 7.8x |
-| Shift << 7 | 247 ms | 3,077 ms | 12.5x |
-| Shift >> 4 | 248 ms | 1,931 ms | 7.8x |
+| Shift << 1 | 34 ms | 49 ms | 1.5x |
+| Shift << 4 | 34 ms | 107 ms | 3.2x |
+| Shift << 7 | 35 ms | 211 ms | 6.0x |
+| Shift >> 4 | 34 ms | 110 ms | 3.3x |
 
-*Unconstrained: `GeneratedTestRegister` (byte, no MustBe). Constrained: `MustBeTestReg`
-(byte, `MustBe.One` on bit 7, `MustBe.Zero` on bits 1-2).*
+*Unconstrained: single-operation shift (one `<<`/`>>` per iteration). Constrained: iterative
+shift with `(value & AND_MASK) | OR_MASK` normalization after each 1-bit step (byte, `MustBe` constraints).*
+
+**Atomic Operation Overhead** (50M iterations, .NET 10):
+
+| Operation | Unconstrained | Constrained | Overhead |
+|-----------|--------------|-------------|----------|
+| Construction | 26 ms | 39 ms | 1.5x |
+| Bitwise OR | 38 ms | 43 ms | 1.1x |
+
+*Unconstrained: direct cast and store. Constrained: cast, then `(value & AND_MASK) | OR_MASK`,
+then store (byte, `MustBe` constraints). Bitwise OR includes the OR operation itself in both paths.
+Construction and bitwise OR are representative; AND, XOR, and complement have identical normalization cost.*
 
 **Interpreting the numbers:**
 
-- **Construction overhead (+39%)** sounds large as a percentage, but the absolute cost is
-  ~1.8 ns per construction (324 - 236 = 88 ms over 50M iterations). In practice this is
-  dwarfed by any real work.
-- **Bitwise OR** shows no measurable overhead because the normalization AND+OR is a tiny
-  fraction of the overall loop cost (which includes constructing both operands).
-- **Shift overhead** is proportional to the shift count. Each step costs ~10 ns
-  (shift + construct + normalize + read). A `<< 4` on a constrained byte costs ~39 ns total
-  vs ~5 ns unconstrained. The **absolute** cost is small, but the **relative** multiplier is
-  significant for large shift counts.
+- **Shift overhead** is proportional to the shift count. Each step adds the cost of one
+  normalize pass (shift + OR mask). A `<< 4` on a constrained byte costs ~2.1 ns total
+  vs ~0.7 ns unconstrained. The **absolute** cost is small, but the **relative** multiplier
+  grows linearly with the shift count.
 - **Shift << 7** is the worst case for a byte because 7 is the maximum meaningful shift
-  distance. For wider types (`uint`, `ulong`), the same 4-position shift costs the same ~10 ns
-  per step, but represents a smaller fraction of the type's bit width.
+  distance. For wider types (`uint`, `ulong`), the same 4-position shift costs the same per
+  step, but represents a smaller fraction of the type's bit width.
+- **Atomic operations** (construction, bitwise OR/AND/XOR, complement) add under 1 ns of
+  overhead per operation. Construction adds ~0.3 ns ((39-26)/50M); bitwise OR adds ~0.1 ns
+  ((43-38)/50M). For most real-world code, this is indistinguishable from unconstrained.
 
 **Practical guidance:**
 
 - If your constrained type is used primarily for construction, property access, and bitwise
-  operations, the overhead is negligible -- under 2 ns per operation.
+  operations, the overhead is negligible -- under 1 ns per operation.
 - If you shift constrained types in a tight inner loop, consider shifting the raw storage value
   and re-wrapping: `new MyType(unchecked((byte)((byte)value << count)))`. This bypasses the
   iterative normalization and applies constraints once at construction.
@@ -2372,9 +2378,8 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
 
     public const int SIZE_IN_BYTES = 1;
     public const int BIT_WIDTH = 8;
-    public static StatusRegister Default => default;
 
-    public StatusRegister(byte value) { __value = value; }
+    public StatusRegister(byte value)
 
     // ── BitFlag properties ──────────────────────────────────────
     public partial bool Ready

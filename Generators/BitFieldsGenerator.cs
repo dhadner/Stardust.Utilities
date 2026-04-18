@@ -749,17 +749,13 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
         }
         sb.AppendLine();
 
-        sb.AppendLine($"{memberIndent}/// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>");
-        sb.AppendLine($"{memberIndent}public static {info.TypeName} Default => default;");
-        sb.AppendLine();
-
         // Generate named mask constants for all fields and flags
         GenerateFieldConstants(sb, info, memberIndent);
 
         // Generate normalization constants (if MustBe/UndefinedBitsMustBe constraints exist)
         GenerateNormalizationConstants(sb, info, mustClearMask, mustSetMask, allBitsMask, memberIndent);
 
-        // Emit __normalizedValue property so that default(T) produces correct output
+        // Emit __GetNormalizedValue() method so that default(T) produces correct output
         // (default bypasses the constructor, so __value is zero-initialized without masks applied)
         if (needsNormalization)
         {
@@ -782,7 +778,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     ? $"({info.StorageType})((({info.UnsignedStorageType})__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK)"
                     : $"({info.StorageType})((__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK)";
             }
-            sb.AppendLine($"{memberIndent}private {info.StorageType} __normalizedValue {{ [MethodImpl(MethodImplOptions.AggressiveInlining)] get => {normExpr}; }}");
+            sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)] private {info.StorageType} __GetNormalizedValue() => {normExpr};");
             sb.AppendLine();
         }
 

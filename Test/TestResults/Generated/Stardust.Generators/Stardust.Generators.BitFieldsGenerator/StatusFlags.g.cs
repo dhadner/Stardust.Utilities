@@ -24,9 +24,6 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     /// <summary>Total number of bits in this struct.</summary>
     public const int BIT_WIDTH = 8;
 
-    /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-    public static StatusFlags Default => default;
-
     // --- Bit field mask constants ---
     // Priority: bits [4..7], width 4
     private const int __PRIORITY_START_BIT = 4;
@@ -94,19 +91,19 @@ public partial struct StatusFlags : IComparable, IComparable<StatusFlags>, IEqua
     }
 
     /// <summary>Returns a StatusFlags with only the Ready bit set.</summary>
-    public static StatusFlags ReadyBit => new(__READY_MASK);
+    public static StatusFlags ReadyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__READY_MASK); }
 
     /// <summary>Returns a StatusFlags with only the Error bit set.</summary>
-    public static StatusFlags ErrorBit => new(__ERROR_MASK);
+    public static StatusFlags ErrorBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__ERROR_MASK); }
 
     /// <summary>Returns a StatusFlags with only the Busy bit set.</summary>
-    public static StatusFlags BusyBit => new(__BUSY_MASK);
+    public static StatusFlags BusyBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__BUSY_MASK); }
 
     /// <summary>Returns a StatusFlags with only the Complete bit set.</summary>
-    public static StatusFlags CompleteBit => new(__COMPLETE_MASK);
+    public static StatusFlags CompleteBit { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__COMPLETE_MASK); }
 
     /// <summary>Returns a StatusFlags with the mask for the Priority field (bits 4-7).</summary>
-    public static StatusFlags PriorityMask => new(__PRIORITY_SHIFTED_MASK);
+    public static StatusFlags PriorityMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__PRIORITY_SHIFTED_MASK); }
 
     /// <summary>Optional description (title) for this struct.</summary>
     public static string? StructDescription => null;

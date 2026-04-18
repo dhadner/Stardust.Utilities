@@ -26,9 +26,6 @@ public partial class ExtensionsTests
         /// <summary>Total number of bits in this struct.</summary>
         public const int BIT_WIDTH = 32;
 
-        /// <summary>Returns a default instance with all bits zero (normalized if constraints are present).</summary>
-        public static IPv4FragmentWord Default => default;
-
         // --- Bit field mask constants ---
         // Identification: bits [16..31], width 16
         private const int __IDENTIFICATION_START_BIT = 16;
@@ -75,13 +72,13 @@ public partial class ExtensionsTests
         }
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the Identification field (bits 16-31).</summary>
-        public static IPv4FragmentWord IdentificationMask => new(__IDENTIFICATION_SHIFTED_MASK);
+        public static IPv4FragmentWord IdentificationMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__IDENTIFICATION_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the Flags field (bits 13-15).</summary>
-        public static IPv4FragmentWord FlagsMask => new(__FLAGS_SHIFTED_MASK);
+        public static IPv4FragmentWord FlagsMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FLAGS_SHIFTED_MASK); }
 
         /// <summary>Returns a IPv4FragmentWord with the mask for the FragmentOffset field (bits 0-12).</summary>
-        public static IPv4FragmentWord FragmentOffsetMask => new(__FRAGMENT_OFFSET_MASK);
+        public static IPv4FragmentWord FragmentOffsetMask { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(__FRAGMENT_OFFSET_MASK); }
 
         /// <summary>Optional description (title) for this struct.</summary>
         public static string? StructDescription => null;
