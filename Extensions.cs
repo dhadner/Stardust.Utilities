@@ -851,7 +851,7 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Lo(this UInt16Be value)
         {
-            return value.lo;
+            return (byte)(ushort)value;
         }
 
         /// <summary>
@@ -873,7 +873,7 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Lo(this Int16Be value)
         {
-            return value.lo;
+            return (byte)(short)value;
         }
 
         /// <summary>
@@ -1138,7 +1138,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Hi(this UInt16Be value)
         {
-            return value.hi;
+            // Use the (fast) native conversion + shift instead of reading the
+            // byte field directly. The byte fields alias the internal _value
+            // field, which causes load-after-store stalls in tight loops.
+            return (byte)((ushort)value >> 8);
         }
 
         /// <summary>
@@ -1160,7 +1163,7 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Hi(this Int16Be value)
         {
-            return value.hi;
+            return (byte)((short)value >> 8);
         }
 
         /// <summary>
@@ -1195,6 +1198,74 @@ namespace Stardust.Utilities
         {
             return (uint)((ulong)value >> 32);
         }
+
+        /// <summary>
+        /// Most-significant ulong (upper 64 bits) of a <see cref="UInt128"/>.
+        /// </summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant ulong.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Hi(this UInt128 value) => (ulong)(value >> 64);
+
+        /// <summary>
+        /// Least-significant ulong (lower 64 bits) of a <see cref="UInt128"/>.
+        /// </summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant ulong.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Lo(this UInt128 value) => (ulong)value;
+
+        /// <summary>
+        /// Most-significant ulong (upper 64 bits) of an <see cref="Int128"/>.
+        /// </summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant ulong.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Hi(this Int128 value) => (ulong)((UInt128)value >> 64);
+
+        /// <summary>
+        /// Least-significant ulong (lower 64 bits) of an <see cref="Int128"/>.
+        /// </summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant ulong.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Lo(this Int128 value) => (ulong)(UInt128)value;
+
+        /// <summary>
+        /// Returns a <see cref="UInt128"/> with the high 64 bits replaced.
+        /// </summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The high ulong to set.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 SetHi(this UInt128 value, ulong hi) => ((UInt128)hi << 64) | (value & (UInt128)ulong.MaxValue);
+
+        /// <summary>
+        /// Returns a <see cref="UInt128"/> with the low 64 bits replaced.
+        /// </summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The low ulong to set.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 SetLo(this UInt128 value, ulong lo) => (value & ((UInt128)ulong.MaxValue << 64)) | lo;
+
+        /// <summary>
+        /// Returns an <see cref="Int128"/> with the high 64 bits replaced.
+        /// </summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The high ulong to set.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128 SetHi(this Int128 value, ulong hi) => (Int128)(((UInt128)hi << 64) | ((UInt128)value & (UInt128)ulong.MaxValue));
+
+        /// <summary>
+        /// Returns an <see cref="Int128"/> with the low 64 bits replaced.
+        /// </summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The low ulong to set.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128 SetLo(this Int128 value, ulong lo) => (Int128)(((UInt128)value & ((UInt128)ulong.MaxValue << 64)) | lo);
 
         /// <summary>
         /// Most-significant UInt32Be.
@@ -1350,6 +1421,320 @@ namespace Stardust.Utilities
             return new Int64Be(hi, value.lo);
         }
 
+        // ── 128-bit Big-Endian Hi / Lo / SetHi / SetLo ─────────────────────
+
+        /// <summary>Most-significant UInt64Be of a <see cref="UInt128Be"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be Hi(this UInt128Be value) => value.hi;
+
+        /// <summary>Least-significant UInt64Be of a <see cref="UInt128Be"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be Lo(this UInt128Be value) => value.lo;
+
+        /// <summary>Most-significant UInt64Be of an <see cref="Int128Be"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be Hi(this Int128Be value) => value.hi;
+
+        /// <summary>Least-significant UInt64Be of an <see cref="Int128Be"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be Lo(this Int128Be value) => value.lo;
+
+        /// <summary>Returns a <see cref="UInt128Be"/> with the high 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be SetHi(this UInt128Be value, UInt64Be hi) => new(hi, value.lo);
+
+        /// <summary>Returns a <see cref="UInt128Be"/> with the low 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be SetLo(this UInt128Be value, UInt64Be lo) => new(value.hi, lo);
+
+        /// <summary>Returns an <see cref="Int128Be"/> with the high 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Be SetHi(this Int128Be value, UInt64Be hi) => new(hi, value.lo);
+
+        /// <summary>Returns an <see cref="Int128Be"/> with the low 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Be SetLo(this Int128Be value, UInt64Be lo) => new(value.hi, lo);
+
+        // ── Little-Endian Hi / Lo ───────────────────────────────────────────
+
+        /// <summary>Most-significant byte of a <see cref="UInt16Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Hi(this UInt16Le value) => value.hi;
+
+        /// <summary>Least-significant byte of a <see cref="UInt16Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Lo(this UInt16Le value) => value.lo;
+
+        /// <summary>Most-significant byte of an <see cref="Int16Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Hi(this Int16Le value) => value.hi;
+
+        /// <summary>Least-significant byte of an <see cref="Int16Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Lo(this Int16Le value) => value.lo;
+
+        /// <summary>Most-significant UInt16Le of a <see cref="UInt32Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le Hi(this UInt32Le value) => value.hi;
+
+        /// <summary>Least-significant UInt16Le of a <see cref="UInt32Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le Lo(this UInt32Le value) => value.lo;
+
+        /// <summary>Most-significant UInt16Le of an <see cref="Int32Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le Hi(this Int32Le value) => value.hi;
+
+        /// <summary>Least-significant UInt16Le of an <see cref="Int32Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le Lo(this Int32Le value) => value.lo;
+
+        /// <summary>Most-significant UInt32Le of a <see cref="UInt64Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le Hi(this UInt64Le value) => value.hi;
+
+        /// <summary>Least-significant UInt32Le of a <see cref="UInt64Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le Lo(this UInt64Le value) => value.lo;
+
+        /// <summary>Most-significant UInt32Le of an <see cref="Int64Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le Hi(this Int64Le value) => value.hi;
+
+        /// <summary>Least-significant UInt32Le of an <see cref="Int64Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le Lo(this Int64Le value) => value.lo;
+
+        /// <summary>Most-significant UInt64Le of a <see cref="UInt128Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le Hi(this UInt128Le value) => value.hi;
+
+        /// <summary>Least-significant UInt64Le of a <see cref="UInt128Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le Lo(this UInt128Le value) => value.lo;
+
+        /// <summary>Most-significant UInt64Le of an <see cref="Int128Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le Hi(this Int128Le value) => value.hi;
+
+        /// <summary>Least-significant UInt64Le of an <see cref="Int128Le"/>.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le Lo(this Int128Le value) => value.lo;
+
+        // ── Little-Endian SetHi / SetLo ─────────────────────────────────────
+
+        /// <summary>Returns a <see cref="UInt16Le"/> with the high byte replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le SetHi(this UInt16Le value, byte hi) => new((ushort)(((ushort)value & 0x00ff) | (hi << 8)));
+
+        /// <summary>Returns a <see cref="UInt16Le"/> with the low byte replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le SetLo(this UInt16Le value, byte lo) => new((ushort)(((ushort)value & 0xff00) | lo));
+
+        /// <summary>Returns an <see cref="Int16Le"/> with the high byte replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le SetHi(this Int16Le value, byte hi) => new((short)(((ushort)(short)value & 0x00ff) | (hi << 8)));
+
+        /// <summary>Returns an <see cref="Int16Le"/> with the low byte replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le SetLo(this Int16Le value, byte lo) => new((short)(((ushort)(short)value & 0xff00) | lo));
+
+        /// <summary>Returns a <see cref="UInt32Le"/> with the high 16-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le SetHi(this UInt32Le value, UInt16Le hi) => new(hi, value.lo);
+
+        /// <summary>Returns a <see cref="UInt32Le"/> with the low 16-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le SetLo(this UInt32Le value, UInt16Le lo) => new(value.hi, lo);
+
+        /// <summary>Returns an <see cref="Int32Le"/> with the high 16-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Le SetHi(this Int32Le value, UInt16Le hi)
+        {
+            int native = (int)value;
+            return new Int32Le((int)(((uint)native & 0x0000ffff) | ((uint)(ushort)hi << 16)));
+        }
+
+        /// <summary>Returns an <see cref="Int32Le"/> with the low 16-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Le SetLo(this Int32Le value, UInt16Le lo)
+        {
+            int native = (int)value;
+            return new Int32Le((int)(((uint)native & 0xffff0000) | (ushort)lo));
+        }
+
+        /// <summary>Returns a <see cref="UInt64Le"/> with the high 32-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le SetHi(this UInt64Le value, UInt32Le hi) => new UInt64Le((ulong)(((ulong)(uint)hi << 32) | (uint)value.lo));
+
+        /// <summary>Returns a <see cref="UInt64Le"/> with the low 32-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le SetLo(this UInt64Le value, UInt32Le lo) => new UInt64Le((ulong)(((ulong)(uint)value.hi << 32) | (uint)lo));
+
+        /// <summary>Returns an <see cref="Int64Le"/> with the high 32-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le SetHi(this Int64Le value, UInt32Le hi)
+        {
+            long native = (long)value;
+            return new Int64Le((long)(((ulong)native & 0x00000000FFFFFFFF) | ((ulong)(uint)hi << 32)));
+        }
+
+        /// <summary>Returns an <see cref="Int64Le"/> with the low 32-bit half replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le SetLo(this Int64Le value, UInt32Le lo)
+        {
+            long native = (long)value;
+            return new Int64Le((long)(((ulong)native & 0xFFFFFFFF00000000) | (uint)lo));
+        }
+
+        /// <summary>Returns a <see cref="UInt128Le"/> with the high 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le SetHi(this UInt128Le value, UInt64Le hi)
+        {
+            UInt128 loVal = (ulong)value.lo;
+            UInt128 hiVal = (UInt128)(ulong)hi << 64;
+            return new UInt128Le(hiVal | loVal);
+        }
+
+        /// <summary>Returns a <see cref="UInt128Le"/> with the low 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le SetLo(this UInt128Le value, UInt64Le lo)
+        {
+            UInt128 hiVal = (UInt128)(ulong)value.hi << 64;
+            UInt128 loVal = (ulong)lo;
+            return new UInt128Le(hiVal | loVal);
+        }
+
+        /// <summary>Returns an <see cref="Int128Le"/> with the high 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Le SetHi(this Int128Le value, UInt64Le hi)
+        {
+            UInt128 loVal = (ulong)value.lo;
+            UInt128 hiVal = (UInt128)(ulong)hi << 64;
+            return new Int128Le((Int128)(hiVal | loVal));
+        }
+
+        /// <summary>Returns an <see cref="Int128Le"/> with the low 64 bits replaced.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Le SetLo(this Int128Le value, UInt64Le lo)
+        {
+            UInt128 hiVal = (UInt128)(ulong)value.hi << 64;
+            UInt128 loVal = (ulong)lo;
+            return new Int128Le((Int128)(hiVal | loVal));
+        }
+
+        /// <summary>
+        /// Subtracts two values, clamping to zero on underflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte SaturatingSub(this byte a, byte b)
+        {
+            return b > a ? byte.MinValue : (byte)(a - b);
+        }
+
+        /// <summary>
+        /// Adds two values, clamping to <see cref="byte.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte SaturatingAdd(this byte a, byte b)
+        {
+            int result = a + b;
+            return result > byte.MaxValue ? byte.MaxValue : (byte)result;
+        }
+
+        /// <summary>
+        /// Subtracts two values, returning <see cref="sbyte.MinValue"/> on underflow
+        /// or <see cref="sbyte.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static sbyte SaturatingSub(this sbyte a, sbyte b)
+        {
+            int result = a - b;
+            if (result < sbyte.MinValue) return sbyte.MinValue;
+            if (result > sbyte.MaxValue) return sbyte.MaxValue;
+            return (sbyte)result;
+        }
+
+        /// <summary>
+        /// Adds two values, clamping on overflow/underflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static sbyte SaturatingAdd(this sbyte a, sbyte b)
+        {
+            int result = a + b;
+            if (result < sbyte.MinValue) return sbyte.MinValue;
+            if (result > sbyte.MaxValue) return sbyte.MaxValue;
+            return (sbyte)result;
+        }
+
+        /// <summary>
+        /// Subtracts two values, returning MinValue on underflow or MaxValue on overflow (for signed types).
+        /// For unsigned types, returns 0 if the result would underflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static short SaturatingSub(this short a, short b)
+        {
+            int result = a - b;
+            if (result < short.MinValue) return short.MinValue;
+            if (result > short.MaxValue) return short.MaxValue;
+            return (short)result;
+        }
+
+        /// <summary>
+        /// Subtracts two values, clamping to zero on underflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort SaturatingSub(this ushort a, ushort b)
+        {
+            return b > a ? ushort.MinValue : (ushort)(a - b);
+        }
+
+        /// <summary>
+        /// Adds two values, clamping on overflow/underflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static short SaturatingAdd(this short a, short b)
+        {
+            int result = a + b;
+            if (result < short.MinValue) return short.MinValue;
+            if (result > short.MaxValue) return short.MaxValue;
+            return (short)result;
+        }
+
+        /// <summary>
+        /// Adds two values, clamping to <see cref="ushort.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort SaturatingAdd(this ushort a, ushort b)
+        {
+            int result = a + b;
+            return result > ushort.MaxValue ? ushort.MaxValue : (ushort)result;
+        }
+
         /// <summary>
         /// Subtracts two values, returning MinValue on underflow or MaxValue on overflow (for signed types).
         /// For unsigned types, returns 0 if the result would underflow.
@@ -1480,5 +1865,203 @@ namespace Stardust.Utilities
             // For unsigned, overflow if result < a (wrapped around)
             return result < a ? ulong.MaxValue : result;
         }
+
+        /// <summary>
+        /// Subtracts two values, returning <see cref="Int128.MinValue"/> on underflow
+        /// or <see cref="Int128.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128 SaturatingSub(this Int128 a, Int128 b)
+        {
+            Int128 result = a - b;
+            // Overflow when: signs of a and b differ, and result sign != a's sign
+            bool aPos = a >= 0;
+            bool bPos = b >= 0;
+            bool rPos = result >= 0;
+            if (aPos != bPos && aPos != rPos)
+                return aPos ? Int128.MaxValue : Int128.MinValue;
+            return result;
+        }
+
+        /// <summary>
+        /// Subtracts two values, clamping to zero on underflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 SaturatingSub(this UInt128 a, UInt128 b)
+        {
+            return b > a ? UInt128.MinValue : a - b;
+        }
+
+        /// <summary>
+        /// Adds two values, returning <see cref="Int128.MinValue"/> on negative overflow
+        /// or <see cref="Int128.MaxValue"/> on positive overflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128 SaturatingAdd(this Int128 a, Int128 b)
+        {
+            Int128 result = a + b;
+            // Overflow when: signs of a and b are the same, but result sign differs
+            bool aPos = a >= 0;
+            bool bPos = b >= 0;
+            bool rPos = result >= 0;
+            if (aPos == bPos && aPos != rPos)
+                return aPos ? Int128.MaxValue : Int128.MinValue;
+            return result;
+        }
+
+        /// <summary>
+        /// Adds two values, clamping to <see cref="UInt128.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 SaturatingAdd(this UInt128 a, UInt128 b)
+        {
+            UInt128 result = a + b;
+            // For unsigned, overflow if result < a (wrapped around)
+            return result < a ? UInt128.MaxValue : result;
+        }
+
+        // ── Big-Endian Saturating Arithmetic ────────────────────────────────
+
+        /// <summary>Adds two <see cref="UInt16Be"/> values, clamping to <see cref="ushort.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Be SaturatingAdd(this UInt16Be a, UInt16Be b) => (UInt16Be)((ushort)a).SaturatingAdd((ushort)b);
+
+        /// <summary>Subtracts two <see cref="UInt16Be"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Be SaturatingSub(this UInt16Be a, UInt16Be b) => (UInt16Be)((ushort)a).SaturatingSub((ushort)b);
+
+        /// <summary>Adds two <see cref="Int16Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Be SaturatingAdd(this Int16Be a, Int16Be b) => (Int16Be)((short)a).SaturatingAdd((short)b);
+
+        /// <summary>Subtracts two <see cref="Int16Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Be SaturatingSub(this Int16Be a, Int16Be b) => (Int16Be)((short)a).SaturatingSub((short)b);
+
+        /// <summary>Adds two <see cref="UInt32Be"/> values, clamping to <see cref="uint.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be SaturatingAdd(this UInt32Be a, UInt32Be b) => (UInt32Be)((uint)a).SaturatingAdd((uint)b);
+
+        /// <summary>Subtracts two <see cref="UInt32Be"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be SaturatingSub(this UInt32Be a, UInt32Be b) => (UInt32Be)((uint)a).SaturatingSub((uint)b);
+
+        /// <summary>Adds two <see cref="Int32Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Be SaturatingAdd(this Int32Be a, Int32Be b) => (Int32Be)((int)a).SaturatingAdd((int)b);
+
+        /// <summary>Subtracts two <see cref="Int32Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Be SaturatingSub(this Int32Be a, Int32Be b) => (Int32Be)((int)a).SaturatingSub((int)b);
+
+        /// <summary>Adds two <see cref="UInt64Be"/> values, clamping to <see cref="ulong.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be SaturatingAdd(this UInt64Be a, UInt64Be b) => (UInt64Be)((ulong)a).SaturatingAdd((ulong)b);
+
+        /// <summary>Subtracts two <see cref="UInt64Be"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Be SaturatingSub(this UInt64Be a, UInt64Be b) => (UInt64Be)((ulong)a).SaturatingSub((ulong)b);
+
+        /// <summary>Adds two <see cref="Int64Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Be SaturatingAdd(this Int64Be a, Int64Be b) => (Int64Be)((long)a).SaturatingAdd((long)b);
+
+        /// <summary>Subtracts two <see cref="Int64Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Be SaturatingSub(this Int64Be a, Int64Be b) => (Int64Be)((long)a).SaturatingSub((long)b);
+
+        /// <summary>Adds two <see cref="UInt128Be"/> values, clamping to <see cref="UInt128.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be SaturatingAdd(this UInt128Be a, UInt128Be b) => new(((UInt128)a).SaturatingAdd((UInt128)b));
+
+        /// <summary>Subtracts two <see cref="UInt128Be"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be SaturatingSub(this UInt128Be a, UInt128Be b) => new(((UInt128)a).SaturatingSub((UInt128)b));
+
+        /// <summary>Adds two <see cref="Int128Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Be SaturatingAdd(this Int128Be a, Int128Be b) => new(((Int128)a).SaturatingAdd((Int128)b));
+
+        /// <summary>Subtracts two <see cref="Int128Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Be SaturatingSub(this Int128Be a, Int128Be b) => new(((Int128)a).SaturatingSub((Int128)b));
+
+        // ── Little-Endian Saturating Arithmetic ─────────────────────────────
+
+        /// <summary>Adds two <see cref="UInt16Le"/> values, clamping to <see cref="ushort.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le SaturatingAdd(this UInt16Le a, UInt16Le b) => new(((ushort)a).SaturatingAdd((ushort)b));
+
+        /// <summary>Subtracts two <see cref="UInt16Le"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le SaturatingSub(this UInt16Le a, UInt16Le b) => new(((ushort)a).SaturatingSub((ushort)b));
+
+        /// <summary>Adds two <see cref="Int16Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le SaturatingAdd(this Int16Le a, Int16Le b) => new(((short)a).SaturatingAdd((short)b));
+
+        /// <summary>Subtracts two <see cref="Int16Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int16Le SaturatingSub(this Int16Le a, Int16Le b) => new(((short)a).SaturatingSub((short)b));
+
+        /// <summary>Adds two <see cref="UInt32Le"/> values, clamping to <see cref="uint.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le SaturatingAdd(this UInt32Le a, UInt32Le b) => new(((uint)a).SaturatingAdd((uint)b));
+
+        /// <summary>Subtracts two <see cref="UInt32Le"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Le SaturatingSub(this UInt32Le a, UInt32Le b) => new(((uint)a).SaturatingSub((uint)b));
+
+        /// <summary>Adds two <see cref="Int32Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Le SaturatingAdd(this Int32Le a, Int32Le b) => new(((int)a).SaturatingAdd((int)b));
+
+        /// <summary>Subtracts two <see cref="Int32Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Le SaturatingSub(this Int32Le a, Int32Le b) => new(((int)a).SaturatingSub((int)b));
+
+        /// <summary>Adds two <see cref="UInt64Le"/> values, clamping to <see cref="ulong.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le SaturatingAdd(this UInt64Le a, UInt64Le b) => new(((ulong)a).SaturatingAdd((ulong)b));
+
+        /// <summary>Subtracts two <see cref="UInt64Le"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt64Le SaturatingSub(this UInt64Le a, UInt64Le b) => new(((ulong)a).SaturatingSub((ulong)b));
+
+        /// <summary>Adds two <see cref="Int64Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le SaturatingAdd(this Int64Le a, Int64Le b) => new(((long)a).SaturatingAdd((long)b));
+
+        /// <summary>Subtracts two <see cref="Int64Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64Le SaturatingSub(this Int64Le a, Int64Le b) => new(((long)a).SaturatingSub((long)b));
+
+        /// <summary>Adds two <see cref="UInt128Le"/> values, clamping to <see cref="UInt128.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le SaturatingAdd(this UInt128Le a, UInt128Le b) => new(((UInt128)a).SaturatingAdd((UInt128)b));
+
+        /// <summary>Subtracts two <see cref="UInt128Le"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le SaturatingSub(this UInt128Le a, UInt128Le b) => new(((UInt128)a).SaturatingSub((UInt128)b));
+
+        /// <summary>Adds two <see cref="Int128Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Le SaturatingAdd(this Int128Le a, Int128Le b) => new(((Int128)a).SaturatingAdd((Int128)b));
+
+        /// <summary>Subtracts two <see cref="Int128Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int128Le SaturatingSub(this Int128Le a, Int128Le b) => new(((Int128)a).SaturatingSub((Int128)b));
     }
 }

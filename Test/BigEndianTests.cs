@@ -706,134 +706,376 @@ public class BigEndianTests
 
     #endregion
 
-    #region Hi/Lo Extension Method Tests
+    #region UInt128Be Tests
 
     [Fact]
-    public void UInt64Be_Hi_ReturnsUpperUInt32Be()
+    public void UInt128Be_Constructor_FromUInt128()
     {
-        UInt64Be value = 0x123456789ABCDEF0UL;
-        UInt32Be hi = value.Hi();
-        ((uint)hi).Should().Be(0x12345678U);
+        UInt128 native = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+        UInt128Be value = new(native);
+        ((UInt128)value).Should().Be(native);
     }
 
     [Fact]
-    public void UInt64Be_Lo_ReturnsLowerUInt32Be()
+    public void UInt128Be_Constructor_FromSpan()
     {
-        UInt64Be value = 0x123456789ABCDEF0UL;
-        UInt32Be lo = value.Lo();
-        ((uint)lo).Should().Be(0x9ABCDEF0U);
+        ReadOnlySpan<byte> bytes = stackalloc byte[]
+        {
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF,
+            0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10
+        };
+        var value = new UInt128Be(bytes);
+        UInt128 expected = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+        ((UInt128)value).Should().Be(expected);
     }
 
     [Fact]
-    public void Int64Be_Hi_ReturnsUpperUInt32Be()
+    public void UInt128Be_WriteTo_Span()
     {
-        Int64Be value = 0x123456789ABCDEF0L;
-        UInt32Be hi = value.Hi();
-        ((uint)hi).Should().Be(0x12345678U);
+        UInt128 native = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        UInt128Be value = new(native);
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        buffer[0].Should().Be(0x01);
+        buffer[7].Should().Be(0x08);
+        buffer[8].Should().Be(0x09);
+        buffer[15].Should().Be(0x10);
     }
 
     [Fact]
-    public void Int64Be_Lo_ReturnsLowerUInt32Be()
+    public void UInt128Be_TryWriteTo_Success()
     {
-        Int64Be value = 0x123456789ABCDEF0L;
-        UInt32Be lo = value.Lo();
-        ((uint)lo).Should().Be(0x9ABCDEF0U);
+        UInt128Be value = new((UInt128)0xAABBCCDDEEFF0011UL << 64 | 0x2233445566778899UL);
+        Span<byte> buffer = stackalloc byte[32];
+        bool result = value.TryWriteTo(buffer);
+        result.Should().BeTrue();
+        buffer[0].Should().Be(0xAA);
+        buffer[15].Should().Be(0x99);
     }
 
     [Fact]
-    public void Ulong_Hi_ReturnsUpperUint()
+    public void UInt128Be_TryWriteTo_TooSmall()
     {
-        ulong value = 0x123456789ABCDEF0UL;
-        uint hi = value.Hi();
-        hi.Should().Be(0x12345678U);
+        UInt128Be value = new((UInt128)1);
+        Span<byte> buffer = stackalloc byte[8];
+        bool result = value.TryWriteTo(buffer);
+        result.Should().BeFalse();
     }
 
     [Fact]
-    public void Ulong_Lo_ReturnsLowerUint()
+    public void UInt128Be_ReadFrom_Span()
     {
-        ulong value = 0x123456789ABCDEF0UL;
-        uint lo = value.Lo();
-        lo.Should().Be(0x9ABCDEF0U);
+        ReadOnlySpan<byte> bytes = stackalloc byte[]
+        {
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02
+        };
+        var value = UInt128Be.ReadFrom(bytes);
+        UInt128 expected = ((UInt128)1UL << 64) | 2UL;
+        ((UInt128)value).Should().Be(expected);
     }
 
     [Fact]
-    public void Long_Hi_ReturnsUpperUint()
+    public void UInt128Be_Arithmetic_Add()
     {
-        long value = 0x123456789ABCDEF0L;
-        uint hi = value.Hi();
-        hi.Should().Be(0x12345678U);
+        UInt128Be a = new((UInt128)100);
+        UInt128Be b = new((UInt128)200);
+        UInt128Be c = a + b;
+        ((UInt128)c).Should().Be((UInt128)300);
     }
 
     [Fact]
-    public void Long_Lo_ReturnsLowerUint()
+    public void UInt128Be_Arithmetic_Subtract()
     {
-        long value = 0x123456789ABCDEF0L;
-        uint lo = value.Lo();
-        lo.Should().Be(0x9ABCDEF0U);
+        UInt128Be a = new((UInt128)500);
+        UInt128Be b = new((UInt128)200);
+        UInt128Be c = a - b;
+        ((UInt128)c).Should().Be((UInt128)300);
     }
 
     [Fact]
-    public void UInt64Be_SetHi_SetsUpperUInt32Be()
+    public void UInt128Be_Arithmetic_Multiply()
     {
-        UInt64Be value = 0x123456789ABCDEF0UL;
-        UInt64Be result = value.SetHi((UInt32Be)0xDEADBEEFU);
-        ((ulong)result).Should().Be(0xDEADBEEF9ABCDEF0UL);
+        UInt128Be a = new((UInt128)100);
+        UInt128Be b = new((UInt128)200);
+        UInt128Be c = a * b;
+        ((UInt128)c).Should().Be((UInt128)20000);
     }
 
     [Fact]
-    public void UInt64Be_SetLo_SetsLowerUInt32Be()
+    public void UInt128Be_Arithmetic_Divide()
     {
-        UInt64Be value = 0x123456789ABCDEF0UL;
-        UInt64Be result = value.SetLo((UInt32Be)0xCAFEBABEU);
-        ((ulong)result).Should().Be(0x12345678CAFEBABEU);
+        UInt128Be a = new((UInt128)1000);
+        UInt128Be b = new((UInt128)10);
+        UInt128Be c = a / b;
+        ((UInt128)c).Should().Be((UInt128)100);
     }
 
     [Fact]
-    public void Int64Be_SetHi_SetsUpperUInt32Be()
+    public void UInt128Be_Arithmetic_DivideByZero_Throws()
     {
-        Int64Be value = 0x123456789ABCDEF0L;
-        Int64Be result = value.SetHi((UInt32Be)0x00000001U);
-        ((long)result).Should().Be(0x000000019ABCDEF0L);
+        UInt128Be a = new((UInt128)100);
+        UInt128Be b = new((UInt128)0);
+        var act = () => { var _ = a / b; };
+        act.Should().Throw<DivideByZeroException>();
     }
 
     [Fact]
-    public void Int64Be_SetLo_SetsLowerUInt32Be()
+    public void UInt128Be_Comparison_LessThan()
     {
-        Int64Be value = 0x123456789ABCDEF0L;
-        Int64Be result = value.SetLo((UInt32Be)0x00000001U);
-        ((long)result).Should().Be(0x1234567800000001L);
+        UInt128Be a = new((UInt128)100);
+        UInt128Be b = new((UInt128)200);
+        (a < b).Should().BeTrue();
+        (b < a).Should().BeFalse();
     }
 
     [Fact]
-    public void Ulong_SetHi_SetsUpperUint()
+    public void UInt128Be_Comparison_Equality()
     {
-        ulong value = 0x123456789ABCDEF0UL;
-        ulong result = value.SetHi(0xDEADBEEFU);
-        result.Should().Be(0xDEADBEEF9ABCDEF0UL);
+        UInt128Be a = new((UInt128)12345);
+        UInt128Be b = new((UInt128)12345);
+        UInt128Be c = new((UInt128)54321);
+        (a == b).Should().BeTrue();
+        (a != c).Should().BeTrue();
     }
 
     [Fact]
-    public void Ulong_SetLo_SetsLowerUint()
+    public void UInt128Be_Bitwise_And()
     {
-        ulong value = 0x123456789ABCDEF0UL;
-        ulong result = value.SetLo(0xCAFEBABEU);
-        result.Should().Be(0x12345678CAFEBABEU);
+        UInt128Be a = new(UInt128.MaxValue);
+        UInt128Be b = new((UInt128)0);
+        UInt128Be c = a & b;
+        ((UInt128)c).Should().Be((UInt128)0);
     }
 
     [Fact]
-    public void Long_SetHi_SetsUpperUint()
+    public void UInt128Be_Bitwise_Or()
     {
-        long value = 0x123456789ABCDEF0L;
-        long result = value.SetHi(0x00000001U);
-        result.Should().Be(0x000000019ABCDEF0L);
+        UInt128 hi = (UInt128)0xFF00FF00FF00FF00UL << 64;
+        UInt128 lo = 0x00FF00FF00FF00FFUL;
+        UInt128Be a = new(hi);
+        UInt128Be b = new(lo);
+        UInt128Be c = a | b;
+        ((UInt128)c).Should().Be(hi | lo);
     }
 
     [Fact]
-    public void Long_SetLo_SetsLowerUint()
+    public void UInt128Be_Bitwise_Not()
     {
-        long value = 0x123456789ABCDEF0L;
-        long result = value.SetLo(0x00000001U);
-        result.Should().Be(0x1234567800000001L);
+        UInt128Be a = new((UInt128)0);
+        UInt128Be b = ~a;
+        ((UInt128)b).Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void UInt128Be_Increment()
+    {
+        UInt128Be value = new((UInt128)99);
+        value++;
+        ((UInt128)value).Should().Be((UInt128)100);
+    }
+
+    [Fact]
+    public void UInt128Be_Decrement()
+    {
+        UInt128Be value = new((UInt128)100);
+        value--;
+        ((UInt128)value).Should().Be((UInt128)99);
+    }
+
+    [Fact]
+    public void UInt128Be_Equals_Object()
+    {
+        UInt128Be a = new((UInt128)12345);
+        object b = new UInt128Be((UInt128)12345);
+        object c = new UInt128Be((UInt128)54321);
+        a.Equals(b).Should().BeTrue();
+        a.Equals(c).Should().BeFalse();
+    }
+
+    [Fact]
+    public void UInt128Be_GetHashCode_Consistent()
+    {
+        UInt128Be a = new((UInt128)0x123456789ABCDEF0UL);
+        UInt128Be b = new((UInt128)0x123456789ABCDEF0UL);
+        a.GetHashCode().Should().Be(b.GetHashCode());
+    }
+
+    [Fact]
+    public void UInt128Be_ImplicitConversion_FromUInt64Be()
+    {
+        UInt64Be small = 0x12345678ABCDEF01UL;
+        UInt128Be large = small;
+        ((UInt128)large).Should().Be((UInt128)0x12345678ABCDEF01UL);
+    }
+
+    [Fact]
+    public void UInt128Be_ExplicitConversion_ToUInt64Be()
+    {
+        UInt128 native = ((UInt128)0x11UL << 64) | 0xAABBCCDDEEFF0011UL;
+        UInt128Be large = new(native);
+        UInt64Be small = (UInt64Be)large;
+        ((ulong)small).Should().Be(0xAABBCCDDEEFF0011UL);
+    }
+
+    [Fact]
+    public void UInt128Be_Roundtrip_WriteRead()
+    {
+        UInt128 native = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+        UInt128Be original = new(native);
+        Span<byte> buffer = stackalloc byte[16];
+        original.WriteTo(buffer);
+        var restored = UInt128Be.ReadFrom(buffer);
+        restored.Should().Be(original);
+    }
+
+    [Fact]
+    public void UInt128Be_TryParse_Success()
+    {
+        bool result = UInt128Be.TryParse("340282366920938463463374607431768211455", null, out var value);
+        result.Should().BeTrue();
+        ((UInt128)value).Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void UInt128Be_TryParse_Failure()
+    {
+        bool result = UInt128Be.TryParse("not_a_number", null, out _);
+        result.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region Int128Be Tests
+
+    [Fact]
+    public void Int128Be_Constructor_FromInt128()
+    {
+        Int128 native = -1;
+        Int128Be value = new(native);
+        ((Int128)value).Should().Be(native);
+    }
+
+    [Fact]
+    public void Int128Be_Constructor_FromSpan()
+    {
+        // -1 in big-endian is all 0xFF bytes
+        Span<byte> bytes = stackalloc byte[16];
+        bytes.Fill(0xFF);
+        var value = new Int128Be(bytes);
+        ((Int128)value).Should().Be((Int128)(-1));
+    }
+
+    [Fact]
+    public void Int128Be_Constructor_FromSpan_Negative()
+    {
+        // -2 in big-endian
+        Span<byte> bytes = stackalloc byte[16];
+        bytes.Fill(0xFF);
+        bytes[15] = 0xFE;
+        var value = new Int128Be(bytes);
+        ((Int128)value).Should().Be((Int128)(-2));
+    }
+
+    [Fact]
+    public void Int128Be_WriteTo_Span()
+    {
+        UInt128 raw = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        Int128Be value = new((Int128)raw);
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        buffer[0].Should().Be(0x01);
+        buffer[7].Should().Be(0x08);
+        buffer[8].Should().Be(0x09);
+        buffer[15].Should().Be(0x10);
+    }
+
+    [Fact]
+    public void Int128Be_WriteTo_Span_Negative()
+    {
+        Int128Be value = new((Int128)(-1));
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        foreach (var b in buffer)
+        {
+            b.Should().Be(0xFF);
+        }
+    }
+
+    [Fact]
+    public void Int128Be_Arithmetic_Add()
+    {
+        Int128Be a = new((Int128)(-100));
+        Int128Be b = new((Int128)200);
+        Int128Be c = a + b;
+        ((Int128)c).Should().Be((Int128)100);
+    }
+
+    [Fact]
+    public void Int128Be_Arithmetic_Negate()
+    {
+        Int128Be a = new((Int128)12345);
+        Int128Be b = -a;
+        ((Int128)b).Should().Be((Int128)(-12345));
+    }
+
+    [Fact]
+    public void Int128Be_Comparison_Signed()
+    {
+        Int128Be positive = new((Int128)100);
+        Int128Be negative = new((Int128)(-100));
+        (negative < positive).Should().BeTrue();
+        (positive > negative).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int128Be_SignExtension_FromInt64Be()
+    {
+        Int64Be small = -1000L;
+        Int128Be large = small;
+        ((Int128)large).Should().Be((Int128)(-1000));
+    }
+
+    [Fact]
+    public void Int128Be_TryParse_Success()
+    {
+        bool result = Int128Be.TryParse("-123456789", null, out var value);
+        result.Should().BeTrue();
+        ((Int128)value).Should().Be((Int128)(-123456789));
+    }
+
+    [Fact]
+    public void Int128Be_ToString_Format()
+    {
+        Int128Be value = new((Int128)(-12345));
+        value.ToString("D", null).Should().Be("-12345");
+    }
+
+    [Fact]
+    public void Int128Be_ShiftRight_SignExtends()
+    {
+        Int128Be negative = new((Int128)(-8));
+        Int128Be shifted = negative >> 2;
+        ((Int128)shifted).Should().Be((Int128)(-2));
+    }
+
+    [Fact]
+    public void Int128Be_Roundtrip_WriteRead()
+    {
+        Int128Be original = new((Int128)(-1234567890123456789));
+        Span<byte> buffer = stackalloc byte[16];
+        original.WriteTo(buffer);
+        var restored = Int128Be.ReadFrom(buffer);
+        restored.Should().Be(original);
+    }
+
+    [Fact]
+    public void Int128Be_DivideByZero_Throws()
+    {
+        Int128Be a = new((Int128)100);
+        Int128Be b = new((Int128)0);
+        var act = () => { var _ = a / b; };
+        act.Should().Throw<DivideByZeroException>();
     }
 
     #endregion

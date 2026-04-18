@@ -19,14 +19,17 @@ namespace Stardust.Utilities
     {
         [FieldOffset(0)] internal byte lo;
         [FieldOffset(1)] internal byte hi;
+        // Overlapping native field gives the JIT a single primitive to keep in a
+        // register. On LE hosts (x86/x64/ARM), bytes [lo, hi] = native short directly.
+        [FieldOffset(0)] private short _value;
 
         /// <summary>Initializes a new <see cref="Int16Le"/> from a <see cref="short"/> value.</summary>
         /// <param name="num">The value to store.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Int16Le(short num)
         {
-            lo = (byte)(num & 0xff);
-            hi = (byte)(num >> 8);
+            lo = 0; hi = 0;
+            _value = BitConverter.IsLittleEndian ? num : BinaryPrimitives.ReverseEndianness(num);
         }
 
         /// <summary>Initializes a new <see cref="Int16Le"/> from a byte array at the given offset.</summary>
@@ -182,7 +185,7 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int16Le"/> to a <see cref="short"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator short(Int16Le a) => (short)((ushort)(a.hi << 8) | a.lo);
+        public static implicit operator short(Int16Le a) => BitConverter.IsLittleEndian ? a._value : BinaryPrimitives.ReverseEndianness(a._value);
 
         /// <summary>Implicitly converts a <see cref="short"/> to an <see cref="Int16Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -191,6 +194,10 @@ namespace Stardust.Utilities
         /// <summary>Implicitly converts an <see cref="Int16Le"/> to an <see cref="int"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator int(Int16Le a) => (short)a;
+
+        /// <summary>Widening conversion from a 16-bit little-endian signed value to a 32-bit little-endian unsigned value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator UInt32Le(Int16Le a) => new((short)a);
 
         #endregion
     }

@@ -25,8 +25,8 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt64Le(ulong num)
         {
-            lo = (UInt32Le)(uint)(num & 0xffffffff);
-            hi = (UInt32Le)(uint)(num >> 32);
+            Unsafe.SkipInit(out this);
+            Unsafe.As<UInt64Le, ulong>(ref this) = num;
         }
 
         /// <summary>Initializes a new <see cref="UInt64Le"/> from a <see cref="long"/> value.</summary>
@@ -215,7 +215,7 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt64Le"/> to a <see cref="ulong"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ulong(UInt64Le a) => ((ulong)(uint)a.hi << 32) | (uint)a.lo;
+        public static implicit operator ulong(UInt64Le a) => Unsafe.As<UInt64Le, ulong>(ref a);
 
         /// <summary>Implicitly converts a <see cref="ulong"/> to a <see cref="UInt64Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -225,6 +225,18 @@ namespace Stardust.Utilities
         public static explicit operator uint(UInt64Le a) => (uint)(ulong)a;
         /// <summary>Explicitly converts a <see cref="UInt64Le"/> to a <see cref="long"/>.</summary>
         public static explicit operator long(UInt64Le a) => (long)(ulong)a;
+
+        /// <summary>Widening conversion from a 32-bit little-endian unsigned value.</summary>
+        public static implicit operator UInt64Le(UInt32Le a) => new((uint)a);
+
+        /// <summary>Widening conversion from a 16-bit little-endian unsigned value.</summary>
+        public static implicit operator UInt64Le(UInt16Le a) => new((ulong)(ushort)a);
+
+        /// <summary>Narrowing conversion to a 32-bit little-endian unsigned value.</summary>
+        public static explicit operator UInt32Le(UInt64Le a) => new((uint)(ulong)a);
+
+        /// <summary>Narrowing conversion to a 16-bit little-endian unsigned value.</summary>
+        public static explicit operator UInt16Le(UInt64Le a) => new((ushort)(ulong)a);
 
         #endregion
     }

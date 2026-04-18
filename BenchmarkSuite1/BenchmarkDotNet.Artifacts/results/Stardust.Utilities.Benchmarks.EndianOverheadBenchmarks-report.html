@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Stardust.Utilities.Benchmarks.EndianOverheadBenchmarks-20260418-084801</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.2, Windows 11 (10.0.26200.8246)
+11th Gen Intel Core i7-11370H 3.30GHz, 1 CPU, 8 logical and 4 physical cores
+.NET SDK 10.0.202
+  [Host]     : .NET 10.0.6 (10.0.626.17701), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
+  Job-MEHJPP : .NET 10.0.6 (10.0.626.17701), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
+</code></pre>
+<pre><code>IterationCount=5  WarmupCount=1  
+</code></pre>
+
+<table>
+<thead><tr><th>Method    </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>UInt16Be_Add</td><td>16.546 ms</td><td>0.4879 ms</td><td>0.1267 ms</td><td>-</td>
+</tr><tr><td>UInt16Le_Add</td><td>7.848 ms</td><td>0.4395 ms</td><td>0.0680 ms</td><td>-</td>
+</tr><tr><td>UInt16Be_Sub</td><td>16.249 ms</td><td>0.6262 ms</td><td>0.0969 ms</td><td>-</td>
+</tr><tr><td>UInt16Le_Sub</td><td>7.802 ms</td><td>0.2429 ms</td><td>0.0376 ms</td><td>-</td>
+</tr><tr><td>UInt16Be_And</td><td>16.414 ms</td><td>0.2987 ms</td><td>0.0776 ms</td><td>-</td>
+</tr><tr><td>UInt16Le_And</td><td>7.821 ms</td><td>0.2568 ms</td><td>0.0397 ms</td><td>-</td>
+</tr><tr><td>UInt16Be_Compare</td><td>14.579 ms</td><td>0.5808 ms</td><td>0.1508 ms</td><td>-</td>
+</tr><tr><td>UInt16Le_Compare</td><td>8.190 ms</td><td>0.1388 ms</td><td>0.0360 ms</td><td>-</td>
+</tr><tr><td>UInt16Be_HiLo</td><td>20.022 ms</td><td>0.2775 ms</td><td>0.0721 ms</td><td>-</td>
+</tr><tr><td>UInt16Le_HiLo</td><td>6.117 ms</td><td>0.1159 ms</td><td>0.0179 ms</td><td>-</td>
+</tr></tbody></table>
+</body>
+</html>

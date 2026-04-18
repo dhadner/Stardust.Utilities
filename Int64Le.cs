@@ -25,8 +25,8 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Int64Le(long num)
         {
-            lo = (UInt32Le)(uint)((ulong)num & 0xffffffff);
-            hi = (UInt32Le)(uint)((ulong)num >> 32);
+            Unsafe.SkipInit(out this);
+            Unsafe.As<Int64Le, long>(ref this) = num;
         }
 
         /// <summary>Initializes a new <see cref="Int64Le"/> from a read-only byte span.</summary>
@@ -180,7 +180,7 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int64Le"/> to a <see cref="long"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator long(Int64Le a) => (long)(((ulong)(uint)a.hi << 32) | (uint)a.lo);
+        public static implicit operator long(Int64Le a) => Unsafe.As<Int64Le, long>(ref a);
 
         /// <summary>Implicitly converts a <see cref="long"/> to an <see cref="Int64Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -188,6 +188,18 @@ namespace Stardust.Utilities
 
         /// <summary>Explicitly converts an <see cref="Int64Le"/> to a <see cref="ulong"/>.</summary>
         public static explicit operator ulong(Int64Le a) => (ulong)(long)a;
+
+        /// <summary>Widening conversion from a 32-bit little-endian signed value.</summary>
+        public static implicit operator Int64Le(Int32Le a) => new((int)a);
+
+        /// <summary>Widening conversion from a 16-bit little-endian signed value.</summary>
+        public static implicit operator Int64Le(Int16Le a) => new((short)a);
+
+        /// <summary>Narrowing conversion to a 32-bit little-endian signed value.</summary>
+        public static explicit operator Int32Le(Int64Le a) => new((int)(long)a);
+
+        /// <summary>Narrowing conversion to a 16-bit little-endian signed value.</summary>
+        public static explicit operator Int16Le(Int64Le a) => new((short)(long)a);
 
         #endregion
     }

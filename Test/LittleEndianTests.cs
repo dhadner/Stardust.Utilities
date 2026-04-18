@@ -1548,4 +1548,587 @@ public class LittleEndianTests
     }
 
     #endregion
+
+    #region Cross-Type Conversion Tests
+
+    [Fact]
+    public void UInt16Le_ImplicitConversion_ToUInt32Le()
+    {
+        UInt16Le small = 0xABCD;
+        UInt32Le large = small;
+        ((uint)large).Should().Be(0xABCDU);
+    }
+
+    [Fact]
+    public void Int16Le_ImplicitConversion_ToUInt32Le()
+    {
+        Int16Le small = 1000;
+        UInt32Le large = small;
+        ((uint)large).Should().Be(1000U);
+    }
+
+    [Fact]
+    public void UInt32Le_ExplicitConversion_ToUInt16Le()
+    {
+        UInt32Le large = 0x12345678U;
+        UInt16Le small = (UInt16Le)large;
+        ((ushort)small).Should().Be(0x5678);
+    }
+
+    [Fact]
+    public void Int32Le_ExplicitConversion_FromInt16Le()
+    {
+        Int16Le small = -1000;
+        Int32Le large = (Int32Le)small;
+        ((int)large).Should().Be(-1000);
+    }
+
+    [Fact]
+    public void UInt64Le_ImplicitConversion_FromUInt32Le()
+    {
+        UInt32Le small = 0x12345678U;
+        UInt64Le large = small;
+        ((ulong)large).Should().Be(0x12345678UL);
+    }
+
+    [Fact]
+    public void UInt64Le_ImplicitConversion_FromUInt16Le()
+    {
+        UInt16Le small = 0xABCD;
+        UInt64Le large = small;
+        ((ulong)large).Should().Be(0xABCDUL);
+    }
+
+    [Fact]
+    public void UInt64Le_ExplicitConversion_ToUInt32Le()
+    {
+        UInt64Le large = 0x123456789ABCDEF0UL;
+        UInt32Le small = (UInt32Le)large;
+        ((uint)small).Should().Be(0x9ABCDEF0U);
+    }
+
+    [Fact]
+    public void UInt64Le_ExplicitConversion_ToUInt16Le()
+    {
+        UInt64Le large = 0x123456789ABCDEF0UL;
+        UInt16Le small = (UInt16Le)large;
+        ((ushort)small).Should().Be(0xDEF0);
+    }
+
+    [Fact]
+    public void Int64Le_ImplicitConversion_FromInt32Le()
+    {
+        Int32Le small = -1000000;
+        Int64Le large = small;
+        ((long)large).Should().Be(-1000000L);
+    }
+
+    [Fact]
+    public void Int64Le_ImplicitConversion_FromInt16Le()
+    {
+        Int16Le small = -1000;
+        Int64Le large = small;
+        ((long)large).Should().Be(-1000L);
+    }
+
+    [Fact]
+    public void Int64Le_ExplicitConversion_ToInt32Le()
+    {
+        Int64Le large = 0x12345678L;
+        Int32Le small = (Int32Le)large;
+        ((int)small).Should().Be(0x12345678);
+    }
+
+    [Fact]
+    public void Int64Le_ExplicitConversion_ToInt16Le()
+    {
+        Int64Le large = -100L;
+        Int16Le small = (Int16Le)large;
+        ((short)small).Should().Be(-100);
+    }
+
+    [Fact]
+    public void Int64Le_SignExtension_FromInt32Le()
+    {
+        Int32Le small = -1000;
+        Int64Le large = small;
+        ((long)large).Should().Be(-1000L);
+    }
+
+    [Fact]
+    public void Int64Le_SignExtension_FromInt16Le()
+    {
+        Int16Le small = -1000;
+        Int64Le large = small;
+        ((long)large).Should().Be(-1000L);
+    }
+
+    [Fact]
+    public void UInt128Le_ImplicitConversion_FromUInt64Le()
+    {
+        UInt64Le small = 0x12345678ABCDEF01UL;
+        UInt128Le large = small;
+        ((UInt128)large).Should().Be((UInt128)0x12345678ABCDEF01UL);
+    }
+
+    [Fact]
+    public void UInt128Le_ImplicitConversion_FromUInt32Le()
+    {
+        UInt32Le small = 0x12345678U;
+        UInt128Le large = small;
+        ((UInt128)large).Should().Be((UInt128)0x12345678U);
+    }
+
+    [Fact]
+    public void UInt128Le_ExplicitConversion_ToUInt64Le()
+    {
+        UInt128 native = ((UInt128)0x11UL << 64) | 0xAABBCCDDEEFF0011UL;
+        UInt128Le large = new(native);
+        UInt64Le small = (UInt64Le)large;
+        ((ulong)small).Should().Be(0xAABBCCDDEEFF0011UL);
+    }
+
+    [Fact]
+    public void UInt128Le_ExplicitConversion_ToUInt32Le()
+    {
+        UInt128Le large = new((UInt128)0xDEADBEEF);
+        UInt32Le small = (UInt32Le)large;
+        ((uint)small).Should().Be(0xDEADBEEFU);
+    }
+
+    [Fact]
+    public void Int128Le_ImplicitConversion_FromInt64Le()
+    {
+        Int64Le small = -1000000L;
+        Int128Le large = small;
+        ((Int128)large).Should().Be((Int128)(-1000000));
+    }
+
+    [Fact]
+    public void Int128Le_ImplicitConversion_FromInt32Le()
+    {
+        Int32Le small = -1000000;
+        Int128Le large = small;
+        ((Int128)large).Should().Be((Int128)(-1000000));
+    }
+
+    [Fact]
+    public void Int128Le_ExplicitConversion_ToInt64Le()
+    {
+        Int128Le large = new((Int128)(-123456789));
+        Int64Le small = (Int64Le)large;
+        ((long)small).Should().Be(-123456789L);
+    }
+
+    [Fact]
+    public void Int128Le_ExplicitConversion_ToInt32Le()
+    {
+        Int128Le large = new((Int128)(-12345));
+        Int32Le small = (Int32Le)large;
+        ((int)small).Should().Be(-12345);
+    }
+
+    [Fact]
+    public void Int128Le_SignExtension_FromInt64Le()
+    {
+        Int64Le small = -1000L;
+        Int128Le large = small;
+        ((Int128)large).Should().Be((Int128)(-1000));
+    }
+
+    #endregion
+
+    #region UInt128Le Tests
+
+    [Fact]
+    public void UInt128Le_Constructor_FromUInt128()
+    {
+        UInt128 native = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+        UInt128Le value = new(native);
+        ((UInt128)value).Should().Be(native);
+    }
+
+    [Fact]
+    public void UInt128Le_Constructor_FromSpan()
+    {
+        // LE: lo bytes first
+        ReadOnlySpan<byte> bytes = stackalloc byte[]
+        {
+            0x10, 0x32, 0x54, 0x76, 0x98, 0xBA, 0xDC, 0xFE,
+            0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01
+        };
+        var value = new UInt128Le(bytes);
+        UInt128 expected = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+        ((UInt128)value).Should().Be(expected);
+    }
+
+    [Fact]
+    public void UInt128Le_WriteTo_Span()
+    {
+        UInt128 native = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        UInt128Le value = new(native);
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        // LE: lo 64-bit word first, within each word lo byte first
+        buffer[0].Should().Be(0x10);   // least significant byte of lo word
+        buffer[7].Should().Be(0x09);   // most significant byte of lo word
+        buffer[8].Should().Be(0x08);   // least significant byte of hi word
+        buffer[15].Should().Be(0x01);  // most significant byte of hi word
+    }
+
+    [Fact]
+    public void UInt128Le_TryWriteTo_Success()
+    {
+        UInt128Le value = new((UInt128)42);
+        Span<byte> buffer = stackalloc byte[32];
+        bool result = value.TryWriteTo(buffer);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void UInt128Le_TryWriteTo_TooSmall()
+    {
+        UInt128Le value = new((UInt128)1);
+        Span<byte> buffer = stackalloc byte[8];
+        bool result = value.TryWriteTo(buffer);
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void UInt128Le_Arithmetic_Add()
+    {
+        UInt128Le a = new((UInt128)100);
+        UInt128Le b = new((UInt128)200);
+        UInt128Le c = a + b;
+        ((UInt128)c).Should().Be((UInt128)300);
+    }
+
+    [Fact]
+    public void UInt128Le_Arithmetic_Subtract()
+    {
+        UInt128Le a = new((UInt128)500);
+        UInt128Le b = new((UInt128)200);
+        UInt128Le c = a - b;
+        ((UInt128)c).Should().Be((UInt128)300);
+    }
+
+    [Fact]
+    public void UInt128Le_Arithmetic_Multiply()
+    {
+        UInt128Le a = new((UInt128)100);
+        UInt128Le b = new((UInt128)200);
+        UInt128Le c = a * b;
+        ((UInt128)c).Should().Be((UInt128)20000);
+    }
+
+    [Fact]
+    public void UInt128Le_Arithmetic_Divide()
+    {
+        UInt128Le a = new((UInt128)1000);
+        UInt128Le b = new((UInt128)10);
+        UInt128Le c = a / b;
+        ((UInt128)c).Should().Be((UInt128)100);
+    }
+
+    [Fact]
+    public void UInt128Le_Arithmetic_DivideByZero_Throws()
+    {
+        UInt128Le a = new((UInt128)100);
+        UInt128Le b = new((UInt128)0);
+        var act = () => { var _ = a / b; };
+        act.Should().Throw<DivideByZeroException>();
+    }
+
+    [Fact]
+    public void UInt128Le_Comparison_Equality()
+    {
+        UInt128Le a = new((UInt128)12345);
+        UInt128Le b = new((UInt128)12345);
+        UInt128Le c = new((UInt128)54321);
+        (a == b).Should().BeTrue();
+        (a != c).Should().BeTrue();
+    }
+
+    [Fact]
+    public void UInt128Le_Bitwise_Not()
+    {
+        UInt128Le a = new((UInt128)0);
+        UInt128Le b = ~a;
+        ((UInt128)b).Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void UInt128Le_Increment()
+    {
+        UInt128Le value = new((UInt128)99);
+        value++;
+        ((UInt128)value).Should().Be((UInt128)100);
+    }
+
+    [Fact]
+    public void UInt128Le_Decrement()
+    {
+        UInt128Le value = new((UInt128)100);
+        value--;
+        ((UInt128)value).Should().Be((UInt128)99);
+    }
+
+    [Fact]
+    public void UInt128Le_Equals_Object()
+    {
+        UInt128Le a = new((UInt128)12345);
+        object b = new UInt128Le((UInt128)12345);
+        object c = new UInt128Le((UInt128)54321);
+        a.Equals(b).Should().BeTrue();
+        a.Equals(c).Should().BeFalse();
+    }
+
+    [Fact]
+    public void UInt128Le_GetHashCode_Consistent()
+    {
+        UInt128Le a = new((UInt128)0x123456789ABCDEF0UL);
+        UInt128Le b = new((UInt128)0x123456789ABCDEF0UL);
+        a.GetHashCode().Should().Be(b.GetHashCode());
+    }
+
+    [Fact]
+    public void UInt128Le_Roundtrip_WriteRead()
+    {
+        UInt128 native = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+        UInt128Le original = new(native);
+        Span<byte> buffer = stackalloc byte[16];
+        original.WriteTo(buffer);
+        var restored = UInt128Le.ReadFrom(buffer);
+        restored.Should().Be(original);
+    }
+
+    [Fact]
+    public void UInt128Le_TryParse_Success()
+    {
+        bool result = UInt128Le.TryParse("340282366920938463463374607431768211455", null, out var value);
+        result.Should().BeTrue();
+        ((UInt128)value).Should().Be(UInt128.MaxValue);
+    }
+
+    #endregion
+
+    #region Int128Le Tests
+
+    [Fact]
+    public void Int128Le_Constructor_FromInt128()
+    {
+        Int128 native = -1;
+        Int128Le value = new(native);
+        ((Int128)value).Should().Be(native);
+    }
+
+    [Fact]
+    public void Int128Le_Constructor_FromSpan()
+    {
+        // -1 in little-endian is all 0xFF bytes
+        Span<byte> bytes = stackalloc byte[16];
+        bytes.Fill(0xFF);
+        var value = new Int128Le(bytes);
+        ((Int128)value).Should().Be((Int128)(-1));
+    }
+
+    [Fact]
+    public void Int128Le_Constructor_FromSpan_Negative()
+    {
+        // -2 in little-endian: 0xFE followed by 15 x 0xFF
+        Span<byte> bytes = stackalloc byte[16];
+        bytes.Fill(0xFF);
+        bytes[0] = 0xFE;
+        var value = new Int128Le(bytes);
+        ((Int128)value).Should().Be((Int128)(-2));
+    }
+
+    [Fact]
+    public void Int128Le_WriteTo_Span()
+    {
+        UInt128 raw = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        Int128Le value = new((Int128)raw);
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        // LE: lo word first, within each word lo byte first
+        buffer[0].Should().Be(0x10);
+        buffer[7].Should().Be(0x09);
+        buffer[8].Should().Be(0x08);
+        buffer[15].Should().Be(0x01);
+    }
+
+    [Fact]
+    public void Int128Le_WriteTo_Span_Negative()
+    {
+        Int128Le value = new((Int128)(-1));
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        foreach (var b in buffer)
+        {
+            b.Should().Be(0xFF);
+        }
+    }
+
+    [Fact]
+    public void Int128Le_MemoryLayout_IsLittleEndian()
+    {
+        // Value with distinct bytes in hi and lo
+        UInt128 raw = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        Int128Le value = new((Int128)raw);
+        Span<byte> buffer = stackalloc byte[16];
+        value.WriteTo(buffer);
+        buffer[0].Should().Be(0x10, "least significant byte comes first in LE");
+        buffer[15].Should().Be(0x01, "most significant byte comes last in LE");
+    }
+
+    [Fact]
+    public void Int128Le_TryWriteTo_Success()
+    {
+        Int128Le value = new((Int128)42);
+        Span<byte> buffer = stackalloc byte[32];
+        bool result = value.TryWriteTo(buffer);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int128Le_TryWriteTo_TooSmall()
+    {
+        Int128Le value = new((Int128)42);
+        Span<byte> buffer = stackalloc byte[8];
+        bool result = value.TryWriteTo(buffer);
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Int128Le_Arithmetic_Add()
+    {
+        Int128Le a = new((Int128)(-100));
+        Int128Le b = new((Int128)200);
+        Int128Le c = a + b;
+        ((Int128)c).Should().Be((Int128)100);
+    }
+
+    [Fact]
+    public void Int128Le_Arithmetic_Negate()
+    {
+        Int128Le a = new((Int128)12345);
+        Int128Le b = -a;
+        ((Int128)b).Should().Be((Int128)(-12345));
+    }
+
+    [Fact]
+    public void Int128Le_Comparison_Signed()
+    {
+        Int128Le positive = new((Int128)100);
+        Int128Le negative = new((Int128)(-100));
+        (negative < positive).Should().BeTrue();
+        (positive > negative).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int128Le_TryParse_Success()
+    {
+        bool result = Int128Le.TryParse("-123456789", null, out var value);
+        result.Should().BeTrue();
+        ((Int128)value).Should().Be((Int128)(-123456789));
+    }
+
+    [Fact]
+    public void Int128Le_TryParse_Failure()
+    {
+        bool result = Int128Le.TryParse("not_a_number", null, out _);
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Int128Le_ToString_Format()
+    {
+        Int128Le value = new((Int128)(-12345));
+        value.ToString("D", null).Should().Be("-12345");
+    }
+
+    [Fact]
+    public void Int128Le_Increment()
+    {
+        Int128Le value = new((Int128)(-1));
+        value++;
+        ((Int128)value).Should().Be((Int128)0);
+    }
+
+    [Fact]
+    public void Int128Le_Decrement()
+    {
+        Int128Le value = new((Int128)0);
+        value--;
+        ((Int128)value).Should().Be((Int128)(-1));
+    }
+
+    [Fact]
+    public void Int128Le_Equals_Object()
+    {
+        Int128Le a = new((Int128)(-12345));
+        object b = new Int128Le((Int128)(-12345));
+        object c = new Int128Le((Int128)12345);
+        a.Equals(b).Should().BeTrue();
+        a.Equals(c).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Int128Le_GetHashCode_Consistent()
+    {
+        Int128Le a = new((Int128)(-9999999));
+        Int128Le b = new((Int128)(-9999999));
+        a.GetHashCode().Should().Be(b.GetHashCode());
+    }
+
+    [Fact]
+    public void Int128Le_Roundtrip_WriteRead()
+    {
+        Int128Le original = new((Int128)(-1234567890123456789));
+        Span<byte> buffer = stackalloc byte[16];
+        original.WriteTo(buffer);
+        var restored = Int128Le.ReadFrom(buffer);
+        restored.Should().Be(original);
+    }
+
+    [Fact]
+    public void Int128Le_DivideByZero_Throws()
+    {
+        Int128Le a = new((Int128)100);
+        Int128Le b = new((Int128)0);
+        var act = () => { var _ = a / b; };
+        act.Should().Throw<DivideByZeroException>();
+    }
+
+    #endregion
+
+    #region 128-bit Endian Contrast Tests
+
+    [Fact]
+    public void UInt128_Le_Vs_Be_ByteOrder()
+    {
+        UInt128 native = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        UInt128Le le = new(native);
+        UInt128Be be = new(native);
+        Span<byte> leBuf = stackalloc byte[16];
+        Span<byte> beBuf = stackalloc byte[16];
+        le.WriteTo(leBuf);
+        be.WriteTo(beBuf);
+
+        leBuf[0].Should().Be(0x10);  // LE: lo first
+        leBuf[15].Should().Be(0x01);
+        beBuf[0].Should().Be(0x01);  // BE: hi first
+        beBuf[15].Should().Be(0x10);
+    }
+
+    [Fact]
+    public void UInt128_Le_And_Be_ProduceSameNativeValue()
+    {
+        UInt128 native = ((UInt128)0xDEADBEEFCAFEBABEUL << 64) | 0x1234567890ABCDEFUL;
+        UInt128Le le = new(native);
+        UInt128Be be = new(native);
+        ((UInt128)le).Should().Be((UInt128)be, "same native value regardless of storage order");
+    }
+
+    #endregion
 }

@@ -443,6 +443,116 @@ public class EndianTypeConverterTests
         result.Should().Be("0000000000000001");
     }
 
+    // ———————————————————————————————————————————————————
+    // UInt128Be
+    // ———————————————————————————————————————————————————
+
+    [Fact]
+    public void UInt128Be_TypeConverterAttribute_IsWired()
+    {
+        TypeDescriptor.GetConverter(typeof(UInt128Be)).Should().BeOfType<UInt128BeTypeConverter>();
+    }
+
+    [Fact]
+    public void UInt128Be_ConvertFrom_HexString()
+    {
+        var converter = new UInt128BeTypeConverter();
+        var result = converter.ConvertFrom(null, null, "0x00000000000000010000000000000002");
+        UInt128 expected = ((UInt128)1UL << 64) | 2UL;
+        ((UInt128)(UInt128Be)result!).Should().Be(expected);
+    }
+
+    [Fact]
+    public void UInt128Be_ConvertTo_String()
+    {
+        var converter = new UInt128BeTypeConverter();
+        UInt128Be value = new((UInt128)1);
+        var result = converter.ConvertTo(null, null, value, typeof(string));
+        result.Should().Be("0x00000000000000000000000000000001");
+    }
+
+    // ———————————————————————————————————————————————————
+    // Int128Be
+    // ———————————————————————————————————————————————————
+
+    [Fact]
+    public void Int128Be_TypeConverterAttribute_IsWired()
+    {
+        TypeDescriptor.GetConverter(typeof(Int128Be)).Should().BeOfType<Int128BeTypeConverter>();
+    }
+
+    [Fact]
+    public void Int128Be_ConvertFrom_HexString()
+    {
+        var converter = new Int128BeTypeConverter();
+        var result = converter.ConvertFrom(null, null, "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        ((Int128)(Int128Be)result!).Should().Be(Int128.MaxValue);
+    }
+
+    [Fact]
+    public void Int128Be_ConvertTo_String()
+    {
+        var converter = new Int128BeTypeConverter();
+        Int128Be value = new((Int128)1);
+        var result = converter.ConvertTo(null, null, value, typeof(string));
+        result.Should().Be("0x00000000000000000000000000000001");
+    }
+
+    // ———————————————————————————————————————————————————
+    // UInt128Le
+    // ———————————————————————————————————————————————————
+
+    [Fact]
+    public void UInt128Le_TypeConverterAttribute_IsWired()
+    {
+        TypeDescriptor.GetConverter(typeof(UInt128Le)).Should().BeOfType<UInt128LeTypeConverter>();
+    }
+
+    [Fact]
+    public void UInt128Le_ConvertFrom_HexString()
+    {
+        var converter = new UInt128LeTypeConverter();
+        var result = converter.ConvertFrom(null, null, "0x00000000000000010000000000000002");
+        UInt128 expected = ((UInt128)1UL << 64) | 2UL;
+        ((UInt128)(UInt128Le)result!).Should().Be(expected);
+    }
+
+    [Fact]
+    public void UInt128Le_ConvertTo_String()
+    {
+        var converter = new UInt128LeTypeConverter();
+        UInt128Le value = new((UInt128)1);
+        var result = converter.ConvertTo(null, null, value, typeof(string));
+        result.Should().Be("00000000000000000000000000000001");
+    }
+
+    // ———————————————————————————————————————————————————
+    // Int128Le
+    // ———————————————————————————————————————————————————
+
+    [Fact]
+    public void Int128Le_TypeConverterAttribute_IsWired()
+    {
+        TypeDescriptor.GetConverter(typeof(Int128Le)).Should().BeOfType<Int128LeTypeConverter>();
+    }
+
+    [Fact]
+    public void Int128Le_ConvertFrom_HexString()
+    {
+        var converter = new Int128LeTypeConverter();
+        var result = converter.ConvertFrom(null, null, "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        ((Int128)(Int128Le)result!).Should().Be(Int128.MaxValue);
+    }
+
+    [Fact]
+    public void Int128Le_ConvertTo_String()
+    {
+        var converter = new Int128LeTypeConverter();
+        Int128Le value = new((Int128)1);
+        var result = converter.ConvertTo(null, null, value, typeof(string));
+        result.Should().Be("00000000000000000000000000000001");
+    }
+
     // ???????????????????????????????????????????????????????????????????
     // CanConvertFrom
     // ???????????????????????????????????????????????????????????????????
@@ -460,6 +570,10 @@ public class EndianTypeConverterTests
     [InlineData(typeof(Int16LeTypeConverter))]
     [InlineData(typeof(Int32LeTypeConverter))]
     [InlineData(typeof(Int64LeTypeConverter))]
+    [InlineData(typeof(UInt128BeTypeConverter))]
+    [InlineData(typeof(Int128BeTypeConverter))]
+    [InlineData(typeof(UInt128LeTypeConverter))]
+    [InlineData(typeof(Int128LeTypeConverter))]
     public void AllConverters_CanConvertFrom_String(Type converterType)
     {
         var converter = (TypeConverter)Activator.CreateInstance(converterType)!;
@@ -479,6 +593,10 @@ public class EndianTypeConverterTests
     [InlineData(typeof(Int16LeTypeConverter))]
     [InlineData(typeof(Int32LeTypeConverter))]
     [InlineData(typeof(Int64LeTypeConverter))]
+    [InlineData(typeof(UInt128BeTypeConverter))]
+    [InlineData(typeof(Int128BeTypeConverter))]
+    [InlineData(typeof(UInt128LeTypeConverter))]
+    [InlineData(typeof(Int128LeTypeConverter))]
     public void AllConverters_CannotConvertFrom_Int(Type converterType)
     {
         var converter = (TypeConverter)Activator.CreateInstance(converterType)!;

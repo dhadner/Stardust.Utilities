@@ -24,6 +24,8 @@ Endian types store bytes in a guaranteed byte order regardless of the host platf
 | `Int32Be` | 4 bytes | `int` | Signed 32-bit |
 | `UInt64Be` | 8 bytes | `ulong` | Unsigned 64-bit |
 | `Int64Be` | 8 bytes | `long` | Signed 64-bit |
+| `UInt128Be` | 16 bytes | `UInt128` | Unsigned 128-bit |
+| `Int128Be` | 16 bytes | `Int128` | Signed 128-bit |
 
 ### Little-Endian
 
@@ -35,6 +37,8 @@ Endian types store bytes in a guaranteed byte order regardless of the host platf
 | `Int32Le` | 4 bytes | `int` | Signed 32-bit |
 | `UInt64Le` | 8 bytes | `ulong` | Unsigned 64-bit |
 | `Int64Le` | 8 bytes | `long` | Signed 64-bit |
+| `UInt128Le` | 16 bytes | `UInt128` | Unsigned 128-bit |
+| `Int128Le` | 16 bytes | `Int128` | Signed 128-bit |
 
 ## Quick Start
 
@@ -212,13 +216,24 @@ bool result = negative < positive;  // true (correct signed comparison)
 UInt16Be val16 = (ushort)0x1234;
 UInt32Be val32 = 0x12345678U;
 
-// Widening conversions
+// Widening conversions (Big-Endian)
 UInt64Be wide = val32;           // UInt32Be -> UInt64Be
 UInt64Be fromSmall = val16;      // UInt16Be -> UInt64Be
 
 // Signed widening (sign-extends correctly)
 Int16Be small = -100;
 Int64Be large = small;           // Still -100, sign-extended
+
+// Widening conversions (Little-Endian) -- symmetrical with Big-Endian
+UInt16Le le16 = 0x1234;
+UInt32Le le32 = le16;            // UInt16Le -> UInt32Le
+UInt64Le le64 = le32;            // UInt32Le -> UInt64Le
+UInt64Le fromSmallLe = le16;     // UInt16Le -> UInt64Le
+UInt128Le le128 = le64;          // UInt64Le -> UInt128Le
+
+Int16Le sle16 = -100;
+Int64Le sle64 = sle16;           // Int16Le -> Int64Le (sign-extends)
+Int128Le sle128 = sle64;         // Int64Le -> Int128Le
 
 // Big-endian to native
 ushort native16 = val16;
@@ -231,10 +246,20 @@ ulong native64 = (UInt64Be)val32;
 ```csharp
 UInt64Be big = 0x123456789ABCDEF0UL;
 
-// Narrowing - takes low bytes
+// Narrowing Big-Endian - takes low bytes
 UInt32Be truncated32 = (UInt32Be)big;  // 0x9ABCDEF0
 UInt16Be truncated16 = (UInt16Be)big;  // 0xDEF0
 byte truncatedByte = (byte)big;         // 0xF0
+
+// Narrowing Little-Endian -- symmetrical with Big-Endian
+UInt64Le bigLe = 0x123456789ABCDEF0UL;
+UInt32Le trunc32Le = (UInt32Le)bigLe;  // 0x9ABCDEF0
+UInt16Le trunc16Le = (UInt16Le)bigLe;  // 0xDEF0
+
+// 128-bit narrowing
+UInt128Le big128 = new((UInt128)0xDEADBEEF);
+UInt64Le from128 = (UInt64Le)big128;
+UInt32Le from128_32 = (UInt32Le)big128;
 ```
 
 ## Hi/Lo Extension Methods
@@ -256,9 +281,23 @@ UInt16Be hi32 = val32.Hi();  // 0x1234
 UInt64Be val64 = 0x123456789ABCDEF0UL;
 UInt32Be hi64 = val64.Hi();  // 0x12345678
 
+// 128-bit types -> UInt64Be / ulong
+UInt128Be val128 = new(((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL);
+UInt64Be hi128 = val128.Hi();  // 0x0123456789ABCDEF
+
 // Native types work too
 ulong native = 0x123456789ABCDEF0UL;
 uint nativeHi = native.Hi();  // 0x12345678
+
+UInt128 native128 = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+ulong nativeHi128 = native128.Hi();  // 0x0123456789ABCDEF
+
+// Little-endian types follow the same pattern
+UInt16Le le16 = 0xABCD;
+byte hiLe = le16.Hi();  // 0xAB
+
+UInt64Le le64 = 0x123456789ABCDEF0UL;
+UInt32Le hiLe64 = le64.Hi();  // 0x12345678
 ```
 
 ### Lo() - Get Lower Half
@@ -276,9 +315,16 @@ UInt16Be lo32 = val32.Lo();  // 0x5678
 UInt64Be val64 = 0x123456789ABCDEF0UL;
 UInt32Be lo64 = val64.Lo();  // 0x9ABCDEF0
 
+// 128-bit types -> UInt64Be / ulong
+UInt128Be val128 = new(((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL);
+UInt64Be lo128 = val128.Lo();  // 0xFEDCBA9876543210
+
 // Native types work too
 ulong native = 0x123456789ABCDEF0UL;
 uint nativeLo = native.Lo();  // 0x9ABCDEF0
+
+UInt128 native128 = ((UInt128)0x0123456789ABCDEFUL << 64) | 0xFEDCBA9876543210UL;
+ulong nativeLo128 = native128.Lo();  // 0xFEDCBA9876543210
 ```
 
 ### SetHi() / SetLo() - Replace Half
@@ -291,10 +337,21 @@ UInt64Be newHi = value.SetHi((UInt32Be)0xDEADBEEFU);  // 0xDEADBEEF9ABCDEF0
 // Set lower half
 UInt64Be newLo = value.SetLo((UInt32Be)0xCAFEBABEU);  // 0x12345678CAFEBABE
 
+// 128-bit types
+UInt128Be big128 = new((UInt128)0);
+UInt128Be with128Hi = big128.SetHi((UInt64Be)0x0000000000000001UL);
+
 // Works with native types too
 ulong nativeVal = 0x123456789ABCDEF0UL;
 ulong withNewHi = nativeVal.SetHi(0xDEADBEEFU);  // 0xDEADBEEF9ABCDEF0
 ulong withNewLo = nativeVal.SetLo(0xCAFEBABEU);  // 0x12345678CAFEBABE
+
+UInt128 native128val = (UInt128)0;
+UInt128 withNative128Hi = native128val.SetHi(0x0000000000000001UL);  // 1 << 64
+
+// Little-endian SetHi/SetLo
+UInt64Le leval = 0x123456789ABCDEF0UL;
+UInt64Le leNewHi = leval.SetHi((UInt32Le)0xDEADBEEFU);  // 0xDEADBEEF9ABCDEF0
 ```
 
 ## Parsing and Formatting
@@ -535,6 +592,10 @@ WinForms PropertyGrid and similar UI scenarios:
 | `Int32Le` | `Int32LeTypeConverter` |
 | `UInt64Le` | `UInt64LeTypeConverter` |
 | `Int64Le` | `Int64LeTypeConverter` |
+| `UInt128Be` | `UInt128BeTypeConverter` |
+| `Int128Be` | `Int128BeTypeConverter` |
+| `UInt128Le` | `UInt128LeTypeConverter` |
+| `Int128Le` | `Int128LeTypeConverter` |
 
 ```csharp
 // TypeConverters support hex input with 0x prefix
@@ -673,6 +734,67 @@ public UInt16Be(ushort num)
 ```
 
 The JIT compiler optimizes this to efficient native instructions on all platforms.
+
+---
+
+## Performance
+
+Endian types guarantee byte layout while operating at or near native speed on little-endian hardware (x86/x64/ARM64). The implementation uses two complementary techniques:
+
+- **16-bit types:** an overlapping `[FieldOffset(0)] ushort _value` aliased with the `byte hi`/`byte lo` fields. The JIT keeps the value in a single CPU register while preserving direct byte access.
+- **32-bit and wider types:** `Unsafe.As` reinterpretation. On LE hardware the struct memory IS the native value (Le: zero-cost identity, Be: single `BSWAP` instruction).
+
+The table below shows the measured overhead versus native primitives (BenchmarkDotNet, .NET 10, Release, x64, 10M iterations).
+
+### Cost by Width and Operation
+
+| Width | Operation | Native | Big-Endian | Be/Native | Little-Endian | Le/Native |
+|-------|-----------|--------|------------|-----------|---------------|-----------|
+| 16-bit | Add | 6.5 ms | 16.5 ms | 2.5x | **7.8 ms** | **1.21x** |
+| 16-bit | Sub | 7.8 ms | 16.2 ms | 2.1x | **7.8 ms** | **1.00x** |
+| 16-bit | AND | 7.9 ms | 16.4 ms | 2.1x | **7.8 ms** | **0.99x** |
+| 16-bit | Compare | 8.0 ms | 14.6 ms | 1.8x | **8.2 ms** | **1.02x** |
+| 16-bit | Hi/Lo | 9.4 ms | 20.0 ms | 2.1x | **6.1 ms** | **0.65x** |
+| 32-bit | Add | 4.4 ms | 10.4 ms | 2.3x | **4.4 ms** | **1.00x** |
+| 32-bit | AND | 5.2 ms | 10.0 ms | 1.9x | **5.2 ms** | **1.00x** |
+| 64-bit | Add | 5.0 ms | 16.3 ms | 3.3x | **4.5 ms** | **0.90x** |
+| 128-bit | Add | 8.3 ms | 25.9 ms | 3.1x | **8.1 ms** | **0.98x** |
+
+### Summary by Width
+
+| Width | Le vs. Native | Be vs. Hand-Coded BSWAP | Notes |
+|-------|---------------|-------------------------|-------|
+| 16-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: identity; Be: single register rotate |
+| 32-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: identity reinterpret; Be: single `BSWAP` |
+| 64-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: identity reinterpret; Be: single `BSWAP` |
+| 128-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: cascades from 64-bit; Be: two BSWAPs + swap halves |
+
+### Key Takeaways
+
+- **Both Le and Be types operate at native speed.** Le types are zero-cost identity operations on LE hardware. Be types compile to the same `BSWAP` instruction a developer would hand-write -- the type abstraction adds no overhead beyond the inherent cost of the byte-swap.
+- **There is no performance reason to avoid Be/Le types.** Architects can use endian types throughout a codebase for correctness and type safety without sacrificing throughput.
+- **16-bit types use overlapping field aliasing** -- a `_value` field at offset 0 overlaps the `hi`/`lo` byte fields, giving the JIT a single primitive to keep in registers while preserving byte access.
+- **32-bit and wider types use `Unsafe.As`** for zero-cost reinterpretation (Le) or single-`BSWAP` conversion (Be).
+- **128-bit Le types cascade improvements** from 64-bit and 32-bit optimizations.
+- **Zero heap allocation** across all types and operations.
+- **For Be hot paths** that do many operations between conversions, the convert-at-boundary pattern can amortize the BSWAP cost:
+
+```csharp
+// Optional optimization for Be types in hot loops:
+UInt32Be header = ReadFromNetwork();
+uint native = (uint)header;            // BSWAP once
+native = DoComplexMath(native);        // Compute in native (no BSWAPs)
+UInt32Be result = (UInt32Be)native;    // BSWAP once
+```
+
+For Le types, no such optimization is needed -- they are already at native speed:
+
+```csharp
+// Le types: compute directly -- zero overhead on LE hardware
+UInt32Le a = ReadFromBuffer();
+UInt32Le b = ReadFromBuffer();
+UInt32Le sum = a + b;  // Same machine code as uint + uint
+```
 
 ---
 

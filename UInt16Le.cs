@@ -19,14 +19,19 @@ namespace Stardust.Utilities
     {
         [FieldOffset(0)] internal byte lo;
         [FieldOffset(1)] internal byte hi;
+        // Overlapping native field gives the JIT a single primitive to keep in a
+        // register. On LE hosts (x86/x64/ARM), bytes [lo, hi] = native ushort directly.
+        [FieldOffset(0)] private ushort _value;
 
         /// <summary>Initializes a new <see cref="UInt16Le"/> from a <see cref="ushort"/> value.</summary>
         /// <param name="num">The value to store.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt16Le(ushort num)
         {
-            lo = (byte)(num & 0xff);
-            hi = (byte)(num >> 8);
+            // Initialize byte fields to satisfy definite-assignment, then store native value.
+            // The JIT collapses both writes since they overlap the same 2 bytes.
+            lo = 0; hi = 0;
+            _value = BitConverter.IsLittleEndian ? num : BinaryPrimitives.ReverseEndianness(num);
         }
 
         /// <summary>Initializes a new <see cref="UInt16Le"/> from an <see cref="int"/> value.</summary>
@@ -265,7 +270,7 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt16Le"/> to a <see cref="ushort"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ushort(UInt16Le a) => (ushort)((ushort)(a.hi << 8) | a.lo);
+        public static implicit operator ushort(UInt16Le a) => BitConverter.IsLittleEndian ? a._value : BinaryPrimitives.ReverseEndianness(a._value);
 
         /// <summary>Implicitly converts a <see cref="UInt16Le"/> to a <see cref="uint"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -288,6 +293,10 @@ namespace Stardust.Utilities
 
         /// <summary>Explicitly converts an <see cref="int"/> to a <see cref="UInt16Le"/>.</summary>
         public static explicit operator UInt16Le(int a) => (UInt16Le)(uint)a;
+
+        /// <summary>Widening conversion from a 16-bit little-endian value to a 32-bit little-endian value.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator UInt32Le(UInt16Le a) => new((ushort)a);
 
         #endregion
     }

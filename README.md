@@ -1207,11 +1207,20 @@ Option<int> fromResult = ok.ToOption();  // Some(42)
 
 ### Endian Types
 
-**Type-safe endian-aware integers with full operator support.**
+**Type-safe endian-aware integers that run at native speed.**
 
 Endian types guarantee byte ordering in memory regardless of host platform. Big-endian types store the most significant byte first (network order), little-endian types store the least significant byte first (x86 native order). These are complete numeric types with arithmetic, bitwise, and comparison operators.
 
-See [ENDIAN.md](ENDIAN.md) for comprehensive documentation and examples.
+**No performance penalty.** On little-endian hardware (x86/x64/ARM64 -- virtually all modern platforms), Le types compile to the same machine code as bare primitives. Be types compile to a single `BSWAP` instruction per conversion -- the same code you would write by hand. The type abstraction adds zero overhead beyond the inherent cost of the byte-swap itself. Benchmarked with BenchmarkDotNet on .NET 10:
+
+| Width | Le vs. Native | Be vs. Hand-Coded BSWAP |
+|-------|---------------|-------------------------|
+| 16-bit | **1.0x** | **1.0x** (single register rotate) |
+| 32-bit | **1.0x** | **1.0x** (single BSWAP) |
+| 64-bit | **1.0x** | **1.0x** (single BSWAP) |
+| 128-bit | **1.0x** | **1.0x** (two BSWAPs + swap halves) |
+
+Zero heap allocations across all types and operations. See [ENDIAN.md](ENDIAN.md) for full benchmark tables, implementation details, and optimization guidance.
 
 #### Available Types
 
@@ -1220,6 +1229,7 @@ See [ENDIAN.md](ENDIAN.md) for comprehensive documentation and examples.
 | `UInt16Be` / `Int16Be` | `UInt16Le` / `Int16Le` | 2 bytes | `ushort` / `short` |
 | `UInt32Be` / `Int32Be` | `UInt32Le` / `Int32Le` | 4 bytes | `uint` / `int` |
 | `UInt64Be` / `Int64Be` | `UInt64Le` / `Int64Le` | 8 bytes | `ulong` / `long` |
+| `UInt128Be` / `Int128Be` | `UInt128Le` / `Int128Le` | 16 bytes | `UInt128` / `Int128` |
 
 #### Quick Example
 
@@ -1260,6 +1270,7 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 
 #### Key Features
 
+- **Native speed**: Le types are zero-cost on LE hardware; Be types compile to a single `BSWAP` -- same as hand-coded
 - **Full operator support**: `+`, `-`, `*`, `/`, `%`, `&`, `|`, `^`, `~`, `<<`, `>>`, `<`, `>`, `==`, etc.
 - **Modern .NET interfaces**: `IParsable<T>`, `ISpanParsable<T>`, `ISpanFormattable`
 - **Zero-allocation APIs**: `ReadOnlySpan<byte>` constructors, `WriteTo(Span<byte>)`, `TryWriteTo()`
@@ -1290,6 +1301,7 @@ word = word.SetLo(0x00);  // 0xFF00
 int a = int.MaxValue;
 int result = a.SaturatingAdd(1);     // Still int.MaxValue, not overflow
 uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
+UInt128 r3 = ((UInt128)5).SaturatingSub((UInt128)10);  // 0
 
 ```
 

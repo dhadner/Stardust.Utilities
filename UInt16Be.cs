@@ -19,6 +19,10 @@ namespace Stardust.Utilities
     {
         [FieldOffset(0)] internal byte hi;
         [FieldOffset(1)] internal byte lo;
+        // Overlapping native field gives the JIT a single primitive to keep in a
+        // register. On LE hosts, _value reads bytes [hi, lo] as a native ushort,
+        // which is the byte-swapped form of the value, so a single BSWAP converts.
+        [FieldOffset(0)] private ushort _value;
 
         /// <summary>
         /// Creates a big-endian 16-bit unsigned integer from a native ushort.
@@ -27,8 +31,9 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt16Be(ushort num)
         {
-            hi = (byte)(num >> 8);
-            lo = (byte)(num & 0xff);
+            hi = 0; lo = 0;
+            // Store byte-swapped on LE host so memory layout is big-endian (hi first).
+            _value = BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(num) : num;
         }
 
         /// <summary>
@@ -540,7 +545,7 @@ namespace Stardust.Utilities
         /// <param name="a">The big-endian value.</param>
         /// <returns>The native value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ushort(UInt16Be a) => (ushort)((ushort)(a.hi << 8) | a.lo);
+        public static implicit operator ushort(UInt16Be a) => BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(a._value) : a._value;
 
         /// <summary>
         /// Converts a big-endian value to a native <see cref="uint"/>.

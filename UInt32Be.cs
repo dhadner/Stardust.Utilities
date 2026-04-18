@@ -75,8 +75,8 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt32Be(uint num)
         {
-            hi = (UInt16Be)(ushort)(num >> 16);
-            lo = (UInt16Be)(ushort)(num & 0xffff);
+            Unsafe.SkipInit(out this);
+            Unsafe.As<UInt32Be, uint>(ref this) = BinaryPrimitives.ReverseEndianness(num);
         }
 
         /// <summary>
@@ -336,7 +336,7 @@ namespace Stardust.Utilities
         /// <param name="a">The big-endian value.</param>
         /// <returns>The native value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator uint(UInt32Be a) => (uint)a.hi.hi << 24 | (uint)a.hi.lo << 16 | (uint)a.lo.hi << 8 | a.lo.lo;
+        public static implicit operator uint(UInt32Be a) => BinaryPrimitives.ReverseEndianness(Unsafe.As<UInt32Be, uint>(ref a));
 
         /// <summary>
         /// Converts a native <see cref="uint"/> to a big-endian value.

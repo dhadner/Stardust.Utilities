@@ -71,8 +71,8 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Int64Be(long num)
         {
-            hi = new UInt32Be((uint)((ulong)num >> 32));
-            lo = new UInt32Be((uint)(num & 0xFFFFFFFF));
+            Unsafe.SkipInit(out this);
+            Unsafe.As<Int64Be, long>(ref this) = BinaryPrimitives.ReverseEndianness(num);
         }
 
         /// <summary>
@@ -384,7 +384,7 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator long(Int64Be a)
         {
-            return (long)(((ulong)(uint)a.hi << 32) | (uint)a.lo);
+            return BinaryPrimitives.ReverseEndianness(Unsafe.As<Int64Be, long>(ref a));
         }
 
         /// <summary>

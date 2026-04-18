@@ -25,8 +25,8 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Int32Le(int num)
         {
-            lo = (UInt16Le)(ushort)((uint)num & 0xffff);
-            hi = (UInt16Le)(ushort)((uint)num >> 16);
+            Unsafe.SkipInit(out this);
+            Unsafe.As<Int32Le, int>(ref this) = num;
         }
 
         /// <summary>Initializes a new <see cref="Int32Le"/> from a read-only byte span.</summary>
@@ -185,7 +185,7 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int32Le"/> to an <see cref="int"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator int(Int32Le a) => (int)(((uint)(ushort)a.hi << 16) | (ushort)a.lo);
+        public static implicit operator int(Int32Le a) => Unsafe.As<Int32Le, int>(ref a);
 
         /// <summary>Implicitly converts an <see cref="int"/> to an <see cref="Int32Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -197,6 +197,13 @@ namespace Stardust.Utilities
 
         /// <summary>Explicitly converts an <see cref="Int32Le"/> to a <see cref="uint"/>.</summary>
         public static explicit operator uint(Int32Le a) => (uint)(int)a;
+
+        /// <summary>Sign-extending conversion from a 16-bit little-endian signed value.</summary>
+        public static explicit operator Int32Le(Int16Le v)
+        {
+            short value = (short)v;
+            return new Int32Le(value);
+        }
 
         #endregion
     }
