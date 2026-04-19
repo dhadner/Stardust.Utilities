@@ -1283,8 +1283,8 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 
 ### Large Integers (256-bit)
 
-**Fixed-width 256-bit signed and unsigned integer value types that out-perform every
-established .NET alternative on every benchmarked operation.**
+**Fixed-width 256-bit signed and unsigned integer value types that are competitive with
+established .NET alternatives across the operations most code spends time in.**
 
 `UInt256` and `Int256` fill the gap between the BCL's native `UInt128` / `Int128` and the
 heap-allocated, arbitrary-precision `BigInteger`. They are the right tool for cryptographic
