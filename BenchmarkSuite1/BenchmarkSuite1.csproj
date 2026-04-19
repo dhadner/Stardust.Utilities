@@ -10,6 +10,8 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.3.36812.1" />
+    <PackageReference Include="Nethermind.Numerics.Int256" Version="1.5.0" />
+    <PackageReference Include="MissingValues" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>

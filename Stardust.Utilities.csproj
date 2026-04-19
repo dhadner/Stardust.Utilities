@@ -4,6 +4,12 @@
 		<TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<!-- AllowUnsafeBlocks is required by the Bmi2.X64.MultiplyNoFlags
+			 fast path in UInt256Math (it takes a ulong* for the low half).
+			 NoWarn suppresses the preview-API warnings for the hardware
+			 X86Base.X64.DivRem intrinsic used in the same file. -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<NoWarn>$(NoWarn);SYSLIB5004;CA2252</NoWarn>
 
 		<!-- NuGet Package Settings -->
 		<IsPackable>true</IsPackable>
