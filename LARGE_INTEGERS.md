@@ -209,61 +209,49 @@ best .NET 256-bit libraries:
 ### Benchmark Results
 
 Comparative benchmarks live in `BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs` and
-measure `UInt256` against the two most widely used 256-bit libraries in the .NET ecosystem:
+measure `UInt256` alongside two other widely used managed 256-bit libraries:
 
-- **Nethermind.Int256** -- the Ethereum-client type, generally considered the fastest
-  available for EVM-style workloads.
-- **MissingValues** -- a pure managed implementation focused on BCL parity.
+- `Nethermind.Numerics.Int256` version **1.5.0** (NuGet).
+- `MissingValues` version **2.2.1** (NuGet).
 
-All benchmarks run identical operations on the same randomized input set. Each entry reports
-the BenchmarkDotNet ratio relative to the Stardust baseline (`Ratio = Mean_library / Mean_Stardust`).
-Lower is better for the other two columns; `1.00x` is the Stardust baseline.
+All benchmarks exercise identical operations on the same randomized input set. Each entry
+reports the BenchmarkDotNet ratio relative to the Stardust baseline
+(`Ratio = Mean_library / Mean_Stardust`). `1.00x` is the Stardust baseline; values above
+`1.00x` are slower than the baseline, values below are faster.
 
-**Representative results, .NET 10 x64 (Release, PGO on):**
+**Representative results, .NET 10 x64 (Release):**
 
-| Operation | `Stardust.UInt256` | `Nethermind.Int256` | `MissingValues.UInt256` |
+| Operation | `Stardust.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 |
 |-----------|:-------------------:|:-------------------:|:------------------------:|
-| **Add** | **1.00x** (baseline) | ~1.15x slower | ~1.00x (tied) |
-| **Mul** (full 256x256 -> low 256) | **1.00x** (baseline) | ~1.30x slower | ~1.20x slower |
-| **Div** (256 / 256) | **1.00x** (baseline) | ~1.05x slower | ~2.1x slower |
-| **Mod** (256 % 256) | **1.00x** (baseline) | ~1.05x slower | ~2.1x slower |
-| **ToString** (decimal) | **1.00x** (baseline) | ~1.40x slower | ~1.00x (tied) |
-| **Parse** (decimal) | **1.00x** (baseline) | ~1.25x slower | ~1.10x slower |
+| **Add** | **1.00x** (baseline) | ~1.15x | ~1.00x |
+| **Mul** (full 256x256 -> low 256) | **1.00x** (baseline) | ~1.30x | ~1.20x |
+| **Div** (256 / 256) | **1.00x** (baseline) | ~1.05x | ~2.1x |
+| **Mod** (256 % 256) | **1.00x** (baseline) | ~1.05x | ~2.1x |
+| **ToString** (decimal) | **1.00x** (baseline) | ~1.40x | ~1.00x |
+| **Parse** (decimal) | **1.00x** (baseline) | ~1.25x | ~1.10x |
 
-> Key takeaway: **Stardust.UInt256 is as fast or faster than both libraries on every
-> benchmarked operation.** Against Nethermind.Int256 -- the de-facto benchmark leader -- we
-> are ahead on all six; against MissingValues we are ahead on four and tied within noise on
-> the other two (Add and ToString).
+Across these six operations, `Stardust.UInt256` is at parity with or faster than both of
+the compared libraries on our test hardware and runtime. All three are high-quality
+implementations, and the gaps are generally small; the main goal here is to demonstrate
+that the type is competitive on the operations most code spends time in, not to claim a
+definitive ranking. Libraries evolve -- re-run the suite against the current versions if
+the decision matters for your project.
 
-Exact nanosecond values vary with CPU, memory bandwidth, and .NET version, so the table
-above reports **ratios** rather than absolute times. Ratios are stable across hardware as
-long as the same BDN config is used; absolute times should be re-measured on the target
-deployment hardware if precise budgets matter.
+Exact nanosecond values vary with CPU, memory bandwidth, .NET version, and library
+version, so the table reports **ratios** rather than absolute times. Ratios are reasonably
+stable across hardware when the same BDN config is used; absolute times should always be
+re-measured on the target deployment hardware if precise budgets matter.
 
-**Add** (simplest case, most representative of real-world use):
-- All three libraries compile to a tight `add` / `adc` carry chain.
-- Stardust uses an explicit 64-bit carry chain passed by value; MissingValues does likewise;
-  Nethermind goes through an `in`-by-reference form that inhibits inlining in tight loops,
-  costing ~15%.
+Notes on methodology:
 
-**Mul** (four-limb schoolbook, low 256 bits only):
-- Stardust uses MULX (flag-free multiply) combined with a fused `BigMulAdd` helper so the JIT
-  can pipeline carry-propagation adds without flag-dependency stalls.
-- The other two libraries use the compiler's `Math.BigMul` intrinsic, which produces correct
-  but more conservatively scheduled code.
-
-**Div / Mod**:
-- Stardust detects a 192-bit divisor specifically (`DivRemN3`) and uses the hardware
-  `X86Base.X64.DivRem` intrinsic for both the quotient estimate (`qhat`) and the final
-  reduction. Both Nethermind and MissingValues fall back to a generic Knuth Algorithm D
-  divider without the hardware-divide shortcut, costing roughly a factor of two on
-  MissingValues and a small but consistent margin over Nethermind.
-
-**ToString / Parse**:
-- Both paths use `X86Base.X64.DivRem` to extract 19-digit decimal chunks (10^19, the
-  largest power of 10 less than 2^64) and `BinaryPrimitives.ReadUInt64` to pack chunks on
-  the parse side. This avoids the reciprocal-multiplication trick used by Nethermind, which
-  is slightly slower on modern AMD / Intel cores where hardware divide latency has improved.
+- **Add, Mul** measure the full 256-bit operation; multiply returns the low 256 bits of
+  the product (standard unsigned wrapping semantics).
+- **Div, Mod** use randomized divisors that span the full 256-bit range, so the benchmark
+  exercises the general-case Knuth Algorithm D path rather than a short-divisor fast path.
+- **ToString, Parse** use decimal format. Hex paths are typically faster for every library
+  and are less discriminating, so they are not included in the headline table.
+- All entries report `Allocated: 0 B` except `ToString`, which must allocate the returned
+  `string`.
 
 ### Reproducing the Benchmarks
 

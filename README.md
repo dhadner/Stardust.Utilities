@@ -1308,22 +1308,23 @@ repository (`BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs`):
    `Parse` likewise extract 19-digit chunks via hardware divide. On ARM64 and non-x64
    platforms, the fallback is a hand-rolled 64-bit carry chain -- never a software
    `UInt128` round-trip.
-3. **Out-performs Nethermind.Int256 and MissingValues on every operation.**
-   Representative .NET 10 x64 ratios (lower is better; `1.00x` = Stardust baseline):
+3. **Competitive with widely used managed 256-bit libraries on every benchmarked operation.**
+   Representative .NET 10 x64 ratios relative to the Stardust baseline (`1.00x`; higher = slower):
 
-   | Operation | `Stardust.UInt256` | `Nethermind.Int256` | `MissingValues.UInt256` |
+   | Operation | `Stardust.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 |
    |-----------|:-------------------:|:-------------------:|:------------------------:|
-   | Add | **1.00x** | ~1.15x slower | ~1.00x (tied) |
-   | Mul | **1.00x** | ~1.30x slower | ~1.20x slower |
-   | Div | **1.00x** | ~1.05x slower | ~2.1x slower |
-   | Mod | **1.00x** | ~1.05x slower | ~2.1x slower |
-   | ToString | **1.00x** | ~1.40x slower | ~1.00x (tied) |
-   | Parse | **1.00x** | ~1.25x slower | ~1.10x slower |
+   | Add | **1.00x** | ~1.15x | ~1.00x |
+   | Mul | **1.00x** | ~1.30x | ~1.20x |
+   | Div | **1.00x** | ~1.05x | ~2.1x |
+   | Mod | **1.00x** | ~1.05x | ~2.1x |
+   | ToString | **1.00x** | ~1.40x | ~1.00x |
+   | Parse | **1.00x** | ~1.25x | ~1.10x |
 
-   Nethermind.Int256 is the Ethereum-client reference implementation and is generally
-   considered the fastest managed 256-bit type in the .NET ecosystem; MissingValues is a
-   pure-managed BCL-parity implementation. Ratios are stable across hardware; re-run the
-   benchmark suite on target hardware for absolute times.
+   All three libraries are high-quality implementations and the gaps are generally small;
+   the intent is to show that `Stardust.UInt256` is a competitive choice on the operations
+   most code actually spends time in, not to claim a definitive ranking. Library versions
+   move; re-run `BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs` against the current
+   packages on your deployment hardware if the decision matters.
 4. **Wire-format safety without perf penalty.** `UInt256Be` / `UInt256Le` provide
    guaranteed big-endian and little-endian 32-byte layouts for I/O. They convert implicitly
    to and from the host-native `UInt256` so arithmetic and I/O are cleanly separated. See
