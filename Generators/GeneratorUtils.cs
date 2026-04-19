@@ -467,6 +467,8 @@ internal static class GeneratorUtils
             "decimal" => (128, 16, false),
             "UInt128" => (128, 16, false),
             "Int128"  => (128, 16, false),
+            "UInt256" => (256, 32, false),
+            "Int256"  => (256, 32, false),
             _ => null
         };
     }
@@ -523,6 +525,8 @@ internal static class GeneratorUtils
         13 => "decimal",
         14 => "Int128",
         15 => "UInt128",
+        16 => "Int256",
+        17 => "UInt256",
         _  => null
     };
 
@@ -549,6 +553,8 @@ internal static class GeneratorUtils
             "Half"    => "Half",
             "Int128"  => "Int128",
             "UInt128" => "UInt128",
+            "Int256"  => "Int256",
+            "UInt256" => "UInt256",
             _         => null
         }
     };

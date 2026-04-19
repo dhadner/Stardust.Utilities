@@ -70,4 +70,10 @@ public enum StorageType
 
     /// <summary>Unsigned 128-bit integer (<c>UInt128</c>).</summary>
     UInt128 = 15,
+
+    /// <summary>Signed 256-bit integer (<see cref="Stardust.Utilities.Int256"/>).</summary>
+    Int256 = 16,
+
+    /// <summary>Unsigned 256-bit integer (<see cref="Stardust.Utilities.UInt256"/>).</summary>
+    UInt256 = 17,
 }

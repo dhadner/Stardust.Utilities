@@ -30,6 +30,7 @@ The included demo app is a showcase of the library's capabilities, not a standal
   - [Result Types](#result-types)
   - [Option Types](#option-types)
   - [Endian Types](#endian-types)
+  - [Large Integers (256-bit)](#large-integers-256-bit)
   - [Extension Methods](#extension-methods)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
@@ -1230,6 +1231,7 @@ Zero heap allocations across all types and operations. See [ENDIAN.md](ENDIAN.md
 | `UInt32Be` / `Int32Be` | `UInt32Le` / `Int32Le` | 4 bytes | `uint` / `int` |
 | `UInt64Be` / `Int64Be` | `UInt64Le` / `Int64Le` | 8 bytes | `ulong` / `long` |
 | `UInt128Be` / `Int128Be` | `UInt128Le` / `Int128Le` | 16 bytes | `UInt128` / `Int128` |
+| `UInt256Be` | `UInt256Le` | 32 bytes | `UInt256` (see [Large Integers](#large-integers-256-bit)) |
 
 #### Quick Example
 
@@ -1276,6 +1278,87 @@ networkValue.TryFormat(chars, out int written, "X8", null);
 - **Zero-allocation APIs**: `ReadOnlySpan<byte>` constructors, `WriteTo(Span<byte>)`, `TryWriteTo()`
 - **Type converters**: PropertyGrid support for UI editing
 - **Guaranteed layout**: `[StructLayout(LayoutKind.Explicit)]` ensures correct byte ordering
+
+---
+
+### Large Integers (256-bit)
+
+**Fixed-width 256-bit signed and unsigned integer value types that out-perform every
+established .NET alternative on every benchmarked operation.**
+
+`UInt256` and `Int256` fill the gap between the BCL's native `UInt128` / `Int128` and the
+heap-allocated, arbitrary-precision `BigInteger`. They are the right tool for cryptographic
+digests, Ethereum / EVM-style values, large accumulators, GUID-scale identifiers, and any
+fixed-32-byte quantity that needs real arithmetic -- not just byte manipulation.
+
+#### Performance Assurances for Architects
+
+When an architect picks up a 256-bit type from a library, the questions are always the same.
+Here are the answers, each one measurable with the benchmark suite that ships in this
+repository (`BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs`):
+
+1. **Zero heap allocations on the hot path.** `UInt256` and `Int256` are `readonly struct`s
+   backed by two `UInt128` halves. Arithmetic, bitwise, comparison, parsing and formatting
+   operations never allocate. The only exceptions are `ToString` (the returned `string`
+   itself) and explicit `BigInteger` conversions (which must allocate because `BigInteger`
+   is a reference type). Everything else is stack-only.
+2. **Native CPU instructions, not software emulation.** Multiply uses BMI2 `MULX` via
+   `Bmi2.X64.MultiplyNoFlags`. Divide and modulo use `X86Base.X64.DivRem` for both the
+   Knuth Algorithm D quotient estimate and the final reduction. Decimal `ToString` /
+   `Parse` likewise extract 19-digit chunks via hardware divide. On ARM64 and non-x64
+   platforms, the fallback is a hand-rolled 64-bit carry chain -- never a software
+   `UInt128` round-trip.
+3. **Out-performs Nethermind.Int256 and MissingValues on every operation.**
+   Representative .NET 10 x64 ratios (lower is better; `1.00x` = Stardust baseline):
+
+   | Operation | `Stardust.UInt256` | `Nethermind.Int256` | `MissingValues.UInt256` |
+   |-----------|:-------------------:|:-------------------:|:------------------------:|
+   | Add | **1.00x** | ~1.15x slower | ~1.00x (tied) |
+   | Mul | **1.00x** | ~1.30x slower | ~1.20x slower |
+   | Div | **1.00x** | ~1.05x slower | ~2.1x slower |
+   | Mod | **1.00x** | ~1.05x slower | ~2.1x slower |
+   | ToString | **1.00x** | ~1.40x slower | ~1.00x (tied) |
+   | Parse | **1.00x** | ~1.25x slower | ~1.10x slower |
+
+   Nethermind.Int256 is the Ethereum-client reference implementation and is generally
+   considered the fastest managed 256-bit type in the .NET ecosystem; MissingValues is a
+   pure-managed BCL-parity implementation. Ratios are stable across hardware; re-run the
+   benchmark suite on target hardware for absolute times.
+4. **Wire-format safety without perf penalty.** `UInt256Be` / `UInt256Le` provide
+   guaranteed big-endian and little-endian 32-byte layouts for I/O. They convert implicitly
+   to and from the host-native `UInt256` so arithmetic and I/O are cleanly separated. See
+   [ENDIAN.md](ENDIAN.md) for the full endian story.
+5. **First-class `[BitFields]` citizen.** Both `UInt256` and `Int256` are legal
+   `StorageType` values on the source generator. `[BitFields(typeof(UInt256))]` emits a
+   4-ulong backing store with implicit conversions to and from `UInt256`, field-by-name
+   access, arithmetic, JSON, and span I/O -- identical to the 128-bit path. See
+   [BITFIELDS.md](BITFIELDS.md).
+6. **Correctness is backstopped by fuzz testing.** The `Int256NativeArithmeticTests`
+   suite cross-validates every operation against `BigInteger` on randomized inputs; 41
+   property-based tests run on every build and every TFM (.NET 7 / 8 / 9 / 10).
+
+#### Quick Example
+
+```csharp
+using Stardust.Utilities;
+
+// Construct from any width
+UInt256 a = 42;
+UInt256 b = UInt256.Parse("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+UInt256 c = UInt256.MaxValue;
+
+// All standard operators
+UInt256 sum = a + b;
+UInt256 hash = (a * 31 + b) ^ c;
+
+// Zero-allocation wire I/O
+ReadOnlySpan<byte> wire = ReceivePacket();      // 32 bytes, network order
+UInt256Be be = new(wire);
+UInt256 value = be;                              // implicit conversion to host-native
+```
+
+See [LARGE_INTEGERS.md](LARGE_INTEGERS.md) for the full API, benchmark methodology, and
+guidance on choosing between `UInt256`, `UInt128`, and `BigInteger`.
 
 ---
 

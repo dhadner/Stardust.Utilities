@@ -215,6 +215,25 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             nativeWideType = "decimal";
             storageType = "ulong";
         }
+        // UInt256/Int256: route through multi-word (4 ulongs) with native type conversions
+        else if (storageType == "UInt256")
+        {
+            isMultiWord = true;
+            bitCount = 256;
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            nativeWideType = "UInt256";
+            storageType = "ulong";
+        }
+        else if (storageType == "Int256")
+        {
+            isMultiWord = true;
+            bitCount = 256;
+            storageTypeIsSigned = false;
+            unsignedStorageType = "ulong";
+            nativeWideType = "Int256";
+            storageType = "ulong";
+        }
         // Native integer types: nint/nuint are pointer-width, treated as 64-bit for code generation.
         // Masks use ulong to avoid const nuint range limitations (max uint on 32-bit).
         else if (storageType == "nint" || storageType == "IntPtr")
@@ -622,6 +641,8 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
             13 => "decimal",   // StorageType.Decimal
             14 => "Int128",    // StorageType.Int128
             15 => "UInt128",   // StorageType.UInt128
+            16 => "Int256",    // StorageType.Int256
+            17 => "UInt256",   // StorageType.UInt256
             _ => null,
         };
     }

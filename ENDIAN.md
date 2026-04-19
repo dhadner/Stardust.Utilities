@@ -26,6 +26,7 @@ Endian types store bytes in a guaranteed byte order regardless of the host platf
 | `Int64Be` | 8 bytes | `long` | Signed 64-bit |
 | `UInt128Be` | 16 bytes | `UInt128` | Unsigned 128-bit |
 | `Int128Be` | 16 bytes | `Int128` | Signed 128-bit |
+| `UInt256Be` | 32 bytes | `UInt256` | Unsigned 256-bit -- see [LARGE_INTEGERS.md](LARGE_INTEGERS.md) |
 
 ### Little-Endian
 
@@ -39,6 +40,7 @@ Endian types store bytes in a guaranteed byte order regardless of the host platf
 | `Int64Le` | 8 bytes | `long` | Signed 64-bit |
 | `UInt128Le` | 16 bytes | `UInt128` | Unsigned 128-bit |
 | `Int128Le` | 16 bytes | `Int128` | Signed 128-bit |
+| `UInt256Le` | 32 bytes | `UInt256` | Unsigned 256-bit -- see [LARGE_INTEGERS.md](LARGE_INTEGERS.md) |
 
 ## Quick Start
 

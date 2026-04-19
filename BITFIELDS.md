@@ -366,6 +366,7 @@ mistakes before they happen. The `typeof(T)` form is also supported for backward
 | `StorageType.UInt64` / `.Int64` | `typeof(ulong)` / `typeof(long)` | 64 bits | |
 | `StorageType.NUInt` / `.NInt` | `typeof(nuint)` / `typeof(nint)` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint-nuint) |
 | `StorageType.UInt128` / `.Int128` | `typeof(UInt128)` / `typeof(Int128)` | 128 bits | |
+| `StorageType.UInt256` / `.Int256` | `typeof(UInt256)` / `typeof(Int256)` | 256 bits | Stardust.Utilities types; generates implicit conversions via a 4-ulong backing struct |
 | `StorageType.Half` | `typeof(Half)` | 16 bits | IEEE 754 half-precision |
 | `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
 | `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
@@ -526,7 +527,7 @@ syntax is ambiguous, redundant, or incomplete:
 | **SD0020** | Error | Floating-point/decimal property type width mismatch | `Half` requires 16, `float` 32, `double` 64, `decimal` 128 bits. A mismatched width silently corrupts the value. |
 | **SD0021** | Error | Embedded `[BitFields(N)]` struct width mismatch | The field width must exactly match the embedded type's declared N bits to avoid silent truncation. |
 | **SD0022** | Error | Record struct (view) used as property in value-type struct | Views are backed by `Memory<byte>` and cannot be stored in an integer field. Use a value-type struct. |
-| **SD0023** | Error | Multi-word type embedded in a single-word parent | A multi-word type (UInt128, Int128, decimal, `[BitFields(N)]` N > 64) cannot fit in a single-word (<=64-bit) parent. Use a multi-word parent or a view. |
+| **SD0023** | Error | Multi-word type embedded in a single-word parent | A multi-word type (UInt128, Int128, UInt256, Int256, decimal, `[BitFields(N)]` N > 64) cannot fit in a single-word (<=64-bit) parent. Use a multi-word parent or a view. |
 
 **SD0015** is a learning aid that reminds developers the second positional parameter is an
 inclusive *end bit*, not a *width*. Once the convention is familiar, suppress it globally:
@@ -1202,10 +1203,11 @@ syntax or configuration is needed.
 
 ## Composing Multi-Word Structs (128-bit, 256-bit, etc.)
 
-Multi-word `[BitFields]` types (`UInt128`, `Int128`, `decimal`, or `[BitFields(N)]` with
-N > 64) can be embedded in multi-word value-type parents and record struct views. The
-generator uses span-based `ReadFrom`/`WriteTo` calls for multi-word embedding. Embedded
-multi-word fields can start at **any bit position** -- byte-alignment is not required.
+Multi-word `[BitFields]` types (`UInt128`, `Int128`, `UInt256`, `Int256`, `decimal`, or
+`[BitFields(N)]` with N > 64) can be embedded in multi-word value-type parents and record
+struct views. The generator uses span-based `ReadFrom`/`WriteTo` calls for multi-word
+embedding. Embedded multi-word fields can start at **any bit position** -- byte-alignment
+is not required.
 
 ### Multi-Word Inside Multi-Word Value Type
 

@@ -1188,6 +1188,8 @@ public class RecordStructViewGenerator : IIncrementalGenerator
         13 => "decimal",               // StorageType.Decimal
         14 => "Int128",                 // StorageType.Int128
         15 => "UInt128",                // StorageType.UInt128
+        16 => "Int256",                 // StorageType.Int256
+        17 => "UInt256",                // StorageType.UInt256
         _  => null
     };
 
@@ -1215,6 +1217,8 @@ public class RecordStructViewGenerator : IIncrementalGenerator
             "Half"    => "global::System.Half",
             "Int128"  => "Int128",
             "UInt128" => "UInt128",
+            "Int256"  => "Int256",
+            "UInt256" => "UInt256",
             _         => null
         }
     };

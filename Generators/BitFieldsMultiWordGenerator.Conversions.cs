@@ -26,6 +26,32 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}public static explicit operator {t}(BigInteger value) => FromBigInteger(value);");
         sb.AppendLine();
 
+        // NativeWide (4-word): add UInt256/Int256 conversion operators for 256-bit multi-word structs.
+        // Matches the 2-word UInt128/Int128 pattern below but packs four ulong limbs into
+        // the UInt256(UInt128 hi, UInt128 lo) ctor (and splits back via Lower/Upper halves).
+        if (info.NativeWideType != null && layout.WordCount == 4 &&
+            (info.NativeWideType == "UInt256" || info.NativeWideType == "Int256"))
+        {
+            string wt = info.NativeWideType;
+            bool isSigned = wt == "Int256";
+
+            sb.AppendLine($"{ind}/// <summary>Implicit conversion to {wt}.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            if (isSigned)
+                sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => new global::Stardust.Utilities.Int256(((UInt128)value.__w3 << 64) | value.__w2, ((UInt128)value.__w1 << 64) | value.__w0);");
+            else
+                sb.AppendLine($"{ind}public static implicit operator {wt}({t} value) => new global::Stardust.Utilities.UInt256(((UInt128)value.__w3 << 64) | value.__w2, ((UInt128)value.__w1 << 64) | value.__w0);");
+            sb.AppendLine();
+
+            sb.AppendLine($"{ind}/// <summary>Implicit conversion from {wt}.</summary>");
+            sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            // Int256 and UInt256 both expose .Lower / .Upper returning UInt128 halves;
+            // split each half into two ulong limbs to feed the 4-word (w0,w1,w2,w3) ctor.
+            sb.AppendLine($"{ind}public static implicit operator {t}({wt} value)");
+            sb.AppendLine($"{ind}    => new {t}((ulong)value.Lower, (ulong)(value.Lower >> 64), (ulong)value.Upper, (ulong)(value.Upper >> 64));");
+            sb.AppendLine();
+        }
+
         // NativeWide: add UInt128/Int128 conversion operators for 128-bit multi-word structs
         if (info.NativeWideType != null && layout.WordCount == 2)
         {

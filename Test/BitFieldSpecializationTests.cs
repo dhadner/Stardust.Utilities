@@ -67,6 +67,26 @@ public partial class BitFieldSpecializationTests
         [BitField(64, End = 127)] public partial ulong High { get; set; } // bits 64-127
     }
 
+    /// <summary>256-bit struct backed by UInt256 (via multi-word with conversion operators).</summary>
+    [BitFields(typeof(UInt256))]
+    public partial struct U256Register
+    {
+        [BitField(0, End = 63)] public partial ulong W0 { get; set; }     // bits 0-63
+        [BitField(64, End = 127)] public partial ulong W1 { get; set; }   // bits 64-127
+        [BitField(128, End = 191)] public partial ulong W2 { get; set; }  // bits 128-191
+        [BitField(192, End = 255)] public partial ulong W3 { get; set; }  // bits 192-255
+    }
+
+    /// <summary>256-bit struct backed by Int256 (via multi-word with conversion operators).</summary>
+    [BitFields(typeof(Int256))]
+    public partial struct I256Register
+    {
+        [BitField(0, End = 63)] public partial ulong W0 { get; set; }     // bits 0-63
+        [BitField(64, End = 127)] public partial ulong W1 { get; set; }   // bits 64-127
+        [BitField(128, End = 191)] public partial ulong W2 { get; set; }  // bits 128-191
+        [BitField(192, End = 255)] public partial ulong W3 { get; set; }  // bits 192-255
+    }
+
     /// <summary>
     /// Decimal register decomposing .NET's decimal layout via GetBits() canonical order:
     /// bits 0-31: lo, bits 32-63: mid, bits 64-95: hi (96-bit coefficient),
@@ -568,6 +588,150 @@ public partial class BitFieldSpecializationTests
         U128Register b = (UInt128)0x00FF;
         UInt128 result = a | b;
         result.Should().Be((UInt128)0xFFFF);
+    }
+
+    #endregion
+
+    #region NativeWide (UInt256): Construction and Conversion
+
+    [Fact]
+    public void U256Register_FromUInt256_RoundTrips()
+    {
+        // Distinct byte pattern in each 64-bit limb so a round-trip error
+        // in any of the four words would be detectable.
+        UInt256 original = new UInt256(0xDEADBEEF01020304UL, 0xCAFEBABE05060708UL,
+                                       0xFEEDFACE090A0B0CUL, 0xBAAAAAAD0D0E0F10UL);
+        U256Register reg = original;
+        UInt256 result = reg;
+        result.Should().Be(original);
+    }
+
+    [Fact]
+    public void U256Register_FromUInt256_MaxValue()
+    {
+        U256Register reg = UInt256.MaxValue;
+        UInt256 result = reg;
+        result.Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void U256Register_FromUInt256_Zero()
+    {
+        U256Register reg = UInt256.Zero;
+        UInt256 result = reg;
+        result.Should().Be(UInt256.Zero);
+    }
+
+    [Fact]
+    public void U256Register_FieldAccess_ViaConversion()
+    {
+        UInt256 value = new UInt256(0x1111111111111111UL, 0x2222222222222222UL,
+                                    0x3333333333333333UL, 0x4444444444444444UL);
+        U256Register reg = value;
+        reg.W0.Should().Be(0x4444444444444444UL);
+        reg.W1.Should().Be(0x3333333333333333UL);
+        reg.W2.Should().Be(0x2222222222222222UL);
+        reg.W3.Should().Be(0x1111111111111111UL);
+    }
+
+    [Fact]
+    public void U256Register_SetFields_ConvertBack()
+    {
+        U256Register reg = default;
+        reg.W0 = 0x1234567890ABCDEFUL;
+        reg.W1 = 0xFEDCBA0987654321UL;
+        reg.W2 = 0x0123456789ABCDEFUL;
+        reg.W3 = 0x1032547698BADCFEUL;
+        UInt256 result = reg;
+        UInt256 expected = new UInt256(0x1032547698BADCFEUL, 0x0123456789ABCDEFUL,
+                                       0xFEDCBA0987654321UL, 0x1234567890ABCDEFUL);
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
+    #region NativeWide (Int256): Construction and Conversion
+
+    [Fact]
+    public void I256Register_FromInt256_Positive()
+    {
+        Int256 original = (Int256)42;
+        I256Register reg = original;
+        Int256 result = reg;
+        result.Should().Be(original);
+    }
+
+    [Fact]
+    public void I256Register_FromInt256_Negative()
+    {
+        Int256 original = (Int256)(-1);
+        I256Register reg = original;
+        Int256 result = reg;
+        result.Should().Be(original);
+    }
+
+    [Fact]
+    public void I256Register_FromInt256_MaxValue()
+    {
+        I256Register reg = Int256.MaxValue;
+        Int256 result = reg;
+        result.Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void I256Register_FromInt256_MinValue()
+    {
+        I256Register reg = Int256.MinValue;
+        Int256 result = reg;
+        result.Should().Be(Int256.MinValue);
+    }
+
+    #endregion
+
+    #region NativeWide 256-bit: Struct Size
+
+    [Fact]
+    public void U256Register_SizeIs32Bytes()
+    {
+        Unsafe.SizeOf<U256Register>().Should().Be(32, "UInt256 -> 4 ulongs = 32 bytes");
+    }
+
+    [Fact]
+    public void I256Register_SizeIs32Bytes()
+    {
+        Unsafe.SizeOf<I256Register>().Should().Be(32, "Int256 -> 4 ulongs = 32 bytes");
+    }
+
+    #endregion
+
+    #region NativeWide 256-bit: Arithmetic via Multi-Word
+
+    [Fact]
+    public void U256Register_Addition()
+    {
+        U256Register a = (UInt256)100UL;
+        U256Register b = (UInt256)200UL;
+        U256Register result = a + b;
+        ((UInt256)result).Should().Be((UInt256)300UL);
+    }
+
+    [Fact]
+    public void U256Register_Addition_CarriesAcrossAllWordBoundaries()
+    {
+        // Seed all four low-word bits to force a carry to propagate from bit 63 -> 255.
+        U256Register a = UInt256.MaxValue;
+        U256Register b = (UInt256)1UL;
+        UInt256 result = a + b;
+        result.Should().Be(UInt256.Zero, "MaxValue + 1 wraps to zero modulo 2^256");
+    }
+
+    [Fact]
+    public void U256Register_Bitwise()
+    {
+        U256Register a = (UInt256)0xFF00UL;
+        U256Register b = (UInt256)0x00FFUL;
+        UInt256 result = a | b;
+        result.Should().Be((UInt256)0xFFFFUL);
     }
 
     #endregion
