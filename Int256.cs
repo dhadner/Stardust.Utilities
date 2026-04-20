@@ -138,16 +138,16 @@ namespace Stardust.Utilities
                 }
                 if (!neg)
                 {
-                    if ((mag._hi & ((UInt128)1 << 127)) != UInt128.Zero)
+                    if ((mag.Upper & ((UInt128)1 << 127)) != UInt128.Zero)
                         throw new OverflowException("Value exceeds Int256 range.");
-                    return new Int256(mag._hi, mag._lo);
+                    return new Int256(mag.Upper, mag.Lower);
                 }
                 // Negative: representable range is [-2^255, -1]. Magnitude must be <= 2^255.
                 UInt256 absMin = new UInt256((UInt128)1 << 127, UInt128.Zero);
                 if (mag > absMin) throw new OverflowException("Value exceeds Int256 range.");
                 // Two's complement negate.
                 UInt256 neg256 = UInt256.Zero - mag;
-                return new Int256(neg256._hi, neg256._lo);
+                return new Int256(neg256.Upper, neg256.Lower);
             }
             BigInteger big = BigInteger.Parse(s, style, CultureInfo.InvariantCulture);
             return FromBigInteger(big);
@@ -273,8 +273,8 @@ namespace Stardust.Utilities
             UInt256 au = aNeg ? (UInt256)(-a) : (UInt256)a;
             UInt256 bu = bNeg ? (UInt256)(-b) : (UInt256)b;
             UInt256 q;
-            if (au._hi == UInt128.Zero && bu._hi == UInt128.Zero)
-                q = new UInt256(UInt128.Zero, au._lo / bu._lo);
+            if (au._p2 == 0 && au._p3 == 0 && bu._p2 == 0 && bu._p3 == 0)
+                q = new UInt256(UInt128.Zero, au.Lower / bu.Lower);
             else
                 q = UInt256Math.DivRem(au, bu, out _);
             return (aNeg ^ bNeg) ? (Int256)(-q) : (Int256)q;
@@ -288,8 +288,8 @@ namespace Stardust.Utilities
             UInt256 au = aNeg ? (UInt256)(-a) : (UInt256)a;
             UInt256 bu = bNeg ? (UInt256)(-b) : (UInt256)b;
             UInt256 r;
-            if (au._hi == UInt128.Zero && bu._hi == UInt128.Zero)
-                r = new UInt256(UInt128.Zero, au._lo % bu._lo);
+            if (au._p2 == 0 && au._p3 == 0 && bu._p2 == 0 && bu._p3 == 0)
+                r = new UInt256(UInt128.Zero, au.Lower % bu.Lower);
             else
                 _ = UInt256Math.DivRem(au, bu, out r);
             // Remainder takes the sign of the dividend (C# / BigInteger convention).

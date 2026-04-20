@@ -45,15 +45,15 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void GetLimbs(in UInt256 v, out ulong l0, out ulong l1, out ulong l2, out ulong l3)
         {
-            l0 = (ulong)v._lo;
-            l1 = (ulong)(v._lo >> 64);
-            l2 = (ulong)v._hi;
-            l3 = (ulong)(v._hi >> 64);
+            l0 = v._p0;
+            l1 = v._p1;
+            l2 = v._p2;
+            l3 = v._p3;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static UInt256 FromLimbs(ulong l0, ulong l1, ulong l2, ulong l3)
-            => new UInt256(((UInt128)l3 << 64) | l2, ((UInt128)l1 << 64) | l0);
+            => new UInt256(l3, l2, l1, l0);
 
         /// <summary>
         /// 64x64 -> 128 widening unsigned multiply that prefers the BMI2
@@ -630,7 +630,7 @@ namespace Stardust.Utilities
         /// </summary>
         internal static string FormatDecimal(in UInt256 magnitude, bool negative)
         {
-            if (magnitude._hi == UInt128.Zero && magnitude._lo == UInt128.Zero)
+            if (magnitude._p0 == 0 && magnitude._p1 == 0 && magnitude._p2 == 0 && magnitude._p3 == 0)
                 return "0";
 
             Span<char> buf = stackalloc char[MAX_DECIMAL_DIGITS + 1];
@@ -646,10 +646,10 @@ namespace Stardust.Utilities
             // Work directly on four 64-bit limbs to avoid repeated UInt256 struct
             // copies and UInt128 pack/unpack on every chunk. Each outer iteration
             // extracts the next 19 decimal digits in O(1) long-divisions.
-            ulong a0 = (ulong)magnitude._lo;
-            ulong a1 = (ulong)(magnitude._lo >> 64);
-            ulong a2 = (ulong)magnitude._hi;
-            ulong a3 = (ulong)(magnitude._hi >> 64);
+            ulong a0 = magnitude._p0;
+            ulong a1 = magnitude._p1;
+            ulong a2 = magnitude._p2;
+            ulong a3 = magnitude._p3;
 
             while ((a0 | a1 | a2 | a3) != 0UL)
             {

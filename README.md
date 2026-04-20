@@ -279,6 +279,7 @@ the equivalent type-based form:
 | `StorageType.UInt64` | `typeof(ulong)` | 64 bits | Signed: `StorageType.Int64` |
 | `StorageType.NUInt` | `typeof(nuint)` | 32 or 64 bits | Platform-dependent; signed: `StorageType.NInt` |
 | `StorageType.UInt128` | `typeof(UInt128)` | 128 bits | Signed: `StorageType.Int128` |
+| `StorageType.UInt256` | `typeof(UInt256)` | 256 bits | Signed: `StorageType.Int256` |
 | `StorageType.Half` | `typeof(Half)` | 16 bits | IEEE 754 half-precision |
 | `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
 | `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
@@ -1231,7 +1232,7 @@ Zero heap allocations across all types and operations. See [ENDIAN.md](ENDIAN.md
 | `UInt32Be` / `Int32Be` | `UInt32Le` / `Int32Le` | 4 bytes | `uint` / `int` |
 | `UInt64Be` / `Int64Be` | `UInt64Le` / `Int64Le` | 8 bytes | `ulong` / `long` |
 | `UInt128Be` / `Int128Be` | `UInt128Le` / `Int128Le` | 16 bytes | `UInt128` / `Int128` |
-| `UInt256Be` | `UInt256Le` | 32 bytes | `UInt256` (see [Large Integers](#large-integers-256-bit)) |
+| `UInt256Be` / `Int256Be` | `UInt256Le` / `Int256Le` | 32 bytes | `UInt256` / `Int256`(see [Large Integers](#large-integers-256-bit)) |
 
 #### Quick Example
 
@@ -1309,22 +1310,27 @@ repository (`BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs`):
    platforms, the fallback is a hand-rolled 64-bit carry chain -- never a software
    `UInt128` round-trip.
 3. **Competitive with widely used managed 256-bit libraries on every benchmarked operation.**
-   Representative .NET 10 x64 ratios relative to the Stardust baseline (`1.00x`; higher = slower):
+   Measured .NET 10 x64 ratios relative to the Stardust baseline (`1.00x`; higher = slower).
+   `BigInteger` (BCL) is heap-allocated and arbitrary-precision -- included so architects can
+   see the allocation tax at a glance:
 
-   | Operation | `Stardust.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 |
-   |-----------|:-------------------:|:-------------------:|:------------------------:|
-   | Add | **1.00x** | ~1.15x | ~1.00x |
-   | Mul | **1.00x** | ~1.30x | ~1.20x |
-   | Div | **1.00x** | ~1.05x | ~2.1x |
-   | Mod | **1.00x** | ~1.05x | ~2.1x |
-   | ToString | **1.00x** | ~1.40x | ~1.00x |
-   | Parse | **1.00x** | ~1.25x | ~1.10x |
+   | Operation | `Stardust.Utilities.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 | `BigInteger` (BCL) |
+   |-----------|:-------------------:|:-----------------------------------:|:------------------------------:|:------------------:|
+   | Add | **1.00x** | 1.49x | 1.00x | 38.5x |
+   | Sub | **1.00x** | 1.70x | 1.00x | 46.3x |
+   | Mul | **1.00x** | 1.73x | 1.01x | 25.3x |
+   | Div | **1.00x** | 1.14x | 2.08x | 7.36x |
+   | Mod | **1.00x** | 1.17x | 2.16x | 7.22x |
+   | ToString | **1.00x** | 1.58x | 1.08x | 1.98x |
+   | Parse | **1.00x** | 4.32x | 2.27x | 4.60x |
 
-   All three libraries are high-quality implementations and the gaps are generally small;
-   the intent is to show that `Stardust.UInt256` is a competitive choice on the operations
-   most code actually spends time in, not to claim a definitive ranking. Library versions
-   move; re-run `BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs` against the current
-   packages on your deployment hardware if the decision matters.
+   `BigInteger` arithmetic allocates 2–3 MB per 10 000-iteration run and triggers GC; the
+   7–46× ratios reflect that cost, not raw instruction throughput. All three fixed-width
+   libraries are high-quality implementations; the intent is to show that `Stardust.Utilities.UInt256`
+   is a competitive choice on the operations most code actually spends time in, not to claim
+   a definitive ranking. Library versions move; re-run
+   `BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs` against the current packages on
+   your deployment hardware if the decision matters.
 4. **Wire-format safety without perf penalty.** `UInt256Be` / `UInt256Le` provide
    guaranteed big-endian and little-endian 32-byte layouts for I/O. They convert implicitly
    to and from the host-native `UInt256` so arithmetic and I/O are cleanly separated. See

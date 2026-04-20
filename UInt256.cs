@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 namespace Stardust.Utilities
 {
     /// <summary>
-    /// 256-bit unsigned integer type. Backed by two native <see cref="UInt128"/> halves so that
-    /// inner limb arithmetic delegates to native CPU-supported 128-bit operations where possible.
+    /// 256-bit unsigned integer type. Backed by four native <see cref="ulong"/> limbs so that
+    /// arithmetic operators access limbs directly without any field-extraction overhead.
     /// </summary>
     /// <remarks>
     /// Storage layout is host-native (endian-agnostic). For byte-ordered wire formats use
@@ -19,15 +19,17 @@ namespace Stardust.Utilities
     public readonly struct UInt256 : IComparable, IComparable<UInt256>, IEquatable<UInt256>,
                                      IFormattable, ISpanFormattable, IParsable<UInt256>, ISpanParsable<UInt256>
     {
-        internal readonly UInt128 _lo;
-        internal readonly UInt128 _hi;
+        internal readonly ulong _p0; // bits 0-63
+        internal readonly ulong _p1; // bits 64-127
+        internal readonly ulong _p2; // bits 128-191
+        internal readonly ulong _p3; // bits 192-255
 
         /// <summary>The value zero.</summary>
         public static UInt256 Zero => default;
         /// <summary>The value one.</summary>
-        public static UInt256 One => new(UInt128.Zero, UInt128.One);
+        public static UInt256 One => new(0UL, 0UL, 0UL, 1UL);
         /// <summary>The maximum value (all bits set).</summary>
-        public static UInt256 MaxValue => new(~UInt128.Zero, ~UInt128.Zero);
+        public static UInt256 MaxValue => new(ulong.MaxValue, ulong.MaxValue, ulong.MaxValue, ulong.MaxValue);
         /// <summary>The minimum value (zero).</summary>
         public static UInt256 MinValue => default;
 
@@ -35,7 +37,13 @@ namespace Stardust.Utilities
         /// <param name="hi">The high 128 bits.</param>
         /// <param name="lo">The low 128 bits.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt256(UInt128 hi, UInt128 lo) { _hi = hi; _lo = lo; }
+        public UInt256(UInt128 hi, UInt128 lo)
+        {
+            _p0 = (ulong)lo;
+            _p1 = (ulong)(lo >> 64);
+            _p2 = (ulong)hi;
+            _p3 = (ulong)(hi >> 64);
+        }
 
         /// <summary>Initializes a new <see cref="UInt256"/> from four <see cref="ulong"/> limbs (most-significant first).</summary>
         /// <param name="u3">Bits 255..192.</param>
@@ -45,22 +53,21 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt256(ulong u3, ulong u2, ulong u1, ulong u0)
         {
-            _hi = ((UInt128)u3 << 64) | u2;
-            _lo = ((UInt128)u1 << 64) | u0;
+            _p0 = u0; _p1 = u1; _p2 = u2; _p3 = u3;
         }
 
         /// <summary>Initializes a new <see cref="UInt256"/> from a <see cref="UInt128"/> value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt256(UInt128 num) { _hi = UInt128.Zero; _lo = num; }
+        public UInt256(UInt128 num) { _p0 = (ulong)num; _p1 = (ulong)(num >> 64); _p2 = 0; _p3 = 0; }
 
         /// <summary>Initializes a new <see cref="UInt256"/> from a <see cref="ulong"/> value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt256(ulong num) { _hi = UInt128.Zero; _lo = num; }
+        public UInt256(ulong num) { _p0 = num; _p1 = 0; _p2 = 0; _p3 = 0; }
 
         /// <summary>The low 128 bits.</summary>
-        public UInt128 Lower => _lo;
+        public UInt128 Lower => new UInt128(_p1, _p0);
         /// <summary>The high 128 bits.</summary>
-        public UInt128 Upper => _hi;
+        public UInt128 Upper => new UInt128(_p3, _p2);
 
         /// <inheritdoc/>
         public override string ToString() => ToString("G", CultureInfo.CurrentCulture);
@@ -73,11 +80,12 @@ namespace Stardust.Utilities
             if ((fmt == 'X' || fmt == 'x') && format.Length <= 3)
             {
                 // Hex: concatenate the two halves, 32 hex digits each
-                string hiHex = _hi.ToString(format, formatProvider);
-                string loHex = _lo.ToString(format == "X" || format == "x" ? format + "32" : format, formatProvider);
+                UInt128 hi = Upper, lo = Lower;
+                string hiHex = hi.ToString(format, formatProvider);
+                string loHex = lo.ToString(format == "X" || format == "x" ? format + "32" : format, formatProvider);
                 // If hi is zero and no width specifier, allow natural trim; otherwise pad lo to 32
-                if (_hi == UInt128.Zero && format.Length == 1) return loHex;
-                return hiHex + _lo.ToString((fmt == 'X' ? "X32" : "x32"), formatProvider);
+                if (hi == UInt128.Zero && format.Length == 1) return loHex;
+                return hiHex + lo.ToString((fmt == 'X' ? "X32" : "x32"), formatProvider);
             }
             // Decimal / 'D' / 'G' / 'R' formats: use native base-10 conversion.
             // Other culture-sensitive or complex format strings (e.g., 'N', 'C')
@@ -173,16 +181,18 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public int CompareTo(UInt256 other)
         {
-            int c = _hi.CompareTo(other._hi);
-            return c != 0 ? c : _lo.CompareTo(other._lo);
+            if (_p3 != other._p3) return _p3.CompareTo(other._p3);
+            if (_p2 != other._p2) return _p2.CompareTo(other._p2);
+            if (_p1 != other._p1) return _p1.CompareTo(other._p1);
+            return _p0.CompareTo(other._p0);
         }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj) => obj is UInt256 other && Equals(other);
         /// <inheritdoc/>
-        public bool Equals(UInt256 other) => _hi == other._hi && _lo == other._lo;
+        public bool Equals(UInt256 other) => _p0 == other._p0 && _p1 == other._p1 && _p2 == other._p2 && _p3 == other._p3;
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(_hi, _lo);
+        public override int GetHashCode() => HashCode.Combine(_p0, _p1, _p2, _p3);
 
         /// <summary>Converts this value to a <see cref="BigInteger"/> (unsigned).</summary>
         public BigInteger ToBigInteger()
@@ -214,14 +224,10 @@ namespace Stardust.Utilities
         /// <summary>Writes this value to a 32-byte little-endian buffer.</summary>
         internal void WriteLittleEndianBytes(Span<byte> dest)
         {
-            ulong u0 = (ulong)_lo;
-            ulong u1 = (ulong)(_lo >> 64);
-            ulong u2 = (ulong)_hi;
-            ulong u3 = (ulong)(_hi >> 64);
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(0, 8), u0);
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(8, 8), u1);
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(16, 8), u2);
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(24, 8), u3);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(0, 8), _p0);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(8, 8), _p1);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(16, 8), _p2);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(dest.Slice(24, 8), _p3);
         }
 
         #region Operators
@@ -232,64 +238,53 @@ namespace Stardust.Utilities
 
         /// <summary>Computes the two's complement negation (modulo 2^256).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256 operator -(UInt256 a) => new UInt256(UInt128.Zero, UInt128.Zero) - a;
+        public static UInt256 operator -(UInt256 a) => Zero - a;
 
         /// <summary>Adds two values (wraps on overflow).</summary>
         /// <remarks>
-        /// Uses an explicit 64-bit carry chain (no <c>UInt128</c>) so the JIT
-        /// emits a tight <c>add/adc</c> sequence with no software-UInt128
-        /// fallback. Passed by value rather than by <c>in</c>: measurements
-        /// showed the <c>in</c> form regresses <see cref="Parse"/> by ~4x,
-        /// apparently because it inhibits operator inlining in the large
-        /// benchmark loop; by-value lets the JIT keep the limbs in registers.
+        /// Direct 4-limb carry chain on the raw ulong fields. No field extraction
+        /// overhead -- <c>_p0</c>..<c>_p3</c> are read once per call.
+        /// The carry condition <c>(r &lt; a || (c == 1 &amp;&amp; r == a))</c>
+        /// handles the edge case where both limbs are <c>UINT64_MAX</c> with an
+        /// incoming carry (the simpler <c>r &lt; a</c> alone misses that case).
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256 operator +(UInt256 a, UInt256 b)
         {
-            ulong a0 = (ulong)a._lo, a1 = (ulong)(a._lo >> 64);
-            ulong a2 = (ulong)a._hi, a3 = (ulong)(a._hi >> 64);
-            ulong b0 = (ulong)b._lo, b1 = (ulong)(b._lo >> 64);
-            ulong b2 = (ulong)b._hi, b3 = (ulong)(b._hi >> 64);
-
-            ulong r0 = unchecked(a0 + b0);
-            ulong c = r0 < a0 ? 1UL : 0UL;
-            ulong r1 = unchecked(a1 + b1 + c);
-            c = (r1 < a1 || (c == 1UL && r1 == a1)) ? 1UL : 0UL;
-            ulong r2 = unchecked(a2 + b2 + c);
-            c = (r2 < a2 || (c == 1UL && r2 == a2)) ? 1UL : 0UL;
-            ulong r3 = unchecked(a3 + b3 + c);
-
-            return new UInt256(((UInt128)r3 << 64) | r2, ((UInt128)r1 << 64) | r0);
+            ulong r0 = unchecked(a._p0 + b._p0);
+            ulong c = r0 < a._p0 ? 1UL : 0UL;
+            ulong r1 = unchecked(a._p1 + b._p1 + c);
+            c = (r1 < a._p1 || (c == 1UL && r1 == a._p1)) ? 1UL : 0UL;
+            ulong r2 = unchecked(a._p2 + b._p2 + c);
+            c = (r2 < a._p2 || (c == 1UL && r2 == a._p2)) ? 1UL : 0UL;
+            ulong r3 = unchecked(a._p3 + b._p3 + c);
+            return new UInt256(r3, r2, r1, r0);
         }
 
         /// <summary>Subtracts two values (wraps on underflow).</summary>
+        /// <remarks>
+        /// Mirrors <c>operator +</c> using a borrow chain with the same
+        /// two-condition edge-case guard.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256 operator -(UInt256 a, UInt256 b)
         {
-            ulong a0 = (ulong)a._lo, a1 = (ulong)(a._lo >> 64);
-            ulong a2 = (ulong)a._hi, a3 = (ulong)(a._hi >> 64);
-            ulong b0 = (ulong)b._lo, b1 = (ulong)(b._lo >> 64);
-            ulong b2 = (ulong)b._hi, b3 = (ulong)(b._hi >> 64);
-
-            ulong r0 = unchecked(a0 - b0);
-            ulong bw = r0 > a0 ? 1UL : 0UL;
-            ulong r1 = unchecked(a1 - b1 - bw);
-            bw = (r1 > a1 || (bw == 1UL && r1 == a1)) ? 1UL : 0UL;
-            ulong r2 = unchecked(a2 - b2 - bw);
-            bw = (r2 > a2 || (bw == 1UL && r2 == a2)) ? 1UL : 0UL;
-            ulong r3 = unchecked(a3 - b3 - bw);
-
-            return new UInt256(((UInt128)r3 << 64) | r2, ((UInt128)r1 << 64) | r0);
+            ulong r0 = unchecked(a._p0 - b._p0);
+            ulong bw = r0 > a._p0 ? 1UL : 0UL;
+            ulong r1 = unchecked(a._p1 - b._p1 - bw);
+            bw = (r1 > a._p1 || (bw == 1UL && r1 == a._p1)) ? 1UL : 0UL;
+            ulong r2 = unchecked(a._p2 - b._p2 - bw);
+            bw = (r2 > a._p2 || (bw == 1UL && r2 == a._p2)) ? 1UL : 0UL;
+            ulong r3 = unchecked(a._p3 - b._p3 - bw);
+            return new UInt256(r3, r2, r1, r0);
         }
 
         /// <summary>Multiplies two values (low 256 bits of the full product).</summary>
         public static UInt256 operator *(UInt256 a, UInt256 b)
         {
             // Split each into four 64-bit limbs: a = a3:a2:a1:a0, b = b3:b2:b1:b0
-            ulong a0 = (ulong)a._lo, a1 = (ulong)(a._lo >> 64);
-            ulong a2 = (ulong)a._hi, a3 = (ulong)(a._hi >> 64);
-            ulong b0 = (ulong)b._lo, b1 = (ulong)(b._lo >> 64);
-            ulong b2 = (ulong)b._hi, b3 = (ulong)(b._hi >> 64);
+            ulong a0 = a._p0, a1 = a._p1, a2 = a._p2, a3 = a._p3;
+            ulong b0 = b._p0, b1 = b._p1, b2 = b._p2, b3 = b._p3;
 
             // Schoolbook 4x4 unsigned multiply, low 256 bits only. Uses a
             // fused multiply-add (Multiply64 + BigMulAdd) built on BMI2 MULX
@@ -334,10 +329,10 @@ namespace Stardust.Utilities
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
         public static UInt256 operator /(UInt256 a, UInt256 b)
         {
-            if (b._hi == UInt128.Zero && b._lo == UInt128.Zero) throw new DivideByZeroException();
+            if (b._p0 == 0 && b._p1 == 0 && b._p2 == 0 && b._p3 == 0) throw new DivideByZeroException();
             // Fast path: both fit in UInt128 - delegate to the native UInt128 divider.
-            if (a._hi == UInt128.Zero && b._hi == UInt128.Zero)
-                return new UInt256(UInt128.Zero, a._lo / b._lo);
+            if (a._p2 == 0 && a._p3 == 0 && b._p2 == 0 && b._p3 == 0)
+                return new UInt256(UInt128.Zero, new UInt128(a._p1, a._p0) / new UInt128(b._p1, b._p0));
             return UInt256Math.DivRem(a, b, out _);
         }
 
@@ -345,36 +340,36 @@ namespace Stardust.Utilities
         /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
         public static UInt256 operator %(UInt256 a, UInt256 b)
         {
-            if (b._hi == UInt128.Zero && b._lo == UInt128.Zero) throw new DivideByZeroException();
-            if (a._hi == UInt128.Zero && b._hi == UInt128.Zero)
-                return new UInt256(UInt128.Zero, a._lo % b._lo);
+            if (b._p0 == 0 && b._p1 == 0 && b._p2 == 0 && b._p3 == 0) throw new DivideByZeroException();
+            if (a._p2 == 0 && a._p3 == 0 && b._p2 == 0 && b._p3 == 0)
+                return new UInt256(UInt128.Zero, new UInt128(a._p1, a._p0) % new UInt128(b._p1, b._p0));
             _ = UInt256Math.DivRem(a, b, out UInt256 rem);
             return rem;
         }
 
         /// <summary>Computes the bitwise AND of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256 operator &(UInt256 a, UInt256 b) => new(a._hi & b._hi, a._lo & b._lo);
+        public static UInt256 operator &(UInt256 a, UInt256 b) => new(a._p3 & b._p3, a._p2 & b._p2, a._p1 & b._p1, a._p0 & b._p0);
         /// <summary>Computes the bitwise OR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256 operator |(UInt256 a, UInt256 b) => new(a._hi | b._hi, a._lo | b._lo);
+        public static UInt256 operator |(UInt256 a, UInt256 b) => new(a._p3 | b._p3, a._p2 | b._p2, a._p1 | b._p1, a._p0 | b._p0);
         /// <summary>Computes the bitwise XOR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256 operator ^(UInt256 a, UInt256 b) => new(a._hi ^ b._hi, a._lo ^ b._lo);
+        public static UInt256 operator ^(UInt256 a, UInt256 b) => new(a._p3 ^ b._p3, a._p2 ^ b._p2, a._p1 ^ b._p1, a._p0 ^ b._p0);
         /// <summary>Computes the bitwise complement of the value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256 operator ~(UInt256 a) => new(~a._hi, ~a._lo);
+        public static UInt256 operator ~(UInt256 a) => new(~a._p3, ~a._p2, ~a._p1, ~a._p0);
 
         /// <summary>Shifts the value left by the specified amount.</summary>
         public static UInt256 operator <<(UInt256 a, int b)
         {
             b &= 255;
             if (b == 0) return a;
-            if (b >= 128) return new UInt256(a._lo << (b - 128), UInt128.Zero);
+            var lo = new UInt128(a._p1, a._p0);
+            var hi = new UInt128(a._p3, a._p2);
+            if (b >= 128) return new UInt256(lo << (b - 128), UInt128.Zero);
             // b in 1..127
-            UInt128 newHi = (a._hi << b) | (a._lo >> (128 - b));
-            UInt128 newLo = a._lo << b;
-            return new UInt256(newHi, newLo);
+            return new UInt256((hi << b) | (lo >> (128 - b)), lo << b);
         }
 
         /// <summary>Shifts the value right by the specified amount (logical for unsigned).</summary>
@@ -382,10 +377,10 @@ namespace Stardust.Utilities
         {
             b &= 255;
             if (b == 0) return a;
-            if (b >= 128) return new UInt256(UInt128.Zero, a._hi >> (b - 128));
-            UInt128 newLo = (a._lo >> b) | (a._hi << (128 - b));
-            UInt128 newHi = a._hi >> b;
-            return new UInt256(newHi, newLo);
+            var lo = new UInt128(a._p1, a._p0);
+            var hi = new UInt128(a._p3, a._p2);
+            if (b >= 128) return new UInt256(UInt128.Zero, hi >> (b - 128));
+            return new UInt256(hi >> b, (lo >> b) | (hi << (128 - b)));
         }
 
         /// <summary>Unsigned (logical) right shift. Identical to <c>&gt;&gt;</c> for unsigned types.</summary>
@@ -394,16 +389,20 @@ namespace Stardust.Utilities
 
         /// <summary>Determines whether two values are equal.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(UInt256 a, UInt256 b) => a._hi == b._hi && a._lo == b._lo;
+        public static bool operator ==(UInt256 a, UInt256 b) => a._p0 == b._p0 && a._p1 == b._p1 && a._p2 == b._p2 && a._p3 == b._p3;
         /// <summary>Determines whether two values are not equal.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(UInt256 a, UInt256 b) => !(a == b);
         /// <summary>Determines whether the left operand is less than the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(UInt256 a, UInt256 b) => a._hi < b._hi || (a._hi == b._hi && a._lo < b._lo);
+        public static bool operator <(UInt256 a, UInt256 b)
+            => a._p3 != b._p3 ? a._p3 < b._p3
+             : a._p2 != b._p2 ? a._p2 < b._p2
+             : a._p1 != b._p1 ? a._p1 < b._p1
+             : a._p0 < b._p0;
         /// <summary>Determines whether the left operand is greater than the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(UInt256 a, UInt256 b) => a._hi > b._hi || (a._hi == b._hi && a._lo > b._lo);
+        public static bool operator >(UInt256 a, UInt256 b) => b < a;
         /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <=(UInt256 a, UInt256 b) => !(a > b);
@@ -440,23 +439,23 @@ namespace Stardust.Utilities
 
         /// <summary>Narrowing conversion to <see cref="UInt128"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator UInt128(UInt256 a) => a._lo;
+        public static explicit operator UInt128(UInt256 a) => new UInt128(a._p1, a._p0);
         /// <summary>Narrowing conversion to <see cref="ulong"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ulong(UInt256 a) => (ulong)a._lo;
+        public static explicit operator ulong(UInt256 a) => a._p0;
         /// <summary>Narrowing conversion to <see cref="uint"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator uint(UInt256 a) => (uint)(ulong)a._lo;
+        public static explicit operator uint(UInt256 a) => (uint)a._p0;
         /// <summary>Narrowing conversion to <see cref="ushort"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ushort(UInt256 a) => (ushort)(ulong)a._lo;
+        public static explicit operator ushort(UInt256 a) => (ushort)a._p0;
         /// <summary>Narrowing conversion to <see cref="byte"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator byte(UInt256 a) => (byte)(ulong)a._lo;
+        public static explicit operator byte(UInt256 a) => (byte)a._p0;
 
         /// <summary>Reinterprets the bit pattern as a signed <see cref="Int256"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator Int256(UInt256 a) => new(a._hi, a._lo);
+        public static explicit operator Int256(UInt256 a) => new(new UInt128(a._p3, a._p2), new UInt128(a._p1, a._p0));
 
         #endregion
     }

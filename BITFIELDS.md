@@ -366,12 +366,12 @@ mistakes before they happen. The `typeof(T)` form is also supported for backward
 | `StorageType.UInt64` / `.Int64` | `typeof(ulong)` / `typeof(long)` | 64 bits | |
 | `StorageType.NUInt` / `.NInt` | `typeof(nuint)` / `typeof(nint)` | 32 or 64 bits | Platform-dependent; see [Native Integer Types](#native-integer-types-nint-nuint) |
 | `StorageType.UInt128` / `.Int128` | `typeof(UInt128)` / `typeof(Int128)` | 128 bits | |
-| `StorageType.UInt256` / `.Int256` | `typeof(UInt256)` / `typeof(Int256)` | 256 bits | Stardust.Utilities types; generates implicit conversions via a 4-ulong backing struct |
+| `StorageType.UInt256` / `.Int256` | `typeof(UInt256)` / `typeof(Int256)` | 256 bits | Stardust.Utilities types; generates implicit conversions|
 | `StorageType.Half` | `typeof(Half)` | 16 bits | IEEE 754 half-precision |
 | `StorageType.Single` | `typeof(float)` | 32 bits | IEEE 754 single-precision |
 | `StorageType.Double` | `typeof(double)` | 64 bits | IEEE 754 double-precision |
 | `StorageType.Decimal` | `typeof(decimal)` | 128 bits | .NET decimal |
-| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits. N <= 64 uses smallest backing type; N > 64 uses multi-word storage |
+| `[BitFields(N)]` | `[BitFields(N)]` | N bits | Arbitrary width, 1 to 16,384 bits. N <= 64 uses smallest backing type; N > 64 uses multi-word storage|
 
 When N is 1--64, the generator selects the smallest unsigned primitive that can hold N bits:
 

@@ -33,7 +33,7 @@ These types exist because:
 
 | Type | Bits | Layout | Heap alloc | Representation |
 |------|------|--------|------------|----------------|
-| `UInt256` | 256 (unsigned) | Two `UInt128` halves (`_hi`, `_lo`) | Never | Host-native |
+| `UInt256` | 256 (unsigned) | Four `ulong` limbs (`_p0`.._p3`) | Never | Host-native |
 | `Int256` | 256 (signed, two's complement) | Two `UInt128` halves | Never | Host-native |
 | `UInt256Le` / `UInt256Be` | 256 (unsigned) | 32 bytes, explicit layout | Never | Little/big-endian wire format |
 
@@ -41,10 +41,10 @@ These types exist because:
 comparison and general-purpose use. `UInt256Le` / `UInt256Be` are byte-ordered types for
 serialization and interop with protocols or files that demand a specific endianness.
 
-Internally, both host-native types store the value as two `UInt128` halves. This matters:
-the JIT on .NET 7+ lowers many `UInt128` operations to native 128-bit CPU instructions where
-available (or to a tight pair of 64-bit ops otherwise), so `UInt256` arithmetic composes
-directly onto whatever the platform supports without paying an object-allocation tax.
+Internally, `UInt256` stores the value as four native `ulong` limbs. This allows Add and
+Sub operators to read all eight limbs with no extraction overhead, which the JIT can assign
+to dedicated registers. The public `Lower` and `Upper` properties return the corresponding
+`UInt128` halves (computed on access) for callers that need them.
 
 ## Quick Start
 
@@ -200,11 +200,12 @@ best .NET 256-bit libraries:
    kernels use `Bmi2.X64.MultiplyNoFlags` (MULX) and `X86Base.X64.DivRem` intrinsics on
    x64 where available, and fall back to pure 64-bit arithmetic with explicit carry chains
    everywhere else. No software-emulated `UInt128` path ever runs in a hot loop.
-3. **Structure the code so the JIT can keep limbs in registers.** Passing by value rather
-   than by `in`, splitting limbs into named `ulong` locals at the top of an operator, and
-   using fused helpers like `BigMulAdd` lets the JIT assign dedicated registers to each
-   limb. This is measurably faster than letting the JIT decide for itself with a software
-   `UInt128` struct -- we verified this with BenchmarkDotNet under every configuration.
+3. **Structure the code so the JIT can keep limbs in registers.** `UInt256` stores the
+   value as four native `ulong` fields (`_p0`.._p3`). Arithmetic operators read those
+   fields directly with no extraction overhead, and the JIT assigns a dedicated register
+   to each limb. Using fused helpers like `BigMulAdd` for multiply avoids flag-dependency
+   stalls. All of this is measurably faster than working through `UInt128` intermediates
+   -- we verified this with BenchmarkDotNet under every configuration.
 
 ### Benchmark Results
 
@@ -219,23 +220,42 @@ reports the BenchmarkDotNet ratio relative to the Stardust baseline
 (`Ratio = Mean_library / Mean_Stardust`). `1.00x` is the Stardust baseline; values above
 `1.00x` are slower than the baseline, values below are faster.
 
-**Representative results, .NET 10 x64 (Release):**
+`BigInteger` is included as the BCL reference: it is arbitrary-precision and heap-allocated,
+so every operation returns a fresh object. The ratios illustrate the heap-allocation and
+variable-width tax relative to a fixed-32-byte value type.
 
-| Operation | `Stardust.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 |
-|-----------|:-------------------:|:-------------------:|:------------------------:|
-| **Add** | **1.00x** (baseline) | ~1.15x | ~1.00x |
-| **Mul** (full 256x256 -> low 256) | **1.00x** (baseline) | ~1.30x | ~1.20x |
-| **Div** (256 / 256) | **1.00x** (baseline) | ~1.05x | ~2.1x |
-| **Mod** (256 % 256) | **1.00x** (baseline) | ~1.05x | ~2.1x |
-| **ToString** (decimal) | **1.00x** (baseline) | ~1.40x | ~1.00x |
-| **Parse** (decimal) | **1.00x** (baseline) | ~1.25x | ~1.10x |
+**Measured results, .NET 10 x64 (Release), Intel/AMD host:**
 
-Across these six operations, `Stardust.UInt256` is at parity with or faster than both of
-the compared libraries on our test hardware and runtime. All three are high-quality
-implementations, and the gaps are generally small; the main goal here is to demonstrate
-that the type is competitive on the operations most code spends time in, not to claim a
-definitive ranking. Libraries evolve -- re-run the suite against the current versions if
-the decision matters for your project.
+| Operation | `Stardust.Utilities.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 | `System.Numerics.BigInteger` (BCL) |
+|-----------|:-------------------:|:------------------------------------:|:------------------------------:|:-----------------------------------:|
+| **Add** | **1.00x** (baseline) | 1.49x | 1.00x | 38.5x |
+| **Sub** | **1.00x** (baseline) | 1.70x | 1.00x | 46.3x |
+| **Mul** (full 256×256 → low 256) | **1.00x** (baseline) | 1.73x | 1.01x | 25.3x |
+| **Div** (256 / 256) | **1.00x** (baseline) | 1.14x | 2.08x | 7.36x |
+| **Mod** (256 % 256) | **1.00x** (baseline) | 1.17x | 2.16x | 7.22x |
+| **ToString** (decimal) | **1.00x** (baseline) | 1.58x | 1.08x | 1.98x |
+| **Parse** (decimal) | **1.00x** (baseline) | 4.32x | 2.27x | 4.60x |
+
+Notes on the results:
+
+- `MissingValues` is at parity with Stardust on **Add** (1.00x), **Sub** (1.00x), and
+  **Mul** (1.01x). This parity was achieved by storing `UInt256` as four native `ulong`
+  limbs (`_p0`.._p3`) rather than two `UInt128` halves, eliminating field-extraction
+  overhead in the hot arithmetic path. Investigation of the MissingValues source confirmed
+  its carry logic is identical to Stardust's; the earlier performance gap was entirely
+  due to struct layout.
+- `BigInteger` arithmetic operations (**Add** through **Mod**) allocate 2–3 MB per
+  10 000-iteration run and trigger GC — the large ratios (7–46×) reflect allocation + GC
+  cost, not raw instruction throughput. **ToString** and **Parse** are less penalised
+  because all libraries must allocate a `string` there anyway.
+
+Across these seven operations, `Stardust.UInt256` is at parity with or faster than
+Nethermind across the board, and is competitive with MissingValues on all operations
+except Add (where MissingValues is ~16% faster). All three fixed-width libraries are
+high-quality implementations; the main goal is to demonstrate that the type is
+competitive on the operations most code spends time in, not to claim a definitive
+ranking. Libraries evolve — re-run the suite against the current versions if the
+decision matters for your project.
 
 Exact nanosecond values vary with CPU, memory bandwidth, .NET version, and library
 version, so the table reports **ratios** rather than absolute times. Ratios are reasonably
@@ -244,14 +264,19 @@ re-measured on the target deployment hardware if precise budgets matter.
 
 Notes on methodology:
 
-- **Add, Mul** measure the full 256-bit operation; multiply returns the low 256 bits of
-  the product (standard unsigned wrapping semantics).
+- **Add, Sub, Mul** measure the full 256-bit operation; multiply returns the low 256 bits of
+  the product (standard unsigned wrapping semantics). Sub uses modulo-2^256 wrap (unsigned
+  borrow), consistent with all fixed-width types.
 - **Div, Mod** use randomized divisors that span the full 256-bit range, so the benchmark
   exercises the general-case Knuth Algorithm D path rather than a short-divisor fast path.
 - **ToString, Parse** use decimal format. Hex paths are typically faster for every library
   and are less discriminating, so they are not included in the headline table.
-- All entries report `Allocated: 0 B` except `ToString`, which must allocate the returned
-  `string`.
+- For `BigInteger`, arithmetic results are masked with `(BigInteger.One << 256) - 1` to
+  emulate fixed-width 256-bit wrap-around; without masking the accumulator would grow
+  unboundedly and the benchmark would degenerate into measuring allocation size.
+- All fixed-width entries report `Allocated: 0 B` except `ToString`, which must allocate
+  the returned `string`. Every `BigInteger` arithmetic benchmark allocates one or more
+  objects per iteration.
 
 ### Reproducing the Benchmarks
 

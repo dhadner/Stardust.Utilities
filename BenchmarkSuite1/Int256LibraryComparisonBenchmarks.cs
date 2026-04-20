@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 
@@ -7,17 +8,19 @@ namespace Stardust.Utilities.Benchmarks;
 
 /// <summary>
 /// Head-to-head comparison of the <see cref="UInt256"/> / <see cref="Int256"/>
-/// types in this package against the two widely-used third-party 256-bit
-/// libraries on NuGet:
-///   * Nethermind.Numerics.Int256  (namespace: Nethermind.Int256)
-///   * MissingValues               (namespace: MissingValues)
+/// types in this package against widely-used 256-bit alternatives:
+///   * Nethermind.Numerics.Int256         (namespace: Nethermind.Int256)
+///   * MissingValues                      (namespace: MissingValues)
+///   * System.Numerics.BigInteger         (BCL arbitrary-precision reference
+///                                         -- gives architects a clear view
+///                                         of the heap-allocation / variable-
+///                                         width tax relative to a fixed-
+///                                         32-byte value type).
 ///
-/// Operations exercised mirror <see cref="Int256ArithmeticBenchmarks"/> so the
-/// two result sets can be read together: Add, Multiply, Divide, Modulo,
-/// ToString (decimal) and Parse (decimal).
-///
-/// All benchmarks use the same operand values across libraries so differences
-/// reflect implementation cost alone, not input distribution.
+/// Operations exercised: Add, Subtract, Multiply, Divide, Modulo,
+/// ToString (decimal) and Parse (decimal). All benchmarks use the same operand
+/// values across libraries so differences reflect implementation cost alone,
+/// not input distribution.
 /// </summary>
 [MemoryDiagnoser(true)]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
@@ -53,6 +56,22 @@ public class Int256LibraryComparisonBenchmarks
         new UInt128(0xCAFEBABEF00DBA11UL, 0x1234567890ABCDEFUL));
     private static readonly MissingValues.Int256 MV_IA = (MissingValues.Int256)MV_A;
     private static readonly MissingValues.Int256 MV_IB = (MissingValues.Int256)MV_B;
+
+    // System.Numerics.BigInteger - parsed from the same decimal value as OUR_A/B
+    // so the numeric value is identical. BigInteger is arbitrary-precision and
+    // heap-allocated; every operation produces a fresh instance. Included as a
+    // reference for "what you pay if you reach for the BCL's big-number type
+    // instead of a fixed-width 256-bit value".
+    private static readonly BigInteger BIG_A = BigInteger.Parse(
+        OUR_A.ToString("D", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+    private static readonly BigInteger BIG_B = BigInteger.Parse(
+        OUR_B.ToString("D", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+    // BigInteger mask to emulate fixed 256-bit wrap-around on Add/Sub/Mul so the
+    // comparison stays apples-to-apples with the fixed-width types (which all
+    // wrap modulo 2^256). Without masking, BigInteger grows unboundedly each
+    // iteration and the benchmark degenerates into measuring allocation size,
+    // not operation cost.
+    private static readonly BigInteger BIG_MASK_256 = (BigInteger.One << 256) - BigInteger.One;
 
     // Pre-formatted decimal strings for Parse benchmarks.
     private static readonly string DECIMAL_A = OUR_A.ToString("D", CultureInfo.InvariantCulture);
@@ -93,6 +112,57 @@ public class Int256LibraryComparisonBenchmarks
         return acc;
     }
 
+    [BenchmarkCategory("Add"), Benchmark]
+    public BigInteger BigInteger_Add()
+    {
+        BigInteger acc = BigInteger.Zero, a = BIG_A, b = BIG_B, one = BigInteger.One, mask = BIG_MASK_256;
+        for (int i = 0; i < ITERATIONS; i++) { acc = (acc + (a + b)) & mask; a = (a + one) & mask; }
+        return acc;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  Subtract
+    // ════════════════════════════════════════════════════════════
+
+    [BenchmarkCategory("Sub"), Benchmark(Baseline = true)]
+    public UInt256 Ours_Sub()
+    {
+        UInt256 acc = UInt256.Zero, a = OUR_A, b = OUR_B;
+        for (int i = 0; i < ITERATIONS; i++) { acc += a - b; a++; }
+        return acc;
+    }
+
+    [BenchmarkCategory("Sub"), Benchmark]
+    public Nethermind.Int256.UInt256 Nethermind_Sub()
+    {
+        Nethermind.Int256.UInt256 acc = default;
+        Nethermind.Int256.UInt256 a = NETH_A, b = NETH_B;
+        Nethermind.Int256.UInt256 one = new Nethermind.Int256.UInt256(1UL, 0UL, 0UL, 0UL);
+        for (int i = 0; i < ITERATIONS; i++)
+        {
+            Nethermind.Int256.UInt256.Subtract(a, b, out var diff);
+            Nethermind.Int256.UInt256.Add(acc, diff, out acc);
+            Nethermind.Int256.UInt256.Add(a, one, out a);
+        }
+        return acc;
+    }
+
+    [BenchmarkCategory("Sub"), Benchmark]
+    public MissingValues.UInt256 MissingValues_Sub()
+    {
+        MissingValues.UInt256 acc = MissingValues.UInt256.Zero, a = MV_A, b = MV_B;
+        for (int i = 0; i < ITERATIONS; i++) { acc += a - b; a++; }
+        return acc;
+    }
+
+    [BenchmarkCategory("Sub"), Benchmark]
+    public BigInteger BigInteger_Sub()
+    {
+        BigInteger acc = BigInteger.Zero, a = BIG_A, b = BIG_B, one = BigInteger.One, mask = BIG_MASK_256;
+        for (int i = 0; i < ITERATIONS; i++) { acc = (acc + ((a - b) & mask)) & mask; a = (a + one) & mask; }
+        return acc;
+    }
+
     // ════════════════════════════════════════════════════════════
     //  Multiply
     // ════════════════════════════════════════════════════════════
@@ -125,6 +195,14 @@ public class Int256LibraryComparisonBenchmarks
     {
         MissingValues.UInt256 acc = MissingValues.UInt256.Zero, a = MV_A, b = MV_B;
         for (int i = 0; i < ITERATIONS; i++) { acc += a * b; a++; }
+        return acc;
+    }
+
+    [BenchmarkCategory("Mul"), Benchmark]
+    public BigInteger BigInteger_Mul()
+    {
+        BigInteger acc = BigInteger.Zero, a = BIG_A, b = BIG_B, one = BigInteger.One, mask = BIG_MASK_256;
+        for (int i = 0; i < ITERATIONS; i++) { acc = (acc + (a * b)) & mask; a = (a + one) & mask; }
         return acc;
     }
 
@@ -163,6 +241,14 @@ public class Int256LibraryComparisonBenchmarks
         return acc;
     }
 
+    [BenchmarkCategory("Div"), Benchmark]
+    public BigInteger BigInteger_Div()
+    {
+        BigInteger acc = BigInteger.Zero, a = BIG_A, b = BIG_B, one = BigInteger.One, mask = BIG_MASK_256;
+        for (int i = 0; i < ITERATIONS; i++) { acc = (acc + (a / b)) & mask; a = (a + one) & mask; }
+        return acc;
+    }
+
     // ════════════════════════════════════════════════════════════
     //  Modulo
     // ════════════════════════════════════════════════════════════
@@ -195,6 +281,14 @@ public class Int256LibraryComparisonBenchmarks
     {
         MissingValues.UInt256 acc = MissingValues.UInt256.Zero, a = MV_A, b = MV_B;
         for (int i = 0; i < ITERATIONS; i++) { acc += a % b; a++; }
+        return acc;
+    }
+
+    [BenchmarkCategory("Mod"), Benchmark]
+    public BigInteger BigInteger_Mod()
+    {
+        BigInteger acc = BigInteger.Zero, a = BIG_A, b = BIG_B, one = BigInteger.One, mask = BIG_MASK_256;
+        for (int i = 0; i < ITERATIONS; i++) { acc = (acc + (a % b)) & mask; a = (a + one) & mask; }
         return acc;
     }
 
@@ -234,6 +328,15 @@ public class Int256LibraryComparisonBenchmarks
         return len;
     }
 
+    [BenchmarkCategory("ToString"), Benchmark]
+    public int BigInteger_ToString()
+    {
+        int len = 0;
+        BigInteger a = BIG_A, one = BigInteger.One, mask = BIG_MASK_256;
+        for (int i = 0; i < ITERATIONS; i++) { len += a.ToString().Length; a = (a + one) & mask; }
+        return len;
+    }
+
     // ════════════════════════════════════════════════════════════
     //  Parse (decimal)
     // ════════════════════════════════════════════════════════════
@@ -266,6 +369,15 @@ public class Int256LibraryComparisonBenchmarks
         MissingValues.UInt256 acc = MissingValues.UInt256.Zero;
         string s = DECIMAL_A;
         for (int i = 0; i < ITERATIONS; i++) { acc += MissingValues.UInt256.Parse(s, CultureInfo.InvariantCulture); }
+        return acc;
+    }
+
+    [BenchmarkCategory("Parse"), Benchmark]
+    public BigInteger BigInteger_Parse()
+    {
+        BigInteger acc = BigInteger.Zero, mask = BIG_MASK_256;
+        string s = DECIMAL_A;
+        for (int i = 0; i < ITERATIONS; i++) { acc = (acc + BigInteger.Parse(s, CultureInfo.InvariantCulture)) & mask; }
         return acc;
     }
 }
