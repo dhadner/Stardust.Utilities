@@ -330,7 +330,7 @@ UInt256 value = be;                           // implicit conversion to host-nat
 
 **Key benefits:**
 
-- Zero heap allocations on the hot path (`readonly struct` backed by two `UInt128` halves).
+- Zero heap allocations on the hot path (`readonly struct` backed by four `ulong` values).
 - Native CPU instructions: multiply via BMI2 `MULX`, divide via `X86Base.X64.DivRem`, with hand-rolled carry-chain fallbacks on ARM64 and non-x64 platforms.
 - Full operator and interface surface -- drop-in replacement for `UInt128` / `BigInteger` where 32-byte fixed width is the right shape.
 - Wire-format safety via `UInt256Be` / `UInt256Le` with zero conversion cost on LE hardware.
