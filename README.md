@@ -1213,7 +1213,7 @@ Option<int> fromResult = ok.ToOption();  // Some(42)
 
 Endian types guarantee byte ordering in memory regardless of host platform. Big-endian types store the most significant byte first (network order), little-endian types store the least significant byte first (x86 native order). These are complete numeric types with arithmetic, bitwise, and comparison operators.
 
-**No performance penalty.** On little-endian hardware (x86/x64/ARM64 -- virtually all modern platforms), Le types compile to the same machine code as bare primitives. Be types compile to a single `BSWAP` instruction per conversion -- the same code you would write by hand. The type abstraction adds zero overhead beyond the inherent cost of the byte-swap itself. Benchmarked with BenchmarkDotNet on .NET 10:
+**No performance penalty.** On little-endian hardware (x86/x64/ARM64 -- virtually all modern platforms), Le types compile to the same machine code as bare primitives across all widths (16 through 256 bits). Be types compile to a single `BSWAP` instruction per conversion -- the same code you would write by hand. The type abstraction adds zero overhead beyond the inherent cost of the byte-swap itself. Benchmarked with BenchmarkDotNet on .NET 10:
 
 | Width | Le vs. Native | Be vs. Hand-Coded BSWAP |
 |-------|---------------|-------------------------|
@@ -1221,6 +1221,7 @@ Endian types guarantee byte ordering in memory regardless of host platform. Big-
 | 32-bit | **1.0x** | **1.0x** (single BSWAP) |
 | 64-bit | **1.0x** | **1.0x** (single BSWAP) |
 | 128-bit | **1.0x** | **1.0x** (two BSWAPs + swap halves) |
+| 256-bit | **1.0x** | ~7–19x (4 BSWAPs at boundary; bitwise ops are BSWAP-free) |
 
 Zero heap allocations across all types and operations. See [ENDIAN.md](ENDIAN.md) for full benchmark tables, implementation details, and optimization guidance.
 

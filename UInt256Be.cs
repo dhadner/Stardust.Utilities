@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -24,8 +25,22 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt256Be(UInt256 num)
         {
-            hi = (UInt128Be)num.Upper;
-            lo = (UInt128Be)num.Lower;
+            Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            // On BE: no byte-swapping needed; write limbs directly in network (MSB-first) order.
+            ref ulong dst = ref Unsafe.As<UInt256Be, ulong>(ref this);
+            dst                        = num._p3;
+            Unsafe.Add(ref dst, 1) = num._p2;
+            Unsafe.Add(ref dst, 2) = num._p1;
+            Unsafe.Add(ref dst, 3) = num._p0;
+#else
+            // On LE: each limb must be byte-swapped to produce network byte order.
+            Span<byte> raw = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1));
+            BinaryPrimitives.WriteUInt64BigEndian(raw,       num._p3);
+            BinaryPrimitives.WriteUInt64BigEndian(raw[8..],  num._p2);
+            BinaryPrimitives.WriteUInt64BigEndian(raw[16..], num._p1);
+            BinaryPrimitives.WriteUInt64BigEndian(raw[24..], num._p0);
+#endif
         }
 
         /// <summary>Initializes a new <see cref="UInt256Be"/> from a <see cref="UInt128"/> value.</summary>
@@ -41,16 +56,16 @@ namespace Stardust.Utilities
         public UInt256Be(ReadOnlySpan<byte> bytes)
         {
             if (bytes.Length < 32) throw new ArgumentException("Span must have at least 32 bytes", nameof(bytes));
-            hi = new UInt128Be(bytes);
-            lo = new UInt128Be(bytes.Slice(16));
+            Unsafe.SkipInit(out this);
+            bytes[..32].CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1)));
         }
 
         /// <summary>Initializes a new <see cref="UInt256Be"/> from a byte array at the given offset.</summary>
         public UInt256Be(byte[] bytes, int offset = 0)
         {
             if (bytes.Length - offset < 32) throw new ArgumentException("Array is too short");
-            hi = new UInt128Be(bytes, offset);
-            lo = new UInt128Be(bytes, offset + 16);
+            Unsafe.SkipInit(out this);
+            new ReadOnlySpan<byte>(bytes, offset, 32).CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1)));
         }
 
         /// <summary>Writes the value to a byte array at the given offset.</summary>
@@ -65,8 +80,7 @@ namespace Stardust.Utilities
         public readonly void WriteTo(Span<byte> destination)
         {
             if (destination.Length < 32) throw new ArgumentException("Destination span must have at least 32 bytes", nameof(destination));
-            hi.WriteTo(destination);
-            lo.WriteTo(destination.Slice(16));
+            MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1)).CopyTo(destination);
         }
 
         /// <summary>Attempts to write the value to a destination span.</summary>
@@ -74,8 +88,7 @@ namespace Stardust.Utilities
         public readonly bool TryWriteTo(Span<byte> destination)
         {
             if (destination.Length < 32) return false;
-            hi.WriteTo(destination);
-            lo.WriteTo(destination.Slice(16));
+            MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1)).CopyTo(destination);
             return true;
         }
 
@@ -103,7 +116,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => $"0x{(UInt256)this:x64}";
+        public override string ToString() => $"0x{(UInt256)this:x64}";
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((UInt256)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -115,11 +128,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(UInt256Be other) => ((UInt256)this).CompareTo((UInt256)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj is UInt256Be other && Equals(other);
+        public override bool Equals(object? obj) => obj is UInt256Be other && Equals(other);
         /// <inheritdoc/>
         public readonly bool Equals(UInt256Be other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((UInt256)this).GetHashCode();
+        public override int GetHashCode() => ((UInt256)this).GetHashCode();
 
         #region Operators
 
@@ -138,13 +151,41 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator %(UInt256Be a, UInt256Be b) => new((UInt256)a % (UInt256)b);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Be operator &(UInt256Be a, UInt256Be b) => new((UInt256)a & (UInt256)b);
+        public static UInt256Be operator &(UInt256Be a, UInt256Be b)
+        {
+            Unsafe.As<UInt256Be, ulong>(ref a) &= Unsafe.As<UInt256Be, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 1) &= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 2) &= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) &= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Be operator |(UInt256Be a, UInt256Be b) => new((UInt256)a | (UInt256)b);
+        public static UInt256Be operator |(UInt256Be a, UInt256Be b)
+        {
+            Unsafe.As<UInt256Be, ulong>(ref a) |= Unsafe.As<UInt256Be, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 1) |= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 2) |= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) |= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Be operator ^(UInt256Be a, UInt256Be b) => new((UInt256)a ^ (UInt256)b);
+        public static UInt256Be operator ^(UInt256Be a, UInt256Be b)
+        {
+            Unsafe.As<UInt256Be, ulong>(ref a) ^= Unsafe.As<UInt256Be, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 1) ^= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 2) ^= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) ^= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Be operator ~(UInt256Be a) => new(~(UInt256)a);
+        public static UInt256Be operator ~(UInt256Be a)
+        {
+            Unsafe.As<UInt256Be, ulong>(ref a) = ~Unsafe.As<UInt256Be, ulong>(ref a);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 1) = ~Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 2) = ~Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) = ~Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator <<(UInt256Be a, int b) => new((UInt256)a << b);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,9 +199,17 @@ namespace Stardust.Utilities
         public static UInt256Be operator --(UInt256Be a) => new((UInt256)a - UInt256.One);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(UInt256Be a, UInt256Be b) => (UInt256)a == (UInt256)b;
+        public static bool operator ==(UInt256Be a, UInt256Be b)
+        {
+            ref ulong ra = ref Unsafe.As<UInt256Be, ulong>(ref a);
+            ref ulong rb = ref Unsafe.As<UInt256Be, ulong>(ref b);
+            return ra == rb
+                && Unsafe.Add(ref ra, 1) == Unsafe.Add(ref rb, 1)
+                && Unsafe.Add(ref ra, 2) == Unsafe.Add(ref rb, 2)
+                && Unsafe.Add(ref ra, 3) == Unsafe.Add(ref rb, 3);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(UInt256Be a, UInt256Be b) => (UInt256)a != (UInt256)b;
+        public static bool operator !=(UInt256Be a, UInt256Be b) => !(a == b);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(UInt256Be a, UInt256Be b) => (UInt256)a < (UInt256)b;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,7 +225,22 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt256Be"/> to a <see cref="UInt256"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator UInt256(UInt256Be a) => new((UInt128)a.hi, (UInt128)a.lo);
+        public static implicit operator UInt256(UInt256Be a)
+        {
+#if BIG_ENDIAN
+            // On BE: no byte-swapping needed; limbs are already in native order at predictable offsets.
+            ref ulong src = ref Unsafe.As<UInt256Be, ulong>(ref a);
+            return new UInt256(src, Unsafe.Add(ref src, 1), Unsafe.Add(ref src, 2), Unsafe.Add(ref src, 3));
+#else
+            // On LE: byte-swap each limb back to native little-endian order.
+            ReadOnlySpan<byte> raw = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref a, 1));
+            return new UInt256(
+                BinaryPrimitives.ReadUInt64BigEndian(raw),
+                BinaryPrimitives.ReadUInt64BigEndian(raw[8..]),
+                BinaryPrimitives.ReadUInt64BigEndian(raw[16..]),
+                BinaryPrimitives.ReadUInt64BigEndian(raw[24..]));
+#endif
+        }
         /// <summary>Implicitly converts a <see cref="UInt256"/> to a <see cref="UInt256Be"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UInt256Be(UInt256 a) => new(a);

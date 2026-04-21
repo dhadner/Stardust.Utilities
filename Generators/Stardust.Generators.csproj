@@ -29,6 +29,14 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="bin\Release\netstandard2.0\\Stardust.Generators.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="bin\Release\netstandard2.0\\Stardust.Generators.dll" />
+  </ItemGroup>
+
   <!-- Pack the generator DLL into the analyzers folder -->
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />

@@ -86,7 +86,11 @@ namespace Stardust.Utilities
         public Int32Be(int num)
         {
             Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<Int32Be, int>(ref this) = num;
+#else
             Unsafe.As<Int32Be, int>(ref this) = BinaryPrimitives.ReverseEndianness(num);
+#endif
         }
 
         /// <summary>
@@ -393,7 +397,11 @@ namespace Stardust.Utilities
         /// <param name="a">The big-endian value.</param>
         /// <returns>The native value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if BIG_ENDIAN
+        public static implicit operator int(Int32Be a) => Unsafe.As<Int32Be, int>(ref a);
+#else
         public static implicit operator int(Int32Be a) => BinaryPrimitives.ReverseEndianness(Unsafe.As<Int32Be, int>(ref a));
+#endif
 
         /// <summary>
         /// Converts a native <see cref="int"/> to a big-endian value.
@@ -516,7 +524,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override readonly string ToString() => $"0x{hi.hi:x2}{hi.lo:x2}{lo.hi:x2}{lo.lo:x2}";
+        public override string ToString() => $"0x{hi.hi:x2}{hi.lo:x2}{lo.hi:x2}{lo.lo:x2}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -578,7 +586,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
-        public override readonly bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -601,7 +609,7 @@ namespace Stardust.Utilities
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ((int)this).GetHashCode();
         }

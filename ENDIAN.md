@@ -1,6 +1,9 @@
 # Endian Types
 
-Type-safe big-endian and little-endian integer types for .NET.
+Type-safe big-endian and little-endian integer types for .NET. Designed for network protocols, file formats, and hardware emulation where explicit control over byte order is required. These types provide a natural syntax for arithmetic and bitwise operations while ensuring correct endianness handling across platforms.
+
+Since modern .NET implementations (Core, 5, 6, 7, 8, 9, 10) primarily target little-endian machines, the library enforces little-endian usage at runtime.  The only known exception to this is the IBM Z architecture (linux-s390x) used by large banks and government agencies, which is big-endian. If you need to run on big-endian hardware, you can compile the library with `#define BIG_ENDIAN` to enable big-endian support and disable the runtime check.
+
 
 ## Overview
 
@@ -27,6 +30,7 @@ Endian types store bytes in a guaranteed byte order regardless of the host platf
 | `UInt128Be` | 16 bytes | `UInt128` | Unsigned 128-bit |
 | `Int128Be` | 16 bytes | `Int128` | Signed 128-bit |
 | `UInt256Be` | 32 bytes | `UInt256` | Unsigned 256-bit -- see [LARGE_INTEGERS.md](LARGE_INTEGERS.md) |
+| `Int256Be` | 32 bytes | `Int256` | Signed 256-bit -- see [LARGE_INTEGERS.md](LARGE_INTEGERS.md) |
 
 ### Little-Endian
 
@@ -41,6 +45,7 @@ Endian types store bytes in a guaranteed byte order regardless of the host platf
 | `UInt128Le` | 16 bytes | `UInt128` | Unsigned 128-bit |
 | `Int128Le` | 16 bytes | `Int128` | Signed 128-bit |
 | `UInt256Le` | 32 bytes | `UInt256` | Unsigned 256-bit -- see [LARGE_INTEGERS.md](LARGE_INTEGERS.md) |
+| `Int256Le` | 32 bytes | `Int256` | Signed 256-bit -- see [LARGE_INTEGERS.md](LARGE_INTEGERS.md) |
 
 ## Quick Start
 
@@ -598,6 +603,10 @@ WinForms PropertyGrid and similar UI scenarios:
 | `Int128Be` | `Int128BeTypeConverter` |
 | `UInt128Le` | `UInt128LeTypeConverter` |
 | `Int128Le` | `Int128LeTypeConverter` |
+| `UInt256Be` | `UInt256BeTypeConverter` |
+| `Int256Be` | `Int256BeTypeConverter` |
+| `UInt256Le` | `UInt256LeTypeConverter` |
+| `Int256Le` | `Int256LeTypeConverter` |
 
 ```csharp
 // TypeConverters support hex input with 0x prefix
@@ -699,6 +708,7 @@ a type-safe marker or a per-field override inside a BE `[BitFields]` struct.
   Mono on IBM System z (s390x) → Big-endian mainframe architecture.<br>
   Mono on HP-UX PA-RISC → Big-endian RISC CPU.<br>
   Custom embedded boards → Some ARM and MIPS boards in big-endian mode.
+
 5. **Modern Status (as of 2026)**<br><br>
   Microsoft .NET (Core / 5 / 6 / 7 / 8) → Only little-endian officially.<br>
   Mono → Still can be compiled for big-endian, but most active builds are little-endian.<br>
@@ -744,40 +754,71 @@ The JIT compiler optimizes this to efficient native instructions on all platform
 Endian types guarantee byte layout while operating at or near native speed on little-endian hardware (x86/x64/ARM64). The implementation uses two complementary techniques:
 
 - **16-bit types:** an overlapping `[FieldOffset(0)] ushort _value` aliased with the `byte hi`/`byte lo` fields. The JIT keeps the value in a single CPU register while preserving direct byte access.
-- **32-bit and wider types:** `Unsafe.As` reinterpretation. On LE hardware the struct memory IS the native value (Le: zero-cost identity, Be: single `BSWAP` instruction).
+- **32–128-bit types:** `Unsafe.As` reinterpretation. On LE hardware the struct memory IS the native value (Le: zero-cost identity, Be: single `BSWAP` instruction).
+- **256-bit Le types:** `Unsafe.As` reinterpretation, identical to 128-bit Le. On LE hardware the struct bytes ARE the native `UInt256`/`Int256` value -- zero-cost identity conversion.
+- **256-bit Be types:** On BE hardware, direct `Unsafe.As<UInt256Be, ulong>` field writes/reads (no BSWAPs, no span). On LE hardware, `BinaryPrimitives.WriteUInt64BigEndian/ReadUInt64BigEndian × 4` with a single `BSWAP` per 64-bit word. `WriteTo(Span<byte>)` and span constructors are a single 32-byte `MemoryCopy`. Equality and bitwise ops (`&`, `|`, `^`, `~`) use raw 4-ulong comparison/mutation with no BSWAPs.
 
-The table below shows the measured overhead versus native primitives (BenchmarkDotNet, .NET 10, Release, x64, 10M iterations).
+**Bitwise ops are BSWAP-free.** Because `BSWAP(a) OP BSWAP(b) = BSWAP(a OP b)` holds for AND, OR, XOR, and NOT, all Be types implement these operators by working directly on the stored (already-swapped) byte pattern -- no conversion to native and back. The `&`, `|`, `^`, and `~` operators therefore compile to the same machine instructions as their native equivalents: a single `AND`/`OR`/`XOR`/`NOT` for 32/64-bit, two for 128-bit, four for 256-bit.
+
+The table below shows measured cost per operation (BenchmarkDotNet, .NET 10, Release, x64, 10 million iterations; total elapsed ÷ iteration count). **The benchmarks measure a full read-operate-write cycle**: each iteration also converts the accumulator and advances the counter (requiring boundary conversions), so the overhead shown for Be types reflects the mandatory `BSWAP` at the I/O boundary, not hidden overhead inside the operator itself.
 
 ### Cost by Width and Operation
 
 | Width | Operation | Native | Big-Endian | Be/Native | Little-Endian | Le/Native |
 |-------|-----------|--------|------------|-----------|---------------|-----------|
-| 16-bit | Add | 6.5 ms | 16.5 ms | 2.5x | **7.8 ms** | **1.21x** |
-| 16-bit | Sub | 7.8 ms | 16.2 ms | 2.1x | **7.8 ms** | **1.00x** |
-| 16-bit | AND | 7.9 ms | 16.4 ms | 2.1x | **7.8 ms** | **0.99x** |
-| 16-bit | Compare | 8.0 ms | 14.6 ms | 1.8x | **8.2 ms** | **1.02x** |
-| 16-bit | Hi/Lo | 9.4 ms | 20.0 ms | 2.1x | **6.1 ms** | **0.65x** |
-| 32-bit | Add | 4.4 ms | 10.4 ms | 2.3x | **4.4 ms** | **1.00x** |
-| 32-bit | AND | 5.2 ms | 10.0 ms | 1.9x | **5.2 ms** | **1.00x** |
-| 64-bit | Add | 5.0 ms | 16.3 ms | 3.3x | **4.5 ms** | **0.90x** |
-| 128-bit | Add | 8.3 ms | 25.9 ms | 3.1x | **8.1 ms** | **0.98x** |
+| 16-bit | Add     | 0.65 ns | 1.90 ns | 2.9x | **0.64 ns** | **1.0x** |
+| 16-bit | Sub     | 0.76 ns | 1.91 ns | 2.5x | **0.65 ns** | **0.9x** |
+| 16-bit | AND     | 0.65 ns | 1.82 ns | 2.8x | **0.65 ns** | **1.0x** |
+| 16-bit | OR      | 0.77 ns | 1.81 ns | 2.4x | **0.76 ns** | **1.0x** |
+| 16-bit | XOR     | 0.77 ns | 1.80 ns | 2.3x | **0.76 ns** | **1.0x** |
+| 16-bit | Compare | 0.80 ns | 1.75 ns | 2.2x | **0.79 ns** | **1.0x** |
+| 16-bit | Hi/Lo   | 0.89 ns | 2.00 ns | 2.2x | **0.62 ns** | **0.7x** |
+| 32-bit | Add     | 0.39 ns | 1.07 ns | 2.7x | **0.39 ns** | **1.0x** |
+| 32-bit | AND     | 0.43 ns | 1.01 ns | 2.4x | **0.44 ns** | **1.0x** |
+| 32-bit | OR      | 0.43 ns | 1.02 ns | 2.4x | **0.43 ns** | **1.0x** |
+| 32-bit | XOR     | 0.43 ns | 1.02 ns | 2.4x | **0.42 ns** | **1.0x** |
+| 64-bit | Add     | 0.51 ns | 1.72 ns | 3.4x | **0.46 ns** | **0.9x** |
+| 64-bit | AND     | 0.46 ns | 1.53 ns | 3.3x | **0.46 ns** | **1.0x** |
+| 64-bit | OR      | 0.45 ns | 1.51 ns | 3.4x | **0.44 ns** | **1.0x** |
+| 64-bit | XOR     | 0.44 ns | 1.50 ns | 3.4x | **0.44 ns** | **1.0x** |
+| 128-bit | Add    | 0.86 ns | 2.62 ns | 3.0x | **0.82 ns** | **1.0x** |
+| 128-bit | AND    | 0.72 ns | 2.32 ns | 3.2x | **0.71 ns** | **1.0x** |
+| 128-bit | OR     | 0.72 ns | 2.28 ns | 3.2x | **0.73 ns** | **1.0x** |
+| 128-bit | XOR    | 0.71 ns | 2.33 ns | 3.3x | **0.71 ns** | **1.0x** |
+| 256-bit | Add    | 1.26 ns | 23.60 ns | 18.7x | **1.26 ns** | **1.0x** |
+| 256-bit | AND    | 1.27 ns |  8.74 ns |  6.9x | **1.29 ns** | **1.0x** |
+| 256-bit | OR     | 1.27 ns | 10.75 ns |  8.5x | **1.31 ns** | **1.0x** |
+| 256-bit | XOR    | 1.27 ns |  8.77 ns |  6.9x | **1.27 ns** | **1.0x** |
+| 256-bit | RoundTrip¹ | — | **13.72 ns** | — | **8.74 ns** | — |
+
+¹ RoundTrip = `new XxxBe(span)` + `→ UInt256` + `WriteTo(span)`: the typical I/O boundary pattern. Uses 1M iterations (the extra work per iteration is ~10× heavier than a single arithmetic op). Be cost is dominated by the 32-byte memory copy plus 4 BSWAPs; Le cost is lower because the Le→UInt256 conversion is a zero-copy `Unsafe.As` with no BSWAPs.
+
+**Why Be bitwise ops still show overhead in the benchmark.** Even though `&`, `|`, `^` are BSWAP-free inside the operator, each benchmark iteration must also (a) convert the result to native to accumulate it, and (b) convert to native to add 1 to the counter, then convert back. Those boundary conversions are measured too. The 256-bit numbers make this visible: Be-AND at 8.74 ns/op vs Be-Add at 23.60 ns/op -- AND is 2.7× cheaper than Add, because Add performs BSWAPs inside the operator while AND does not. **256-bit Le types are now at full native parity (1.0x)**: the `Unsafe.As` zero-copy optimization eliminates all boundary conversion overhead, so the loop counter and accumulator updates are as cheap as for `UInt256` itself.
+
+Run the benchmark suite on your own hardware:
+
+```powershell
+dotnet run -c Release --project BenchmarkSuite1 -- --filter '*EndianOverhead*'
+```
 
 ### Summary by Width
 
 | Width | Le vs. Native | Be vs. Hand-Coded BSWAP | Notes |
 |-------|---------------|-------------------------|-------|
-| 16-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: identity; Be: single register rotate |
-| 32-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: identity reinterpret; Be: single `BSWAP` |
-| 64-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: identity reinterpret; Be: single `BSWAP` |
-| 128-bit | **1.0x** (native speed) | **1.0x** (optimal) | Le: cascades from 64-bit; Be: two BSWAPs + swap halves |
+| 16-bit | **1.0x** | **1.0x** (optimal) | Le: identity; Be: single register rotate |
+| 32-bit | **1.0x** | **1.0x** (optimal) | Le: identity reinterpret; Be: single `BSWAP` |
+| 64-bit | **1.0x** | **1.0x** (optimal) | Le: identity reinterpret; Be: single `BSWAP` |
+| 128-bit | **1.0x** | **1.0x** (optimal) | Le: cascades from 64-bit; Be: two BSWAPs + swap halves |
+| 256-bit | **1.0x** | see note | Le: `Unsafe.As` zero-copy (same as 128-bit); Be: 4×BSWAP at boundary; I/O: 32-byte span copy |
 
 ### Key Takeaways
 
-- **Both Le and Be types operate at native speed.** Le types are zero-cost identity operations on LE hardware. Be types compile to the same `BSWAP` instruction a developer would hand-write -- the type abstraction adds no overhead beyond the inherent cost of the byte-swap.
-- **There is no performance reason to avoid Be/Le types.** Architects can use endian types throughout a codebase for correctness and type safety without sacrificing throughput.
+- **Le types are zero-cost on LE hardware.** `*Le` types are identity operations on x86/x64/ARM64 -- the struct bytes ARE the native value. All operations compile to the same machine code as plain `uint`, `ulong`, etc.
+- **Be types add only the inherent BSWAP cost.** `*Be` types compile to the same `BSWAP` instruction a developer would hand-write. The type abstraction adds no overhead beyond the byte-swap itself.
+- **Bitwise AND/OR/XOR/NOT are BSWAP-free on all Be types.** These operators work directly on the stored byte pattern (using `Unsafe.As` reinterpretation or direct field access) without any conversion to/from the native byte order. The operation itself compiles to bare `AND`/`OR`/`XOR`/`NOT` instructions. The overhead shown in the table comes from the benchmark's mandatory boundary conversions, not from the operators.
 - **16-bit types use overlapping field aliasing** -- a `_value` field at offset 0 overlaps the `hi`/`lo` byte fields, giving the JIT a single primitive to keep in registers while preserving byte access.
-- **32-bit and wider types use `Unsafe.As`** for zero-cost reinterpretation (Le) or single-`BSWAP` conversion (Be).
-- **128-bit Le types cascade improvements** from 64-bit and 32-bit optimizations.
+- **32–256-bit Le types use `Unsafe.As`** for zero-cost reinterpretation on LE hardware -- the struct bytes ARE the native value. Be types compile to single or cascaded `BSWAP` instructions (one per 64-bit word).
+- **256-bit Be types** use direct `Unsafe.As<UInt256Be, ulong>` field access on BE hardware (no BSWAPs, no span), or `BinaryPrimitives × 4` with BSWAPs on LE hardware. `WriteTo` and span constructors are single 32-byte memory copies. Equality compares 4 raw `ulong` slots with no BSWAPs. Bitwise ops mutate those same 4 raw slots directly.
 - **Zero heap allocation** across all types and operations.
 - **For Be hot paths** that do many operations between conversions, the convert-at-boundary pattern can amortize the BSWAP cost:
 
@@ -787,6 +828,28 @@ UInt32Be header = ReadFromNetwork();
 uint native = (uint)header;            // BSWAP once
 native = DoComplexMath(native);        // Compute in native (no BSWAPs)
 UInt32Be result = (UInt32Be)native;    // BSWAP once
+```
+
+This pattern applies equally to 256-bit types -- convert once at the boundary, do all arithmetic in `UInt256` / `Int256`, convert back:
+
+```csharp
+// 256-bit boundary pattern:
+ReadOnlySpan<byte> wire = GetBytesFromNetwork();  // 32 bytes, big-endian
+UInt256Be be = new(wire);                          // single 32-byte copy
+UInt256 value = be;                                // 4 BSWAPs
+UInt256 result = value * 3 + 1;                    // compute in native
+((UInt256Be)result).WriteTo(outBuf);               // 4 BSWAPs + 32-byte copy
+```
+
+For bitwise-only loops on Be types, no conversion is needed at all -- operate directly:
+
+```csharp
+// Bitwise ops on Be types: zero BSWAP overhead
+UInt256Be mask = new UInt256Be(GetMaskFromNetwork());
+UInt256Be data = new UInt256Be(GetDataFromNetwork());
+UInt256Be masked = data & mask;   // 4 AND instructions, no BSWAPs
+UInt256Be combined = masked | extra;   // 4 OR instructions, no BSWAPs
+masked.WriteTo(outBuf);           // single 32-byte copy
 ```
 
 For Le types, no such optimization is needed -- they are already at native speed:

@@ -72,7 +72,11 @@ namespace Stardust.Utilities
         public UInt64Be(ulong num)
         {
             Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<UInt64Be, ulong>(ref this) = num;
+#else
             Unsafe.As<UInt64Be, ulong>(ref this) = BinaryPrimitives.ReverseEndianness(num);
+#endif
         }
 
         /// <summary>
@@ -81,8 +85,12 @@ namespace Stardust.Utilities
         /// <param name="num">The native value.</param>
         public UInt64Be(long num)
         {
-            hi = new UInt32Be((uint)((ulong)num >> 32));
-            lo = new UInt32Be((uint)(num & 0xFFFFFFFF));
+            Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<UInt64Be, ulong>(ref this) = (ulong)num;
+#else
+            Unsafe.As<UInt64Be, ulong>(ref this) = BinaryPrimitives.ReverseEndianness((ulong)num);
+#endif
         }
 
         /// <summary>
@@ -299,7 +307,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt64Be operator &(UInt64Be a, UInt64Be b)
-            => new((ulong)a & (ulong)b);
+        {
+            Unsafe.As<UInt64Be, ulong>(ref a) &= Unsafe.As<UInt64Be, ulong>(ref b);
+            return a;
+        }
 
         /// <summary>
         /// Computes the bitwise OR of two values.
@@ -310,7 +321,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt64Be operator |(UInt64Be a, UInt64Be b)
-            => new((ulong)a | (ulong)b);
+        {
+            Unsafe.As<UInt64Be, ulong>(ref a) |= Unsafe.As<UInt64Be, ulong>(ref b);
+            return a;
+        }
 
         /// <summary>
         /// Computes the bitwise XOR of two values.
@@ -321,7 +335,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt64Be operator ^(UInt64Be a, UInt64Be b)
-            => new((ulong)a ^ (ulong)b);
+        {
+            Unsafe.As<UInt64Be, ulong>(ref a) ^= Unsafe.As<UInt64Be, ulong>(ref b);
+            return a;
+        }
 
         /// <summary>
         /// Computes the bitwise complement of a value.
@@ -331,7 +348,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt64Be operator ~(UInt64Be a)
-            => new(~(ulong)a);
+        {
+            Unsafe.As<UInt64Be, ulong>(ref a) = ~Unsafe.As<UInt64Be, ulong>(ref a);
+            return a;
+        }
 
         /// <summary>
         /// Shifts a value right by the specified number of bits.
@@ -430,7 +450,11 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ulong(UInt64Be a)
         {
+#if BIG_ENDIAN
+            return Unsafe.As<UInt64Be, ulong>(ref a);
+#else
             return BinaryPrimitives.ReverseEndianness(Unsafe.As<UInt64Be, ulong>(ref a));
+#endif
         }
 
         /// <summary>
@@ -585,7 +609,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override readonly string ToString() => $"0x{(ulong)this:x16}";
+        public override string ToString() => $"0x{(ulong)this:x16}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -647,7 +671,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
-        public override readonly bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -670,7 +694,7 @@ namespace Stardust.Utilities
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ((ulong)this).GetHashCode();
         }

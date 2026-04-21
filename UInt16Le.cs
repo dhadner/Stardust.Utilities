@@ -28,10 +28,14 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt16Le(ushort num)
         {
-            // Initialize byte fields to satisfy definite-assignment, then store native value.
-            // The JIT collapses both writes since they overlap the same 2 bytes.
-            lo = 0; hi = 0;
-            _value = BitConverter.IsLittleEndian ? num : BinaryPrimitives.ReverseEndianness(num);
+            // SkipInit suppresses the definite-assignment check so we can write the
+            // overlapping _value field once without first zeroing lo/hi separately.
+            Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            _value = BinaryPrimitives.ReverseEndianness(num);
+#else
+            _value = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="UInt16Le"/> from an <see cref="int"/> value.</summary>
@@ -185,7 +189,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => $"0x{(ushort)this:x4}";
+        public override string ToString() => $"0x{(ushort)this:x4}";
 
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) =>
@@ -206,13 +210,13 @@ namespace Stardust.Utilities
         public readonly int CompareTo(UInt16Le other) => ((ushort)this).CompareTo((ushort)other);
 
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((UInt16Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((UInt16Le)obj);
 
         /// <inheritdoc/>
         public readonly bool Equals(UInt16Le other) => this == other;
 
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((ushort)this).GetHashCode();
+        public override int GetHashCode() => ((ushort)this).GetHashCode();
 
         #region Operators
 
@@ -292,7 +296,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt16Le operator %(UInt16Le a, uint b) => new((ushort)((ushort)a % b));
-        /// <summary>Computes the bitwise XOR of a value.</summary>
+        /// <summary>Computes the bitwise XOR of two values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt16Le operator ^(UInt16Le a, UInt16Le b) => new((ushort)((ushort)a ^ (ushort)b));
+        /// <summary>Computes the bitwise XOR of a value and an unsigned mask.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt16Le operator ^(UInt16Le a, uint b) => new((ushort)((ushort)a ^ b));
@@ -315,7 +322,11 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt16Le"/> to a <see cref="ushort"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ushort(UInt16Le a) => BitConverter.IsLittleEndian ? a._value : BinaryPrimitives.ReverseEndianness(a._value);
+#if BIG_ENDIAN
+        public static implicit operator ushort(UInt16Le a) => BinaryPrimitives.ReverseEndianness(a._value);
+#else
+        public static implicit operator ushort(UInt16Le a) => a._value;
+#endif
 
         /// <summary>Implicitly converts a <see cref="UInt16Le"/> to a <see cref="uint"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

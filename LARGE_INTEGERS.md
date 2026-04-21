@@ -36,6 +36,7 @@ These types exist because:
 | `UInt256` | 256 (unsigned) | Four `ulong` limbs (`_p0`.._p3`) | Never | Host-native |
 | `Int256` | 256 (signed, two's complement) | Two `UInt128` halves | Never | Host-native |
 | `UInt256Le` / `UInt256Be` | 256 (unsigned) | 32 bytes, explicit layout | Never | Little/big-endian wire format |
+| `Int256Le` / `Int256Be` | 256 (signed) | 32 bytes, explicit layout | Never | Little/big-endian wire format |
 
 `UInt256` and `Int256` are host-native in memory and are the type you want for arithmetic,
 comparison and general-purpose use. `UInt256Le` / `UInt256Be` are byte-ordered types for
@@ -98,11 +99,12 @@ string s = n.ToString();              // "-1"
 ## Endian-Aware Wire Types
 
 When bytes hit a network socket, a file, or a memory-mapped register, endianness matters.
-Use `UInt256Le` (little-endian, x86 native order) or `UInt256Be` (big-endian, network byte
-order) at the I/O boundary and convert to `UInt256` for arithmetic:
+Use `UInt256Le`/`Int256Le` (little-endian, x86 native order) or `UInt256Be`/`Int256Be`
+(big-endian, network byte order) at the I/O boundary and convert to the host-native type
+for arithmetic:
 
 ```csharp
-ReadOnlySpan<byte> wire = ...;                         // 32 bytes off the wire (BE)
+ReadOnlySpan<byte> wire = ...;                         // 32 bytes off the wire (BE, unsigned)
 UInt256Be be  = new(wire);
 UInt256    hv = be;                                    // implicit conversion to host-native
 
@@ -111,6 +113,13 @@ UInt256 result = hv * 3 + 1;
 // Write back out
 Span<byte> outBuf = stackalloc byte[32];
 ((UInt256Be)result).WriteTo(outBuf);
+
+// Signed variant — identical pattern
+ReadOnlySpan<byte> signedWire = ...;                   // 32 bytes off the wire (BE, signed)
+Int256Be sbe = new(signedWire);
+Int256   sv  = sbe;                                    // implicit conversion preserves sign
+Int256   res = sv * -1;
+((Int256Be)res).WriteTo(outBuf);
 ```
 
 See [ENDIAN.md](ENDIAN.md) for the full endian-type story and the complete 16/32/64/128/256-bit
@@ -299,8 +308,10 @@ table above surprises you -- it documents the exact per-category setup.
 | Scenario | Use |
 |----------|------|
 | Arithmetic / comparison / hashing / dictionary keys | `UInt256` or `Int256` |
-| Reading a fixed 32-byte big-endian field off the wire | `UInt256Be` (then convert to `UInt256` for math) |
-| Reading a fixed 32-byte little-endian field from a file | `UInt256Le` |
+| Reading a fixed 32-byte big-endian unsigned field off the wire | `UInt256Be` (then convert to `UInt256` for math) |
+| Reading a fixed 32-byte big-endian signed field off the wire | `Int256Be` (then convert to `Int256` for math) |
+| Reading a fixed 32-byte little-endian unsigned field from a file | `UInt256Le` |
+| Reading a fixed 32-byte little-endian signed field from a file | `Int256Le` |
 | Named bit-field access within a 256-bit register | `[BitFields(typeof(UInt256))]` source generator |
 | Arbitrary-precision integers that may exceed 256 bits | BCL `BigInteger` |
 | Value fits in 128 bits | BCL `UInt128` / `Int128` |

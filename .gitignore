@@ -7,6 +7,12 @@
 # Build output
 **/bin/
 **/obj/
+**/obj_be/
+
+# BenchmarkDotNet logs and run artifacts
+BenchmarkDotNet.Artifacts/
+**/BenchmarkDotNet.Artifacts/*.log
+benchmark_*.txt
 
 # Test results (exclude test run artifacts, but keep generated source files for inspection)
 /Test/TestResults/*.trx
@@ -20,3 +26,9 @@
 /.vs/
 **/.vs/
 /OSSRequestForm-v4.xlsx
+
+# IDE and tool settings
+/.vscode/
+/.claude/
+/.claude/settings.local.json
+/.claude/scheduled_tasks.lock

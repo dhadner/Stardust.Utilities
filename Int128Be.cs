@@ -397,7 +397,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override readonly string ToString() => $"0x{(UInt128)(Int128)this:x32}";
+        public override string ToString() => $"0x{(UInt128)(Int128)this:x32}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -444,7 +444,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -460,7 +460,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ((Int128)this).GetHashCode();
         }

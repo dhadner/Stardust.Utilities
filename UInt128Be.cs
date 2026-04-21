@@ -225,22 +225,42 @@ namespace Stardust.Utilities
         /// <summary>Computes the bitwise AND of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Be operator &(UInt128Be a, UInt128Be b) => new((UInt128)a & (UInt128)b);
+        public static UInt128Be operator &(UInt128Be a, UInt128Be b)
+        {
+            Unsafe.As<UInt128Be, ulong>(ref a) &= Unsafe.As<UInt128Be, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref a), 1) &= Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref b), 1);
+            return a;
+        }
 
         /// <summary>Computes the bitwise OR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Be operator |(UInt128Be a, UInt128Be b) => new((UInt128)a | (UInt128)b);
+        public static UInt128Be operator |(UInt128Be a, UInt128Be b)
+        {
+            Unsafe.As<UInt128Be, ulong>(ref a) |= Unsafe.As<UInt128Be, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref a), 1) |= Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref b), 1);
+            return a;
+        }
 
         /// <summary>Computes the bitwise XOR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Be operator ^(UInt128Be a, UInt128Be b) => new((UInt128)a ^ (UInt128)b);
+        public static UInt128Be operator ^(UInt128Be a, UInt128Be b)
+        {
+            Unsafe.As<UInt128Be, ulong>(ref a) ^= Unsafe.As<UInt128Be, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref a), 1) ^= Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref b), 1);
+            return a;
+        }
 
         /// <summary>Computes the bitwise complement of a value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Be operator ~(UInt128Be a) => new(~(UInt128)a);
+        public static UInt128Be operator ~(UInt128Be a)
+        {
+            Unsafe.As<UInt128Be, ulong>(ref a) = ~Unsafe.As<UInt128Be, ulong>(ref a);
+            Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref a), 1) = ~Unsafe.Add(ref Unsafe.As<UInt128Be, ulong>(ref a), 1);
+            return a;
+        }
 
         /// <summary>Shifts a value right by the specified number of bits.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -392,7 +412,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override readonly string ToString() => $"0x{(UInt128)this:x32}";
+        public override string ToString() => $"0x{(UInt128)this:x32}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -439,7 +459,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -455,7 +475,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ((UInt128)this).GetHashCode();
         }

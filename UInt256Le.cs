@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -23,8 +24,19 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt256Le(UInt256 num)
         {
-            lo = (UInt128Le)num.Lower;
-            hi = (UInt128Le)num.Upper;
+#if BIG_ENDIAN
+            // On BE: each limb must be byte-swapped to land in LE order.
+            Unsafe.SkipInit(out this);
+            Span<byte> raw = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1));
+            BinaryPrimitives.WriteUInt64LittleEndian(raw,       num._p0);
+            BinaryPrimitives.WriteUInt64LittleEndian(raw[8..],  num._p1);
+            BinaryPrimitives.WriteUInt64LittleEndian(raw[16..], num._p2);
+            BinaryPrimitives.WriteUInt64LittleEndian(raw[24..], num._p3);
+#else
+            // On LE: UInt256Le and UInt256 share identical memory layout — direct copy.
+            Unsafe.SkipInit(out this);
+            Unsafe.As<UInt256Le, UInt256>(ref this) = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="UInt256Le"/> from a <see cref="UInt128"/> value.</summary>
@@ -41,16 +53,16 @@ namespace Stardust.Utilities
         public UInt256Le(ReadOnlySpan<byte> bytes)
         {
             if (bytes.Length < 32) throw new ArgumentException("Span must have at least 32 bytes", nameof(bytes));
-            lo = new UInt128Le(bytes);
-            hi = new UInt128Le(bytes.Slice(16));
+            Unsafe.SkipInit(out this);
+            bytes[..32].CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1)));
         }
 
         /// <summary>Initializes a new <see cref="UInt256Le"/> from a byte array at the given offset.</summary>
         public UInt256Le(byte[] bytes, int offset = 0)
         {
             if (bytes.Length - offset < 32) throw new ArgumentException("Array is too short");
-            lo = new UInt128Le(bytes, offset);
-            hi = new UInt128Le(bytes, offset + 16);
+            Unsafe.SkipInit(out this);
+            new ReadOnlySpan<byte>(bytes, offset, 32).CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1)));
         }
 
         /// <summary>Writes the value to a byte array at the given offset.</summary>
@@ -65,8 +77,7 @@ namespace Stardust.Utilities
         public readonly void WriteTo(Span<byte> destination)
         {
             if (destination.Length < 32) throw new ArgumentException("Destination span must have at least 32 bytes", nameof(destination));
-            lo.WriteTo(destination);
-            hi.WriteTo(destination.Slice(16));
+            MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1)).CopyTo(destination);
         }
 
         /// <summary>Attempts to write the value to a destination span.</summary>
@@ -74,8 +85,7 @@ namespace Stardust.Utilities
         public readonly bool TryWriteTo(Span<byte> destination)
         {
             if (destination.Length < 32) return false;
-            lo.WriteTo(destination);
-            hi.WriteTo(destination.Slice(16));
+            MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1)).CopyTo(destination);
             return true;
         }
 
@@ -109,7 +119,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => $"0x{(UInt256)this:x64}";
+        public override string ToString() => $"0x{(UInt256)this:x64}";
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((UInt256)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -121,11 +131,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(UInt256Le other) => ((UInt256)this).CompareTo((UInt256)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj is UInt256Le other && Equals(other);
+        public override bool Equals(object? obj) => obj is UInt256Le other && Equals(other);
         /// <inheritdoc/>
         public readonly bool Equals(UInt256Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((UInt256)this).GetHashCode();
+        public override int GetHashCode() => ((UInt256)this).GetHashCode();
 
         #region Operators
 
@@ -144,13 +154,41 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Le operator %(UInt256Le a, UInt256Le b) => new((UInt256)a % (UInt256)b);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Le operator &(UInt256Le a, UInt256Le b) => new((UInt256)a & (UInt256)b);
+        public static UInt256Le operator &(UInt256Le a, UInt256Le b)
+        {
+            Unsafe.As<UInt256Le, ulong>(ref a) &= Unsafe.As<UInt256Le, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 1) &= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 2) &= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 3) &= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Le operator |(UInt256Le a, UInt256Le b) => new((UInt256)a | (UInt256)b);
+        public static UInt256Le operator |(UInt256Le a, UInt256Le b)
+        {
+            Unsafe.As<UInt256Le, ulong>(ref a) |= Unsafe.As<UInt256Le, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 1) |= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 2) |= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 3) |= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Le operator ^(UInt256Le a, UInt256Le b) => new((UInt256)a ^ (UInt256)b);
+        public static UInt256Le operator ^(UInt256Le a, UInt256Le b)
+        {
+            Unsafe.As<UInt256Le, ulong>(ref a) ^= Unsafe.As<UInt256Le, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 1) ^= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 2) ^= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 3) ^= Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref b), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt256Le operator ~(UInt256Le a) => new(~(UInt256)a);
+        public static UInt256Le operator ~(UInt256Le a)
+        {
+            Unsafe.As<UInt256Le, ulong>(ref a) = ~Unsafe.As<UInt256Le, ulong>(ref a);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 1) = ~Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 1);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 2) = ~Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 2);
+            Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 3) = ~Unsafe.Add(ref Unsafe.As<UInt256Le, ulong>(ref a), 3);
+            return a;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Le operator <<(UInt256Le a, int b) => new((UInt256)a << b);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -164,9 +202,17 @@ namespace Stardust.Utilities
         public static UInt256Le operator --(UInt256Le a) => new((UInt256)a - UInt256.One);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(UInt256Le a, UInt256Le b) => (UInt256)a == (UInt256)b;
+        public static bool operator ==(UInt256Le a, UInt256Le b)
+        {
+            ref ulong ra = ref Unsafe.As<UInt256Le, ulong>(ref a);
+            ref ulong rb = ref Unsafe.As<UInt256Le, ulong>(ref b);
+            return ra == rb
+                && Unsafe.Add(ref ra, 1) == Unsafe.Add(ref rb, 1)
+                && Unsafe.Add(ref ra, 2) == Unsafe.Add(ref rb, 2)
+                && Unsafe.Add(ref ra, 3) == Unsafe.Add(ref rb, 3);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(UInt256Le a, UInt256Le b) => (UInt256)a != (UInt256)b;
+        public static bool operator !=(UInt256Le a, UInt256Le b) => !(a == b);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(UInt256Le a, UInt256Le b) => (UInt256)a < (UInt256)b;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -182,7 +228,21 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt256Le"/> to a <see cref="UInt256"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator UInt256(UInt256Le a) => new((UInt128)a.hi, (UInt128)a.lo);
+        public static implicit operator UInt256(UInt256Le a)
+        {
+#if BIG_ENDIAN
+            // On BE: each limb must be byte-swapped back to native order.
+            ReadOnlySpan<byte> raw = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref a, 1));
+            return new UInt256(
+                BinaryPrimitives.ReadUInt64LittleEndian(raw[24..]),
+                BinaryPrimitives.ReadUInt64LittleEndian(raw[16..]),
+                BinaryPrimitives.ReadUInt64LittleEndian(raw[8..]),
+                BinaryPrimitives.ReadUInt64LittleEndian(raw));
+#else
+            // On LE: UInt256Le and UInt256 share identical memory layout — zero-cost reinterpret.
+            return Unsafe.As<UInt256Le, UInt256>(ref a);
+#endif
+        }
         /// <summary>Implicitly converts a <see cref="UInt256"/> to a <see cref="UInt256Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UInt256Le(UInt256 a) => new(a);

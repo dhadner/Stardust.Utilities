@@ -26,7 +26,11 @@ namespace Stardust.Utilities
         public Int64Le(long num)
         {
             Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<Int64Le, long>(ref this) = BinaryPrimitives.ReverseEndianness(num);
+#else
             Unsafe.As<Int64Le, long>(ref this) = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="Int64Le"/> from a read-only byte span.</summary>
@@ -129,7 +133,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => ((long)this).ToString();
+        public override string ToString() => ((long)this).ToString();
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((long)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -141,11 +145,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(Int64Le other) => ((long)this).CompareTo((long)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((Int64Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((Int64Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(Int64Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((long)this).GetHashCode();
+        public override int GetHashCode() => ((long)this).GetHashCode();
 
         #region Operators
 
@@ -232,7 +236,11 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int64Le"/> to a <see cref="long"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if BIG_ENDIAN
+        public static implicit operator long(Int64Le a) => BinaryPrimitives.ReverseEndianness(Unsafe.As<Int64Le, long>(ref a));
+#else
         public static implicit operator long(Int64Le a) => Unsafe.As<Int64Le, long>(ref a);
+#endif
 
         /// <summary>Implicitly converts a <see cref="long"/> to an <see cref="Int64Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

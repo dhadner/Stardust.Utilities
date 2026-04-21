@@ -24,8 +24,15 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt128Le(UInt128 num)
         {
+#if BIG_ENDIAN
+            // On BE: UInt64Le ctor swaps each half so bytes land in LE order.
             lo = (UInt64Le)(ulong)num;
             hi = (UInt64Le)(ulong)(num >> 64);
+#else
+            // On LE: UInt128Le and UInt128 share identical memory layout — direct copy.
+            Unsafe.SkipInit(out this);
+            Unsafe.As<UInt128Le, UInt128>(ref this) = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="UInt128Le"/> from a <see cref="ulong"/> value.</summary>
@@ -142,7 +149,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => $"0x{(UInt128)this:x32}";
+        public override string ToString() => $"0x{(UInt128)this:x32}";
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((UInt128)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -154,11 +161,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(UInt128Le other) => ((UInt128)this).CompareTo((UInt128)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((UInt128Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((UInt128Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(UInt128Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((UInt128)this).GetHashCode();
+        public override int GetHashCode() => ((UInt128)this).GetHashCode();
 
         #region Operators
 
@@ -227,15 +234,30 @@ namespace Stardust.Utilities
         /// <summary>Computes the bitwise AND of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Le operator &(UInt128Le a, UInt128Le b) => new((UInt128)a & (UInt128)b);
+        public static UInt128Le operator &(UInt128Le a, UInt128Le b)
+        {
+            Unsafe.As<UInt128Le, ulong>(ref a) &= Unsafe.As<UInt128Le, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref a), 1) &= Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref b), 1);
+            return a;
+        }
         /// <summary>Computes the bitwise OR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Le operator |(UInt128Le a, UInt128Le b) => new((UInt128)a | (UInt128)b);
+        public static UInt128Le operator |(UInt128Le a, UInt128Le b)
+        {
+            Unsafe.As<UInt128Le, ulong>(ref a) |= Unsafe.As<UInt128Le, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref a), 1) |= Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref b), 1);
+            return a;
+        }
         /// <summary>Computes the bitwise XOR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Le operator ^(UInt128Le a, UInt128Le b) => new((UInt128)a ^ (UInt128)b);
+        public static UInt128Le operator ^(UInt128Le a, UInt128Le b)
+        {
+            Unsafe.As<UInt128Le, ulong>(ref a) ^= Unsafe.As<UInt128Le, ulong>(ref b);
+            Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref a), 1) ^= Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref b), 1);
+            return a;
+        }
         /// <summary>Shifts the value right by the specified amount.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
@@ -250,7 +272,12 @@ namespace Stardust.Utilities
         /// <summary>Computes the bitwise complement of the value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static UInt128Le operator ~(UInt128Le a) => new(~(UInt128)a);
+        public static UInt128Le operator ~(UInt128Le a)
+        {
+            Unsafe.As<UInt128Le, ulong>(ref a) = ~Unsafe.As<UInt128Le, ulong>(ref a);
+            Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref a), 1) = ~Unsafe.Add(ref Unsafe.As<UInt128Le, ulong>(ref a), 1);
+            return a;
+        }
         /// <summary>Increments the value by one.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
@@ -266,7 +293,12 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt128Le"/> to a <see cref="UInt128"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if BIG_ENDIAN
         public static implicit operator UInt128(UInt128Le a) => ((UInt128)(ulong)a.hi << 64) | (ulong)a.lo;
+#else
+        // On LE: UInt128Le and UInt128 share identical memory layout — zero-cost reinterpret.
+        public static implicit operator UInt128(UInt128Le a) => Unsafe.As<UInt128Le, UInt128>(ref a);
+#endif
 
         /// <summary>Implicitly converts a <see cref="UInt128"/> to a <see cref="UInt128Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

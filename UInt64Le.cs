@@ -26,7 +26,11 @@ namespace Stardust.Utilities
         public UInt64Le(ulong num)
         {
             Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<UInt64Le, ulong>(ref this) = BinaryPrimitives.ReverseEndianness(num);
+#else
             Unsafe.As<UInt64Le, ulong>(ref this) = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="UInt64Le"/> from a <see cref="long"/> value.</summary>
@@ -145,7 +149,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => $"0x{(ulong)this:x16}";
+        public override string ToString() => $"0x{(ulong)this:x16}";
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((ulong)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -157,11 +161,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(UInt64Le other) => ((ulong)this).CompareTo((ulong)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((UInt64Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((UInt64Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(UInt64Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((ulong)this).GetHashCode();
+        public override int GetHashCode() => ((ulong)this).GetHashCode();
 
         #region Operators
 
@@ -267,7 +271,11 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts a <see cref="UInt64Le"/> to a <see cref="ulong"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if BIG_ENDIAN
+        public static implicit operator ulong(UInt64Le a) => BinaryPrimitives.ReverseEndianness(Unsafe.As<UInt64Le, ulong>(ref a));
+#else
         public static implicit operator ulong(UInt64Le a) => Unsafe.As<UInt64Le, ulong>(ref a);
+#endif
 
         /// <summary>Implicitly converts a <see cref="ulong"/> to a <see cref="UInt64Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

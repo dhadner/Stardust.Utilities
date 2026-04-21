@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>Stardust.Utilities.Benchmarks.EndianOverheadBenchmarks-20260418-084801</title>
+<title>Stardust.Utilities.Benchmarks.EndianOverheadBenchmarks-20260420-171453</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -17,24 +17,85 @@ BenchmarkDotNet v0.15.2, Windows 11 (10.0.26200.8246)
 11th Gen Intel Core i7-11370H 3.30GHz, 1 CPU, 8 logical and 4 physical cores
 .NET SDK 10.0.202
   [Host]     : .NET 10.0.6 (10.0.626.17701), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
-  Job-MEHJPP : .NET 10.0.6 (10.0.626.17701), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
+  Job-HFWDAV : .NET 10.0.6 (10.0.626.17701), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
 </code></pre>
-<pre><code>IterationCount=5  WarmupCount=1  
+<pre><code>Runtime=.NET 10.0  Toolchain=net10.0  
 </code></pre>
 
 <table>
-<thead><tr><th>Method    </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Allocated</th>
+<thead><tr><th>Method         </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Ratio</th><th>RatioSD</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>UInt16Be_Add</td><td>16.546 ms</td><td>0.4879 ms</td><td>0.1267 ms</td><td>-</td>
-</tr><tr><td>UInt16Le_Add</td><td>7.848 ms</td><td>0.4395 ms</td><td>0.0680 ms</td><td>-</td>
-</tr><tr><td>UInt16Be_Sub</td><td>16.249 ms</td><td>0.6262 ms</td><td>0.0969 ms</td><td>-</td>
-</tr><tr><td>UInt16Le_Sub</td><td>7.802 ms</td><td>0.2429 ms</td><td>0.0376 ms</td><td>-</td>
-</tr><tr><td>UInt16Be_And</td><td>16.414 ms</td><td>0.2987 ms</td><td>0.0776 ms</td><td>-</td>
-</tr><tr><td>UInt16Le_And</td><td>7.821 ms</td><td>0.2568 ms</td><td>0.0397 ms</td><td>-</td>
-</tr><tr><td>UInt16Be_Compare</td><td>14.579 ms</td><td>0.5808 ms</td><td>0.1508 ms</td><td>-</td>
-</tr><tr><td>UInt16Le_Compare</td><td>8.190 ms</td><td>0.1388 ms</td><td>0.0360 ms</td><td>-</td>
-</tr><tr><td>UInt16Be_HiLo</td><td>20.022 ms</td><td>0.2775 ms</td><td>0.0721 ms</td><td>-</td>
-</tr><tr><td>UInt16Le_HiLo</td><td>6.117 ms</td><td>0.1159 ms</td><td>0.0179 ms</td><td>-</td>
+</thead><tbody><tr><td>Native_UShort_Add</td><td>6.471 ms</td><td>0.0677 ms</td><td>0.0565 ms</td><td>6.458 ms</td><td>1.00</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_Add</td><td>18.980 ms</td><td>0.1519 ms</td><td>0.1268 ms</td><td>18.951 ms</td><td>2.93</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_Add</td><td>6.427 ms</td><td>0.0389 ms</td><td>0.0345 ms</td><td>6.424 ms</td><td>0.99</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UShort_Sub</td><td>7.630 ms</td><td>0.0861 ms</td><td>0.0805 ms</td><td>7.611 ms</td><td>1.18</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_Sub</td><td>19.129 ms</td><td>0.2762 ms</td><td>0.2449 ms</td><td>19.059 ms</td><td>2.96</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_Sub</td><td>6.494 ms</td><td>0.1202 ms</td><td>0.1066 ms</td><td>6.492 ms</td><td>1.00</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UShort_And</td><td>6.470 ms</td><td>0.0853 ms</td><td>0.0798 ms</td><td>6.454 ms</td><td>1.00</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_And</td><td>18.232 ms</td><td>0.2818 ms</td><td>0.2498 ms</td><td>18.114 ms</td><td>2.82</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_And</td><td>6.506 ms</td><td>0.1253 ms</td><td>0.1286 ms</td><td>6.435 ms</td><td>1.01</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UShort_Or</td><td>7.669 ms</td><td>0.1253 ms</td><td>0.1444 ms</td><td>7.611 ms</td><td>1.19</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_Or</td><td>18.103 ms</td><td>0.2268 ms</td><td>0.2010 ms</td><td>18.072 ms</td><td>2.80</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_Or</td><td>7.563 ms</td><td>0.0462 ms</td><td>0.0361 ms</td><td>7.550 ms</td><td>1.17</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UShort_Xor</td><td>7.673 ms</td><td>0.1498 ms</td><td>0.1251 ms</td><td>7.632 ms</td><td>1.19</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_Xor</td><td>18.021 ms</td><td>0.1429 ms</td><td>0.1193 ms</td><td>17.968 ms</td><td>2.79</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_Xor</td><td>7.629 ms</td><td>0.0887 ms</td><td>0.0786 ms</td><td>7.612 ms</td><td>1.18</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UShort_Compare</td><td>8.007 ms</td><td>0.1537 ms</td><td>0.1888 ms</td><td>7.911 ms</td><td>1.24</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_Compare</td><td>17.507 ms</td><td>0.3333 ms</td><td>0.3118 ms</td><td>17.478 ms</td><td>2.71</td><td>0.05</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_Compare</td><td>7.920 ms</td><td>0.0652 ms</td><td>0.0578 ms</td><td>7.898 ms</td><td>1.22</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UShort_HiLo</td><td>8.854 ms</td><td>0.1719 ms</td><td>0.2353 ms</td><td>8.772 ms</td><td>1.37</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Be_HiLo</td><td>19.994 ms</td><td>0.1237 ms</td><td>0.1097 ms</td><td>19.975 ms</td><td>3.09</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt16Le_HiLo</td><td>6.213 ms</td><td>0.0561 ms</td><td>0.0468 ms</td><td>6.200 ms</td><td>0.96</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt_Add</td><td>3.909 ms</td><td>0.0766 ms</td><td>0.0912 ms</td><td>3.888 ms</td><td>0.60</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Be_Add</td><td>10.718 ms</td><td>0.2061 ms</td><td>0.2290 ms</td><td>10.593 ms</td><td>1.66</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Le_Add</td><td>3.890 ms</td><td>0.0590 ms</td><td>0.0552 ms</td><td>3.887 ms</td><td>0.60</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt_And</td><td>4.281 ms</td><td>0.0839 ms</td><td>0.0998 ms</td><td>4.256 ms</td><td>0.66</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Be_And</td><td>10.078 ms</td><td>0.0979 ms</td><td>0.0868 ms</td><td>10.086 ms</td><td>1.56</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Le_And</td><td>4.391 ms</td><td>0.0869 ms</td><td>0.1633 ms</td><td>4.373 ms</td><td>0.68</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt_Or</td><td>4.279 ms</td><td>0.0671 ms</td><td>0.0718 ms</td><td>4.272 ms</td><td>0.66</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Be_Or</td><td>10.187 ms</td><td>0.2001 ms</td><td>0.1872 ms</td><td>10.177 ms</td><td>1.57</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Le_Or</td><td>4.271 ms</td><td>0.0764 ms</td><td>0.0714 ms</td><td>4.267 ms</td><td>0.66</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt_Xor</td><td>4.268 ms</td><td>0.0835 ms</td><td>0.0893 ms</td><td>4.242 ms</td><td>0.66</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Be_Xor</td><td>10.247 ms</td><td>0.1875 ms</td><td>0.1662 ms</td><td>10.252 ms</td><td>1.58</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt32Le_Xor</td><td>4.249 ms</td><td>0.0818 ms</td><td>0.0765 ms</td><td>4.239 ms</td><td>0.66</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_ULong_Add</td><td>5.113 ms</td><td>0.0989 ms</td><td>0.1100 ms</td><td>5.056 ms</td><td>0.79</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Be_Add</td><td>17.216 ms</td><td>0.2773 ms</td><td>0.2594 ms</td><td>17.207 ms</td><td>2.66</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Le_Add</td><td>4.647 ms</td><td>0.0928 ms</td><td>0.1624 ms</td><td>4.710 ms</td><td>0.72</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_ULong_And</td><td>4.593 ms</td><td>0.0918 ms</td><td>0.2016 ms</td><td>4.628 ms</td><td>0.71</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Be_And</td><td>15.306 ms</td><td>0.2979 ms</td><td>0.3188 ms</td><td>15.248 ms</td><td>2.37</td><td>0.05</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Le_And</td><td>4.573 ms</td><td>0.0900 ms</td><td>0.1504 ms</td><td>4.532 ms</td><td>0.71</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_ULong_Or</td><td>4.527 ms</td><td>0.0896 ms</td><td>0.1165 ms</td><td>4.522 ms</td><td>0.70</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Be_Or</td><td>15.118 ms</td><td>0.1820 ms</td><td>0.1703 ms</td><td>15.129 ms</td><td>2.34</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Le_Or</td><td>4.449 ms</td><td>0.0847 ms</td><td>0.0941 ms</td><td>4.424 ms</td><td>0.69</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_ULong_Xor</td><td>4.398 ms</td><td>0.0852 ms</td><td>0.1046 ms</td><td>4.378 ms</td><td>0.68</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt64Be_Xor</td><td>14.986 ms</td><td>0.2060 ms</td><td>0.1826 ms</td><td>14.993 ms</td><td>2.32</td><td>0.03</td><td>5 B</td><td>NA</td>
+</tr><tr><td>UInt64Le_Xor</td><td>4.375 ms</td><td>0.0842 ms</td><td>0.0936 ms</td><td>4.377 ms</td><td>0.68</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt128_Add</td><td>8.626 ms</td><td>0.1693 ms</td><td>0.2481 ms</td><td>8.532 ms</td><td>1.33</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Be_Add</td><td>26.153 ms</td><td>0.5183 ms</td><td>0.5323 ms</td><td>26.223 ms</td><td>4.04</td><td>0.09</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Le_Add</td><td>8.249 ms</td><td>0.1221 ms</td><td>0.1306 ms</td><td>8.213 ms</td><td>1.27</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt128_And</td><td>7.196 ms</td><td>0.1380 ms</td><td>0.1223 ms</td><td>7.170 ms</td><td>1.11</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Be_And</td><td>23.247 ms</td><td>0.4639 ms</td><td>0.6350 ms</td><td>23.039 ms</td><td>3.59</td><td>0.10</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Le_And</td><td>7.063 ms</td><td>0.0810 ms</td><td>0.0758 ms</td><td>7.065 ms</td><td>1.09</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt128_Or</td><td>7.211 ms</td><td>0.1335 ms</td><td>0.1311 ms</td><td>7.171 ms</td><td>1.11</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Be_Or</td><td>22.753 ms</td><td>0.1412 ms</td><td>0.1179 ms</td><td>22.768 ms</td><td>3.52</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Le_Or</td><td>7.285 ms</td><td>0.1423 ms</td><td>0.1947 ms</td><td>7.262 ms</td><td>1.13</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt128_Xor</td><td>7.143 ms</td><td>0.0891 ms</td><td>0.0744 ms</td><td>7.119 ms</td><td>1.10</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Be_Xor</td><td>23.279 ms</td><td>0.4610 ms</td><td>0.5309 ms</td><td>23.199 ms</td><td>3.60</td><td>0.09</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt128Le_Xor</td><td>7.123 ms</td><td>0.0794 ms</td><td>0.0743 ms</td><td>7.115 ms</td><td>1.10</td><td>0.01</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt256_Add</td><td>12.627 ms</td><td>0.1736 ms</td><td>0.1450 ms</td><td>12.646 ms</td><td>1.95</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Be_Add</td><td>236.046 ms</td><td>4.3727 ms</td><td>7.0612 ms</td><td>234.011 ms</td><td>36.48</td><td>1.12</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Le_Add</td><td>12.572 ms</td><td>0.2484 ms</td><td>0.2957 ms</td><td>12.481 ms</td><td>1.94</td><td>0.05</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt256_And</td><td>12.716 ms</td><td>0.1919 ms</td><td>0.1701 ms</td><td>12.654 ms</td><td>1.97</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Be_And</td><td>87.365 ms</td><td>1.7367 ms</td><td>1.7056 ms</td><td>87.642 ms</td><td>13.50</td><td>0.28</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Le_And</td><td>12.857 ms</td><td>0.2511 ms</td><td>0.3352 ms</td><td>12.890 ms</td><td>1.99</td><td>0.05</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt256_Or</td><td>12.743 ms</td><td>0.2475 ms</td><td>0.2194 ms</td><td>12.685 ms</td><td>1.97</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Be_Or</td><td>107.549 ms</td><td>6.1217 ms</td><td>18.0500 ms</td><td>100.914 ms</td><td>16.62</td><td>2.78</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Le_Or</td><td>13.094 ms</td><td>0.2526 ms</td><td>0.6383 ms</td><td>12.809 ms</td><td>2.02</td><td>0.10</td><td>-</td><td>NA</td>
+</tr><tr><td>Native_UInt256_Xor</td><td>12.662 ms</td><td>0.1317 ms</td><td>0.1168 ms</td><td>12.657 ms</td><td>1.96</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Be_Xor</td><td>87.655 ms</td><td>1.7233 ms</td><td>1.6925 ms</td><td>87.571 ms</td><td>13.55</td><td>0.28</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Le_Xor</td><td>12.694 ms</td><td>0.2269 ms</td><td>0.2122 ms</td><td>12.686 ms</td><td>1.96</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Be_RoundTrip</td><td>13.716 ms</td><td>0.1600 ms</td><td>0.1418 ms</td><td>13.733 ms</td><td>2.12</td><td>0.03</td><td>-</td><td>NA</td>
+</tr><tr><td>UInt256Le_RoundTrip</td><td>8.739 ms</td><td>0.1460 ms</td><td>0.1366 ms</td><td>8.722 ms</td><td>1.35</td><td>0.02</td><td>-</td><td>NA</td>
 </tr></tbody></table>
 </body>
 </html>

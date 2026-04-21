@@ -28,8 +28,14 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Int16Le(short num)
         {
-            lo = 0; hi = 0;
-            _value = BitConverter.IsLittleEndian ? num : BinaryPrimitives.ReverseEndianness(num);
+            // SkipInit suppresses the definite-assignment check so we can write the
+            // overlapping _value field once without first zeroing lo/hi separately.
+            Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            _value = BinaryPrimitives.ReverseEndianness(num);
+#else
+            _value = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="Int16Le"/> from a byte array at the given offset.</summary>
@@ -134,7 +140,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => ((short)this).ToString();
+        public override string ToString() => ((short)this).ToString();
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((short)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -146,11 +152,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(Int16Le other) => ((short)this).CompareTo((short)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((Int16Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((Int16Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(Int16Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((short)this).GetHashCode();
+        public override int GetHashCode() => ((short)this).GetHashCode();
 
         #region Operators
 
@@ -237,7 +243,11 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int16Le"/> to a <see cref="short"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator short(Int16Le a) => BitConverter.IsLittleEndian ? a._value : BinaryPrimitives.ReverseEndianness(a._value);
+#if BIG_ENDIAN
+        public static implicit operator short(Int16Le a) => BinaryPrimitives.ReverseEndianness(a._value);
+#else
+        public static implicit operator short(Int16Le a) => a._value;
+#endif
 
         /// <summary>Implicitly converts a <see cref="short"/> to an <see cref="Int16Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

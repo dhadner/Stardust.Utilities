@@ -31,9 +31,15 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt16Be(ushort num)
         {
-            hi = 0; lo = 0;
+            // SkipInit suppresses the definite-assignment check so we can write the
+            // overlapping _value field once without first zeroing hi/lo separately.
+            Unsafe.SkipInit(out this);
             // Store byte-swapped on LE host so memory layout is big-endian (hi first).
-            _value = BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(num) : num;
+#if BIG_ENDIAN
+            _value = num;
+#else
+            _value = BinaryPrimitives.ReverseEndianness(num);
+#endif
         }
 
         /// <summary>
@@ -255,7 +261,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override readonly string ToString() => $"0x{(ushort)this:x4}";
+        public override string ToString() => $"0x{(ushort)this:x4}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -313,7 +319,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
-        public override readonly bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -336,7 +342,7 @@ namespace Stardust.Utilities
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ((ushort)this).GetHashCode();
         }
@@ -487,7 +493,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt16Be operator &(UInt16Be a, UInt16Be b)
-            => new((ushort)((ushort)a & (ushort)b));
+        {
+            a._value &= b._value;
+            return a;
+        }
 
         /// <summary>
         /// Computes the bitwise OR of two values.
@@ -498,7 +507,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt16Be operator |(UInt16Be a, UInt16Be b)
-            => new((ushort)((ushort)a | (ushort)b));
+        {
+            a._value |= b._value;
+            return a;
+        }
 
         /// <summary>
         /// Shifts a value right by the specified number of bits.
@@ -549,8 +561,16 @@ namespace Stardust.Utilities
         /// <returns>The bitwise XOR of the inputs.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
+        public static UInt16Be operator ^(UInt16Be a, UInt16Be b)
+        {
+            a._value ^= b._value;
+            return a;
+        }
+
+        /// <summary>Computes the bitwise XOR of a value and an unsigned mask.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt16Be operator ^(UInt16Be a, uint b)
-            => new((ushort)((ushort)a ^ b));
+            => a ^ new UInt16Be((ushort)b);
 
         /// <summary>
         /// Computes the bitwise complement of a value.
@@ -560,7 +580,10 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static UInt16Be operator ~(UInt16Be a)
-            => new((ushort)~(ushort)a);
+        {
+            a._value = (ushort)~a._value;
+            return a;
+        }
 
         /// <summary>
         /// Increments a value by one.
@@ -592,7 +615,11 @@ namespace Stardust.Utilities
         /// <param name="a">The big-endian value.</param>
         /// <returns>The native value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ushort(UInt16Be a) => BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(a._value) : a._value;
+#if BIG_ENDIAN
+        public static implicit operator ushort(UInt16Be a) => a._value;
+#else
+        public static implicit operator ushort(UInt16Be a) => BinaryPrimitives.ReverseEndianness(a._value);
+#endif
 
         /// <summary>
         /// Converts a big-endian value to a native <see cref="uint"/>.

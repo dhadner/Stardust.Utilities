@@ -24,9 +24,16 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Int128Le(Int128 num)
         {
+#if BIG_ENDIAN
+            // On BE: UInt64Le ctor swaps each half so bytes land in LE order.
             UInt128 u = (UInt128)num;
             lo = (UInt64Le)(ulong)u;
             hi = (UInt64Le)(ulong)(u >> 64);
+#else
+            // On LE: Int128Le and Int128 share identical memory layout — direct copy.
+            Unsafe.SkipInit(out this);
+            Unsafe.As<Int128Le, Int128>(ref this) = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="Int128Le"/> from a <see cref="long"/> value.</summary>
@@ -140,7 +147,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => ((Int128)this).ToString();
+        public override string ToString() => ((Int128)this).ToString();
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((Int128)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -152,11 +159,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(Int128Le other) => ((Int128)this).CompareTo((Int128)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((Int128Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((Int128Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(Int128Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((Int128)this).GetHashCode();
+        public override int GetHashCode() => ((Int128)this).GetHashCode();
 
         #region Operators
 
@@ -264,7 +271,12 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int128Le"/> to an <see cref="Int128"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if BIG_ENDIAN
         public static implicit operator Int128(Int128Le a) => (Int128)(((UInt128)(ulong)a.hi << 64) | (ulong)a.lo);
+#else
+        // On LE: Int128Le and Int128 share identical memory layout — zero-cost reinterpret.
+        public static implicit operator Int128(Int128Le a) => Unsafe.As<Int128Le, Int128>(ref a);
+#endif
 
         /// <summary>Implicitly converts an <see cref="Int128"/> to an <see cref="Int128Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -20,6 +20,11 @@ This guide explains how to modify the source generators and update consuming pro
   - [Package Reference Scenarios](#package-reference-scenarios)
   - [Updating the Source Generator](#updating-the-source-generator)
   - [NuGet Package Architecture](#nuget-package-architecture)
+- [Building for Big-Endian Platforms](#building-for-big-endian-platforms)
+  - [The BigEndian MSBuild Property](#the-bigendian-msbuild-property)
+  - [Why Not Auto-Detect from Architecture Name?](#why-not-auto-detect-from-architecture-name)
+  - [Runtime Validation](#runtime-validation)
+  - [Testing on s390x via QEMU User-Mode](#testing-on-s390x-via-qemu-user-mode)
 - [Testing](#testing)
   - [Unit Tests](#unit-tests)
   - [Performance Tests](#performance-tests)
@@ -348,6 +353,146 @@ The `Stardust.Utilities` NuGet package includes:
 | `build/Stardust.Utilities.props` | Auto-enables `EmitCompilerGeneratedFiles` for IntelliSense |
 | `build/Stardust.Utilities.targets` | Auto-excludes generated files from duplicate compilation |
 | `README.md` | Package documentation |
+
+## Building for Big-Endian Platforms
+
+### The BigEndian MSBuild Property
+
+The endian types (`UInt32Be`, `Int128Le`, `UInt256Be`, etc.) use `#if BIG_ENDIAN` compile-time
+guards to select optimized code paths for the host platform. On little-endian hardware (x86/x64/ARM64),
+the default build is correct and optimal. When targeting a **big-endian platform**, you must pass
+`-p:BigEndian=true` to enable the BE-optimized paths:
+
+```sh
+# Build the library for a big-endian target
+dotnet build -p:BigEndian=true
+
+# Run unit tests on a big-endian machine
+dotnet test Test/Stardust.Utilities.Tests.csproj -p:BigEndian=true -f net8.0 \
+  --filter "Category!=Performance"
+
+# Build the NuGet package for a big-endian target
+./Build-Combined-NuGetPackages.ps1 -SkipTests
+# (set BigEndian=true as an env var, or pass -p:BigEndian=true to individual dotnet commands)
+```
+
+This is wired in `Directory.Build.props`:
+
+```xml
+<PropertyGroup Condition="'$(BigEndian)' == 'true'">
+  <DefineConstants>$(DefineConstants);BIG_ENDIAN</DefineConstants>
+</PropertyGroup>
+```
+
+### Why Not Auto-Detect from Architecture Name?
+
+The `BigEndian` property is set **explicitly by the developer** rather than inferred from the
+`RuntimeIdentifier` or CPU architecture name for three reasons:
+
+1. **Bi-endian architectures.** PowerPC and MIPS can run in either byte order depending on the
+   OS configuration (`ppc64le` vs `ppc64be`, `mipsel` vs `mips`). The RID alone does not
+   determine endianness; the OS configuration does.
+
+2. **Cross-compilation.** When cross-compiling on an x86 host for an s390x target, the RID is
+   `linux-s390x` but the host is little-endian. Inferring `BIG_ENDIAN` from the RID would
+   immediately fail the `EndiannessCheck` module initializer, which validates at **runtime**
+   against `BitConverter.IsLittleEndian`. The flag must reflect the **target** endianness, and
+   only the developer (or CI script) knows that with certainty.
+
+3. **Future-proofing.** Hardcoding architecture names creates a maintenance burden: every new
+   BE architecture must be added to the MSBuild condition. An explicit opt-in is more robust.
+
+### Runtime Validation
+
+`EndiannessCheck.cs` contains a `[ModuleInitializer]` that runs before any library code and
+validates that the compile-time `BIG_ENDIAN` flag matches `BitConverter.IsLittleEndian`:
+
+```csharp
+[ModuleInitializer]
+internal static void EnsureCorrectEndianness()
+{
+#if BIG_ENDIAN
+    if (BitConverter.IsLittleEndian)
+        throw new PlatformNotSupportedException(
+            "This build was compiled with BIG_ENDIAN but is running on a little-endian machine. " +
+            "Rebuild without -p:BigEndian=true.");
+#else
+    if (!BitConverter.IsLittleEndian)
+        throw new PlatformNotSupportedException(
+            "This build was compiled for little-endian but is running on a big-endian machine. " +
+            "Rebuild with -p:BigEndian=true.");
+#endif
+}
+```
+
+This catches mismatched builds immediately at startup. If you see `PlatformNotSupportedException`
+on launch, check whether `BigEndian=true` was (or was not) passed to the build.
+
+### Testing on s390x via QEMU User-Mode
+
+The canonical procedure for verifying BE correctness on IBM Z (s390x) without physical hardware
+uses WSL2 + QEMU user-mode emulation + a debootstrapped Ubuntu s390x chroot + IBM's community
+.NET 8 SDK for s390x.
+
+**One-time setup (from WSL2 Ubuntu):**
+
+```bash
+# 1. Install QEMU user-mode and debootstrap
+sudo apt-get update
+sudo apt-get install -y qemu-user-static binfmt-support debootstrap
+
+# 2. Register QEMU binfmt handlers so s390x ELF binaries run transparently
+sudo update-binfmts --enable qemu-s390x
+
+# 3. Create an s390x Ubuntu 22.04 chroot (jammy)
+sudo debootstrap --arch=s390x --foreign jammy /opt/s390x-chroot \
+    http://ports.ubuntu.com/ubuntu-ports
+
+# 4. Copy the QEMU static binary into the chroot so it can run inside
+sudo cp /usr/bin/qemu-s390x-static /opt/s390x-chroot/usr/bin/
+
+# 5. Complete the second-stage debootstrap inside the chroot
+sudo chroot /opt/s390x-chroot /debootstrap/debootstrap --second-stage
+
+# 6. Install IBM .NET 8 SDK for s390x inside the chroot.
+#    IBM's community .NET distributions for s390x are available from:
+#    https://github.com/ibmruntimes/dotnet-s390x (tarballs) or via the
+#    IBM package feed. Install the SDK tarball to /usr/local/dotnet-s390x:
+sudo chroot /opt/s390x-chroot bash -c "
+  apt-get install -y curl libicu-dev libssl-dev
+  mkdir -p /usr/local/dotnet
+  curl -L <IBM_DOTNET8_S390X_TARBALL_URL> | tar -xz -C /usr/local/dotnet
+  ln -sf /usr/local/dotnet/dotnet /usr/local/bin/dotnet
+"
+```
+
+**Building and running tests:**
+
+```bash
+# Mount the source tree into the chroot
+sudo mount --bind /path/to/Stardust.Utilities /opt/s390x-chroot/mnt/stardust
+
+# Enter the chroot and run tests with BigEndian=true, net8.0 only
+sudo chroot /opt/s390x-chroot bash -c "
+  cd /mnt/stardust
+  dotnet test Test/Stardust.Utilities.Tests.csproj \
+    -p:BigEndian=true -f net8.0 \
+    --filter 'Category!=Performance' \
+    -c Release
+"
+```
+
+**What to check:**
+- All tests pass (none skipped or failed due to BE-specific assumptions).
+- The `EndiannessCheck` module initializer does **not** throw (confirms `BigEndian=true` matched
+  the actual s390x runtime).
+- `BitConverter.IsLittleEndian` is `false` on s390x (verifiable with a trivial test or by
+  inspecting the test runner output).
+
+**Performance note:** QEMU user-mode instruction emulation runs at roughly 1/10–1/100th of
+native speed on the x86 host. BenchmarkDotNet numbers measured inside the chroot reflect
+emulation overhead, not real s390x hardware performance. Run only unit tests for correctness
+verification; defer performance measurement to bare-metal s390x hardware.
 
 ## Testing
 

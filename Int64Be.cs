@@ -72,7 +72,11 @@ namespace Stardust.Utilities
         public Int64Be(long num)
         {
             Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<Int64Be, long>(ref this) = num;
+#else
             Unsafe.As<Int64Be, long>(ref this) = BinaryPrimitives.ReverseEndianness(num);
+#endif
         }
 
         /// <summary>
@@ -431,7 +435,11 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator long(Int64Be a)
         {
+#if BIG_ENDIAN
+            return Unsafe.As<Int64Be, long>(ref a);
+#else
             return BinaryPrimitives.ReverseEndianness(Unsafe.As<Int64Be, long>(ref a));
+#endif
         }
 
         /// <summary>
@@ -587,7 +595,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override readonly string ToString() => $"0x{(ulong)(long)this:x16}";
+        public override string ToString() => $"0x{(ulong)(long)this:x16}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -649,7 +657,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
-        public override readonly bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -672,7 +680,7 @@ namespace Stardust.Utilities
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return ((long)this).GetHashCode();
         }

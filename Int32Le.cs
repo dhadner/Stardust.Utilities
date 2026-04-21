@@ -26,7 +26,11 @@ namespace Stardust.Utilities
         public Int32Le(int num)
         {
             Unsafe.SkipInit(out this);
+#if BIG_ENDIAN
+            Unsafe.As<Int32Le, int>(ref this) = BinaryPrimitives.ReverseEndianness(num);
+#else
             Unsafe.As<Int32Le, int>(ref this) = num;
+#endif
         }
 
         /// <summary>Initializes a new <see cref="Int32Le"/> from a read-only byte span.</summary>
@@ -134,7 +138,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString() => ((int)this).ToString();
+        public override string ToString() => ((int)this).ToString();
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((int)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -146,11 +150,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(Int32Le other) => ((int)this).CompareTo((int)other);
         /// <inheritdoc/>
-        public override readonly bool Equals(object? obj) => obj != null && Equals((Int32Le)obj);
+        public override bool Equals(object? obj) => obj != null && Equals((Int32Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(Int32Le other) => this == other;
         /// <inheritdoc/>
-        public override readonly int GetHashCode() => ((int)this).GetHashCode();
+        public override int GetHashCode() => ((int)this).GetHashCode();
 
         #region Operators
 
@@ -237,7 +241,11 @@ namespace Stardust.Utilities
 
         /// <summary>Implicitly converts an <see cref="Int32Le"/> to an <see cref="int"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if BIG_ENDIAN
+        public static implicit operator int(Int32Le a) => BinaryPrimitives.ReverseEndianness(Unsafe.As<Int32Le, int>(ref a));
+#else
         public static implicit operator int(Int32Le a) => Unsafe.As<Int32Le, int>(ref a);
+#endif
 
         /// <summary>Implicitly converts an <see cref="int"/> to an <see cref="Int32Le"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
