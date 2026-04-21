@@ -1262,6 +1262,312 @@ public partial class ExtensionsTests
 
     #endregion
 
+    #region Saturating Arithmetic (Native 32-bit)
+
+    [Fact]
+    public void Uint_SaturatingAdd_Normal() => ((uint)100).SaturatingAdd(200U).Should().Be(300U);
+
+    [Fact]
+    public void Uint_SaturatingAdd_Overflow() => uint.MaxValue.SaturatingAdd(1U).Should().Be(uint.MaxValue);
+
+    [Fact]
+    public void Uint_SaturatingAdd_BothMax() => uint.MaxValue.SaturatingAdd(uint.MaxValue).Should().Be(uint.MaxValue);
+
+    [Fact]
+    public void Uint_SaturatingAdd_Zero() => ((uint)42).SaturatingAdd(0U).Should().Be(42U);
+
+    [Fact]
+    public void Uint_SaturatingSub_Normal() => ((uint)300).SaturatingSub(100U).Should().Be(200U);
+
+    [Fact]
+    public void Uint_SaturatingSub_Underflow() => ((uint)10).SaturatingSub(20U).Should().Be(uint.MinValue);
+
+    [Fact]
+    public void Uint_SaturatingSub_Equal() => uint.MaxValue.SaturatingSub(uint.MaxValue).Should().Be(0U);
+
+    [Fact]
+    public void Uint_SaturatingSub_Zero() => ((uint)42).SaturatingSub(0U).Should().Be(42U);
+
+    [Fact]
+    public void Int_SaturatingAdd_Normal() => ((int)100).SaturatingAdd(200).Should().Be(300);
+
+    [Fact]
+    public void Int_SaturatingAdd_PositiveOverflow() => int.MaxValue.SaturatingAdd(1).Should().Be(int.MaxValue);
+
+    [Fact]
+    public void Int_SaturatingAdd_NegativeOverflow() => int.MinValue.SaturatingAdd(-1).Should().Be(int.MinValue);
+
+    [Fact]
+    public void Int_SaturatingAdd_MixedSigns_NoOverflow() => int.MaxValue.SaturatingAdd(-1).Should().Be(int.MaxValue - 1);
+
+    [Fact]
+    public void Int_SaturatingAdd_Zero() => ((int)-42).SaturatingAdd(0).Should().Be(-42);
+
+    [Fact]
+    public void Int_SaturatingSub_Normal() => ((int)300).SaturatingSub(100).Should().Be(200);
+
+    [Fact]
+    public void Int_SaturatingSub_PositiveOverflow() => int.MaxValue.SaturatingSub(-1).Should().Be(int.MaxValue);
+
+    [Fact]
+    public void Int_SaturatingSub_NegativeOverflow() => int.MinValue.SaturatingSub(1).Should().Be(int.MinValue);
+
+    [Fact]
+    public void Int_SaturatingSub_SameSigns_NoOverflow() => int.MinValue.SaturatingSub(-1).Should().Be(int.MinValue + 1);
+
+    [Fact]
+    public void Int_SaturatingSub_Zero() => ((int)-42).SaturatingSub(0).Should().Be(-42);
+
+    [Fact]
+    public void Int_SaturatingSub_BothMax() => int.MaxValue.SaturatingSub(int.MaxValue).Should().Be(0);
+
+    #endregion
+
+    #region Saturating Arithmetic (Native 64-bit)
+
+    [Fact]
+    public void Ulong_SaturatingAdd_Normal() => ((ulong)100).SaturatingAdd(200UL).Should().Be(300UL);
+
+    [Fact]
+    public void Ulong_SaturatingAdd_Overflow() => ulong.MaxValue.SaturatingAdd(1UL).Should().Be(ulong.MaxValue);
+
+    [Fact]
+    public void Ulong_SaturatingAdd_BothMax() => ulong.MaxValue.SaturatingAdd(ulong.MaxValue).Should().Be(ulong.MaxValue);
+
+    [Fact]
+    public void Ulong_SaturatingAdd_Zero() => ((ulong)42).SaturatingAdd(0UL).Should().Be(42UL);
+
+    [Fact]
+    public void Ulong_SaturatingSub_Normal() => ((ulong)300).SaturatingSub(100UL).Should().Be(200UL);
+
+    [Fact]
+    public void Ulong_SaturatingSub_Underflow() => ((ulong)10).SaturatingSub(20UL).Should().Be(ulong.MinValue);
+
+    [Fact]
+    public void Ulong_SaturatingSub_Equal() => ulong.MaxValue.SaturatingSub(ulong.MaxValue).Should().Be(0UL);
+
+    [Fact]
+    public void Ulong_SaturatingSub_Zero() => ((ulong)42).SaturatingSub(0UL).Should().Be(42UL);
+
+    [Fact]
+    public void Long_SaturatingAdd_Normal() => ((long)100).SaturatingAdd(200L).Should().Be(300L);
+
+    [Fact]
+    public void Long_SaturatingAdd_PositiveOverflow() => long.MaxValue.SaturatingAdd(1L).Should().Be(long.MaxValue);
+
+    [Fact]
+    public void Long_SaturatingAdd_NegativeOverflow() => long.MinValue.SaturatingAdd(-1L).Should().Be(long.MinValue);
+
+    [Fact]
+    public void Long_SaturatingAdd_MixedSigns_NoOverflow() => long.MaxValue.SaturatingAdd(-1L).Should().Be(long.MaxValue - 1L);
+
+    [Fact]
+    public void Long_SaturatingAdd_Zero() => ((long)-42).SaturatingAdd(0L).Should().Be(-42L);
+
+    [Fact]
+    public void Long_SaturatingSub_Normal() => ((long)300).SaturatingSub(100L).Should().Be(200L);
+
+    [Fact]
+    public void Long_SaturatingSub_PositiveOverflow() => long.MaxValue.SaturatingSub(-1L).Should().Be(long.MaxValue);
+
+    [Fact]
+    public void Long_SaturatingSub_NegativeOverflow() => long.MinValue.SaturatingSub(1L).Should().Be(long.MinValue);
+
+    [Fact]
+    public void Long_SaturatingSub_SameSigns_NoOverflow() => long.MinValue.SaturatingSub(-1L).Should().Be(long.MinValue + 1L);
+
+    [Fact]
+    public void Long_SaturatingSub_Zero() => ((long)-42).SaturatingSub(0L).Should().Be(-42L);
+
+    [Fact]
+    public void Long_SaturatingSub_BothMax() => long.MaxValue.SaturatingSub(long.MaxValue).Should().Be(0L);
+
+    #endregion
+
+    #region Saturating Arithmetic (Native 256-bit)
+
+    // ── UInt256 SaturatingAdd ───────────────────────────────────
+
+    [Fact]
+    public void UInt256_SaturatingAdd_Normal()
+    {
+        UInt256 a = new(100UL);
+        UInt256 b = new(200UL);
+        a.SaturatingAdd(b).Should().Be(new UInt256(300UL));
+    }
+
+    [Fact]
+    public void UInt256_SaturatingAdd_Overflow_ClampsToMax()
+    {
+        UInt256 a = UInt256.MaxValue;
+        UInt256 b = new(1UL);
+        a.SaturatingAdd(b).Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256_SaturatingAdd_BothMax_ClampsToMax()
+    {
+        UInt256.MaxValue.SaturatingAdd(UInt256.MaxValue).Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256_SaturatingAdd_Zero()
+    {
+        UInt256 a = new(42UL);
+        a.SaturatingAdd(UInt256.MinValue).Should().Be(new UInt256(42UL));
+    }
+
+    [Fact]
+    public void UInt256_SaturatingAdd_OneBeforeMax()
+    {
+        // MaxValue - 1 + 1 = MaxValue, no saturation needed
+        UInt256 a = new(ulong.MaxValue, ulong.MaxValue, ulong.MaxValue, ulong.MaxValue - 1UL);
+        UInt256 b = new(1UL);
+        a.SaturatingAdd(b).Should().Be(UInt256.MaxValue);
+    }
+
+    // ── UInt256 SaturatingSub ───────────────────────────────────
+
+    [Fact]
+    public void UInt256_SaturatingSub_Normal()
+    {
+        UInt256 a = new(300UL);
+        UInt256 b = new(100UL);
+        a.SaturatingSub(b).Should().Be(new UInt256(200UL));
+    }
+
+    [Fact]
+    public void UInt256_SaturatingSub_Underflow_ClampsToZero()
+    {
+        UInt256 a = new(10UL);
+        UInt256 b = new(20UL);
+        a.SaturatingSub(b).Should().Be(UInt256.MinValue);
+    }
+
+    [Fact]
+    public void UInt256_SaturatingSub_Zero()
+    {
+        UInt256 a = new(42UL);
+        a.SaturatingSub(UInt256.MinValue).Should().Be(new UInt256(42UL));
+    }
+
+    [Fact]
+    public void UInt256_SaturatingSub_Equal_ReturnsZero()
+    {
+        UInt256.MaxValue.SaturatingSub(UInt256.MaxValue).Should().Be(UInt256.MinValue);
+    }
+
+    [Fact]
+    public void UInt256_SaturatingSub_MaxMinusOne()
+    {
+        UInt256 expected = new(ulong.MaxValue, ulong.MaxValue, ulong.MaxValue, ulong.MaxValue - 1UL);
+        UInt256.MaxValue.SaturatingSub(new UInt256(1UL)).Should().Be(expected);
+    }
+
+    // ── Int256 SaturatingAdd ────────────────────────────────────
+
+    [Fact]
+    public void Int256_SaturatingAdd_Normal()
+    {
+        Int256 a = new(100L);
+        Int256 b = new(200L);
+        a.SaturatingAdd(b).Should().Be(new Int256(300L));
+    }
+
+    [Fact]
+    public void Int256_SaturatingAdd_PositiveOverflow_ClampsToMax()
+    {
+        Int256.MaxValue.SaturatingAdd(new Int256(1L)).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256_SaturatingAdd_NegativeOverflow_ClampsToMin()
+    {
+        Int256.MinValue.SaturatingAdd(new Int256(-1L)).Should().Be(Int256.MinValue);
+    }
+
+    [Fact]
+    public void Int256_SaturatingAdd_MixedSigns_NoOverflow()
+    {
+        // MaxValue + (-1) = MaxValue - 1, no saturation
+        Int256 result = Int256.MaxValue.SaturatingAdd(new Int256(-1L));
+        result.Should().NotBe(Int256.MaxValue);
+        (result > new Int256(0L)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int256_SaturatingAdd_Zero()
+    {
+        Int256 a = new(-42L);
+        a.SaturatingAdd(new Int256(0L)).Should().Be(new Int256(-42L));
+    }
+
+    [Fact]
+    public void Int256_SaturatingAdd_BothPositiveMax()
+    {
+        Int256.MaxValue.SaturatingAdd(Int256.MaxValue).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256_SaturatingAdd_BothNegativeMin()
+    {
+        Int256.MinValue.SaturatingAdd(Int256.MinValue).Should().Be(Int256.MinValue);
+    }
+
+    // ── Int256 SaturatingSub ────────────────────────────────────
+
+    [Fact]
+    public void Int256_SaturatingSub_Normal()
+    {
+        Int256 a = new(300L);
+        Int256 b = new(100L);
+        a.SaturatingSub(b).Should().Be(new Int256(200L));
+    }
+
+    [Fact]
+    public void Int256_SaturatingSub_PositiveOverflow_ClampsToMax()
+    {
+        // MaxValue - (-1) would overflow positive
+        Int256.MaxValue.SaturatingSub(new Int256(-1L)).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256_SaturatingSub_NegativeOverflow_ClampsToMin()
+    {
+        // MinValue - 1 would overflow negative
+        Int256.MinValue.SaturatingSub(new Int256(1L)).Should().Be(Int256.MinValue);
+    }
+
+    [Fact]
+    public void Int256_SaturatingSub_SameSigns_NoOverflow()
+    {
+        // MinValue - (-1) = MinValue + 1, no saturation
+        Int256 result = Int256.MinValue.SaturatingSub(new Int256(-1L));
+        result.Should().NotBe(Int256.MinValue);
+        (result < new Int256(0L)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int256_SaturatingSub_Zero()
+    {
+        Int256 a = new(-42L);
+        a.SaturatingSub(new Int256(0L)).Should().Be(new Int256(-42L));
+    }
+
+    [Fact]
+    public void Int256_SaturatingSub_Equal_ReturnsZero()
+    {
+        Int256.MaxValue.SaturatingSub(Int256.MaxValue).Should().Be(new Int256(0L));
+    }
+
+    [Fact]
+    public void Int256_SaturatingSub_MinMinusMin_ReturnsZero()
+    {
+        Int256.MinValue.SaturatingSub(Int256.MinValue).Should().Be(new Int256(0L));
+    }
+
+    #endregion
+
     #region Saturating Arithmetic (Little-Endian)
 
     // ── UInt16Le ────────────────────────────────────────────────
@@ -1414,6 +1720,298 @@ public partial class ExtensionsTests
         Int128Le a = new(Int128.MinValue);
         Int128Le b = new((Int128)1);
         ((Int128)a.SaturatingSub(b)).Should().Be(Int128.MinValue);
+    }
+
+    #endregion
+
+    #region Saturating Arithmetic (Big-Endian 256-bit)
+
+    // ── UInt256Be ───────────────────────────────────────────────
+
+    [Fact]
+    public void UInt256Be_SaturatingAdd_Normal()
+    {
+        UInt256Be a = new(new UInt256(100UL));
+        UInt256Be b = new(new UInt256(200UL));
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(new UInt256(300UL));
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingAdd_Overflow()
+    {
+        UInt256Be a = new(UInt256.MaxValue);
+        UInt256Be b = new(new UInt256(1UL));
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingAdd_BothMax()
+    {
+        UInt256Be a = new(UInt256.MaxValue);
+        UInt256Be b = new(UInt256.MaxValue);
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingAdd_Zero()
+    {
+        UInt256Be a = new(new UInt256(42UL));
+        UInt256Be b = new(UInt256.MinValue);
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(new UInt256(42UL));
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingSub_Normal()
+    {
+        UInt256Be a = new(new UInt256(300UL));
+        UInt256Be b = new(new UInt256(100UL));
+        ((UInt256)a.SaturatingSub(b)).Should().Be(new UInt256(200UL));
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingSub_Underflow()
+    {
+        UInt256Be a = new(new UInt256(10UL));
+        UInt256Be b = new(new UInt256(20UL));
+        ((UInt256)a.SaturatingSub(b)).Should().Be(UInt256.MinValue);
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingSub_Equal_ReturnsZero()
+    {
+        UInt256Be a = new(UInt256.MaxValue);
+        UInt256Be b = new(UInt256.MaxValue);
+        ((UInt256)a.SaturatingSub(b)).Should().Be(UInt256.MinValue);
+    }
+
+    [Fact]
+    public void UInt256Be_SaturatingSub_Zero()
+    {
+        UInt256Be a = new(new UInt256(42UL));
+        UInt256Be b = new(UInt256.MinValue);
+        ((UInt256)a.SaturatingSub(b)).Should().Be(new UInt256(42UL));
+    }
+
+    // ── Int256Be ────────────────────────────────────────────────
+
+    [Fact]
+    public void Int256Be_SaturatingAdd_Normal()
+    {
+        Int256Be a = new(new Int256(100L));
+        Int256Be b = new(new Int256(200L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(new Int256(300L));
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingAdd_PositiveOverflow()
+    {
+        Int256Be a = new(Int256.MaxValue);
+        Int256Be b = new(new Int256(1L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingAdd_NegativeOverflow()
+    {
+        Int256Be a = new(Int256.MinValue);
+        Int256Be b = new(new Int256(-1L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(Int256.MinValue);
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingAdd_Zero()
+    {
+        Int256Be a = new(new Int256(-42L));
+        Int256Be b = new(new Int256(0L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(new Int256(-42L));
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingSub_Normal()
+    {
+        Int256Be a = new(new Int256(300L));
+        Int256Be b = new(new Int256(100L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(new Int256(200L));
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingSub_PositiveOverflow()
+    {
+        // MaxValue - (-1) would overflow positive
+        Int256Be a = new(Int256.MaxValue);
+        Int256Be b = new(new Int256(-1L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingSub_NegativeOverflow()
+    {
+        // MinValue - 1 would overflow negative
+        Int256Be a = new(Int256.MinValue);
+        Int256Be b = new(new Int256(1L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(Int256.MinValue);
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingSub_Equal_ReturnsZero()
+    {
+        Int256Be a = new(Int256.MaxValue);
+        Int256Be b = new(Int256.MaxValue);
+        ((Int256)a.SaturatingSub(b)).Should().Be(new Int256(0L));
+    }
+
+    [Fact]
+    public void Int256Be_SaturatingSub_Zero()
+    {
+        Int256Be a = new(new Int256(-42L));
+        Int256Be b = new(new Int256(0L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(new Int256(-42L));
+    }
+
+    #endregion
+
+    #region Saturating Arithmetic (Little-Endian 256-bit)
+
+    // ── UInt256Le ───────────────────────────────────────────────
+
+    [Fact]
+    public void UInt256Le_SaturatingAdd_Normal()
+    {
+        UInt256Le a = new(new UInt256(100UL));
+        UInt256Le b = new(new UInt256(200UL));
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(new UInt256(300UL));
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingAdd_Overflow()
+    {
+        UInt256Le a = new(UInt256.MaxValue);
+        UInt256Le b = new(new UInt256(1UL));
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingAdd_BothMax()
+    {
+        UInt256Le a = new(UInt256.MaxValue);
+        UInt256Le b = new(UInt256.MaxValue);
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(UInt256.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingAdd_Zero()
+    {
+        UInt256Le a = new(new UInt256(42UL));
+        UInt256Le b = new(UInt256.MinValue);
+        ((UInt256)a.SaturatingAdd(b)).Should().Be(new UInt256(42UL));
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingSub_Normal()
+    {
+        UInt256Le a = new(new UInt256(300UL));
+        UInt256Le b = new(new UInt256(100UL));
+        ((UInt256)a.SaturatingSub(b)).Should().Be(new UInt256(200UL));
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingSub_Underflow()
+    {
+        UInt256Le a = new(new UInt256(10UL));
+        UInt256Le b = new(new UInt256(20UL));
+        ((UInt256)a.SaturatingSub(b)).Should().Be(UInt256.MinValue);
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingSub_Equal_ReturnsZero()
+    {
+        UInt256Le a = new(UInt256.MaxValue);
+        UInt256Le b = new(UInt256.MaxValue);
+        ((UInt256)a.SaturatingSub(b)).Should().Be(UInt256.MinValue);
+    }
+
+    [Fact]
+    public void UInt256Le_SaturatingSub_Zero()
+    {
+        UInt256Le a = new(new UInt256(42UL));
+        UInt256Le b = new(UInt256.MinValue);
+        ((UInt256)a.SaturatingSub(b)).Should().Be(new UInt256(42UL));
+    }
+
+    // ── Int256Le ────────────────────────────────────────────────
+
+    [Fact]
+    public void Int256Le_SaturatingAdd_Normal()
+    {
+        Int256Le a = new(new Int256(100L));
+        Int256Le b = new(new Int256(200L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(new Int256(300L));
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingAdd_PositiveOverflow()
+    {
+        Int256Le a = new(Int256.MaxValue);
+        Int256Le b = new(new Int256(1L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingAdd_NegativeOverflow()
+    {
+        Int256Le a = new(Int256.MinValue);
+        Int256Le b = new(new Int256(-1L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(Int256.MinValue);
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingAdd_Zero()
+    {
+        Int256Le a = new(new Int256(-42L));
+        Int256Le b = new(new Int256(0L));
+        ((Int256)a.SaturatingAdd(b)).Should().Be(new Int256(-42L));
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingSub_Normal()
+    {
+        Int256Le a = new(new Int256(300L));
+        Int256Le b = new(new Int256(100L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(new Int256(200L));
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingSub_PositiveOverflow()
+    {
+        // MaxValue - (-1) would overflow positive
+        Int256Le a = new(Int256.MaxValue);
+        Int256Le b = new(new Int256(-1L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(Int256.MaxValue);
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingSub_NegativeOverflow()
+    {
+        // MinValue - 1 would overflow negative
+        Int256Le a = new(Int256.MinValue);
+        Int256Le b = new(new Int256(1L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(Int256.MinValue);
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingSub_Equal_ReturnsZero()
+    {
+        Int256Le a = new(Int256.MaxValue);
+        Int256Le b = new(Int256.MaxValue);
+        ((Int256)a.SaturatingSub(b)).Should().Be(new Int256(0L));
+    }
+
+    [Fact]
+    public void Int256Le_SaturatingSub_Zero()
+    {
+        Int256Le a = new(new Int256(-42L));
+        Int256Le b = new(new Int256(0L));
+        ((Int256)a.SaturatingSub(b)).Should().Be(new Int256(-42L));
     }
 
     #endregion

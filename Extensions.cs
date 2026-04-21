@@ -1931,6 +1931,68 @@ namespace Stardust.Utilities
             // For unsigned, overflow if result < a (wrapped around)
             return result < a ? UInt128.MaxValue : result;
         }
+        /// <summary>
+        /// Subtracts two values, returning <see cref="Int256.MinValue"/> on underflow
+        /// or <see cref="Int256.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256 SaturatingSub(this Int256 a, Int256 b)
+        {
+            Int256 result = a - b;
+            bool aPos = a >= 0;
+            bool bPos = b >= 0;
+            bool rPos = result >= 0;
+            if (aPos != bPos && aPos != rPos)
+                return aPos ? Int256.MaxValue : Int256.MinValue;
+            return result;
+        }
+
+        /// <summary>
+        /// Subtracts two values, clamping to zero on underflow.
+        /// </summary>
+        /// <param name="a">The value to subtract from.</param>
+        /// <param name="b">The value to subtract.</param>
+        /// <returns>The saturated difference.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256 SaturatingSub(this UInt256 a, UInt256 b)
+        {
+            return b > a ? UInt256.MinValue : a - b;
+        }
+
+        /// <summary>
+        /// Adds two values, returning <see cref="Int256.MinValue"/> on negative overflow
+        /// or <see cref="Int256.MaxValue"/> on positive overflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256 SaturatingAdd(this Int256 a, Int256 b)
+        {
+            Int256 result = a + b;
+            bool aPos = a >= 0;
+            bool bPos = b >= 0;
+            bool rPos = result >= 0;
+            if (aPos == bPos && aPos != rPos)
+                return aPos ? Int256.MaxValue : Int256.MinValue;
+            return result;
+        }
+
+        /// <summary>
+        /// Adds two values, clamping to <see cref="UInt256.MaxValue"/> on overflow.
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>The saturated sum.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256 SaturatingAdd(this UInt256 a, UInt256 b)
+        {
+            UInt256 result = a + b;
+            return result < a ? UInt256.MaxValue : result;
+        }
 
         // ── Big-Endian Saturating Arithmetic ────────────────────────────────
 
@@ -1997,6 +2059,21 @@ namespace Stardust.Utilities
         /// <summary>Subtracts two <see cref="Int128Be"/> values, clamping on overflow/underflow.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int128Be SaturatingSub(this Int128Be a, Int128Be b) => new(((Int128)a).SaturatingSub((Int128)b));
+        /// <summary>Adds two <see cref="UInt256Be"/> values, clamping to <see cref="UInt256.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Be SaturatingAdd(this UInt256Be a, UInt256Be b) => new(((UInt256)a).SaturatingAdd((UInt256)b));
+
+        /// <summary>Subtracts two <see cref="UInt256Be"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Be SaturatingSub(this UInt256Be a, UInt256Be b) => new(((UInt256)a).SaturatingSub((UInt256)b));
+
+        /// <summary>Adds two <see cref="Int256Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Be SaturatingAdd(this Int256Be a, Int256Be b) => new(((Int256)a).SaturatingAdd((Int256)b));
+
+        /// <summary>Subtracts two <see cref="Int256Be"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Be SaturatingSub(this Int256Be a, Int256Be b) => new(((Int256)a).SaturatingSub((Int256)b));
 
         // ── Little-Endian Saturating Arithmetic ─────────────────────────────
 
@@ -2063,5 +2140,20 @@ namespace Stardust.Utilities
         /// <summary>Subtracts two <see cref="Int128Le"/> values, clamping on overflow/underflow.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int128Le SaturatingSub(this Int128Le a, Int128Le b) => new(((Int128)a).SaturatingSub((Int128)b));
+        /// <summary>Adds two <see cref="UInt256Le"/> values, clamping to <see cref="UInt256.MaxValue"/> on overflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Le SaturatingAdd(this UInt256Le a, UInt256Le b) => new(((UInt256)a).SaturatingAdd((UInt256)b));
+
+        /// <summary>Subtracts two <see cref="UInt256Le"/> values, clamping to zero on underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Le SaturatingSub(this UInt256Le a, UInt256Le b) => new(((UInt256)a).SaturatingSub((UInt256)b));
+
+        /// <summary>Adds two <see cref="Int256Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Le SaturatingAdd(this Int256Le a, Int256Le b) => new(((Int256)a).SaturatingAdd((Int256)b));
+
+        /// <summary>Subtracts two <see cref="Int256Le"/> values, clamping on overflow/underflow.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Le SaturatingSub(this Int256Le a, Int256Le b) => new(((Int256)a).SaturatingSub((Int256)b));
     }
 }

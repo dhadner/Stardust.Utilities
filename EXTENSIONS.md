@@ -135,25 +135,53 @@ These methods perform arithmetic that clamps results to the type's min/max value
 Adds two values, returning `MaxValue` on overflow or `MinValue` on underflow (for signed types).
 
 ```csharp
-public static byte SaturatingAdd(this byte a, byte b)
-public static sbyte SaturatingAdd(this sbyte a, sbyte b)
-public static short SaturatingAdd(this short a, short b)
-public static ushort SaturatingAdd(this ushort a, ushort b)
-public static int SaturatingAdd(this int a, int b)
-public static long SaturatingAdd(this long a, long b)
-public static uint SaturatingAdd(this uint a, uint b)
-public static ulong SaturatingAdd(this ulong a, ulong b)
-public static Int128 SaturatingAdd(this Int128 a, Int128 b)
+// Native integer types
+public static byte    SaturatingAdd(this byte    a, byte    b)
+public static sbyte   SaturatingAdd(this sbyte   a, sbyte   b)
+public static short   SaturatingAdd(this short   a, short   b)
+public static ushort  SaturatingAdd(this ushort  a, ushort  b)
+public static int     SaturatingAdd(this int     a, int     b)
+public static uint    SaturatingAdd(this uint    a, uint    b)
+public static long    SaturatingAdd(this long    a, long    b)
+public static ulong   SaturatingAdd(this ulong   a, ulong   b)
+public static Int128  SaturatingAdd(this Int128  a, Int128  b)
 public static UInt128 SaturatingAdd(this UInt128 a, UInt128 b)
-// Plus overloads for all big-endian and little-endian types
+public static Int256  SaturatingAdd(this Int256  a, Int256  b)
+public static UInt256 SaturatingAdd(this UInt256 a, UInt256 b)
+
+// Big-endian wrapper types
+public static UInt16Be  SaturatingAdd(this UInt16Be  a, UInt16Be  b)
+public static Int16Be   SaturatingAdd(this Int16Be   a, Int16Be   b)
+public static UInt32Be  SaturatingAdd(this UInt32Be  a, UInt32Be  b)
+public static Int32Be   SaturatingAdd(this Int32Be   a, Int32Be   b)
+public static UInt64Be  SaturatingAdd(this UInt64Be  a, UInt64Be  b)
+public static Int64Be   SaturatingAdd(this Int64Be   a, Int64Be   b)
+public static UInt128Be SaturatingAdd(this UInt128Be a, UInt128Be b)
+public static Int128Be  SaturatingAdd(this Int128Be  a, Int128Be  b)
+public static UInt256Be SaturatingAdd(this UInt256Be a, UInt256Be b)
+public static Int256Be  SaturatingAdd(this Int256Be  a, Int256Be  b)
+
+// Little-endian wrapper types
+public static UInt16Le  SaturatingAdd(this UInt16Le  a, UInt16Le  b)
+public static Int16Le   SaturatingAdd(this Int16Le   a, Int16Le   b)
+public static UInt32Le  SaturatingAdd(this UInt32Le  a, UInt32Le  b)
+public static Int32Le   SaturatingAdd(this Int32Le   a, Int32Le   b)
+public static UInt64Le  SaturatingAdd(this UInt64Le  a, UInt64Le  b)
+public static Int64Le   SaturatingAdd(this Int64Le   a, Int64Le   b)
+public static UInt128Le SaturatingAdd(this UInt128Le a, UInt128Le b)
+public static Int128Le  SaturatingAdd(this Int128Le  a, Int128Le  b)
+public static UInt256Le SaturatingAdd(this UInt256Le a, UInt256Le b)
+public static Int256Le  SaturatingAdd(this Int256Le  a, Int256Le  b)
 ```
 
 **Example:**
 ```csharp
-int result = int.MaxValue.SaturatingAdd(1);  // int.MaxValue (not overflow)
-uint result2 = uint.MaxValue.SaturatingAdd(100);  // uint.MaxValue
-UInt128 result3 = UInt128.MaxValue.SaturatingAdd((UInt128)1);  // UInt128.MaxValue
-Int128 result4 = Int128.MinValue.SaturatingAdd((Int128)(-1));  // Int128.MinValue
+int     result  = int.MaxValue.SaturatingAdd(1);                       // int.MaxValue (not overflow)
+uint    result2 = uint.MaxValue.SaturatingAdd(100u);                   // uint.MaxValue
+UInt128 result3 = UInt128.MaxValue.SaturatingAdd((UInt128)1);          // UInt128.MaxValue
+Int128  result4 = Int128.MinValue.SaturatingAdd((Int128)(-1));         // Int128.MinValue
+UInt256 result5 = UInt256.MaxValue.SaturatingAdd(new UInt256(1UL));    // UInt256.MaxValue
+Int256  result6 = Int256.MinValue.SaturatingAdd(new Int256(-1L));      // Int256.MinValue
 ```
 
 ### SaturatingSub
@@ -161,25 +189,53 @@ Int128 result4 = Int128.MinValue.SaturatingAdd((Int128)(-1));  // Int128.MinValu
 Subtracts two values, returning `MinValue` on underflow or `MaxValue` on overflow (for signed types).
 
 ```csharp
-public static byte SaturatingSub(this byte a, byte b)
-public static sbyte SaturatingSub(this sbyte a, sbyte b)
-public static short SaturatingSub(this short a, short b)
-public static ushort SaturatingSub(this ushort a, ushort b)
-public static int SaturatingSub(this int a, int b)
-public static long SaturatingSub(this long a, long b)
-public static uint SaturatingSub(this uint a, uint b)
-public static ulong SaturatingSub(this ulong a, ulong b)
-public static Int128 SaturatingSub(this Int128 a, Int128 b)
+// Native integer types
+public static byte    SaturatingSub(this byte    a, byte    b)
+public static sbyte   SaturatingSub(this sbyte   a, sbyte   b)
+public static short   SaturatingSub(this short   a, short   b)
+public static ushort  SaturatingSub(this ushort  a, ushort  b)
+public static int     SaturatingSub(this int     a, int     b)
+public static uint    SaturatingSub(this uint    a, uint    b)
+public static long    SaturatingSub(this long    a, long    b)
+public static ulong   SaturatingSub(this ulong   a, ulong   b)
+public static Int128  SaturatingSub(this Int128  a, Int128  b)
 public static UInt128 SaturatingSub(this UInt128 a, UInt128 b)
-// Plus overloads for all big-endian and little-endian types
+public static Int256  SaturatingSub(this Int256  a, Int256  b)
+public static UInt256 SaturatingSub(this UInt256 a, UInt256 b)
+
+// Big-endian wrapper types
+public static UInt16Be  SaturatingSub(this UInt16Be  a, UInt16Be  b)
+public static Int16Be   SaturatingSub(this Int16Be   a, Int16Be   b)
+public static UInt32Be  SaturatingSub(this UInt32Be  a, UInt32Be  b)
+public static Int32Be   SaturatingSub(this Int32Be   a, Int32Be   b)
+public static UInt64Be  SaturatingSub(this UInt64Be  a, UInt64Be  b)
+public static Int64Be   SaturatingSub(this Int64Be   a, Int64Be   b)
+public static UInt128Be SaturatingSub(this UInt128Be a, UInt128Be b)
+public static Int128Be  SaturatingSub(this Int128Be  a, Int128Be  b)
+public static UInt256Be SaturatingSub(this UInt256Be a, UInt256Be b)
+public static Int256Be  SaturatingSub(this Int256Be  a, Int256Be  b)
+
+// Little-endian wrapper types
+public static UInt16Le  SaturatingSub(this UInt16Le  a, UInt16Le  b)
+public static Int16Le   SaturatingSub(this Int16Le   a, Int16Le   b)
+public static UInt32Le  SaturatingSub(this UInt32Le  a, UInt32Le  b)
+public static Int32Le   SaturatingSub(this Int32Le   a, Int32Le   b)
+public static UInt64Le  SaturatingSub(this UInt64Le  a, UInt64Le  b)
+public static Int64Le   SaturatingSub(this Int64Le   a, Int64Le   b)
+public static UInt128Le SaturatingSub(this UInt128Le a, UInt128Le b)
+public static Int128Le  SaturatingSub(this Int128Le  a, Int128Le  b)
+public static UInt256Le SaturatingSub(this UInt256Le a, UInt256Le b)
+public static Int256Le  SaturatingSub(this Int256Le  a, Int256Le  b)
 ```
 
 **Example:**
 ```csharp
-int result = int.MinValue.SaturatingSub(1);  // int.MinValue (not underflow)
-uint result2 = 5u.SaturatingSub(10);  // 0 (not wrap to MaxValue)
-UInt128 result3 = ((UInt128)5).SaturatingSub((UInt128)10);  // 0
-Int128 result4 = Int128.MaxValue.SaturatingSub((Int128)(-1));  // Int128.MaxValue
+int     result  = int.MinValue.SaturatingSub(1);                       // int.MinValue (not underflow)
+uint    result2 = 5u.SaturatingSub(10u);                               // 0 (not wrap to MaxValue)
+UInt128 result3 = ((UInt128)5).SaturatingSub((UInt128)10);             // 0
+Int128  result4 = Int128.MaxValue.SaturatingSub((Int128)(-1));         // Int128.MaxValue
+UInt256 result5 = new UInt256(5UL).SaturatingSub(new UInt256(10UL));   // UInt256.MinValue (0)
+Int256  result6 = Int256.MaxValue.SaturatingSub(new Int256(-1L));      // Int256.MaxValue
 ```
 
 ---
@@ -206,6 +262,8 @@ The table below shows measured overhead of saturating vs. normal (wrapping) arit
 | `ulong` | Sub | 5.4 ms | 6.3 ms | 1.17x |
 | `Int128` | Add | 9.7 ms | 22.4 ms | 2.31x |
 | `UInt128` | Sub | 9.9 ms | 11.8 ms | 1.19x |
+| `Int256` | Add | ~19 ms | ~45 ms | ~2.4x |
+| `UInt256` | Sub | ~20 ms | ~24 ms | ~1.2x |
 | `UInt32Be` | Add | 48.6 ms | 51.7 ms | 1.06x |
 | `UInt32Le` | Add | 51.1 ms | 53.4 ms | 1.04x |
 
@@ -214,7 +272,8 @@ The table below shows measured overhead of saturating vs. normal (wrapping) arit
 - **8-bit and 16-bit:** Negligible overhead (< 1.2x). The widening-to-int pattern is essentially free.
 - **Unsigned 32/64/128-bit:** Low overhead (1.17x--1.22x). The single comparison (`b > a` or `result < a`) is very cheap.
 - **Signed 32/64-bit:** Moderate overhead (1.57x--1.80x). The XOR-based overflow detection adds a few instructions but no branches in the common (non-overflow) case.
-- **Signed 128-bit:** Higher overhead (2.31x). `Int128` comparisons are multi-instruction sequences on x64. Still under 2.3 ns per operation.
+- **Signed 128/256-bit:** Higher overhead (~2.3--2.4x). Multi-word comparisons are multi-instruction sequences on x64. Still low absolute cost.
+- **Unsigned 256-bit:** Low overhead (~1.2x). The sign-bit comparison used by `Int256` is replaced by a simple less-than check.
 - **Endian wrapper types (Be/Le):** The saturating overhead is negligible (1.04x--1.06x) because the endian conversion dominates the total cost.
 - **Zero heap allocation:** All methods allocate zero managed memory.
 

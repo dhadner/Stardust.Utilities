@@ -1389,10 +1389,11 @@ word = word.SetHi(0xFF);  // 0xFF34
 word = word.SetLo(0x00);  // 0xFF00
 
 // Saturating arithmetic (clamps instead of overflows)
-int a = int.MaxValue;
-int result = a.SaturatingAdd(1);     // Still int.MaxValue, not overflow
-uint r2 = 10u.SaturatingSub(20u);    // 0, not large number
-UInt128 r3 = ((UInt128)5).SaturatingSub((UInt128)10);  // 0
+int     result = int.MaxValue.SaturatingAdd(1);                     // int.MaxValue, not overflow
+uint    r2     = 10u.SaturatingSub(20u);                            // 0, not wrap to MaxValue
+UInt128 r3     = ((UInt128)5).SaturatingSub((UInt128)10);           // 0
+UInt256 r4     = UInt256.MaxValue.SaturatingAdd(new UInt256(1UL));  // UInt256.MaxValue
+Int256  r5     = Int256.MinValue.SaturatingSub(new Int256(1L));     // Int256.MinValue
 
 ```
 
