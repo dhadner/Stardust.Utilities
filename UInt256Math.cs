@@ -57,12 +57,12 @@ namespace Stardust.Utilities
 
         /// <summary>
         /// 64x64 -> 128 widening unsigned multiply that prefers the BMI2
-        /// <c>MULX</c> instruction (via <see cref="Bmi2.X64.MultiplyNoFlags"/>)
+        /// <c>MULX</c> instruction (via <see cref="Bmi2.X64.MultiplyNoFlags(ulong, ulong, ulong*)"/>)
         /// over the default <see cref="Math.BigMul(ulong, ulong, out ulong)"/>.
         /// <c>MULX</c> does not set flags, so the JIT does not need to insert
         /// save/restore sequences around carry-propagation that follows, and
         /// the result lanes can live in independent registers. Falls back to
-        /// <see cref="ArmBase.Arm64.MultiplyHigh"/> on ARM64 and to
+        /// <see cref="ArmBase.Arm64.MultiplyHigh(ulong, ulong)"/> on ARM64 and to
         /// <see cref="Math.BigMul(ulong, ulong, out ulong)"/> elsewhere.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -657,11 +657,11 @@ namespace Stardust.Utilities
                 // On x64, X86Base.X64.DivRem emits a single hardware DIV per
                 // limb (~20 cycles), avoiding the managed UInt128.op_Division
                 // software path (which is itself a schoolbook division loop).
-                ulong r = 0;
                 ulong chunk;
 #if NET8_0_OR_GREATER
                 if (X86Base.X64.IsSupported)
                 {
+                    ulong r = 0;
                     (a3, r) = X86Base.X64.DivRem(a3, r, DECIMAL_CHUNK);
                     (a2, r) = X86Base.X64.DivRem(a2, r, DECIMAL_CHUNK);
                     (a1, r) = X86Base.X64.DivRem(a1, r, DECIMAL_CHUNK);

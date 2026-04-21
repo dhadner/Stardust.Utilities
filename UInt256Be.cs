@@ -136,20 +136,30 @@ namespace Stardust.Utilities
 
         #region Operators
 
+        /// <summary>Returns the value (unary plus).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator +(UInt256Be a) => a;
+        /// <summary>Computes the two's complement negation (modulo 2^256).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator -(UInt256Be a) => new(-(UInt256)a);
+        /// <summary>Adds two values (wraps on overflow).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator +(UInt256Be a, UInt256Be b) => new((UInt256)a + (UInt256)b);
+        /// <summary>Subtracts two values (wraps on underflow).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator -(UInt256Be a, UInt256Be b) => new((UInt256)a - (UInt256)b);
+        /// <summary>Multiplies two values (low 256 bits of the full product).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator *(UInt256Be a, UInt256Be b) => new((UInt256)a * (UInt256)b);
+        /// <summary>Divides two values.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator /(UInt256Be a, UInt256Be b) => new((UInt256)a / (UInt256)b);
+        /// <summary>Computes the remainder of division.</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator %(UInt256Be a, UInt256Be b) => new((UInt256)a % (UInt256)b);
+        /// <summary>Computes the bitwise AND of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator &(UInt256Be a, UInt256Be b)
         {
@@ -159,6 +169,7 @@ namespace Stardust.Utilities
             Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) &= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 3);
             return a;
         }
+        /// <summary>Computes the bitwise OR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator |(UInt256Be a, UInt256Be b)
         {
@@ -168,6 +179,7 @@ namespace Stardust.Utilities
             Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) |= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 3);
             return a;
         }
+        /// <summary>Computes the bitwise XOR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator ^(UInt256Be a, UInt256Be b)
         {
@@ -177,6 +189,7 @@ namespace Stardust.Utilities
             Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) ^= Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref b), 3);
             return a;
         }
+        /// <summary>Computes the bitwise complement of the value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator ~(UInt256Be a)
         {
@@ -186,18 +199,23 @@ namespace Stardust.Utilities
             Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3) = ~Unsafe.Add(ref Unsafe.As<UInt256Be, ulong>(ref a), 3);
             return a;
         }
+        /// <summary>Shifts the value left by the specified amount.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator <<(UInt256Be a, int b) => new((UInt256)a << b);
+        /// <summary>Shifts the value right by the specified amount (logical for unsigned).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator >>(UInt256Be a, int b) => new((UInt256)a >> b);
         /// <summary>Unsigned (logical) right shift. For unsigned types this is identical to <c>&gt;&gt;</c>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator >>>(UInt256Be a, int b) => new((UInt256)a >>> b);
+        /// <summary>Increments the value by one.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator ++(UInt256Be a) => new((UInt256)a + UInt256.One);
+        /// <summary>Decrements the value by one.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt256Be operator --(UInt256Be a) => new((UInt256)a - UInt256.One);
 
+        /// <summary>Determines whether two values are equal.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(UInt256Be a, UInt256Be b)
         {
@@ -208,14 +226,19 @@ namespace Stardust.Utilities
                 && Unsafe.Add(ref ra, 2) == Unsafe.Add(ref rb, 2)
                 && Unsafe.Add(ref ra, 3) == Unsafe.Add(ref rb, 3);
         }
+        /// <summary>Determines whether two values are not equal.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(UInt256Be a, UInt256Be b) => !(a == b);
+        /// <summary>Determines whether the left operand is less than the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(UInt256Be a, UInt256Be b) => (UInt256)a < (UInt256)b;
+        /// <summary>Determines whether the left operand is greater than the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >(UInt256Be a, UInt256Be b) => (UInt256)a > (UInt256)b;
+        /// <summary>Determines whether the left operand is less than or equal to the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <=(UInt256Be a, UInt256Be b) => (UInt256)a <= (UInt256)b;
+        /// <summary>Determines whether the left operand is greater than or equal to the right.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >=(UInt256Be a, UInt256Be b) => (UInt256)a >= (UInt256)b;
 

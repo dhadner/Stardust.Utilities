@@ -252,19 +252,26 @@ namespace Stardust.Utilities
 
         #region Operators
 
+        /// <summary>Returns the value (unary plus).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator +(Int256 a) => a;
 
+        /// <summary>Computes the two's complement negation (wraps at <see cref="MinValue"/>).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator -(Int256 a) => (Int256)(-(UInt256)a);
 
+        /// <summary>Adds two values (wraps on overflow).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator +(Int256 a, Int256 b) => (Int256)((UInt256)a + (UInt256)b);
+        /// <summary>Subtracts two values (wraps on underflow).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator -(Int256 a, Int256 b) => (Int256)((UInt256)a - (UInt256)b);
+        /// <summary>Multiplies two values (low 256 bits of the full product; two's complement semantics).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator *(Int256 a, Int256 b) => (Int256)((UInt256)a * (UInt256)b);
 
+        /// <summary>Divides two values (truncating toward zero).</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
         public static Int256 operator /(Int256 a, Int256 b)
         {
             if (b._hi == UInt128.Zero && b._lo == UInt128.Zero) throw new DivideByZeroException();
@@ -280,6 +287,8 @@ namespace Stardust.Utilities
             return (aNeg ^ bNeg) ? (Int256)(-q) : (Int256)q;
         }
 
+        /// <summary>Computes the remainder of division (takes the sign of the dividend).</summary>
+        /// <exception cref="DivideByZeroException">The divisor is zero.</exception>
         public static Int256 operator %(Int256 a, Int256 b)
         {
             if (b._hi == UInt128.Zero && b._lo == UInt128.Zero) throw new DivideByZeroException();
@@ -296,12 +305,16 @@ namespace Stardust.Utilities
             return aNeg ? (Int256)(-r) : (Int256)r;
         }
 
+        /// <summary>Computes the bitwise AND of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator &(Int256 a, Int256 b) => new(a._hi & b._hi, a._lo & b._lo);
+        /// <summary>Computes the bitwise OR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator |(Int256 a, Int256 b) => new(a._hi | b._hi, a._lo | b._lo);
+        /// <summary>Computes the bitwise XOR of two values.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator ^(Int256 a, Int256 b) => new(a._hi ^ b._hi, a._lo ^ b._lo);
+        /// <summary>Computes the bitwise complement of the value.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator ~(Int256 a) => new(~a._hi, ~a._lo);
 
@@ -332,23 +345,31 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator >>>(Int256 a, int b) => (Int256)((UInt256)a >>> b);
 
+        /// <summary>Determines whether two values are equal.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Int256 a, Int256 b) => a._hi == b._hi && a._lo == b._lo;
+        /// <summary>Determines whether two values are not equal.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Int256 a, Int256 b) => !(a == b);
 
+        /// <summary>Determines whether the left operand is less than the right (signed comparison).</summary>
         public static bool operator <(Int256 a, Int256 b)
         {
             bool an = a.IsNegative, bn = b.IsNegative;
             if (an != bn) return an;
             return a._hi < b._hi || (a._hi == b._hi && a._lo < b._lo);
         }
+        /// <summary>Determines whether the left operand is greater than the right (signed comparison).</summary>
         public static bool operator >(Int256 a, Int256 b) => b < a;
+        /// <summary>Determines whether the left operand is less than or equal to the right (signed comparison).</summary>
         public static bool operator <=(Int256 a, Int256 b) => !(a > b);
+        /// <summary>Determines whether the left operand is greater than or equal to the right (signed comparison).</summary>
         public static bool operator >=(Int256 a, Int256 b) => !(a < b);
 
+        /// <summary>Increments the value by one.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator ++(Int256 a) => a + One;
+        /// <summary>Decrements the value by one.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int256 operator --(Int256 a) => a - One;
 
