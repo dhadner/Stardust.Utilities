@@ -2225,7 +2225,7 @@ zero-copy views (`partial record struct`).
 | `StructDescription` | ✔ | ✔ | `public static string?` -- description from `[BitFields(Description = ...)]` | Programmatic access to the description for both types |
 | `StructDescriptionResourceType` | ✔ | ✔ | `public static Type?` -- resource type for localized descriptions | Companion to `StructDescription` |
 | `Data` | | ✔ | `public Memory<byte>` -- exposes the underlying buffer | Views are references to external memory; value types have no buffer to expose |
-| `{Flag}Bit` |
+| `{Flag}Bit` | ✔ | | `public static T` -- instance with the named flag's bit set | Same: returns a value-type instance |
 | `{Field}Mask` | ✔ | | `public static T` -- instance with the named field's mask bits set | Same: returns a value-type instance |
 | `With{Name}(value)` | ✔ | | `public T` -- fluent immutable setter for each field/flag | Value types are immutable on assignment; views mutate in-place via property setters |
 | Constructors | ✔ | ✔ | Create from raw value / byte span (struct) or `Memory<byte>` / `byte[]` (view) | Different backing stores require different construction |
