@@ -494,6 +494,123 @@ public partial class ExtensionsTests
 
     #endregion
 
+    #region Native Type Hi / Lo / SetHi / SetLo (256-bit)
+
+    [Fact]
+    public void UInt256_Hi_ReturnsUpperUInt128()
+    {
+        UInt256 value = new(0x0102030405060708UL, 0x090A0B0C0D0E0F10UL,
+                            0x1112131415161718UL, 0x191A1B1C1D1E1F20UL);
+        UInt128 hi = value.Hi();
+        UInt128 expected = ((UInt128)0x0102030405060708UL << 64) | 0x090A0B0C0D0E0F10UL;
+        hi.Should().Be(expected);
+    }
+
+    [Fact]
+    public void UInt256_Lo_ReturnsLowerUInt128()
+    {
+        UInt256 value = new(0x0102030405060708UL, 0x090A0B0C0D0E0F10UL,
+                            0x1112131415161718UL, 0x191A1B1C1D1E1F20UL);
+        UInt128 lo = value.Lo();
+        UInt128 expected = ((UInt128)0x1112131415161718UL << 64) | 0x191A1B1C1D1E1F20UL;
+        lo.Should().Be(expected);
+    }
+
+    [Fact]
+    public void UInt256_SetHi_ReplacesUpperHalf()
+    {
+        UInt256 value = new(0x1111111111111111UL, 0x2222222222222222UL,
+                            0x3333333333333333UL, 0x4444444444444444UL);
+        UInt128 newHi = ((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL;
+        UInt256 result = value.SetHi(newHi);
+        result.Hi().Should().Be(newHi);
+        result.Lo().Should().Be(value.Lo());
+    }
+
+    [Fact]
+    public void UInt256_SetLo_ReplacesLowerHalf()
+    {
+        UInt256 value = new(0x1111111111111111UL, 0x2222222222222222UL,
+                            0x3333333333333333UL, 0x4444444444444444UL);
+        UInt128 newLo = ((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL;
+        UInt256 result = value.SetLo(newLo);
+        result.Hi().Should().Be(value.Hi());
+        result.Lo().Should().Be(newLo);
+    }
+
+    [Fact]
+    public void UInt256_Hi_Zero_ReturnsZero()
+    {
+        UInt256.MinValue.Hi().Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void UInt256_Lo_Zero_ReturnsZero()
+    {
+        UInt256.MinValue.Lo().Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void UInt256_Hi_MaxValue_ReturnsMaxUInt128()
+    {
+        UInt256.MaxValue.Hi().Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256_Lo_MaxValue_ReturnsMaxUInt128()
+    {
+        UInt256.MaxValue.Lo().Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void Int256_Hi_ReturnsUpperUInt128()
+    {
+        // Use a positive value so the upper half has known bits
+        Int256 value = new((UInt128)0x0102030405060708UL, (UInt128)0x0000000000000001UL);
+        value.Hi().Should().Be((UInt128)0x0102030405060708UL);
+    }
+
+    [Fact]
+    public void Int256_Lo_ReturnsLowerUInt128()
+    {
+        Int256 value = new((UInt128)0x0102030405060708UL, (UInt128)0xFEDCBA9876543210UL);
+        value.Lo().Should().Be((UInt128)0xFEDCBA9876543210UL);
+    }
+
+    [Fact]
+    public void Int256_SetHi_ReplacesUpperHalf()
+    {
+        Int256 value = new((UInt128)0x1111111111111111UL, (UInt128)0x2222222222222222UL);
+        UInt128 newHi = (UInt128)0xAAAAAAAAAAAAAAAAUL;
+        Int256 result = value.SetHi(newHi);
+        result.Hi().Should().Be(newHi);
+        result.Lo().Should().Be(value.Lo());
+    }
+
+    [Fact]
+    public void Int256_SetLo_ReplacesLowerHalf()
+    {
+        Int256 value = new((UInt128)0x1111111111111111UL, (UInt128)0x2222222222222222UL);
+        UInt128 newLo = (UInt128)0xCCCCCCCCCCCCCCCCUL;
+        Int256 result = value.SetLo(newLo);
+        result.Hi().Should().Be(value.Hi());
+        result.Lo().Should().Be(newLo);
+    }
+
+    [Fact]
+    public void Int256_Hi_Negative_ReturnsSignBitHalf()
+    {
+        Int256.MinValue.Hi().Should().Be((UInt128)1 << 127);
+    }
+
+    [Fact]
+    public void Int256_Lo_Negative_ReturnsZero()
+    {
+        Int256.MinValue.Lo().Should().Be(UInt128.Zero);
+    }
+
+    #endregion
+
     #region Big-Endian Hi / Lo / SetHi / SetLo
 
     [Fact]
@@ -624,6 +741,137 @@ public partial class ExtensionsTests
         Int128Be value = new((Int128)0);
         Int128Be result = value.SetLo((UInt64Be)0x00000000DEADBEEFU);
         ((Int128)result).Should().Be((Int128)0x00000000DEADBEEFU);
+    }
+
+    // ── UInt32Be SetHi (was missing) ────────────────────────────
+
+    [Fact]
+    public void UInt32Be_SetHi_ReplacesHighHalf()
+    {
+        UInt32Be value = 0x12345678U;
+        UInt32Be result = value.SetHi((UInt16Be)0xDEADU);
+        ((uint)result).Should().Be(0xDEAD5678U);
+    }
+
+    [Fact]
+    public void UInt32Be_SetHi_Zero_ClearsHighHalf()
+    {
+        UInt32Be value = 0xFFFFFFFFU;
+        UInt32Be result = value.SetHi((UInt16Be)0x0000U);
+        ((uint)result).Should().Be(0x0000FFFFU);
+    }
+
+    [Fact]
+    public void UInt32Be_SetLo_UInt16Be_ReplacesLowHalf()
+    {
+        UInt32Be value = 0x12345678U;
+        UInt32Be result = value.SetLo((UInt16Be)0xBEEFU);
+        ((uint)result).Should().Be(0x1234BEEFU);
+    }
+
+    [Fact]
+    public void Int32Be_SetLo_UInt16Be_ReplacesLowHalf()
+    {
+        Int32Be value = 0x12345678;
+        Int32Be result = value.SetLo((UInt16Be)0x0001U);
+        ((int)result).Should().Be(0x12340001);
+    }
+
+    // ── UInt256Be / Int256Be Hi / Lo / SetHi / SetLo ────────────
+
+    [Fact]
+    public void UInt256Be_Hi_ReturnsUpperUInt128Be()
+    {
+        UInt256Be value = new(UInt256.MaxValue);
+        ((UInt128)value.Hi()).Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256Be_Lo_ReturnsLowerUInt128Be()
+    {
+        // Only upper half set
+        UInt256 native = new(UInt128.MaxValue, UInt128.Zero);
+        UInt256Be value = new(native);
+        ((UInt128)value.Lo()).Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void UInt256Be_Hi_DistinctHalves()
+    {
+        UInt128 hiVal = ((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL;
+        UInt128 loVal = ((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL;
+        UInt256Be value = new(new UInt256(hiVal, loVal));
+        ((UInt128)value.Hi()).Should().Be(hiVal);
+    }
+
+    [Fact]
+    public void UInt256Be_Lo_DistinctHalves()
+    {
+        UInt128 hiVal = ((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL;
+        UInt128 loVal = ((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL;
+        UInt256Be value = new(new UInt256(hiVal, loVal));
+        ((UInt128)value.Lo()).Should().Be(loVal);
+    }
+
+    [Fact]
+    public void UInt256Be_SetHi_ReplacesUpperHalf()
+    {
+        UInt128 hiVal = ((UInt128)0x1111111111111111UL << 64) | 0x2222222222222222UL;
+        UInt128 loVal = ((UInt128)0x3333333333333333UL << 64) | 0x4444444444444444UL;
+        UInt256Be value = new(new UInt256(hiVal, loVal));
+        UInt128Be newHi = new(((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL);
+        UInt256Be result = value.SetHi(newHi);
+        ((UInt128)result.Hi()).Should().Be((UInt128)newHi);
+        ((UInt128)result.Lo()).Should().Be(loVal);
+    }
+
+    [Fact]
+    public void UInt256Be_SetLo_ReplacesLowerHalf()
+    {
+        UInt128 hiVal = ((UInt128)0x1111111111111111UL << 64) | 0x2222222222222222UL;
+        UInt128 loVal = ((UInt128)0x3333333333333333UL << 64) | 0x4444444444444444UL;
+        UInt256Be value = new(new UInt256(hiVal, loVal));
+        UInt128Be newLo = new(((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL);
+        UInt256Be result = value.SetLo(newLo);
+        ((UInt128)result.Hi()).Should().Be(hiVal);
+        ((UInt128)result.Lo()).Should().Be((UInt128)newLo);
+    }
+
+    [Fact]
+    public void Int256Be_Hi_ReturnsUpperUInt128Be()
+    {
+        Int256Be value = new(Int256.MaxValue);
+        // MaxValue upper half = 0x7FFF...FFFF
+        UInt128 expected = Int256.MaxValue.Hi();
+        ((UInt128)value.Hi()).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Int256Be_Lo_ReturnsLowerUInt128Be()
+    {
+        Int256Be value = new(Int256.MinValue);
+        // MinValue lower half = 0
+        ((UInt128)value.Lo()).Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void Int256Be_SetHi_ReplacesUpperHalf()
+    {
+        Int256Be value = new(new Int256(0L));
+        UInt128Be newHi = new((UInt128)0xAAAAAAAAAAAAAAAAUL);
+        Int256Be result = value.SetHi(newHi);
+        ((UInt128)result.Hi()).Should().Be((UInt128)newHi);
+        ((UInt128)result.Lo()).Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void Int256Be_SetLo_ReplacesLowerHalf()
+    {
+        Int256Be value = new(new Int256(0L));
+        UInt128Be newLo = new((UInt128)0xBBBBBBBBBBBBBBBBUL);
+        Int256Be result = value.SetLo(newLo);
+        ((UInt128)result.Hi()).Should().Be(UInt128.Zero);
+        ((UInt128)result.Lo()).Should().Be((UInt128)newLo);
     }
 
     #endregion
@@ -874,6 +1122,101 @@ public partial class ExtensionsTests
         Int128Le value = new((Int128)0);
         Int128Le result = value.SetLo((UInt64Le)0x00000000DEADBEEFU);
         ((Int128)result).Should().Be((Int128)0x00000000DEADBEEFU);
+    }
+
+    // ── UInt256Le / Int256Le Hi / Lo / SetHi / SetLo ─────────────
+
+    [Fact]
+    public void UInt256Le_Hi_ReturnsUpperUInt128Le()
+    {
+        UInt256Le value = new(UInt256.MaxValue);
+        ((UInt128)value.Hi()).Should().Be(UInt128.MaxValue);
+    }
+
+    [Fact]
+    public void UInt256Le_Lo_ReturnsLowerUInt128Le()
+    {
+        // Only upper half set, lower is zero
+        UInt256 native = new(UInt128.MaxValue, UInt128.Zero);
+        UInt256Le value = new(native);
+        ((UInt128)value.Lo()).Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void UInt256Le_Hi_DistinctHalves()
+    {
+        UInt128 hiVal = ((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL;
+        UInt128 loVal = ((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL;
+        UInt256Le value = new(new UInt256(hiVal, loVal));
+        ((UInt128)value.Hi()).Should().Be(hiVal);
+    }
+
+    [Fact]
+    public void UInt256Le_Lo_DistinctHalves()
+    {
+        UInt128 hiVal = ((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL;
+        UInt128 loVal = ((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL;
+        UInt256Le value = new(new UInt256(hiVal, loVal));
+        ((UInt128)value.Lo()).Should().Be(loVal);
+    }
+
+    [Fact]
+    public void UInt256Le_SetHi_ReplacesUpperHalf()
+    {
+        UInt128 hiVal = ((UInt128)0x1111111111111111UL << 64) | 0x2222222222222222UL;
+        UInt128 loVal = ((UInt128)0x3333333333333333UL << 64) | 0x4444444444444444UL;
+        UInt256Le value = new(new UInt256(hiVal, loVal));
+        UInt128Le newHi = new(((UInt128)0xAAAAAAAAAAAAAAAAUL << 64) | 0xBBBBBBBBBBBBBBBBUL);
+        UInt256Le result = value.SetHi(newHi);
+        ((UInt128)result.Hi()).Should().Be((UInt128)newHi);
+        ((UInt128)result.Lo()).Should().Be(loVal);
+    }
+
+    [Fact]
+    public void UInt256Le_SetLo_ReplacesLowerHalf()
+    {
+        UInt128 hiVal = ((UInt128)0x1111111111111111UL << 64) | 0x2222222222222222UL;
+        UInt128 loVal = ((UInt128)0x3333333333333333UL << 64) | 0x4444444444444444UL;
+        UInt256Le value = new(new UInt256(hiVal, loVal));
+        UInt128Le newLo = new(((UInt128)0xCCCCCCCCCCCCCCCCUL << 64) | 0xDDDDDDDDDDDDDDDDUL);
+        UInt256Le result = value.SetLo(newLo);
+        ((UInt128)result.Hi()).Should().Be(hiVal);
+        ((UInt128)result.Lo()).Should().Be((UInt128)newLo);
+    }
+
+    [Fact]
+    public void Int256Le_Hi_ReturnsUpperUInt128Le()
+    {
+        Int256Le value = new(Int256.MaxValue);
+        UInt128 expected = Int256.MaxValue.Hi();
+        ((UInt128)value.Hi()).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Int256Le_Lo_ReturnsLowerUInt128Le()
+    {
+        Int256Le value = new(Int256.MinValue);
+        ((UInt128)value.Lo()).Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void Int256Le_SetHi_ReplacesUpperHalf()
+    {
+        Int256Le value = new(new Int256(0L));
+        UInt128Le newHi = new((UInt128)0xAAAAAAAAAAAAAAAAUL);
+        Int256Le result = value.SetHi(newHi);
+        ((UInt128)result.Hi()).Should().Be((UInt128)newHi);
+        ((UInt128)result.Lo()).Should().Be(UInt128.Zero);
+    }
+
+    [Fact]
+    public void Int256Le_SetLo_ReplacesLowerHalf()
+    {
+        Int256Le value = new(new Int256(0L));
+        UInt128Le newLo = new((UInt128)0xBBBBBBBBBBBBBBBBUL);
+        Int256Le result = value.SetLo(newLo);
+        ((UInt128)result.Hi()).Should().Be(UInt128.Zero);
+        ((UInt128)result.Lo()).Should().Be((UInt128)newLo);
     }
 
     #endregion

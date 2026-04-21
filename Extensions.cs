@@ -1267,6 +1267,60 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int128 SetLo(this Int128 value, ulong lo) => (Int128)(((UInt128)value & ((UInt128)ulong.MaxValue << 64)) | lo);
 
+        // ── 256-bit Native Hi / Lo / SetHi / SetLo ─────────────────────────
+
+        /// <summary>Upper 128 bits of a <see cref="UInt256"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 Hi(this UInt256 value) => value.Upper;
+
+        /// <summary>Lower 128 bits of a <see cref="UInt256"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 Lo(this UInt256 value) => value.Lower;
+
+        /// <summary>Returns a new <see cref="UInt256"/> with the upper 128 bits replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement upper 128 bits.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256 SetHi(this UInt256 value, UInt128 hi) => new(hi, value.Lower);
+
+        /// <summary>Returns a new <see cref="UInt256"/> with the lower 128 bits replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement lower 128 bits.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256 SetLo(this UInt256 value, UInt128 lo) => new(value.Upper, lo);
+
+        /// <summary>Upper 128 bits of an <see cref="Int256"/> (returned as <see cref="UInt128"/>).</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant 128 bits (unsigned view).</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 Hi(this Int256 value) => value.Upper;
+
+        /// <summary>Lower 128 bits of an <see cref="Int256"/> (returned as <see cref="UInt128"/>).</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant 128 bits (unsigned view).</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128 Lo(this Int256 value) => value.Lower;
+
+        /// <summary>Returns a new <see cref="Int256"/> with the upper 128 bits replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement upper 128 bits (unsigned).</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256 SetHi(this Int256 value, UInt128 hi) => new(hi, value.Lower);
+
+        /// <summary>Returns a new <see cref="Int256"/> with the lower 128 bits replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement lower 128 bits (unsigned).</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256 SetLo(this Int256 value, UInt128 lo) => new(value.Upper, lo);
+
         /// <summary>
         /// Most-significant UInt32Be.
         /// </summary>
@@ -1373,6 +1427,27 @@ namespace Stardust.Utilities
             return (value & 0x0000ffff) | ((Int32Be)hi << 16);
         }
 
+        /// <summary>Returns a <see cref="UInt32Be"/> with the high UInt16Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement high half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be SetHi(this UInt32Be value, UInt16Be hi) => new(hi, value.lo);
+
+        /// <summary>Returns a <see cref="UInt32Be"/> with the low UInt16Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement low half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32Be SetLo(this UInt32Be value, UInt16Be lo) => new(value.hi, lo);
+
+        /// <summary>Returns an <see cref="Int32Be"/> with the low UInt16Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement low half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Be SetLo(this Int32Be value, UInt16Be lo) => (Int32Be)(((int)value & unchecked((int)0xffff0000)) | (ushort)lo);
+
         /// <summary>
         /// Set most-significant uint (upper 32 bits).
         /// </summary>
@@ -1454,6 +1529,60 @@ namespace Stardust.Utilities
         /// <summary>Returns an <see cref="Int128Be"/> with the low 64 bits replaced.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int128Be SetLo(this Int128Be value, UInt64Be lo) => new(value.hi, lo);
+
+        // ── 256-bit Big-Endian Hi / Lo / SetHi / SetLo ─────────────────────
+
+        /// <summary>Most-significant UInt128Be of a <see cref="UInt256Be"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be Hi(this UInt256Be value) => value.hi;
+
+        /// <summary>Least-significant UInt128Be of a <see cref="UInt256Be"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be Lo(this UInt256Be value) => value.lo;
+
+        /// <summary>Most-significant UInt128Be of an <see cref="Int256Be"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be Hi(this Int256Be value) => value.hi;
+
+        /// <summary>Least-significant UInt128Be of an <see cref="Int256Be"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Be Lo(this Int256Be value) => value.lo;
+
+        /// <summary>Returns a <see cref="UInt256Be"/> with the high UInt128Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement high half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Be SetHi(this UInt256Be value, UInt128Be hi) { value.hi = hi; return value; }
+
+        /// <summary>Returns a <see cref="UInt256Be"/> with the low UInt128Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement low half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Be SetLo(this UInt256Be value, UInt128Be lo) { value.lo = lo; return value; }
+
+        /// <summary>Returns an <see cref="Int256Be"/> with the high UInt128Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement high half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Be SetHi(this Int256Be value, UInt128Be hi) { value.hi = hi; return value; }
+
+        /// <summary>Returns an <see cref="Int256Be"/> with the low UInt128Be replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement low half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Be SetLo(this Int256Be value, UInt128Be lo) { value.lo = lo; return value; }
 
         // ── Little-Endian Hi / Lo ───────────────────────────────────────────
 
@@ -1622,6 +1751,60 @@ namespace Stardust.Utilities
             UInt128 loVal = (ulong)lo;
             return new Int128Le((Int128)(hiVal | loVal));
         }
+
+        // ── 256-bit Little-Endian Hi / Lo / SetHi / SetLo ──────────────────
+
+        /// <summary>Most-significant UInt128Le of a <see cref="UInt256Le"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le Hi(this UInt256Le value) => value.hi;
+
+        /// <summary>Least-significant UInt128Le of a <see cref="UInt256Le"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le Lo(this UInt256Le value) => value.lo;
+
+        /// <summary>Most-significant UInt128Le of an <see cref="Int256Le"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The most-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le Hi(this Int256Le value) => value.hi;
+
+        /// <summary>Least-significant UInt128Le of an <see cref="Int256Le"/>.</summary>
+        /// <param name="value">The source value.</param>
+        /// <returns>The least-significant 128 bits.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt128Le Lo(this Int256Le value) => value.lo;
+
+        /// <summary>Returns a <see cref="UInt256Le"/> with the high UInt128Le replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement high half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Le SetHi(this UInt256Le value, UInt128Le hi) { value.hi = hi; return value; }
+
+        /// <summary>Returns a <see cref="UInt256Le"/> with the low UInt128Le replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement low half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt256Le SetLo(this UInt256Le value, UInt128Le lo) { value.lo = lo; return value; }
+
+        /// <summary>Returns an <see cref="Int256Le"/> with the high UInt128Le replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="hi">The replacement high half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Le SetHi(this Int256Le value, UInt128Le hi) { value.hi = hi; return value; }
+
+        /// <summary>Returns an <see cref="Int256Le"/> with the low UInt128Le replaced.</summary>
+        /// <param name="value">The original value.</param>
+        /// <param name="lo">The replacement low half.</param>
+        /// <returns>The updated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int256Le SetLo(this Int256Le value, UInt128Le lo) { value.lo = lo; return value; }
 
         /// <summary>
         /// Subtracts two values, clamping to zero on underflow.
