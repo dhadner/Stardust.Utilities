@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once version 1.0 is released.
 
+## [0.9.11] - 2026-04-21
+
+### 🔵 Fixed
+- **README links to sibling `.md` files now resolve on nuget.org** -- v0.9.9 and v0.9.10 shipped a README with relative links like `[LARGE_INTEGERS.md](LARGE_INTEGERS.md)` to the per-feature docs embedded in the package, so each installed version would serve *version-specific* documentation. The plan worked on GitHub but not on nuget.org, whose README renderer does not follow relative paths into the packed `.nupkg` -- clicks just bounced back to the README itself. v0.9.11 keeps the source README relative (GitHub-friendly) and rewrites those links at pack time to absolute, tag-pinned URLs of the form `https://github.com/dhadner/Stardust.Utilities/blob/v0.9.11/LARGE_INTEGERS.md`. Each installed package still points at its own version's docs, and the links now work on both sites. 
+
+### 🟤 Backwards Compatibility
+- v0.9.11 is a README-only re-release (same pattern as v0.9.10). Library binaries, source, and public API are identical to v0.9.10 and v0.9.9.
+
 ## [0.9.10] - 2026-04-21
 
 ### 🔵 Fixed

@@ -92,7 +92,7 @@ if (-not (Test-Path $mainProject)) {
 }
 
 # Step 1: Clean previous build artifacts
-Write-Host "[1/7] Cleaning previous build artifacts..." -ForegroundColor Yellow
+Write-Host "[1/8] Cleaning previous build artifacts..." -ForegroundColor Yellow
 $foldersToClean = @(
     "$ScriptDir\bin",
     "$ScriptDir\obj",
@@ -117,7 +117,7 @@ Write-Host "  Done." -ForegroundColor Green
 # We require every Markdown image reference to use an absolute http(s):// URL,
 # which catches the v0.9.9-class regression before a package is ever uploaded.
 Write-Host ""
-Write-Host "[2/7] Linting README.md image URLs..." -ForegroundColor Yellow
+Write-Host "[2/8] Linting README.md image URLs..." -ForegroundColor Yellow
 
 $readmePath = "$ScriptDir\README.md"
 if (-not (Test-Path $readmePath)) {
@@ -156,7 +156,7 @@ Write-Host "  $($imageMatches.Count) image reference(s) checked, all absolute." 
 
 # Step 3: Build the Generator NuGet package using the dedicated script
 Write-Host ""
-Write-Host "[3/7] Building Stardust.Generators package..." -ForegroundColor Yellow
+Write-Host "[3/8] Building Stardust.Generators package..." -ForegroundColor Yellow
 
 $genBuildArgs = @{
     Configuration = $Configuration
@@ -179,7 +179,7 @@ Write-Host "  Generator DLL: $generatorDll" -ForegroundColor Gray
 
 # Step 4: Build the main Stardust.Utilities project
 Write-Host ""
-Write-Host "[4/7] Building Stardust.Utilities..." -ForegroundColor Yellow
+Write-Host "[4/8] Building Stardust.Utilities..." -ForegroundColor Yellow
 
 dotnet build $mainProject -c $Configuration --nologo
 if ($LASTEXITCODE -ne 0) {
@@ -191,7 +191,7 @@ Write-Host "  Done." -ForegroundColor Green
 # Step 5: Run tests (unless skipped)
 if (-not $SkipTests) {
     Write-Host ""
-    Write-Host "[5/7] Running tests..." -ForegroundColor Yellow
+    Write-Host "[5/8] Running tests..." -ForegroundColor Yellow
     $testProject = "$ScriptDir\Test\Stardust.Utilities.Tests.csproj"
     
     if (Test-Path $testProject) {
@@ -206,34 +206,87 @@ if (-not $SkipTests) {
     }
 } else {
     Write-Host ""
-    Write-Host "[5/7] Skipping tests (-SkipTests specified)" -ForegroundColor Yellow
+    Write-Host "[5/8] Skipping tests (-SkipTests specified)" -ForegroundColor Yellow
 }
 
-# Step 6: Pack the Stardust.Utilities NuGet package
+# Step 6: Pin relative .md links in README.md so they resolve on nuget.org.
+# nuget.org's README renderer does not resolve relative paths in packed
+# READMEs -- the rendered link just bounces back to the same README. To keep
+# docs version-pinned (the whole reason we embed them in the package), the
+# source README keeps relative links (for GitHub) and the build script
+# rewrites them to absolute URLs pinned to the release tag (e.g.
+#   https://github.com/dhadner/Stardust.Utilities/blob/v0.9.10/LARGE_INTEGERS.md )
+# just for the packed copy. The original README.md is always restored by the
+# finally block below, even on pack failure or Ctrl+C.
 Write-Host ""
-Write-Host "[6/7] Creating Stardust.Utilities package..." -ForegroundColor Yellow
+Write-Host "[6/8] Pinning README.md doc links for pack..." -ForegroundColor Yellow
 
-$nupkgFolder = "$ScriptDir\nupkg"
-if (-not (Test-Path $nupkgFolder)) {
-    New-Item -Path $nupkgFolder -ItemType Directory -Force | Out-Null
+$readmeBackup = "$readmePath.packbackup"
+if (Test-Path $readmeBackup) {
+    # Prior run crashed after rewriting README but before restoring. The
+    # backup is the original; restore it before we overwrite it again.
+    Write-Host "  Stale README.md.packbackup from prior run -- restoring original first." -ForegroundColor Yellow
+    Copy-Item -Path $readmeBackup -Destination $readmePath -Force
+    Remove-Item -Path $readmeBackup -Force
 }
 
-$packArgs = @(
-    "pack",
-    $mainProject,
-    "-c", $Configuration,
-    "--nologo",
-    "--no-build",
-    "-o", $nupkgFolder,
-    "-p:Version=$Version"
-)
+Copy-Item -Path $readmePath -Destination $readmeBackup -Force
 
-dotnet @packArgs
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: Stardust.Utilities pack failed!" -ForegroundColor Red
-    exit 1
+try {
+    $readmeText = Get-Content $readmePath -Raw
+    $tag = "v$Version"
+    $baseUrl = "https://github.com/dhadner/Stardust.Utilities/blob/$tag/"
+
+    # Match a Markdown link target that:
+    #   - is not already an absolute URL  (negative lookahead: https?://, mailto:)
+    #   - is not a pure in-doc anchor     (negative lookahead: #)
+    #   - ends in .md, with an optional #fragment
+    # Backreferences $1 = filename, $2 = #fragment (possibly empty).
+    $linkPattern = '\]\((?!https?://|#|mailto:)([^)\s]+\.md)(#[^)]*)?\)'
+    $linkMatches = [regex]::Matches($readmeText, $linkPattern)
+    $linkCount = $linkMatches.Count
+
+    # In PowerShell double-quoted strings, $tag interpolates (good) and
+    # `$1 / `$2 pass through as literal regex backreferences (also good).
+    $replacement = "](https://github.com/dhadner/Stardust.Utilities/blob/$tag/`$1`$2)"
+    $newText = [regex]::Replace($readmeText, $linkPattern, $replacement)
+
+    Set-Content -Path $readmePath -Value $newText -NoNewline -Encoding UTF8
+    Write-Host "  Rewrote $linkCount relative .md link(s) -> $baseUrl<file>.md" -ForegroundColor Green
+
+    # Step 7: Pack the Stardust.Utilities NuGet package
+    Write-Host ""
+    Write-Host "[7/8] Creating Stardust.Utilities package..." -ForegroundColor Yellow
+
+    $nupkgFolder = "$ScriptDir\nupkg"
+    if (-not (Test-Path $nupkgFolder)) {
+        New-Item -Path $nupkgFolder -ItemType Directory -Force | Out-Null
+    }
+
+    $packArgs = @(
+        "pack",
+        $mainProject,
+        "-c", $Configuration,
+        "--nologo",
+        "--no-build",
+        "-o", $nupkgFolder,
+        "-p:Version=$Version"
+    )
+
+    dotnet @packArgs
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Stardust.Utilities pack failed!" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  Done." -ForegroundColor Green
 }
-Write-Host "  Done." -ForegroundColor Green
+finally {
+    # Restore the original README.md no matter what -- exit, throw, Ctrl+C.
+    if (Test-Path $readmeBackup) {
+        Copy-Item -Path $readmeBackup -Destination $readmePath -Force
+        Remove-Item -Path $readmeBackup -Force
+    }
+}
 
 # Find all created packages for this version
 $packageFiles = Get-ChildItem -Path $nupkgFolder -Filter "*$Version.nupkg"
@@ -249,9 +302,9 @@ foreach ($pkg in $packageFiles) {
     Write-Host "    - $($pkg.Name)" -ForegroundColor White
 }
 
-# Step 7: Publish to local NuGet feed
+# Step 8: Publish to local NuGet feed
 Write-Host ""
-Write-Host "[7/7] Publishing to local NuGet feed..." -ForegroundColor Yellow
+Write-Host "[8/8] Publishing to local NuGet feed..." -ForegroundColor Yellow
 
 # Default local feed location
 $localFeed = "$env:USERPROFILE\.nuget\local-packages"
@@ -311,7 +364,10 @@ Write-Host ""
 $utilitiesPackage = $packageFiles | Where-Object { $_.Name -like "Stardust.Utilities.*" }
 if ($utilitiesPackage) {
     Write-Host "To publish to NuGet.org:" -ForegroundColor Yellow
-    Write-Host "  dotnet nuget push `"$nupkgFolder\$($utilitiesPackage.Name)`" -k YOUR_API_KEY -s https://api.nuget.org/v3/index.json" -ForegroundColor Gray
+    Write-Host "  1. git tag v$Version && git push origin v$Version" -ForegroundColor Gray
+    Write-Host "     (packed README links point at blob/v$Version/... -- push the tag FIRST" -ForegroundColor Gray
+    Write-Host "      so those links resolve the moment the package is live on nuget.org)" -ForegroundColor Gray
+    Write-Host "  2. dotnet nuget push `"$nupkgFolder\$($utilitiesPackage.Name)`" -k YOUR_API_KEY -s https://api.nuget.org/v3/index.json" -ForegroundColor Gray
     Write-Host ""
 }
 

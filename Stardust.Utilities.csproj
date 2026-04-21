@@ -17,9 +17,11 @@
 		
 		<!-- Version is specified in the Directory.Build.props file -->
 		<Authors>Dave Hadner</Authors>
-		<Description>Types for 'BitFields' records and bit manipulation, 'Result&lt;T,E&gt;' error handling, 'Option&lt;T&gt;' values, and endian-aware data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
+		<Description>Types for 'BitFields' records and bit manipulation, high-performance Int256 and UInt256 math, 'Result&lt;T,E&gt;' error handling, 'Option&lt;T&gt;' values, and endian-aware data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
 		<PackageTags>utilities;bitfields;source-generator;result;option;big-endian;error-handling;endian;monad;optional;int256;uint256;net7;net8;net9;net10</PackageTags>
 		<PackageReleaseNotes>
+v0.9.11 -- README-only re-release of v0.9.10. Fixes README links from the package front page (LARGE_INTEGERS.md, BITFIELDS.md, RESULT.md, OPTION.md, ENDIAN.md, EXTENSIONS.md, TROUBLESHOOTING.md, CHANGELOG.md, SECURITY.md, PRIVACY.md) that v0.9.10 left as relative paths; nuget.org's renderer does not follow relative links into the packed .nupkg, so clicks on those links bounced back to the README itself. v0.9.11 rewrites them at pack time to absolute, tag-pinned URLs of the form https://github.com/dhadner/Stardust.Utilities/blob/v0.9.11/&lt;file&gt;.md so they resolve on nuget.org while still pointing at *this version's* documentation. Library binaries, source, and public API are identical to v0.9.10. v0.9.10 has been unlisted; install v0.9.11 instead.
+
 v0.9.10 -- README-only re-release of v0.9.9. Screenshot images in the package README now render on nuget.org (v0.9.9 used relative paths that nuget.org does not resolve against package contents). v0.9.9 has been unlisted; install v0.9.10 instead. Library binaries, source, and public API are identical to v0.9.9.
 
 v0.9.9 feature additions (omitted from the original v0.9.9 release notes):
