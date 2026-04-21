@@ -62,7 +62,7 @@ Feature requests are welcome! Please:
 
 1. **Keep PRs focused** - One feature or fix per PR
 2. **Write tests** - All new features need unit tests
-3. **Update documentation** - Update README.md if adding user-facing features
+3. **Update documentation** - Put deep detail in the matching feature doc (BITFIELDS.md, RESULT.md, OPTION.md, ENDIAN.md, LARGE_INTEGERS.md, EXTENSIONS.md) and keep README.md limited to a short summary and link. For compiler-diagnostic or browser/tooling issues, update TROUBLESHOOTING.md.
 4. **Follow code style** - See [Code Style](#code-style) below
 5. **Ensure CI passes** - All tests must pass before merge
 

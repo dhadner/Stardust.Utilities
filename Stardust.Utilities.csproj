@@ -96,6 +96,7 @@
 		<None Include=".github\workflows\deploy-demo.yml" />
 		<None Include="DiagramGen\DiagramGen.csproj" />
 		<None Include="BITFIELDS.md" Pack="true" PackagePath="" />
+		<None Include="TROUBLESHOOTING.md" Pack="true" PackagePath="" />
 		<None Include="LARGE_INTEGERS.md" Pack="true" PackagePath="" />
 		<None Include="RESULT.md" Pack="true" PackagePath="" />
 		<None Include="OPTION.md" Pack="true" PackagePath="" />
