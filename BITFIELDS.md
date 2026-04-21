@@ -2237,7 +2237,7 @@ zero-copy views (`partial record struct`).
 | `ToString` / `TryFormat` | ✔ | | Format as hex string | Same: value types are formattable; views are not |
 | `CompareTo` / `Equals` | ✔ | | Interface implementations (`IComparable`, `IEquatable`) | Value types compare by bits; record structs get compiler-generated equality (reference equality on `Memory<byte>`) |
 | `GetHashCode` | ✔ | | Hash based on raw bits | Same: record structs get compiler-generated hashing |
-| Operators | ✔ | | `~`, `\|`, `&`, `^`, `+`, `-`, `*`, `/`, `%`, `<<`, `>>`, `>>>`, comparisons, equality | Views are references to buffers, not numeric values; arithmetic doesn't apply |
+| Operators | ✔ | | `~`, `\|`, `&`, `^`, `+`, `-`, `*`, `/`, `%`, `<<`, `>>`, `>>>`, comparisons, equality on the underlying storage type | Views are references to buffers, not numeric values; arithmetic doesn't apply |
 | Implicit conversions | ✔ | | To/from storage type (e.g., `ushort`, `UInt256`, etc.) and struct type | Views don't have a scalar value to convert |
 | JSON converter | ✔ | ✔ | Private nested `JsonConverter<T>` -- hex string serialization | Both types serialize as `"0x..."` hex strings for JSON round-tripping |
 
