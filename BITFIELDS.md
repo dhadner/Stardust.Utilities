@@ -2347,9 +2347,6 @@ Construction and bitwise OR are representative; AND, XOR, and complement have id
 
 - If your constrained type is used primarily for construction, property access, and bitwise
   operations, the overhead is negligible -- under 1 ns per operation.
-- If you shift constrained types in a tight inner loop, consider shifting the raw storage value
-  and re-wrapping: `new MyType(unchecked((byte)((byte)value << count)))`. This bypasses the
-  iterative normalization and applies constraints once at construction.
 - Property getters and setters are **zero overhead** regardless of constraints.
 
 ## Generated Code Listing
