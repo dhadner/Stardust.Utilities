@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once version 1.0 is released.
 
+## [0.9.10] - 2026-04-21
+
+### 🔵 Fixed
+- **README screenshots now render on nuget.org** -- the v0.9.9 README rewrite switched image references from absolute `raw.githubusercontent.com` URLs to relative paths (`icon.png`, `Graphics/*.png`), assuming nuget.org's README renderer would resolve them against the packed `.nupkg` contents. It does not: nuget.org only loads images from an allow-listed set of domains. v0.9.10 restores absolute `raw.githubusercontent.com` URLs for all four images (the icon, and the RFC/PE/FP screenshots). v0.9.9 has been unlisted and deprecated on nuget.org; install v0.9.10 instead. No code or API changes.
+
+### 🟣 Changed
+- **Build-Combined-NuGetPackages.ps1 lints README image URLs** -- the build script now scans `README.md` for any Markdown image reference whose URL is not an absolute `http(s)://` URL on nuget.org's trusted domain list and fails the build if any are found. This catches the class of regression that produced v0.9.9 before a package is ever uploaded.
+
+### 🟤 Backwards Compatibility
+- v0.9.10 is a README-only re-release of v0.9.9. Library binaries, source, and public API are identical.
+
 ## [0.9.9] - 2026-04-20
 
 ### 🟢 Added

@@ -8,7 +8,7 @@
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Stardust Utilities](icon.png)](https://github.com/dhadner/Stardust.Utilities)
+[![Stardust Utilities](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
 
 **Zero-cost bit manipulation, Rust-style error handling, endian-safe integers, and fixed-width 256-bit math for modern .NET.** One NuGet package. One source generator. No runtime dependencies.
 
@@ -96,7 +96,7 @@ Prefer video? [Watch a walkthrough of the demo app.](https://github.com/dhadner/
 
 | RFC bit-field diagram | PE header viewer | Composable floating-point lab |
 |---|---|---|
-| ![RFC Diagram](Graphics/TCPHeaderDiagram.png) | ![PE Viewer](Graphics/PEHeaderViewDemo.png) | ![FP Lab](Graphics/FP-Lab-Demo.png) |
+| ![RFC Diagram](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/TCPHeaderDiagram.png) | ![PE Viewer](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/PEHeaderViewDemo.png) | ![FP Lab](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/FP-Lab-Demo.png) |
 
 ---
 

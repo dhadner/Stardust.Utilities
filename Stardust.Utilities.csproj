@@ -18,8 +18,29 @@
 		<!-- Version is specified in the Directory.Build.props file -->
 		<Authors>Dave Hadner</Authors>
 		<Description>Types for 'BitFields' records and bit manipulation, 'Result&lt;T,E&gt;' error handling, 'Option&lt;T&gt;' values, and endian-aware data. Includes source generator for [BitFields] struct types for zero-overhead bit field access.</Description>
-		<PackageTags>utilities;bitfields;source-generator;result;option;big-endian;error-handling;endian;monad;optional;net7;net8;net9;net10</PackageTags>
-		<PackageReleaseNotes>Added ability to infer BitFields struct size based on the declared fields - defaults to smallest unsigned size that can contain all the defined bits. Existing features continue to work as before.</PackageReleaseNotes>
+		<PackageTags>utilities;bitfields;source-generator;result;option;big-endian;error-handling;endian;monad;optional;int256;uint256;net7;net8;net9;net10</PackageTags>
+		<PackageReleaseNotes>
+v0.9.10 -- README-only re-release of v0.9.9. Screenshot images in the package README now render on nuget.org (v0.9.9 used relative paths that nuget.org does not resolve against package contents). v0.9.9 has been unlisted; install v0.9.10 instead. Library binaries, source, and public API are identical to v0.9.9.
+
+v0.9.9 feature additions (omitted from the original v0.9.9 release notes):
+- UInt256 / Int256 value types: fixed-width 256-bit signed and unsigned integers backed by four ulongs. Zero heap allocation on the hot path. Multiply via BMI2 MULX (Bmi2.X64.MultiplyNoFlags); divide/mod/decimal extraction via the X86Base.X64.DivRem hardware intrinsic on x64 .NET 8+. Full operator set (+ - * / % and/or/xor/not/shifts/compare/++/--), parse (decimal and hex), format (D, G, R, X, x with precision), BigInteger interop, and conversions across byte through UInt128 / Int128. Implements IComparable, IEquatable, IFormattable, ISpanFormattable, IParsable, ISpanParsable. Benchmarks in LARGE_INTEGERS.md show competitive-or-better performance versus Nethermind.Numerics.Int256 1.5.0 and MissingValues 2.2.1 across add, sub, mul, div, mod, ToString, and Parse.
+- UInt256Be / UInt256Le: 32-byte endian-aware wrappers for wire-format interop, with implicit conversion to/from host-native UInt256 and zero-allocation WriteTo / ReadFrom / TryWriteTo / ToByteArray.
+- UInt256 and Int256 as [BitFields] storage types: StorageType.UInt256 (= 17) and StorageType.Int256 (= 16) are now first-class. The generator emits a 4-ulong backing store, full arithmetic, JSON, span I/O, fluent With... methods, and usage as embedded property types in zero-copy views.
+- Auto-sized [BitFields] on value-type structs: omit the storage type and the generator picks the smallest unsigned type that covers all declared bits.
+- Cross-type widening/narrowing conversions on all Little-Endian types (parity with Big-Endian): UInt16Le to UInt32Le/UInt64Le/UInt128Le and equivalents for signed / narrowing / Int16Le-to-UInt32Le / Int32Le(Int16Le) sign-extending.
+- SaturatingAdd / SaturatingSub now cover every integer width (byte/sbyte through Int128/UInt128) and every endian type (16-128 bit, Be and Le).
+- Hi / Lo / SetHi / SetLo now cover all native integer widths (ushort/short through UInt128/Int128) and all endian types.
+- Missing operators added: *, /, %, &amp;, |, ^, ~, &gt;&gt;, &lt;&lt; on signed Le types (Int16Le/Int32Le/Int64Le); %, ^ on UInt32Le / UInt64Le; ++, --, %, ^, ~ on UInt32Be / Int32Be. All 16 endian types now have the complete operator set, including unsigned right shift (&gt;&gt;&gt;).
+- Endian types now run at native CPU speed on little-endian hardware and compile to a single BSWAP per Be conversion. 16-bit types use an overlapping [FieldOffset(0)] _value field; 32-bit and wider use Unsafe.As for zero-cost reinterpretation.
+- [MethodImpl(AggressiveInlining)] on every operator and conversion operator of every Be/Le type.
+- BIT_WIDTH constant on all generated [BitFields] types.
+- StructDescription / StructDescriptionResourceType on record struct views (previously value-type only).
+- UndefinedBits on [BitFields] is now settable as a named argument (useful with auto-sized structs where there is no constructor parameter).
+
+v0.9.9 breaking change (additive otherwise): generator-emitted private members are now prefixed with `__` (Value -> __value, _w0/_w1 -> __w0/__w1, _data -> __data, _bitOffset -> __bitOffset, and all per-field constants like MODE_MASK / MODE_START_BIT -> __MODE_MASK / __MODE_START_BIT). Only affects code that touched generator-emitted privates via reflection or Unsafe.
+
+See CHANGELOG.md in the package for the full list.
+		</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/dhadner/Stardust.Utilities</PackageProjectUrl>
@@ -107,17 +128,6 @@
 		<None Include="PRIVACY.md" Pack="true" PackagePath="" />
 		<None Include="README.md" Pack="true" PackagePath="" />
 		<None Include="icon.png" Pack="true" PackagePath="" />
-	</ItemGroup>
-
-	<!-- Pack screenshot images so README.md relative links resolve inside the NuGet package.
-		 PackagePath matches the repo directory so the same relative paths work on both
-		 GitHub (repo filesystem) and NuGet.org (package contents). -->
-	<ItemGroup>
-		<None Include="Graphics\TCPHeaderDiagram.png" Pack="true" PackagePath="Graphics" />
-		<None Include="Graphics\PEHeaderViewDemo.png" Pack="true" PackagePath="Graphics" />
-		<None Include="Graphics\NetworkPacketViewDemo.png" Pack="true" PackagePath="Graphics" />
-		<None Include="Graphics\CPURegisterLabDemo.png" Pack="true" PackagePath="Graphics" />
-		<None Include="Graphics\FP-Lab-Demo.png" Pack="true" PackagePath="Graphics" />
 	</ItemGroup>
 
 	<!-- Pack the generator DLL as an analyzer (for NuGet package) -->

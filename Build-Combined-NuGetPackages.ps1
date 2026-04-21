@@ -92,7 +92,7 @@ if (-not (Test-Path $mainProject)) {
 }
 
 # Step 1: Clean previous build artifacts
-Write-Host "[1/6] Cleaning previous build artifacts..." -ForegroundColor Yellow
+Write-Host "[1/7] Cleaning previous build artifacts..." -ForegroundColor Yellow
 $foldersToClean = @(
     "$ScriptDir\bin",
     "$ScriptDir\obj",
@@ -110,9 +110,53 @@ foreach ($folder in $foldersToClean) {
 }
 Write-Host "  Done." -ForegroundColor Green
 
-# Step 2: Build the Generator NuGet package using the dedicated script
+# Step 2: Lint README.md for image references nuget.org cannot render.
+# nuget.org's README renderer does not resolve relative image paths against
+# packed files -- it only loads images from an allow-listed set of domains
+# (raw.githubusercontent.com, img.shields.io, camo.githubusercontent.com, etc.).
+# We require every Markdown image reference to use an absolute http(s):// URL,
+# which catches the v0.9.9-class regression before a package is ever uploaded.
 Write-Host ""
-Write-Host "[2/6] Building Stardust.Generators package..." -ForegroundColor Yellow
+Write-Host "[2/7] Linting README.md image URLs..." -ForegroundColor Yellow
+
+$readmePath = "$ScriptDir\README.md"
+if (-not (Test-Path $readmePath)) {
+    Write-Host "ERROR: README.md not found at: $readmePath" -ForegroundColor Red
+    exit 1
+}
+
+$readmeText = Get-Content $readmePath -Raw
+# Markdown image syntax: ![alt](url)  --  leading ! distinguishes images from hyperlinks.
+$imageMatches = [regex]::Matches($readmeText, '!\[[^\]]*\]\(([^)\s]+)')
+$violations = @()
+foreach ($m in $imageMatches) {
+    $url = $m.Groups[1].Value
+    if ($url -notmatch '^https?://') {
+        $violations += $url
+    }
+}
+
+if ($violations.Count -gt 0) {
+    Write-Host "ERROR: README.md contains image references that nuget.org cannot render:" -ForegroundColor Red
+    foreach ($v in $violations) {
+        Write-Host "  - $v" -ForegroundColor Red
+    }
+    Write-Host ""
+    Write-Host "  nuget.org only loads images from absolute http(s):// URLs on its trusted" -ForegroundColor Yellow
+    Write-Host "  domain allowlist (raw.githubusercontent.com is the usual choice). Relative" -ForegroundColor Yellow
+    Write-Host "  paths render on github.com but appear broken on nuget.org." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  Example fix:" -ForegroundColor Yellow
+    Write-Host "    ![alt](Graphics/foo.png)" -ForegroundColor Gray
+    Write-Host "  becomes:" -ForegroundColor Yellow
+    Write-Host "    ![alt](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/Graphics/foo.png)" -ForegroundColor Gray
+    exit 1
+}
+Write-Host "  $($imageMatches.Count) image reference(s) checked, all absolute." -ForegroundColor Green
+
+# Step 3: Build the Generator NuGet package using the dedicated script
+Write-Host ""
+Write-Host "[3/7] Building Stardust.Generators package..." -ForegroundColor Yellow
 
 $genBuildArgs = @{
     Configuration = $Configuration
@@ -133,9 +177,9 @@ if (-not (Test-Path $generatorDll)) {
 }
 Write-Host "  Generator DLL: $generatorDll" -ForegroundColor Gray
 
-# Step 3: Build the main Stardust.Utilities project
+# Step 4: Build the main Stardust.Utilities project
 Write-Host ""
-Write-Host "[3/6] Building Stardust.Utilities..." -ForegroundColor Yellow
+Write-Host "[4/7] Building Stardust.Utilities..." -ForegroundColor Yellow
 
 dotnet build $mainProject -c $Configuration --nologo
 if ($LASTEXITCODE -ne 0) {
@@ -144,10 +188,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "  Done." -ForegroundColor Green
 
-# Step 4: Run tests (unless skipped)
+# Step 5: Run tests (unless skipped)
 if (-not $SkipTests) {
     Write-Host ""
-    Write-Host "[4/6] Running tests..." -ForegroundColor Yellow
+    Write-Host "[5/7] Running tests..." -ForegroundColor Yellow
     $testProject = "$ScriptDir\Test\Stardust.Utilities.Tests.csproj"
     
     if (Test-Path $testProject) {
@@ -162,12 +206,12 @@ if (-not $SkipTests) {
     }
 } else {
     Write-Host ""
-    Write-Host "[4/6] Skipping tests (-SkipTests specified)" -ForegroundColor Yellow
+    Write-Host "[5/7] Skipping tests (-SkipTests specified)" -ForegroundColor Yellow
 }
 
-# Step 5: Pack the Stardust.Utilities NuGet package
+# Step 6: Pack the Stardust.Utilities NuGet package
 Write-Host ""
-Write-Host "[5/6] Creating Stardust.Utilities package..." -ForegroundColor Yellow
+Write-Host "[6/7] Creating Stardust.Utilities package..." -ForegroundColor Yellow
 
 $nupkgFolder = "$ScriptDir\nupkg"
 if (-not (Test-Path $nupkgFolder)) {
@@ -205,9 +249,9 @@ foreach ($pkg in $packageFiles) {
     Write-Host "    - $($pkg.Name)" -ForegroundColor White
 }
 
-# Step 6: Publish to local NuGet feed
+# Step 7: Publish to local NuGet feed
 Write-Host ""
-Write-Host "[6/6] Publishing to local NuGet feed..." -ForegroundColor Yellow
+Write-Host "[7/7] Publishing to local NuGet feed..." -ForegroundColor Yellow
 
 # Default local feed location
 $localFeed = "$env:USERPROFILE\.nuget\local-packages"
