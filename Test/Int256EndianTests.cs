@@ -109,7 +109,9 @@ public class Int256EndianTests
         (neg < pos).Should().BeTrue("signed: -1 < 1");
         (pos > neg).Should().BeTrue();
         (neg <= pos).Should().BeTrue();
+#pragma warning disable CS1718 // Comparison made to same variable
         (neg == neg).Should().BeTrue();
+#pragma warning restore CS1718 // Comparison made to same variable
     }
 
     [Fact]
