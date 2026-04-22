@@ -92,7 +92,7 @@ if (-not (Test-Path $mainProject)) {
 }
 
 # Step 1: Clean previous build artifacts
-Write-Host "[1/8] Cleaning previous build artifacts..." -ForegroundColor Yellow
+Write-Host "[1/9] Cleaning previous build artifacts..." -ForegroundColor Yellow
 $foldersToClean = @(
     "$ScriptDir\bin",
     "$ScriptDir\obj",
@@ -117,7 +117,7 @@ Write-Host "  Done." -ForegroundColor Green
 # We require every Markdown image reference to use an absolute http(s):// URL,
 # which catches the v0.9.9-class regression before a package is ever uploaded.
 Write-Host ""
-Write-Host "[2/8] Linting README.md image URLs..." -ForegroundColor Yellow
+Write-Host "[2/9] Linting README.md image URLs..." -ForegroundColor Yellow
 
 $readmePath = "$ScriptDir\README.md"
 if (-not (Test-Path $readmePath)) {
@@ -154,9 +154,55 @@ if ($violations.Count -gt 0) {
 }
 Write-Host "  $($imageMatches.Count) image reference(s) checked, all absolute." -ForegroundColor Green
 
-# Step 3: Build the Generator NuGet package using the dedicated script
+# Step 3: Lint README.md for stale version references.
+# We deliberately removed the hardcoded version from the install snippet
+# (it is now <PackageReference Include="Stardust.Utilities" /> with no
+# Version= attribute, and the shields.io NuGet badge at the top of the
+# README shows the current version from nuget.org). This lint is a
+# defense-in-depth check: it fails the build if anything in README.md
+# still carries a literal version that does NOT match $Version in
+# Directory.Build.props. This catches both reintroduced install-snippet
+# versions and "What's New" banners like **vX.Y.Z** that drift behind
+# the bump.
 Write-Host ""
-Write-Host "[3/8] Building Stardust.Generators package..." -ForegroundColor Yellow
+Write-Host "[3/9] Linting README.md for stale version references..." -ForegroundColor Yellow
+
+$staleVersions = @()
+
+# Pattern 1: PackageReference install snippet -- Stardust.Utilities" Version="X.Y.Z"
+$installMatches = [regex]::Matches($readmeText, 'Stardust\.Utilities"\s+Version="([0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?)"')
+foreach ($m in $installMatches) {
+    $v = $m.Groups[1].Value
+    if ($v -ne $Version) {
+        $staleVersions += "  install snippet: Version=`"$v`"  (expected `"$Version`")"
+    }
+}
+
+# Pattern 2: "What's New" bolded version banner -- **vX.Y.Z** at the start of a line
+$bannerMatches = [regex]::Matches($readmeText, '(?m)^\s*\*\*v([0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?)\*\*')
+foreach ($m in $bannerMatches) {
+    $v = $m.Groups[1].Value
+    if ($v -ne $Version) {
+        $staleVersions += "  **v$v** banner  (expected **v$Version**)"
+    }
+}
+
+if ($staleVersions.Count -gt 0) {
+    Write-Host "ERROR: README.md contains stale version references that do not match Directory.Build.props ($Version):" -ForegroundColor Red
+    foreach ($s in $staleVersions) {
+        Write-Host $s -ForegroundColor Red
+    }
+    Write-Host ""
+    Write-Host "  Fix: update README.md to match the version being built, or -- preferred --" -ForegroundColor Yellow
+    Write-Host "  remove the literal version entirely and rely on the shields.io NuGet badge" -ForegroundColor Yellow
+    Write-Host "  and CHANGELOG.md. See DEVELOPER.md -> 'Avoiding Stale Version References'." -ForegroundColor Yellow
+    exit 1
+}
+Write-Host "  $($installMatches.Count) install-snippet and $($bannerMatches.Count) What's-New version(s) checked, all match $Version." -ForegroundColor Green
+
+# Step 4: Build the Generator NuGet package using the dedicated script
+Write-Host ""
+Write-Host "[4/9] Building Stardust.Generators package..." -ForegroundColor Yellow
 
 $genBuildArgs = @{
     Configuration = $Configuration
@@ -177,9 +223,9 @@ if (-not (Test-Path $generatorDll)) {
 }
 Write-Host "  Generator DLL: $generatorDll" -ForegroundColor Gray
 
-# Step 4: Build the main Stardust.Utilities project
+# Step 5: Build the main Stardust.Utilities project
 Write-Host ""
-Write-Host "[4/8] Building Stardust.Utilities..." -ForegroundColor Yellow
+Write-Host "[5/9] Building Stardust.Utilities..." -ForegroundColor Yellow
 
 dotnet build $mainProject -c $Configuration --nologo
 if ($LASTEXITCODE -ne 0) {
@@ -188,10 +234,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "  Done." -ForegroundColor Green
 
-# Step 5: Run tests (unless skipped)
+# Step 6: Run tests (unless skipped)
 if (-not $SkipTests) {
     Write-Host ""
-    Write-Host "[5/8] Running tests..." -ForegroundColor Yellow
+    Write-Host "[6/9] Running tests..." -ForegroundColor Yellow
     $testProject = "$ScriptDir\Test\Stardust.Utilities.Tests.csproj"
     
     if (Test-Path $testProject) {
@@ -206,10 +252,10 @@ if (-not $SkipTests) {
     }
 } else {
     Write-Host ""
-    Write-Host "[5/8] Skipping tests (-SkipTests specified)" -ForegroundColor Yellow
+    Write-Host "[6/9] Skipping tests (-SkipTests specified)" -ForegroundColor Yellow
 }
 
-# Step 6: Pin relative .md links in README.md so they resolve on nuget.org.
+# Step 7: Pin relative .md links in README.md so they resolve on nuget.org.
 # nuget.org's README renderer does not resolve relative paths in packed
 # READMEs -- the rendered link just bounces back to the same README. To keep
 # docs version-pinned (the whole reason we embed them in the package), the
@@ -219,7 +265,7 @@ if (-not $SkipTests) {
 # just for the packed copy. The original README.md is always restored by the
 # finally block below, even on pack failure or Ctrl+C.
 Write-Host ""
-Write-Host "[6/8] Pinning README.md doc links for pack..." -ForegroundColor Yellow
+Write-Host "[7/9] Pinning README.md doc links for pack..." -ForegroundColor Yellow
 
 $readmeBackup = "$readmePath.packbackup"
 if (Test-Path $readmeBackup) {
@@ -254,9 +300,9 @@ try {
     Set-Content -Path $readmePath -Value $newText -NoNewline -Encoding UTF8
     Write-Host "  Rewrote $linkCount relative .md link(s) -> $baseUrl<file>.md" -ForegroundColor Green
 
-    # Step 7: Pack the Stardust.Utilities NuGet package
+    # Step 8: Pack the Stardust.Utilities NuGet package
     Write-Host ""
-    Write-Host "[7/8] Creating Stardust.Utilities package..." -ForegroundColor Yellow
+    Write-Host "[8/9] Creating Stardust.Utilities package..." -ForegroundColor Yellow
 
     $nupkgFolder = "$ScriptDir\nupkg"
     if (-not (Test-Path $nupkgFolder)) {
@@ -302,9 +348,9 @@ foreach ($pkg in $packageFiles) {
     Write-Host "    - $($pkg.Name)" -ForegroundColor White
 }
 
-# Step 8: Publish to local NuGet feed
+# Step 9: Publish to local NuGet feed
 Write-Host ""
-Write-Host "[8/8] Publishing to local NuGet feed..." -ForegroundColor Yellow
+Write-Host "[9/9] Publishing to local NuGet feed..." -ForegroundColor Yellow
 
 # Default local feed location
 $localFeed = "$env:USERPROFILE\.nuget\local-packages"

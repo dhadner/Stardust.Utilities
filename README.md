@@ -103,10 +103,10 @@ Prefer video? [Watch a walkthrough of the demo app.](https://github.com/dhadner/
 ## Installation
 
 ```xml
-<PackageReference Include="Stardust.Utilities" Version="0.9.9" />
+<PackageReference Include="Stardust.Utilities" />
 ```
 
-That's it.
+That's it. NuGet restores the latest stable version; the badge above shows what that is today. To pin a specific version add `Version="x.y.z"` -- useful for reproducible builds, but most projects don't need it.
 
 ---
 
@@ -446,9 +446,7 @@ Three most-frequent issues and their fixes. For the full diagnostic reference (e
 
 ## What's New
 
-**v0.9.9** -- adds `UInt256` / `Int256` fixed-width 256-bit integers with `Saturating...` methods, `Hi()` / `Lo()` / `SetHi()` / `SetLo()` across every 256-bit type, per-byte performance passes on all endian types to reach hand-coded parity, and clearer benchmark claims. Generated private members are now prefixed with `__` to avoid collisions with user-declared names.
-
-Full history in [CHANGELOG.md](CHANGELOG.md).
+Every release gets a dated entry in [CHANGELOG.md](CHANGELOG.md) covering added features, behavior changes, deprecations, and backwards compatibility notes. On nuget.org the same information appears on the package's **Release Notes** tab.
 
 ---
 

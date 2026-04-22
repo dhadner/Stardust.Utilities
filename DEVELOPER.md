@@ -65,17 +65,22 @@ cd Stardust.Utilities
 
 **What happens automatically:**
 1. Reads the version from `Directory.Build.props` (unless overridden on the command line)
-2. Builds the generator and library
-3. Runs unit tests (unless `-SkipTests`)
-4. Creates packages in `./nupkg/`
-5. Publishes to local NuGet feed (`~/.nuget/local-packages/`)
-6. Clears NuGet cache so consuming projects pick up changes
+2. Lints `README.md` for image references with non-absolute URLs (nuget.org only renders images from its trusted-domain allowlist)
+3. Lints `README.md` for stale version references (install-snippet `Version="x.y.z"` and bolded `**vX.Y.Z**` banners must all match `$Version`, or the build fails)
+4. Builds the generator and library
+5. Runs unit tests (unless `-SkipTests`)
+6. **Pins relative `.md` links in a packed copy of `README.md`** to tag-pinned absolute URLs (`https://github.com/dhadner/Stardust.Utilities/blob/v{Version}/<file>.md`) -- the on-disk source README is always restored after pack (including on failure), so the working tree is never left in the rewritten state
+7. Creates packages in `./nupkg/`
+8. Publishes to local NuGet feed (`~/.nuget/local-packages/`)
+9. Clears NuGet cache so consuming projects pick up changes
 
 **Then update consuming projects:**
 1. Update `PackageReference` version in each .csproj that uses `Stardust.Utilities`
 2. Rebuild the consuming solution
 
 > **Note:** The package version is defined in `Directory.Build.props` at the repo root. Demo app .csproj files reference it via `$(Version)` automatically. The build script reads this version by default; you can override it by passing a version argument.
+
+> **Release order matters.** Because step 5 above pins README links to the `v{Version}` git tag, push that tag to GitHub **before** uploading the `.nupkg` to nuget.org -- otherwise the links in the published README 404 until the tag lands. See [Releasing a Version](#releasing-a-version) for the full sequence.
 
 ## Getting Started
 
@@ -259,12 +264,14 @@ git pull origin main
 
 **What it does:**
 1. Cleans previous build artifacts
-2. Builds the generator package
-3. Builds the main library
-4. Runs unit tests (unless `-SkipTests`)
-5. Creates NuGet packages in `./nupkg/`
-6. Copies packages to `~/.nuget/local-packages/`
-7. Clears NuGet cache for `stardust.utilities` and `stardust.generators`
+2. Lints `README.md` image URLs (all must be absolute `http(s)://`)
+3. Lints `README.md` for stale hardcoded version references that don't match `$Version`
+4. Builds the generator package
+5. Builds the main library
+6. Runs unit tests (unless `-SkipTests`)
+7. Pins relative `.md` links in a packed copy of `README.md` to `https://github.com/dhadner/Stardust.Utilities/blob/v{Version}/<file>.md`; the on-disk source is restored after pack
+8. Creates NuGet packages in `./nupkg/`
+9. Copies packages to `~/.nuget/local-packages/` and clears the NuGet cache for `stardust.utilities` and `stardust.generators`
 
 **Output locations:**
 - `./nupkg/` - Package files
@@ -1027,17 +1034,92 @@ bitwise operations. For most use cases, this overhead is acceptable.
 
 ### Release Checklist
 
-1. Update `Version` in `Directory.Build.props` (single source of truth; demo app
-   `PackageReference` versions use `$(Version)` automatically)
-2. Update `CHANGELOG.md` with the new version, date, and changes
-3. Update `PackageReleaseNotes` in `Stardust.Utilities.csproj` with version-specific notes
-4. Verify `README.md` installation snippet references the new version
-5. Build and test: `.\Build-Combined-NuGetPackages.ps1`
-6. Commit all changes and push to `main`
-7. Create a Git tag with the `v` prefix: `git tag v0.9.7 && git push origin v0.9.7`
-8. Publish to NuGet.org using the command shown by the build script
+The tag **must be pushed to GitHub before the `.nupkg` is pushed to nuget.org**, because the
+packed README links are rewritten at pack time to absolute URLs of the form
+`https://github.com/dhadner/Stardust.Utilities/blob/v{Version}/<file>.md`. If the package
+lands on nuget.org before the tag exists on GitHub, every link in the rendered README will
+404 until the tag is pushed.
+
+1. **Bump** `Version` in `Directory.Build.props` (single source of truth; demo app
+   `PackageReference` versions use `$(Version)` automatically).
+2. **CHANGELOG.md** -- add a new section for the version with the current date and a
+   summary of changes.
+3. **PackageReleaseNotes** in `Stardust.Utilities.csproj` -- add a version-specific paragraph
+   at the top (keep prior paragraphs so nuget.org shows release history).
+4. **README.md** -- no version string should need changing: the install snippet is
+   versionless and the "What's New" section just links to `CHANGELOG.md`. If you added a
+   new versioned snippet, update it; the build will fail on step 3 (version lint) if any
+   literal `Version="X.Y.Z"` or `**vX.Y.Z**` in `README.md` doesn't match `$Version`. See
+   [Avoiding Stale Version References in README](#avoiding-stale-version-references-in-readme)
+   for the full policy.
+5. **Build and test:** `.\Build-Combined-NuGetPackages.ps1` -- step 3 catches stale
+   README versions, and step 7 pins README `.md` links to `v{Version}` at pack time.
+6. **Verify** the packed README in NuGet Package Explorer (drag the `.nupkg` onto it; inspect
+   the Readme tab -- images should render and every `.md` link in the feature matrix should
+   point at `blob/v{Version}/<file>.md`).
+7. **Commit and push** all changes to `main`.
+8. **Create and push the Git tag**, with the `v` prefix:
+   ```powershell
+   git tag v0.9.12
+   git push origin v0.9.12
+   ```
+   **Do not skip or postpone this step.** The packed README in the `.nupkg` already
+   references this tag; nuget.org will try to resolve the links as soon as the package is
+   published.
+9. **Publish to nuget.org** with the command shown at the end of the build script output:
+   ```powershell
+   dotnet nuget push .\nupkg\Stardust.Utilities.0.9.12.nupkg -k YOUR_API_KEY -s https://api.nuget.org/v3/index.json
+   ```
+10. **Smoke-test nuget.org** -- open the package page, confirm screenshots render, and click
+    at least one `.md` link in the "What's In The Box" feature matrix; it must resolve to
+    `blob/v{Version}/<file>.md`, not 404.
+11. **For re-releases** (fixing README / docs on an already-published version): unlist and
+    deprecate the prior version on nuget.org so installs fall through to the new version.
 
 ### Tag Naming Convention
 
-All release tags use the `v` prefix (e.g., `v0.9.7`, `v1.0.0`). The initial `0.9.2` tag
+All release tags use the `v` prefix (e.g., `v0.9.12`, `v1.0.0`). The initial `0.9.2` tag
 predates this convention. New releases must use the `v` prefix for consistency.
+
+### Avoiding Stale Version References in README
+
+Hardcoded version strings in `README.md` drifted twice in recent releases (v0.9.10 and
+v0.9.11 both shipped with `Version="0.9.9"` in the install snippet and a `**v0.9.9**`
+"What's New" banner). The policy going forward is *"don't hardcode versions that don't
+need to be hardcoded, and lint the ones that do"*:
+
+**1. The install snippet does not name a version.**
+
+```xml
+<PackageReference Include="Stardust.Utilities" />
+```
+
+NuGet resolves this to the latest stable version on restore, which is what most consumers
+want. The shields.io badge at the top of the README (`https://img.shields.io/nuget/v/Stardust.Utilities.svg`)
+shows what "latest" is today -- updated by nuget.org automatically, no maintenance
+required. If a consumer needs a reproducible build pinned to a specific version, they add
+`Version="x.y.z"` themselves.
+
+**2. The "What's New" section points at `CHANGELOG.md` instead of summarizing inline.**
+
+The versioned `**vX.Y.Z** -- <prose>` blurb is gone. `CHANGELOG.md` already covers every
+release with dated entries; duplicating that in the README just creates a second place
+that can drift. On nuget.org, `PackageReleaseNotes` in the csproj plays the same role on
+the **Release Notes** tab.
+
+**3. `Build-Combined-NuGetPackages.ps1` step 3 lints for any re-introduction.**
+
+The build script scans `README.md` for two patterns and fails the build if either finds
+a literal version that does not match `$Version` from `Directory.Build.props`:
+
+- `Stardust\.Utilities"\s+Version="([0-9.]+(?:-[A-Za-z0-9.-]+)?)"` -- install-snippet version
+- `(?m)^\s*\*\*v([0-9.]+(?:-[A-Za-z0-9.-]+)?)\*\*` -- bolded version banner at the start of a line
+
+Placeholder strings like `Version="x.y.z"` in prose are explicitly allowed (the regexes
+require all-digit versions with periods), so documentation can still show the syntax
+without triggering the lint.
+
+**When a new spot starts carrying a literal version,** add its pattern to the same lint
+rather than relying on the author to remember to bump it. The regex additions live in
+`Build-Combined-NuGetPackages.ps1` under `Step 3: Lint README.md for stale version
+references`.

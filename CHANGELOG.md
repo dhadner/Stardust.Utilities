@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once version 1.0 is released.
 
+## [0.9.12] - 2026-04-21
+
+### 🔵 Fixed
+- **Stale version references in README eliminated at the source** -- v0.9.10 and v0.9.11 both shipped with `Version="0.9.9"` in the install snippet and a `**v0.9.9** -- ...` "What's New" banner because the author forgot to bump them during the release. v0.9.12 removes those hardcoded versions entirely: the install snippet is now `<PackageReference Include="Stardust.Utilities" />` (versionless; NuGet resolves to latest, and the shields.io badge at the top of the README displays the current version from nuget.org automatically), and the "What's New" section is now a one-line pointer to `CHANGELOG.md` instead of a version-specific blurb. There is nothing left to keep in sync.
+
+### 🟣 Changed
+- **Build-Combined-NuGetPackages.ps1 lints for stale version references** -- new Step 3 scans `README.md` for two patterns -- `Stardust.Utilities" Version="X.Y.Z"` (install snippet) and `**vX.Y.Z**` (bolded banner at start of a line) -- and fails the build if any hit captures a version that doesn't match `$Version` from `Directory.Build.props`. Catches future reintroduction of the same class of drift before pack. Placeholder strings like `Version="x.y.z"` in documentation prose are allowed (the regex requires all-digit versions with periods).
+
+### 🟤 Backwards Compatibility
+- v0.9.12 is a README-only re-release (same pattern as v0.9.10 and v0.9.11). Library binaries, source, and public API are identical to v0.9.9 through v0.9.11.
+
 ## [0.9.11] - 2026-04-21
 
 ### 🔵 Fixed
