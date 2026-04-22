@@ -41,7 +41,7 @@ v0.9.9 feature additions (omitted from the original v0.9.9 release notes):
 - StructDescription / StructDescriptionResourceType on record struct views (previously value-type only).
 - UndefinedBits on [BitFields] is now settable as a named argument (useful with auto-sized structs where there is no constructor parameter).
 
-v0.9.9 breaking change (additive otherwise): generator-emitted private members are now prefixed with `__` (Value -> __value, _w0/_w1 -> __w0/__w1, _data -> __data, _bitOffset -> __bitOffset, and all per-field constants like MODE_MASK / MODE_START_BIT -> __MODE_MASK / __MODE_START_BIT). Only affects code that touched generator-emitted privates via reflection or Unsafe.
+v0.9.9 breaking change (additive otherwise): generator-emitted private members are now prefixed with `__` (Value -&gt; __value, _w0/_w1 -&gt; __w0/__w1, _data -&gt; __data, _bitOffset -&gt; __bitOffset, and all per-field constants like MODE_MASK / MODE_START_BIT -&gt; __MODE_MASK / __MODE_START_BIT). Only affects code that touched generator-emitted privates via reflection or Unsafe.
 
 See CHANGELOG.md in the package for the full list.
 		</PackageReleaseNotes>
@@ -100,7 +100,7 @@ See CHANGELOG.md in the package for the full list.
 
 	<!-- Reference SourceLink -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="All" />
 	</ItemGroup>
 
 	<!-- Reference the source generator -->
