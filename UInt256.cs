@@ -64,6 +64,26 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UInt256(ulong num) { _p0 = num; _p1 = 0; _p2 = 0; _p3 = 0; }
 
+        /// <summary>Initializes a new <see cref="UInt256"/> from a byte span. The span is 32 bytes.</summary>
+        public UInt256(ReadOnlySpan<byte> bytes, bool isBigEndian = false)
+        {
+            if (bytes.Length < 32) throw new ArgumentException("Span must be at least 32 bytes.", nameof(bytes));
+            if (isBigEndian)
+            {
+                _p3 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(0, 8));
+                _p2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(8, 8));
+                _p1 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(16, 8));
+                _p0 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(24, 8));
+            }
+            else
+            {
+                _p0 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0, 8));
+                _p1 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8, 8));
+                _p2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(16, 8));
+                _p3 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(24, 8));
+            }
+        }
+
         /// <summary>The low 128 bits.</summary>
         public UInt128 Lower => new UInt128(_p1, _p0);
         /// <summary>The high 128 bits.</summary>

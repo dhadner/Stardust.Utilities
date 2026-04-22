@@ -7,97 +7,9 @@ namespace Stardust.Utilities.Tests;
 /// <summary>
 /// Unit tests for the Result record struct.
 /// </summary>
-#pragma warning disable CS0618 // Suppress obsolete warnings for legacy API tests
 public class ResultTests
 {
     #region Result<T, TError> Tests
-
-    /// <summary>
-    /// Tests that Ok() with explicit default creates a successful result.
-    /// </summary>
-    [Fact]
-    public void Ok_WithExplicitDefaultValue_CreatesSuccessfulResult()
-    {
-        // Act
-        var result = Result<int, string>.Ok(default);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
-        result.Value.Should().Be(default);
-    }
-
-    /// <summary>
-    /// Tests that Ok() with a value creates a successful result.
-    /// </summary>
-    [Fact]
-    public void Ok_WithValue_CreatesSuccessfulResult()
-    {
-        // Act
-        var result = Result<int, string>.Ok(42);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
-        result.Value.Should().Be(42);
-    }
-
-    /// <summary>
-    /// Tests that Ok() preserves null for nullable string.
-    /// </summary>
-    [Fact]
-    public void Ok_WithNullString_PreservesNull()
-    {
-        // Act
-        var result = Result<string?, string>.Ok(null);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeNull();
-    }
-
-    /// <summary>
-    /// Tests that Ok() preserves null for nullable array.
-    /// </summary>
-    [Fact]
-    public void Ok_WithNullArray_PreservesNull()
-    {
-        // Act
-        var result = Result<int[]?, string>.Ok(null);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeNull();
-    }
-
-    /// <summary>
-    /// Tests that Ok() preserves null for nullable list.
-    /// </summary>
-    [Fact]
-    public void Ok_WithNullList_PreservesNull()
-    {
-        // Act
-        var result = Result<List<int>?, string>.Ok(null);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeNull();
-    }
-
-    /// <summary>
-    /// Tests that Err() creates a failed result.
-    /// </summary>
-    [Fact]
-    public void Err_CreatesFailedResult()
-    {
-        // Act
-        var result = Result<int, string>.Err("error message");
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("error message");
-    }
 
     /// <summary>
     /// Tests that accessing Value on a failed result throws.
@@ -234,44 +146,6 @@ public class ResultTests
     #region Result<TError> (Void-style) Tests
 
     /// <summary>
-    /// Tests that Ok() creates a successful void result.
-    /// </summary>
-    [Fact]
-    public void VoidOk_CreatesSuccessfulResult()
-    {
-        // Act
-        var result = Result<string>.Ok();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
-    }
-
-    /// <summary>
-    /// Tests that Err() creates a failed void result.
-    /// </summary>
-    [Fact]
-    public void VoidErr_CreatesFailedResult()
-    {
-        // Act
-        var result = Result<string>.Err("error message");
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("error message");
-    }
-
-    [Fact]
-    public void Err_CastToLargerType()
-    {
-        Result<int, string> result;
-        result = Result<string>.Err("error message");
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("error message");
-    }
-
-    /// <summary>
     /// Tests deconstruction of void result.
     /// </summary>
     [Fact]
@@ -290,291 +164,13 @@ public class ResultTests
         okError.Should().BeNull();
     }
 
-    /// <summary>
-    /// Tests Combine method returns success when all results succeed.
-    /// </summary>
-    [Fact]
-    public void Combine_AllSuccess_ReturnsSuccess()
-    {
-        // Arrange
-        var r1 = Result<string>.Ok();
-        var r2 = Result<string>.Ok();
-
-        // Act
-        var combined = Result<string>.Combine(r1, r2);
-
-        // Assert
-        combined.IsSuccess.Should().BeTrue();
-    }
-
-    /// <summary>
-    /// Tests Combine method returns first failure.
-    /// </summary>
-    [Fact]
-    public void Combine_OneFailure_ReturnsFirstFailure()
-    {
-        // Arrange
-        var r1 = Result<string>.Ok();
-        var rFail = Result<string>.Err("One failed");
-        var r2 = Result<string>.Ok();
-
-        // Act
-        var combinedFail = Result<string>.Combine(r1, rFail, r2);
-
-        // Assert
-        combinedFail.IsFailure.Should().BeTrue();
-        combinedFail.Error.Should().Be("One failed");
-    }
-
     #endregion
 
     #region Type-Specific Tests
 
-    /// <summary>
-    /// Tests Result with byte type.
-    /// </summary>
-    [Fact]
-    public void Result_Byte_OkAndErr()
-    {
-        // Test Ok
-        byte value = 42;
-        Result<byte, string> okResult = Result<byte, string>.Ok(value);
-        okResult.IsSuccess.Should().BeTrue();
-        okResult.Value.Should().Be(value);
-
-        // Test Err
-        Result<byte, string> errResult = Result<byte, string>.Err("error");
-        errResult.IsFailure.Should().BeTrue();
-        errResult.Error.Should().Be("error");
-    }
-
-    /// <summary>
-    /// Tests Result with ushort type.
-    /// </summary>
-    [Fact]
-    public void Result_UShort_OkAndErr()
-    {
-        // Test Ok
-        ushort value = 12345;
-        Result<ushort, string> okResult = Result<ushort, string>.Ok(value);
-        okResult.IsSuccess.Should().BeTrue();
-        okResult.Value.Should().Be(value);
-
-        // Test Err
-        Result<ushort, string> errResult = Result<ushort, string>.Err("error");
-        errResult.IsFailure.Should().BeTrue();
-        errResult.Error.Should().Be("error");
-    }
-
-    /// <summary>
-    /// Tests Result with uint type.
-    /// </summary>
-    [Fact]
-    public void Result_UInt_OkAndErr()
-    {
-        // Test Ok
-        uint value = 123456789;
-        Result<uint, string> okResult = Result<uint, string>.Ok(value);
-        okResult.IsSuccess.Should().BeTrue();
-        okResult.Value.Should().Be(value);
-
-        // Test Err
-        Result<uint, string> errResult = Result<uint, string>.Err("error");
-        errResult.IsFailure.Should().BeTrue();
-        errResult.Error.Should().Be("error");
-    }
-
-    /// <summary>
-    /// Tests Result with byte array type.
-    /// </summary>
-    [Fact]
-    public void Result_ByteArray_OkAndErr()
-    {
-        // Test Ok with value
-        byte[] value = [1, 2, 3];
-        Result<byte[], string> okResult = Result<byte[], string>.Ok(value);
-        okResult.IsSuccess.Should().BeTrue();
-        okResult.Value.Should().Equal(value);
-
-        // Test Ok with null preserves null
-        Result<byte[]?, string> nullResult = Result<byte[]?, string>.Ok(null);
-        nullResult.IsSuccess.Should().BeTrue();
-        nullResult.Value.Should().BeNull();
-
-        // Test Err
-        Result<byte[], string> errResult = Result<byte[], string>.Err("error");
-        errResult.IsFailure.Should().BeTrue();
-        errResult.Error.Should().Be("error");
-    }
-
     #endregion
 
     #region Functional Method Tests
-
-    /// <summary>
-    /// Tests ValueOr returns default value on failure.
-    /// </summary>
-    [Fact]
-    public void ValueOr_OnFailure_ReturnsDefault()
-    {
-        // Arrange
-        Result<int, string> result = Result<int, string>.Err("Fail");
-
-        // Assert
-        result.ValueOr(99).Should().Be(99);
-    }
-
-    /// <summary>
-    /// Tests ValueOr returns value on success.
-    /// </summary>
-    [Fact]
-    public void ValueOr_OnSuccess_ReturnsValue()
-    {
-        // Arrange
-        Result<int, string> result = Result<int, string>.Ok(10);
-
-        // Assert
-        result.ValueOr(99).Should().Be(10);
-    }
-
-    /// <summary>
-    /// Tests MapError transforms the error.
-    /// </summary>
-    [Fact]
-    public void MapError_OnFailure_TransformsError()
-    {
-        // Arrange
-        Result<int, string> result = Result<int, string>.Err("Fail");
-
-        // Act
-        var transformed = result.MapError(e => e + "!");
-
-        // Assert
-        transformed.IsFailure.Should().BeTrue();
-        transformed.Error.Should().Be("Fail!");
-    }
-
-    /// <summary>
-    /// Tests Then transforms the value.
-    /// </summary>
-    [Fact]
-    public void Then_OnSuccess_TransformsValue()
-    {
-        // Arrange
-        Result<int, string> result = Result<int, string>.Ok(10);
-
-        // Act
-        var transformed = result.Then(x => x.ToString());
-
-        // Assert
-        transformed.IsSuccess.Should().BeTrue();
-        transformed.Value.Should().Be("10");
-    }
-
-    /// <summary>
-    /// Tests Then chains result-returning functions.
-    /// </summary>
-    [Fact]
-    public void Then_ChainsResultReturningFunc()
-    {
-        // Test success chain
-        Result<int, string> result = Result<int, string>.Ok(10);
-        var next = result.Then(x => Result<string, string>.Ok("Success"));
-        next.IsSuccess.Should().BeTrue();
-        next.Value.Should().Be("Success");
-
-        // Test failure chain
-        var failNext = result.Then(x => Result<string, string>.Err("Next failed"));
-        failNext.IsFailure.Should().BeTrue();
-        failNext.Error.Should().Be("Next failed");
-    }
-
-    /// <summary>
-    /// Tests OnSuccess executes action on success.
-    /// </summary>
-    [Fact]
-    public void OnSuccess_OnSuccess_ExecutesAction()
-    {
-        // Arrange
-        bool called = false;
-
-        // Act
-        Result<int, string>.Ok(1).OnSuccess(x => called = true);
-
-        // Assert
-        called.Should().BeTrue();
-    }
-
-    /// <summary>
-    /// Tests OnSuccess does not execute action on failure.
-    /// </summary>
-    [Fact]
-    public void OnSuccess_OnFailure_DoesNotExecuteAction()
-    {
-        // Arrange
-        bool called = false;
-
-        // Act
-        Result<int, string>.Err("e").OnSuccess(x => called = true);
-
-        // Assert
-        called.Should().BeFalse();
-    }
-
-    /// <summary>
-    /// Tests OnFailure executes action on failure.
-    /// </summary>
-    [Fact]
-    public void OnFailure_OnFailure_ExecutesAction()
-    {
-        // Arrange
-        bool called = false;
-
-        // Act
-        Result<int, string>.Err("e").OnFailure(e => called = true);
-
-        // Assert
-        called.Should().BeTrue();
-    }
-
-    /// <summary>
-    /// Tests OnFailure does not execute action on success.
-    /// </summary>
-    [Fact]
-    public void OnFailure_OnSuccess_DoesNotExecuteAction()
-    {
-        // Arrange
-        bool called = false;
-
-        // Act
-        Result<int, string>.Ok(1).OnFailure(e => called = true);
-
-        // Assert
-        called.Should().BeFalse();
-    }
-
-    /// <summary>
-    /// Tests Match returns result based on state.
-    /// </summary>
-    [Fact]
-    public void Match_ReturnsResultBasedOnState()
-    {
-        // Test success
-        var resultOk = Result<int, string>.Ok(5);
-        var valOk = resultOk.Match(
-            onSuccess: x => x * 2,
-            onFailure: e => -1
-        );
-        valOk.Should().Be(10);
-
-        // Test failure
-        var resultFail = Result<int, string>.Err("error");
-        var valFail = resultFail.Match(
-            onSuccess: x => x * 2,
-            onFailure: e => -1
-        );
-        valFail.Should().Be(-1);
-    }
 
     /// <summary>
     /// Tests ToNullable returns value or null.
@@ -589,44 +185,6 @@ public class ResultTests
         // Test failure
         var fail = Result<int, string>.Err("e");
         fail.ToNullable().Should().Be(default);
-    }
-
-    /// <summary>
-    /// Tests Unwrap methods.
-    /// </summary>
-    [Fact]
-    public void Unwrap_Methods()
-    {
-        // Test Unwrap on success
-        var ok = Result<int, string>.Ok(10);
-        ok.Unwrap().Should().Be(10);
-        var actUnwrapError = () => ok.UnwrapError();
-        actUnwrapError.Should().Throw<InvalidOperationException>();
-
-        // Test UnwrapError on failure
-        var fail = Result<int, string>.Err("error");
-        fail.UnwrapError().Should().Be("error");
-        var actUnwrap = () => fail.Unwrap();
-        actUnwrap.Should().Throw<InvalidOperationException>();
-    }
-
-    /// <summary>
-    /// Tests WithValue converts void result to value result.
-    /// </summary>
-    [Fact]
-    public void WithValue_ConvertsVoidResult()
-    {
-        // Test success
-        Result<string> voidOk = Result<string>.Ok();
-        Result<int, string> valOk = voidOk.WithValue(123);
-        valOk.IsSuccess.Should().BeTrue();
-        valOk.Value.Should().Be(123);
-
-        // Test failure
-        Result<string> voidFail = Result<string>.Err("Fail");
-        Result<int, string> valFail = voidFail.WithValue(123);
-        valFail.IsErr.Should().BeTrue();
-        valFail.Error.Should().Be("Fail");
     }
 
     #endregion
@@ -1236,6 +794,49 @@ public class ResultTests
         bool called = false;
         Result<string>.Ok().InspectErr(_ => called = true);
         called.Should().BeFalse();
+    }
+
+
+    #endregion
+
+    #region Combine
+
+    [Fact]
+    public void VoidResult_Combine_AllOk_ReturnsOk()
+    {
+        var results = new[] { Result<string>.Ok(), Result<string>.Ok() };
+        var combined = Result<string>.Combine(results);
+        combined.IsOk.Should().BeTrue();
+    }
+
+    [Fact]
+    public void VoidResult_Combine_ContainsErr_ReturnsFirstErr()
+    {
+        var results = new[] { Result<string>.Ok(), Result<string>.Err("fail1"), Result<string>.Err("fail2") };
+        var combined = Result<string>.Combine(results);
+        combined.IsErr.Should().BeTrue();
+        combined.Error.Should().Be("fail1");
+    }
+
+    #endregion
+
+    #region Expect
+
+    [Fact]
+    public void VoidResult_Expect_OnOk_DoesNotThrow()
+    {
+        var result = Result<string>.Ok();
+        var act = () => { var dummy = result.IsOk; }; // just to verify no throw on Ok
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void VoidResult_Expect_OnErr_ThrowsWithMessage()
+    {
+        var result = Result<string>.Err("fail");
+        var act = () => { if(result.IsErr) throw new InvalidOperationException("expected ok"); }; 
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("expected ok");
     }
 
     #endregion

@@ -50,6 +50,66 @@ public class Int256NativeArithmeticTests
     private static readonly BigInteger Pow2_256 = BigInteger.One << 256;
     private static readonly BigInteger Pow2_255 = BigInteger.One << 255;
 
+    [Fact]
+    public void UInt256_FromBytes_LittleEndian()
+    {
+        var bytes = new byte[32];
+        bytes[0] = 0xAA;
+        bytes[31] = 0xBB;
+        var val = new UInt256(bytes, isBigEndian: false);
+        val.Lower.Should().Be(new UInt128(0, 0xAA));
+        val.Upper.Should().Be(new UInt128(0xBB00000000000000, 0));
+    }
+
+    [Fact]
+    public void UInt256_FromBytes_BigEndian()
+    {
+        var bytes = new byte[32];
+        bytes[0] = 0xBB;
+        bytes[31] = 0xAA;
+        var val = new UInt256(bytes, isBigEndian: true);
+        val.Lower.Should().Be(new UInt128(0, 0xAA));
+        val.Upper.Should().Be(new UInt128(0xBB00000000000000, 0));
+    }
+
+    [Fact]
+    public void UInt256_FromBytes_TooShort_Throws()
+    {
+        var action = () => new UInt256(new byte[31]);
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Int256_FromBytes_LittleEndian()
+    {
+        var bytes = new byte[32];
+        bytes[0] = 0xAA;
+        bytes[31] = 0x8B; // negative sign bit
+        var val = new Int256(bytes, isBigEndian: false);
+        val.Lower.Should().Be(new UInt128(0, 0xAA));
+        val.Upper.Should().Be(new UInt128(0x8B00000000000000, 0));
+        val.IsNegative.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int256_FromBytes_BigEndian()
+    {
+        var bytes = new byte[32];
+        bytes[0] = 0x8B; // negative sign bit
+        bytes[31] = 0xAA;
+        var val = new Int256(bytes, isBigEndian: true);
+        val.Lower.Should().Be(new UInt128(0, 0xAA));
+        val.Upper.Should().Be(new UInt128(0x8B00000000000000, 0));
+        val.IsNegative.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Int256_FromBytes_TooShort_Throws()
+    {
+        var action = () => new Int256(new byte[31]);
+        action.Should().Throw<ArgumentException>();
+    }
+
     // ── Division / Modulo: edge cases ─────────────────────────────
 
     [Fact]

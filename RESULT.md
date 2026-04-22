@@ -757,23 +757,3 @@ var config = LoadConfig("config.json")
 | `AndThen<TError>(Task, Func)` | Async AndThen for void results (sync) |
 | `MapErr<T, TError, TNewError>(Task, Func)` | Async MapErr |
 
-### Deprecated Members
-
-The following members are deprecated and will be removed in a future release. They still compile but emit `[Obsolete]` warnings:
-
-| Deprecated | Replacement |
-|------------|-------------|
-| `IsSuccess` | `IsOk` |
-| `IsFailure` | `IsErr` |
-| `UnwrapError()` | `UnwrapErr()` |
-| `ValueOr(T)` | `UnwrapOr(T)` |
-| `ValueOr(Func<TError, T>)` | `UnwrapOrElse(Func<TError, T>)` |
-| `Then<TNew>(Func<T, TNew>)` | `Map<TNew>(Func<T, TNew>)` |
-| `Then<TNew>(Func<T, Result<TNew, TError>>)` | `AndThen<TNew>(Func<T, Result<TNew, TError>>)` |
-| `Then(Result)` | `And(Result)` |
-| `MapError<TNewError>(...)` | `MapErr<TNewError>(...)` |
-| `Match<TResult>(...)` | `MapOrElse<TResult>(...)` |
-| `OnSuccess(Action)` | `Inspect(Action)` |
-| `OnFailure(Action)` | `InspectErr(Action)` |
-| Async `Then` overloads | Async `Map` / `AndThen` |
-| Async `ThenError` | Async `MapErr` |

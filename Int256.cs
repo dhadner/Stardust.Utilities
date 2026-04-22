@@ -55,6 +55,30 @@ namespace Stardust.Utilities
             _hi = num < 0 ? ~UInt128.Zero : UInt128.Zero;
         }
 
+        /// <summary>Initializes a new <see cref="Int256"/> from a byte span. The span is 32 bytes.</summary>
+        public Int256(ReadOnlySpan<byte> bytes, bool isBigEndian = false)
+        {
+            if (bytes.Length < 32) throw new ArgumentException("Span must be at least 32 bytes.", nameof(bytes));
+            if (isBigEndian)
+            {
+                var h = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(0, 8));
+                var h2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(8, 8));
+                var l = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(16, 8));
+                var l2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(24, 8));
+                _hi = new UInt128(h, h2);
+                _lo = new UInt128(l, l2);
+            }
+            else
+            {
+                var l2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(0, 8));
+                var l = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8, 8));
+                var h2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(16, 8));
+                var h = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(24, 8));
+                _hi = new UInt128(h, h2);
+                _lo = new UInt128(l, l2);
+            }
+        }
+
         /// <summary>True if this value is negative.</summary>
         public bool IsNegative => (_hi & SignMask) != UInt128.Zero;
 

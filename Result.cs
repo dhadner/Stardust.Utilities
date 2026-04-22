@@ -58,14 +58,6 @@ namespace Stardust.Utilities
             get => !_isSuccess;
         }
 
-        /// <inheritdoc cref="IsOk"/>
-        [Obsolete("Use IsOk instead.")]
-        public bool IsSuccess => _isSuccess;
-
-        /// <inheritdoc cref="IsErr"/>
-        [Obsolete("Use IsErr instead.")]
-        public bool IsFailure => !_isSuccess;
-
         /// <summary>
         /// Returns <see langword="true"/> if the result is Ok and the contained value
         /// satisfies the given <paramref name="predicate"/>.
@@ -207,10 +199,6 @@ namespace Stardust.Utilities
             ? _error!
             : throw new InvalidOperationException(message);
 
-        /// <inheritdoc cref="UnwrapErr"/>
-        [Obsolete("Use UnwrapErr instead.")]
-        public TError UnwrapError() => UnwrapErr();
-
         /// <summary>
         /// Returns the success value or <paramref name="defaultValue"/> if Err.
         /// </summary>
@@ -234,14 +222,6 @@ namespace Stardust.Utilities
         /// <returns>The success value or the default for <typeparamref name="T"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T? UnwrapOrDefault() => _isSuccess ? _value : default;
-
-        /// <inheritdoc cref="UnwrapOr"/>
-        [Obsolete("Use UnwrapOr instead.")]
-        public T ValueOr(T defaultValue) => UnwrapOr(defaultValue);
-
-        /// <inheritdoc cref="UnwrapOrElse"/>
-        [Obsolete("Use UnwrapOrElse instead.")]
-        public T ValueOr(Func<TError, T> defaultFactory) => UnwrapOrElse(defaultFactory);
 
         // ── Transforming contained values ─────────────────────────
 
@@ -288,19 +268,6 @@ namespace Stardust.Utilities
         public TResult MapOrElse<TResult>(Func<T, TResult> onOk, Func<TError, TResult> onErr) =>
             _isSuccess ? onOk(_value!) : onErr(_error!);
 
-        /// <inheritdoc cref="Map{TNew}"/>
-        [Obsolete("Use Map instead.")]
-        public Result<TNew, TError> Then<TNew>(Func<T, TNew> transform) => Map(transform);
-
-        /// <inheritdoc cref="MapErr{TNewError}"/>
-        [Obsolete("Use MapErr instead.")]
-        public Result<T, TNewError> MapError<TNewError>(Func<TError, TNewError> transform) => MapErr(transform);
-
-        /// <inheritdoc cref="MapOrElse{TResult}"/>
-        [Obsolete("Use MapOrElse instead.")]
-        public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<TError, TResult> onFailure) =>
-            MapOrElse(onSuccess, onFailure);
-
         // ── Side-effects ─────────────────────────────────────────
 
         /// <summary>
@@ -326,14 +293,6 @@ namespace Stardust.Utilities
             if (!_isSuccess) action(_error!);
             return this;
         }
-
-        /// <inheritdoc cref="Inspect"/>
-        [Obsolete("Use Inspect instead.")]
-        public Result<T, TError> OnSuccess(Action<T> action) => Inspect(action);
-
-        /// <inheritdoc cref="InspectErr"/>
-        [Obsolete("Use InspectErr instead.")]
-        public Result<T, TError> OnFailure(Action<TError> action) => InspectErr(action);
 
         // ── Boolean operators ─────────────────────────────────────
 
@@ -388,18 +347,6 @@ namespace Stardust.Utilities
         public Result<T, TNewError> OrElse<TNewError>(Func<TError, Result<T, TNewError>> op) =>
             _isSuccess ? Result<T, TNewError>.Ok(_value!) : op(_error!);
 
-        /// <inheritdoc cref="And{TNew}(Result{TNew, TError})"/>
-        [Obsolete("Use And instead.")]
-        public Result<TNew, TError> Then<TNew>(Result<TNew, TError> nextResult) => And(nextResult);
-
-        /// <inheritdoc cref="And(Result{TError})"/>
-        [Obsolete("Use And instead.")]
-        public Result<TError> Then(Result<TError> nextResult) => And(nextResult);
-
-        /// <inheritdoc cref="AndThen{TNew}"/>
-        [Obsolete("Use AndThen instead.")]
-        public Result<TNew, TError> Then<TNew>(Func<T, Result<TNew, TError>> nextStep) => AndThen(nextStep);
-
         // ── Interop with Nullable ─────────────────────────────────
 
         /// <summary>
@@ -452,14 +399,6 @@ namespace Stardust.Utilities
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => !_isSuccess;
         }
-
-        /// <inheritdoc cref="IsOk"/>
-        [Obsolete("Use IsOk instead.")]
-        public bool IsSuccess => _isSuccess;
-
-        /// <inheritdoc cref="IsErr"/>
-        [Obsolete("Use IsErr instead.")]
-        public bool IsFailure => !_isSuccess;
 
         /// <summary>
         /// The error value. Throws if IsSuccess.
@@ -551,15 +490,6 @@ namespace Stardust.Utilities
         public TResult MapOrElse<TResult>(Func<TResult> onOk, Func<TError, TResult> onErr) =>
             _isSuccess ? onOk() : onErr(_error!);
 
-        /// <inheritdoc cref="MapErr{TNewError}"/>
-        [Obsolete("Use MapErr instead.")]
-        public Result<TNewError> MapError<TNewError>(Func<TError, TNewError> transform) => MapErr(transform);
-
-        /// <inheritdoc cref="MapOrElse{TResult}"/>
-        [Obsolete("Use MapOrElse instead.")]
-        public TResult Match<TResult>(Func<TResult> onSuccess, Func<TError, TResult> onFailure) =>
-            MapOrElse(onSuccess, onFailure);
-
         // ── Side-effects ─────────────────────────────────────────────
 
         /// <summary>
@@ -585,14 +515,6 @@ namespace Stardust.Utilities
             if (!_isSuccess) action(_error!);
             return this;
         }
-
-        /// <inheritdoc cref="Inspect"/>
-        [Obsolete("Use Inspect instead.")]
-        public Result<TError> OnSuccess(Action action) => Inspect(action);
-
-        /// <inheritdoc cref="InspectErr"/>
-        [Obsolete("Use InspectErr instead.")]
-        public Result<TError> OnFailure(Action<TError> action) => InspectErr(action);
 
         // ── Boolean operators ─────────────────────────────────────────
 
@@ -633,14 +555,6 @@ namespace Stardust.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Result<TNewError> OrElse<TNewError>(Func<TError, Result<TNewError>> op) =>
             _isSuccess ? Result<TNewError>.Ok() : op(_error!);
-
-        /// <inheritdoc cref="And(Result{TError})"/>
-        [Obsolete("Use And instead.")]
-        public Result<TError> Then(Result<TError> nextResult) => And(nextResult);
-
-        /// <inheritdoc cref="AndThen"/>
-        [Obsolete("Use AndThen instead.")]
-        public Result<TError> Then(Func<Result<TError>> nextStep) => AndThen(nextStep);
 
         /// <summary>
         /// Converts to Result&lt;T, TError&gt; with the specified value on success.
@@ -808,70 +722,6 @@ namespace Stardust.Utilities
         /// <param name="transform">The transform applied to the error.</param>
         /// <returns>A task containing the result with a transformed error.</returns>
         public static async Task<Result<T, TNewError>> MapErr<T, TError, TNewError>(
-            this Task<Result<T, TError>> resultTask,
-            Func<TError, TNewError> transform)
-        {
-            var result = await resultTask;
-            return result.MapErr(transform);
-        }
-
-        // ── Deprecated async methods ─────────────────────────────────
-
-        /// <inheritdoc cref="Map{T, TNew, TError}"/>
-        [Obsolete("Use Map instead.")]
-        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
-            this Task<Result<T, TError>> resultTask,
-            Func<T, TNew> transform)
-        {
-            var result = await resultTask;
-            return result.Map(transform);
-        }
-
-        /// <inheritdoc cref="AndThen{T, TNew, TError}(Task{Result{T, TError}}, Func{T, Result{TNew, TError}})"/>
-        [Obsolete("Use AndThen instead.")]
-        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
-            this Task<Result<T, TError>> resultTask,
-            Func<T, Result<TNew, TError>> nextStep)
-        {
-            var result = await resultTask;
-            return result.AndThen(nextStep);
-        }
-
-        /// <inheritdoc cref="AndThen{T, TNew, TError}(Task{Result{T, TError}}, Func{T, Task{Result{TNew, TError}}})"/>
-        [Obsolete("Use AndThen instead.")]
-        public static async Task<Result<TNew, TError>> Then<T, TNew, TError>(
-            this Task<Result<T, TError>> resultTask,
-            Func<T, Task<Result<TNew, TError>>> nextStep)
-        {
-            var result = await resultTask;
-            return result.IsOk
-                ? await nextStep(result.Value)
-                : Result<TNew, TError>.Err(result.Error);
-        }
-
-        /// <inheritdoc cref="AndThen{TError}(Task{Result{TError}}, Func{Task{Result{TError}}})"/>
-        [Obsolete("Use AndThen instead.")]
-        public static async Task<Result<TError>> Then<TError>(
-            this Task<Result<TError>> resultTask,
-            Func<Task<Result<TError>>> nextStep)
-        {
-            var result = await resultTask;
-            return result.IsOk ? await nextStep() : result;
-        }
-
-        /// <inheritdoc cref="AndThen{TError}(Task{Result{TError}}, Func{Result{TError}})"/>
-        [Obsolete("Use AndThen instead.")]
-        public static async Task<Result<TError>> Then<TError>(
-            this Task<Result<TError>> resultTask,
-            Func<Result<TError>> nextStep)
-        {
-            var result = await resultTask;
-            return result.AndThen(nextStep);
-        }
-
-        /// <inheritdoc cref="MapErr{T, TError, TNewError}"/>
-        [Obsolete("Use MapErr instead.")]
-        public static async Task<Result<T, TNewError>> ThenError<T, TError, TNewError>(
             this Task<Result<T, TError>> resultTask,
             Func<TError, TNewError> transform)
         {
