@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project will adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once version 1.0 is released.
 
+## [0.9.13] - (TBD)
+
+### 🟢 Added
+- **`Int256` and `UInt256` byte-span constructors** -- new constructor overloads `Int256(ReadOnlySpan<byte> bytes, bool isBigEndian = false)` and `UInt256(ReadOnlySpan<byte> bytes, bool isBigEndian = false)` allow directly creating 256-bit numbers from raw bytes. Replaces the boilerplate span-reading and shifting that previously required internal multi-word structures to duplicate contextually.
+
+### 🔴 Removed
+- **Deprecated Result members removed** -- all `Result<T, TError>` and `Result<TError>` members marked `[Obsolete]` in 0.9.8 have been permanently removed.  These include: `IsSuccess`, `IsFailure`, `UnwrapError()`, `ValueOr(T)`, `ValueOr(Func<TError, T>)`, `Then<TNew>(Func<T, TNew>)`, `Then<TNew>(Func<T, Result<TNew, TError>>)`, `Then(Result)`, `MapError<TNewError>`, `Match<TResult>`, `OnSuccess(Action)`, and `OnFailure(Action)`.  Also removed are the obsolete async extension methods `Then` and `ThenError`.
+
 ## [0.9.12] - 2026-04-21
 
 ### 🔵 Fixed
