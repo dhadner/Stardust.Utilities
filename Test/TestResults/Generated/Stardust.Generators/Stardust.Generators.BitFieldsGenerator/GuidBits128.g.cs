@@ -279,16 +279,16 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     public static bool operator !=(GuidBits128 a, GuidBits128 b) => !(a == b);
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is GuidBits128 other && this == other;
+    public override readonly bool Equals(object? obj) => obj is GuidBits128 other && this == other;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(__w0, __w1);
     }
 
     /// <summary>Returns a hex string representation of the value.</summary>
-    public override string ToString() => "0x" + ToBigInteger().ToString("X");
+    public override readonly string ToString() => "0x" + ToBigInteger().ToString("X");
 
     /// <summary>Implicit conversion from ulong (zero-extended).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -315,7 +315,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     public static implicit operator GuidBits128(UInt128 value) => new((ulong)(value & ulong.MaxValue), (ulong)(value >> 64));
 
     /// <summary>Converts this value to a BigInteger.</summary>
-    public BigInteger ToBigInteger()
+    public readonly BigInteger ToBigInteger()
     {
         BigInteger result = __w1;
         result = (result << 64) | __w0;
@@ -438,7 +438,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     public static bool TryParse(string? s, out GuidBits128 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
-    public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -455,7 +455,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     }
 
     /// <summary>Compares this instance to a specified object.</summary>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is GuidBits128 other) return CompareTo(other);
@@ -463,7 +463,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
     }
 
     /// <summary>Compares this instance to another GuidBits128.</summary>
-    public int CompareTo(GuidBits128 other)
+    public readonly int CompareTo(GuidBits128 other)
     {
         if (__w1 != other.__w1) return __w1.CompareTo(other.__w1);
         if (__w0 != other.__w0) return __w0.CompareTo(other.__w0);
@@ -472,7 +472,7 @@ public partial struct GuidBits128 : IComparable, IComparable<GuidBits128>, IEqua
 
     /// <summary>Indicates whether this instance is equal to another GuidBits128.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(GuidBits128 other) => this == other;
+    public readonly bool Equals(GuidBits128 other) => this == other;
 
     /// <summary>JSON converter that serializes GuidBits128 as a hex string.</summary>
     private sealed class GuidBits128JsonConverter : JsonConverter<GuidBits128>

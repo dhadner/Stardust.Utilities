@@ -492,16 +492,16 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
     public static bool operator !=(UnalignedFrame512 a, UnalignedFrame512 b) => !(a == b);
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is UnalignedFrame512 other && this == other;
+    public override readonly bool Equals(object? obj) => obj is UnalignedFrame512 other && this == other;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(__w0, __w1, __w2, __w3, __w4, __w5, __w6, __w7);
     }
 
     /// <summary>Returns a hex string representation of the value.</summary>
-    public override string ToString() => "0x" + ToBigInteger().ToString("X");
+    public override readonly string ToString() => "0x" + ToBigInteger().ToString("X");
 
     /// <summary>Implicit conversion from ulong (zero-extended).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -520,7 +520,7 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
     public static explicit operator UnalignedFrame512(BigInteger value) => FromBigInteger(value);
 
     /// <summary>Converts this value to a BigInteger.</summary>
-    public BigInteger ToBigInteger()
+    public readonly BigInteger ToBigInteger()
     {
         BigInteger result = __w7;
         result = (result << 64) | __w6;
@@ -682,7 +682,7 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
     public static bool TryParse(string? s, out UnalignedFrame512 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
-    public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -699,7 +699,7 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
     }
 
     /// <summary>Compares this instance to a specified object.</summary>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is UnalignedFrame512 other) return CompareTo(other);
@@ -707,7 +707,7 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
     }
 
     /// <summary>Compares this instance to another UnalignedFrame512.</summary>
-    public int CompareTo(UnalignedFrame512 other)
+    public readonly int CompareTo(UnalignedFrame512 other)
     {
         if (__w7 != other.__w7) return __w7.CompareTo(other.__w7);
         if (__w6 != other.__w6) return __w6.CompareTo(other.__w6);
@@ -722,7 +722,7 @@ public partial struct UnalignedFrame512 : IComparable, IComparable<UnalignedFram
 
     /// <summary>Indicates whether this instance is equal to another UnalignedFrame512.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(UnalignedFrame512 other) => this == other;
+    public readonly bool Equals(UnalignedFrame512 other) => this == other;
 
     /// <summary>JSON converter that serializes UnalignedFrame512 as a hex string.</summary>
     private sealed class UnalignedFrame512JsonConverter : JsonConverter<UnalignedFrame512>

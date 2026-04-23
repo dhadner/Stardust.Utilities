@@ -200,7 +200,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"0x{(ulong)this:x16}";
+        public override readonly string ToString() => $"0x{(ulong)this:x16}";
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((ulong)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -212,11 +212,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(UInt64Le other) => ((ulong)this).CompareTo((ulong)other);
         /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj != null && Equals((UInt64Le)obj);
+        public override readonly bool Equals(object? obj) => obj != null && Equals((UInt64Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(UInt64Le other) => this == other;
         /// <inheritdoc/>
-        public override int GetHashCode() => ((ulong)this).GetHashCode();
+        public override readonly int GetHashCode() => ((ulong)this).GetHashCode();
 
         #region Operators
 

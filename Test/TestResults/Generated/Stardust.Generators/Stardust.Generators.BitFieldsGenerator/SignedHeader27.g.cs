@@ -43,7 +43,7 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     // --- Constructor normalization masks ---
     private const uint __NORMALIZATION_AND_MASK = 0x07FFFFFFU;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] private int __GetNormalizedValue() => (int)((uint)__value & __NORMALIZATION_AND_MASK);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private readonly int __GetNormalizedValue() => (int)((uint)__value & __NORMALIZATION_AND_MASK);
 
     /// <summary>Creates a new SignedHeader27 with the specified raw bits value.</summary>
     public SignedHeader27(int value) { __value = (int)(((uint)value) & __NORMALIZATION_AND_MASK); }
@@ -276,13 +276,13 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     public static bool operator !=(SignedHeader27 a, SignedHeader27 b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SignedHeader27 other && __GetNormalizedValue() == other.__GetNormalizedValue();
+    public override readonly bool Equals(object? obj) => obj is SignedHeader27 other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
+    public override readonly int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__GetNormalizedValue():X}";
+    public override readonly string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator int(SignedHeader27 value) => value.__GetNormalizedValue();
@@ -497,7 +497,7 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -512,7 +512,7 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
     /// <exception cref="ArgumentException">obj is not a SignedHeader27.</exception>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is SignedHeader27 other) return CompareTo(other);
@@ -523,13 +523,13 @@ public partial struct SignedHeader27 : IComparable, IComparable<SignedHeader27>,
     /// <param name="other">A SignedHeader27 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SignedHeader27 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
+    public readonly int CompareTo(SignedHeader27 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another SignedHeader27.</summary>
     /// <param name="other">A SignedHeader27 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SignedHeader27 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
+    public readonly bool Equals(SignedHeader27 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes SignedHeader27 as a string.</summary>
     private sealed class SignedHeader27JsonConverter : JsonConverter<SignedHeader27>

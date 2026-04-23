@@ -90,10 +90,10 @@ namespace Stardust.Utilities
         public UInt128 Upper => new UInt128(_p3, _p2);
 
         /// <inheritdoc/>
-        public override string ToString() => ToString("G", CultureInfo.CurrentCulture);
+        public override readonly string ToString() => ToString("G", CultureInfo.CurrentCulture);
 
         /// <inheritdoc/>
-        public string ToString(string? format, IFormatProvider? formatProvider)
+        public readonly string ToString(string? format, IFormatProvider? formatProvider)
         {
             if (string.IsNullOrEmpty(format)) format = "G";
             char fmt = format[0];
@@ -191,7 +191,7 @@ namespace Stardust.Utilities
             => TryParse(s.ToString(), provider, out result);
 
         /// <inheritdoc/>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is UInt256 other) return CompareTo(other);
@@ -199,7 +199,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public int CompareTo(UInt256 other)
+        public readonly int CompareTo(UInt256 other)
         {
             if (_p3 != other._p3) return _p3.CompareTo(other._p3);
             if (_p2 != other._p2) return _p2.CompareTo(other._p2);
@@ -208,11 +208,11 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj is UInt256 other && Equals(other);
+        public override readonly bool Equals(object? obj) => obj is UInt256 other && Equals(other);
         /// <inheritdoc/>
-        public bool Equals(UInt256 other) => _p0 == other._p0 && _p1 == other._p1 && _p2 == other._p2 && _p3 == other._p3;
+        public readonly bool Equals(UInt256 other) => _p0 == other._p0 && _p1 == other._p1 && _p2 == other._p2 && _p3 == other._p3;
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(_p0, _p1, _p2, _p3);
+        public override readonly int GetHashCode() => HashCode.Combine(_p0, _p1, _p2, _p3);
 
         /// <summary>Converts this value to a <see cref="BigInteger"/> (unsigned).</summary>
         public BigInteger ToBigInteger()

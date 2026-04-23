@@ -239,13 +239,13 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     public static bool operator !=(SatMultiField a, SatMultiField b) => a.__value != b.__value;
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SatMultiField other && __value == other.__value;
+    public override readonly bool Equals(object? obj) => obj is SatMultiField other && __value == other.__value;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __value.GetHashCode();
+    public override readonly int GetHashCode() => __value.GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__value:X}";
+    public override readonly string ToString() => $"0x{__value:X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator ushort(SatMultiField value) => value.__value;
@@ -464,7 +464,7 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -479,7 +479,7 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
     /// <exception cref="ArgumentException">obj is not a SatMultiField.</exception>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is SatMultiField other) return CompareTo(other);
@@ -490,13 +490,13 @@ public partial struct SatMultiField : IComparable, IComparable<SatMultiField>, I
     /// <param name="other">A SatMultiField to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SatMultiField other) => __value.CompareTo(other.__value);
+    public readonly int CompareTo(SatMultiField other) => __value.CompareTo(other.__value);
 
     /// <summary>Indicates whether this instance is equal to another SatMultiField.</summary>
     /// <param name="other">A SatMultiField to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SatMultiField other) => __value == other.__value;
+    public readonly bool Equals(SatMultiField other) => __value == other.__value;
 
     /// <summary>JSON converter that serializes SatMultiField as a string.</summary>
     private sealed class SatMultiFieldJsonConverter : JsonConverter<SatMultiField>

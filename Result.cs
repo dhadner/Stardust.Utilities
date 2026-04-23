@@ -361,7 +361,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Returns "Ok(value)" or "Err(error)".
         /// </summary>
-        public override string ToString() => _isSuccess ? $"Ok({_value})" : $"ErrToOption({_error})";
+        public override readonly string ToString() => _isSuccess ? $"Ok({_value})" : $"ErrToOption({_error})";
     }
 
     /// <summary>
@@ -583,7 +583,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Returns "Ok" or "Err(error)".
         /// </summary>
-        public override string ToString() => _isSuccess ? "Ok" : $"ErrToOption({_error})";
+        public override readonly string ToString() => _isSuccess ? "Ok" : $"ErrToOption({_error})";
     }
 
     /// <summary>

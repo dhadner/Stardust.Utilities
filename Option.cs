@@ -368,7 +368,7 @@ namespace Stardust.Utilities
         /// <summary>
         /// Returns "Some(value)" or "None".
         /// </summary>
-        public override string ToString() => _isSome ? $"Some({_value})" : "None";
+        public override readonly string ToString() => _isSome ? $"Some({_value})" : "None";
     }
 
     /// <summary>

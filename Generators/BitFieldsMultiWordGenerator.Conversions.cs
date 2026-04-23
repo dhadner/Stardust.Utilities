@@ -122,7 +122,7 @@ internal static partial class BitFieldsMultiWordGenerator
         int wc = layout.WordCount;
 
         sb.AppendLine($"{ind}/// <summary>Converts this value to a BigInteger.</summary>");
-        sb.AppendLine($"{ind}public BigInteger ToBigInteger()");
+        sb.AppendLine($"{ind}public readonly BigInteger ToBigInteger()");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    BigInteger result = {layout.Read("", wc - 1)};");
         for (int i = wc - 2; i >= 0; i--)
@@ -273,7 +273,7 @@ internal static partial class BitFieldsMultiWordGenerator
         if (info.NativeWideType == "decimal")
         {
             sb.AppendLine($"{ind}/// <summary>Formats the value using the specified format and format provider.</summary>");
-            sb.AppendLine($"{ind}public string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);");
+            sb.AppendLine($"{ind}public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);");
             sb.AppendLine();
 
             sb.AppendLine($"{ind}/// <summary>Tries to format the value into the provided span of characters.</summary>");
@@ -284,7 +284,7 @@ internal static partial class BitFieldsMultiWordGenerator
         }
 
         sb.AppendLine($"{ind}/// <summary>Formats the value using the specified format and format provider.</summary>");
-        sb.AppendLine($"{ind}public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);");
+        sb.AppendLine($"{ind}public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);");
         sb.AppendLine();
 
         sb.AppendLine($"{ind}/// <summary>Tries to format the value into the provided span of characters.</summary>");
@@ -309,7 +309,7 @@ internal static partial class BitFieldsMultiWordGenerator
         int wc = layout.WordCount;
 
         sb.AppendLine($"{ind}/// <summary>Compares this instance to a specified object.</summary>");
-        sb.AppendLine($"{ind}public int CompareTo(object? obj)");
+        sb.AppendLine($"{ind}public readonly int CompareTo(object? obj)");
         sb.AppendLine($"{ind}{{");
         sb.AppendLine($"{ind}    if (obj is null) return 1;");
         sb.AppendLine($"{ind}    if (obj is {t} other) return CompareTo(other);");
@@ -322,13 +322,13 @@ internal static partial class BitFieldsMultiWordGenerator
         {
             sb.AppendLine($"{ind}/// <summary>Compares this instance to another {t}.</summary>");
             sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            sb.AppendLine($"{ind}public int CompareTo({t} other) => ((decimal)this).CompareTo((decimal)other);");
+            sb.AppendLine($"{ind}public readonly int CompareTo({t} other) => ((decimal)this).CompareTo((decimal)other);");
             sb.AppendLine();
         }
         else
         {
             sb.AppendLine($"{ind}/// <summary>Compares this instance to another {t}.</summary>");
-            sb.AppendLine($"{ind}public int CompareTo({t} other)");
+            sb.AppendLine($"{ind}public readonly int CompareTo({t} other)");
             sb.AppendLine($"{ind}{{");
             for (int i = wc - 1; i >= 0; i--)
             {
@@ -343,7 +343,7 @@ internal static partial class BitFieldsMultiWordGenerator
 
         sb.AppendLine($"{ind}/// <summary>Indicates whether this instance is equal to another {t}.</summary>");
         sb.AppendLine($"{ind}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{ind}public bool Equals({t} other) => this == other;");
+        sb.AppendLine($"{ind}public readonly bool Equals({t} other) => this == other;");
         sb.AppendLine();
     }
 

@@ -38,7 +38,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     // --- Constructor normalization masks ---
     private const ushort __NORMALIZATION_AND_MASK = 0x01FF;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] private ushort __GetNormalizedValue() => (ushort)(__value & __NORMALIZATION_AND_MASK);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private readonly ushort __GetNormalizedValue() => (ushort)(__value & __NORMALIZATION_AND_MASK);
 
     /// <summary>Creates a new SubHeader9 with the specified raw bits value.</summary>
     public SubHeader9(ushort value) { __value = (ushort)(value & __NORMALIZATION_AND_MASK); }
@@ -229,13 +229,13 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     public static bool operator !=(SubHeader9 a, SubHeader9 b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is SubHeader9 other && __GetNormalizedValue() == other.__GetNormalizedValue();
+    public override readonly bool Equals(object? obj) => obj is SubHeader9 other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
+    public override readonly int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__GetNormalizedValue():X}";
+    public override readonly string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator ushort(SubHeader9 value) => value.__GetNormalizedValue();
@@ -454,7 +454,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -469,7 +469,7 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
     /// <exception cref="ArgumentException">obj is not a SubHeader9.</exception>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is SubHeader9 other) return CompareTo(other);
@@ -480,13 +480,13 @@ public partial struct SubHeader9 : IComparable, IComparable<SubHeader9>, IEquata
     /// <param name="other">A SubHeader9 to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(SubHeader9 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
+    public readonly int CompareTo(SubHeader9 other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another SubHeader9.</summary>
     /// <param name="other">A SubHeader9 to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(SubHeader9 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
+    public readonly bool Equals(SubHeader9 other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes SubHeader9 as a string.</summary>
     private sealed class SubHeader9JsonConverter : JsonConverter<SubHeader9>

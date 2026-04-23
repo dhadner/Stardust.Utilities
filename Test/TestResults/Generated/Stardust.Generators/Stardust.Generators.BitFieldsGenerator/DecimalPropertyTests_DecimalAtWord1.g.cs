@@ -326,16 +326,16 @@ public partial class DecimalPropertyTests
         public static bool operator !=(DecimalAtWord1 a, DecimalAtWord1 b) => !(a == b);
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is DecimalAtWord1 other && this == other;
+        public override readonly bool Equals(object? obj) => obj is DecimalAtWord1 other && this == other;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return HashCode.Combine(__w0, __w1, __w2, __w3);
         }
 
         /// <summary>Returns a hex string representation of the value.</summary>
-        public override string ToString() => "0x" + ToBigInteger().ToString("X");
+        public override readonly string ToString() => "0x" + ToBigInteger().ToString("X");
 
         /// <summary>Implicit conversion from ulong (zero-extended).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -354,7 +354,7 @@ public partial class DecimalPropertyTests
         public static explicit operator DecimalAtWord1(BigInteger value) => FromBigInteger(value);
 
         /// <summary>Converts this value to a BigInteger.</summary>
-        public BigInteger ToBigInteger()
+        public readonly BigInteger ToBigInteger()
         {
             BigInteger result = __w3;
             result = (result << 64) | __w2;
@@ -487,7 +487,7 @@ public partial class DecimalPropertyTests
         public static bool TryParse(string? s, out DecimalAtWord1 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
         /// <summary>Formats the value using the specified format and format provider.</summary>
-        public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
+        public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -504,7 +504,7 @@ public partial class DecimalPropertyTests
         }
 
         /// <summary>Compares this instance to a specified object.</summary>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is DecimalAtWord1 other) return CompareTo(other);
@@ -512,7 +512,7 @@ public partial class DecimalPropertyTests
         }
 
         /// <summary>Compares this instance to another DecimalAtWord1.</summary>
-        public int CompareTo(DecimalAtWord1 other)
+        public readonly int CompareTo(DecimalAtWord1 other)
         {
             if (__w3 != other.__w3) return __w3.CompareTo(other.__w3);
             if (__w2 != other.__w2) return __w2.CompareTo(other.__w2);
@@ -523,7 +523,7 @@ public partial class DecimalPropertyTests
 
         /// <summary>Indicates whether this instance is equal to another DecimalAtWord1.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(DecimalAtWord1 other) => this == other;
+        public readonly bool Equals(DecimalAtWord1 other) => this == other;
 
         /// <summary>JSON converter that serializes DecimalAtWord1 as a hex string.</summary>
         private sealed class DecimalAtWord1JsonConverter : JsonConverter<DecimalAtWord1>

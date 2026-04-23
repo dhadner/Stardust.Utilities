@@ -42,7 +42,7 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     // --- Constructor normalization masks ---
     private const byte __NORMALIZATION_AND_MASK = 0x1F;  // Clears: undefined bits (UndefinedBitsMustBe.Zeroes)
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] private byte __GetNormalizedValue() => (byte)(__value & __NORMALIZATION_AND_MASK);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] private readonly byte __GetNormalizedValue() => (byte)(__value & __NORMALIZATION_AND_MASK);
 
     /// <summary>Creates a new AutoSizedUndefinedZeroes with the specified raw bits value.</summary>
     public AutoSizedUndefinedZeroes(byte value) { __value = (byte)(value & __NORMALIZATION_AND_MASK); }
@@ -249,13 +249,13 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     public static bool operator !=(AutoSizedUndefinedZeroes a, AutoSizedUndefinedZeroes b) => a.__GetNormalizedValue() != b.__GetNormalizedValue();
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is AutoSizedUndefinedZeroes other && __GetNormalizedValue() == other.__GetNormalizedValue();
+    public override readonly bool Equals(object? obj) => obj is AutoSizedUndefinedZeroes other && __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode() => __GetNormalizedValue().GetHashCode();
+    public override readonly int GetHashCode() => __GetNormalizedValue().GetHashCode();
 
     /// <summary>Returns a string representation of the value.</summary>
-    public override string ToString() => $"0x{__GetNormalizedValue():X}";
+    public override readonly string ToString() => $"0x{__GetNormalizedValue():X}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator byte(AutoSizedUndefinedZeroes value) => value.__GetNormalizedValue();
@@ -474,7 +474,7 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <param name="format">The format to use, or null for the default format.</param>
     /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
     /// <returns>The formatted string representation of the value.</returns>
-    public string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => __GetNormalizedValue().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     /// <param name="destination">The span to write to.</param>
@@ -489,7 +489,7 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <param name="obj">An object to compare, or null.</param>
     /// <returns>A value indicating the relative order of the objects being compared.</returns>
     /// <exception cref="ArgumentException">obj is not a AutoSizedUndefinedZeroes.</exception>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is AutoSizedUndefinedZeroes other) return CompareTo(other);
@@ -500,13 +500,13 @@ public partial struct AutoSizedUndefinedZeroes : IComparable, IComparable<AutoSi
     /// <param name="other">A AutoSizedUndefinedZeroes to compare.</param>
     /// <returns>A value indicating the relative order of the instances being compared.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(AutoSizedUndefinedZeroes other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
+    public readonly int CompareTo(AutoSizedUndefinedZeroes other) => __GetNormalizedValue().CompareTo(other.__GetNormalizedValue());
 
     /// <summary>Indicates whether this instance is equal to another AutoSizedUndefinedZeroes.</summary>
     /// <param name="other">A AutoSizedUndefinedZeroes to compare with this instance.</param>
     /// <returns>true if the two instances are equal; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(AutoSizedUndefinedZeroes other) => __GetNormalizedValue() == other.__GetNormalizedValue();
+    public readonly bool Equals(AutoSizedUndefinedZeroes other) => __GetNormalizedValue() == other.__GetNormalizedValue();
 
     /// <summary>JSON converter that serializes AutoSizedUndefinedZeroes as a string.</summary>
     private sealed class AutoSizedUndefinedZeroesJsonConverter : JsonConverter<AutoSizedUndefinedZeroes>

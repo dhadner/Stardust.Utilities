@@ -380,11 +380,11 @@ internal static partial class BitFieldsMultiWordGenerator
         sb.AppendLine($"{ind}public static bool operator !=({t} a, {t} b) => !(a == b);");
         sb.AppendLine();
         sb.AppendLine($"{ind}/// <summary>Determines whether the specified object is equal to the current object.</summary>");
-        sb.AppendLine($"{ind}public override bool Equals(object? obj) => obj is {t} other && this == other;");
+        sb.AppendLine($"{ind}public override readonly bool Equals(object? obj) => obj is {t} other && this == other;");
         sb.AppendLine();
 
         sb.AppendLine($"{ind}/// <summary>Returns the hash code for this instance.</summary>");
-        sb.AppendLine($"{ind}public override int GetHashCode()");
+        sb.AppendLine($"{ind}public override readonly int GetHashCode()");
         sb.AppendLine($"{ind}{{");
         if (wc <= 8)
         {
@@ -405,12 +405,12 @@ internal static partial class BitFieldsMultiWordGenerator
         if (info.NativeWideType == "decimal")
         {
             sb.AppendLine($"{ind}/// <summary>Returns the decimal string representation of the value.</summary>");
-            sb.AppendLine($"{ind}public override string ToString() => ((decimal)this).ToString();");
+            sb.AppendLine($"{ind}public override readonly string ToString() => ((decimal)this).ToString();");
         }
         else
         {
             sb.AppendLine($"{ind}/// <summary>Returns a hex string representation of the value.</summary>");
-            sb.AppendLine($"{ind}public override string ToString() => \"0x\" + ToBigInteger().ToString(\"X\");");
+            sb.AppendLine($"{ind}public override readonly string ToString() => \"0x\" + ToBigInteger().ToString(\"X\");");
         }
         sb.AppendLine();
     }

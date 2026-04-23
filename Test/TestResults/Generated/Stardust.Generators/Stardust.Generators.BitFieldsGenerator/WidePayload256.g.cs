@@ -335,16 +335,16 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
     public static bool operator !=(WidePayload256 a, WidePayload256 b) => !(a == b);
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is WidePayload256 other && this == other;
+    public override readonly bool Equals(object? obj) => obj is WidePayload256 other && this == other;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(__w0, __w1, __w2, __w3);
     }
 
     /// <summary>Returns a hex string representation of the value.</summary>
-    public override string ToString() => "0x" + ToBigInteger().ToString("X");
+    public override readonly string ToString() => "0x" + ToBigInteger().ToString("X");
 
     /// <summary>Implicit conversion from ulong (zero-extended).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -363,7 +363,7 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
     public static explicit operator WidePayload256(BigInteger value) => FromBigInteger(value);
 
     /// <summary>Converts this value to a BigInteger.</summary>
-    public BigInteger ToBigInteger()
+    public readonly BigInteger ToBigInteger()
     {
         BigInteger result = __w3;
         result = (result << 64) | __w2;
@@ -496,7 +496,7 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
     public static bool TryParse(string? s, out WidePayload256 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
-    public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -513,7 +513,7 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
     }
 
     /// <summary>Compares this instance to a specified object.</summary>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is WidePayload256 other) return CompareTo(other);
@@ -521,7 +521,7 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
     }
 
     /// <summary>Compares this instance to another WidePayload256.</summary>
-    public int CompareTo(WidePayload256 other)
+    public readonly int CompareTo(WidePayload256 other)
     {
         if (__w3 != other.__w3) return __w3.CompareTo(other.__w3);
         if (__w2 != other.__w2) return __w2.CompareTo(other.__w2);
@@ -532,7 +532,7 @@ public partial struct WidePayload256 : IComparable, IComparable<WidePayload256>,
 
     /// <summary>Indicates whether this instance is equal to another WidePayload256.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(WidePayload256 other) => this == other;
+    public readonly bool Equals(WidePayload256 other) => this == other;
 
     /// <summary>JSON converter that serializes WidePayload256 as a hex string.</summary>
     private sealed class WidePayload256JsonConverter : JsonConverter<WidePayload256>

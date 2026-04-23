@@ -273,13 +273,13 @@ public partial class BitFieldProtocolTests
         public static bool operator !=(IPv4FragmentWord a, IPv4FragmentWord b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is IPv4FragmentWord other && __value == other.__value;
+        public override readonly bool Equals(object? obj) => obj is IPv4FragmentWord other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => __value.GetHashCode();
+        public override readonly int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{__value:X}";
+        public override readonly string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator uint(IPv4FragmentWord value) => value.__value;
@@ -494,7 +494,7 @@ public partial class BitFieldProtocolTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+        public readonly string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -509,7 +509,7 @@ public partial class BitFieldProtocolTests
         /// <param name="obj">An object to compare, or null.</param>
         /// <returns>A value indicating the relative order of the objects being compared.</returns>
         /// <exception cref="ArgumentException">obj is not a IPv4FragmentWord.</exception>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is IPv4FragmentWord other) return CompareTo(other);
@@ -520,13 +520,13 @@ public partial class BitFieldProtocolTests
         /// <param name="other">A IPv4FragmentWord to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(IPv4FragmentWord other) => __value.CompareTo(other.__value);
+        public readonly int CompareTo(IPv4FragmentWord other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another IPv4FragmentWord.</summary>
         /// <param name="other">A IPv4FragmentWord to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(IPv4FragmentWord other) => __value == other.__value;
+        public readonly bool Equals(IPv4FragmentWord other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes IPv4FragmentWord as a string.</summary>
         private sealed class IPv4FragmentWordJsonConverter : JsonConverter<IPv4FragmentWord>

@@ -240,7 +240,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"0x{(ushort)this:x4}";
+        public override readonly string ToString() => $"0x{(ushort)this:x4}";
 
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) =>
@@ -261,13 +261,13 @@ namespace Stardust.Utilities
         public readonly int CompareTo(UInt16Le other) => ((ushort)this).CompareTo((ushort)other);
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj != null && Equals((UInt16Le)obj);
+        public override readonly bool Equals(object? obj) => obj != null && Equals((UInt16Le)obj);
 
         /// <inheritdoc/>
         public readonly bool Equals(UInt16Le other) => this == other;
 
         /// <inheritdoc/>
-        public override int GetHashCode() => ((ushort)this).GetHashCode();
+        public override readonly int GetHashCode() => ((ushort)this).GetHashCode();
 
         #region Operators
 

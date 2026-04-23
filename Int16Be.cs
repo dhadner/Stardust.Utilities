@@ -618,7 +618,7 @@ namespace Stardust.Utilities
         /// Returns a string representation of the value.
         /// </summary>
         /// <returns>The formatted string.</returns>
-        public override string ToString() => $"0x{(short)this:x4}";
+        public override readonly string ToString() => $"0x{(short)this:x4}";
 
         /// <summary>
         /// Returns a string representation of the value using the specified format.
@@ -680,7 +680,7 @@ namespace Stardust.Utilities
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
-        public override bool Equals(object? obj)
+        public override readonly bool Equals(object? obj)
         {
             if (obj == null)
             {
@@ -703,7 +703,7 @@ namespace Stardust.Utilities
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return ((short)this).GetHashCode();
         }

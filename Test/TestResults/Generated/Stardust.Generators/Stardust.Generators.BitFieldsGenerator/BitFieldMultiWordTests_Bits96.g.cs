@@ -281,16 +281,16 @@ public partial class BitFieldMultiWordTests
         public static bool operator !=(Bits96 a, Bits96 b) => !(a == b);
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is Bits96 other && this == other;
+        public override readonly bool Equals(object? obj) => obj is Bits96 other && this == other;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return HashCode.Combine(__w0, __w1);
         }
 
         /// <summary>Returns a hex string representation of the value.</summary>
-        public override string ToString() => "0x" + ToBigInteger().ToString("X");
+        public override readonly string ToString() => "0x" + ToBigInteger().ToString("X");
 
         /// <summary>Implicit conversion from ulong (zero-extended).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -309,7 +309,7 @@ public partial class BitFieldMultiWordTests
         public static explicit operator Bits96(BigInteger value) => FromBigInteger(value);
 
         /// <summary>Converts this value to a BigInteger.</summary>
-        public BigInteger ToBigInteger()
+        public readonly BigInteger ToBigInteger()
         {
             BigInteger result = ((ulong)__w1);
             result = (result << 64) | __w0;
@@ -432,7 +432,7 @@ public partial class BitFieldMultiWordTests
         public static bool TryParse(string? s, out Bits96 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
         /// <summary>Formats the value using the specified format and format provider.</summary>
-        public string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
+        public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToBigInteger().ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -449,7 +449,7 @@ public partial class BitFieldMultiWordTests
         }
 
         /// <summary>Compares this instance to a specified object.</summary>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is Bits96 other) return CompareTo(other);
@@ -457,7 +457,7 @@ public partial class BitFieldMultiWordTests
         }
 
         /// <summary>Compares this instance to another Bits96.</summary>
-        public int CompareTo(Bits96 other)
+        public readonly int CompareTo(Bits96 other)
         {
             if (((ulong)__w1) != ((ulong)other.__w1)) return ((ulong)__w1).CompareTo(((ulong)other.__w1));
             if (__w0 != other.__w0) return __w0.CompareTo(other.__w0);
@@ -466,7 +466,7 @@ public partial class BitFieldMultiWordTests
 
         /// <summary>Indicates whether this instance is equal to another Bits96.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(Bits96 other) => this == other;
+        public readonly bool Equals(Bits96 other) => this == other;
 
         /// <summary>JSON converter that serializes Bits96 as a hex string.</summary>
         private sealed class Bits96JsonConverter : JsonConverter<Bits96>

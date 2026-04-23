@@ -467,22 +467,22 @@ public partial class BitFieldsGenerator
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Determines whether the specified object is equal to the current object.</summary>");
-        sb.AppendLine($"{indent}public override bool Equals(object? obj) => obj is {t} other && {v} == other.{v};");
+        sb.AppendLine($"{indent}public override readonly bool Equals(object? obj) => obj is {t} other && {v} == other.{v};");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Returns the hash code for this instance.</summary>");
-        sb.AppendLine($"{indent}public override int GetHashCode() => {v}.GetHashCode();");
+        sb.AppendLine($"{indent}public override readonly int GetHashCode() => {v}.GetHashCode();");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Returns a string representation of the value.</summary>");
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fromBits = FromBitsMethod(info.FloatingPointType!);
-            sb.AppendLine($"{indent}public override string ToString() => {fromBits}({v}).ToString();");
+            sb.AppendLine($"{indent}public override readonly string ToString() => {fromBits}({v}).ToString();");
         }
         else
         {
-            sb.AppendLine($"{indent}public override string ToString() => $\"0x{{{v}:X}}\";");
+            sb.AppendLine($"{indent}public override readonly string ToString() => $\"0x{{{v}:X}}\";");
         }
         sb.AppendLine();
     }

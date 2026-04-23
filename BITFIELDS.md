@@ -2459,9 +2459,9 @@ public partial struct StatusRegister : IComparable, IComparable<StatusRegister>,
     public byte[] ToByteArray() { /* ... */ }
 
     // ── Equality, hashing, formatting ───────────────────────────
-    public override bool Equals(object? obj) => obj is StatusRegister other && __value == other.__value;
-    public override int GetHashCode() => __value.GetHashCode();
-    public override string ToString() => $"0x{__value:X}";
+    public override readonly bool Equals(object? obj) => obj is StatusRegister other && __value == other.__value;
+    public override readonly int GetHashCode() => __value.GetHashCode();
+    public override readonly string ToString() => $"0x{__value:X}";
 
     // ── Interface implementations (IComparable, IEquatable, IParsable, etc.) ──
     // ── JSON converter (reads/writes as string) ──

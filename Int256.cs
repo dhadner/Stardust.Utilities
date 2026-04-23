@@ -88,10 +88,10 @@ namespace Stardust.Utilities
         public UInt128 Upper => _hi;
 
         /// <inheritdoc/>
-        public override string ToString() => ToString("G", CultureInfo.CurrentCulture);
+        public override readonly string ToString() => ToString("G", CultureInfo.CurrentCulture);
 
         /// <inheritdoc/>
-        public string ToString(string? format, IFormatProvider? formatProvider)
+        public readonly string ToString(string? format, IFormatProvider? formatProvider)
         {
             if (string.IsNullOrEmpty(format)) format = "G";
             char fmt = format[0];
@@ -193,7 +193,7 @@ namespace Stardust.Utilities
             => TryParse(s.ToString(), provider, out result);
 
         /// <inheritdoc/>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is Int256 other) return CompareTo(other);
@@ -201,7 +201,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public int CompareTo(Int256 other)
+        public readonly int CompareTo(Int256 other)
         {
             bool aNeg = IsNegative;
             bool bNeg = other.IsNegative;
@@ -211,11 +211,11 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj is Int256 other && Equals(other);
+        public override readonly bool Equals(object? obj) => obj is Int256 other && Equals(other);
         /// <inheritdoc/>
-        public bool Equals(Int256 other) => _hi == other._hi && _lo == other._lo;
+        public readonly bool Equals(Int256 other) => _hi == other._hi && _lo == other._lo;
         /// <inheritdoc/>
-        public override int GetHashCode() => HashCode.Combine(_hi, _lo);
+        public override readonly int GetHashCode() => HashCode.Combine(_hi, _lo);
 
         /// <summary>Converts this value to a <see cref="BigInteger"/> (signed, two's complement).</summary>
         public BigInteger ToBigInteger()

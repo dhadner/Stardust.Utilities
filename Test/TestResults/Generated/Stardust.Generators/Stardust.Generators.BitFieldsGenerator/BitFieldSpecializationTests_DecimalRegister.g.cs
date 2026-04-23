@@ -309,16 +309,16 @@ public partial class BitFieldSpecializationTests
         public static bool operator !=(DecimalRegister a, DecimalRegister b) => !(a == b);
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is DecimalRegister other && this == other;
+        public override readonly bool Equals(object? obj) => obj is DecimalRegister other && this == other;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return HashCode.Combine(__w0, __w1);
         }
 
         /// <summary>Returns the decimal string representation of the value.</summary>
-        public override string ToString() => ((decimal)this).ToString();
+        public override readonly string ToString() => ((decimal)this).ToString();
 
         /// <summary>Implicit conversion from ulong (zero-extended).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -367,7 +367,7 @@ public partial class BitFieldSpecializationTests
         public static explicit operator DecimalRegister(UInt128 value) => new((ulong)(value & ulong.MaxValue), (ulong)(value >> 64));
 
         /// <summary>Converts this value to a BigInteger.</summary>
-        public BigInteger ToBigInteger()
+        public readonly BigInteger ToBigInteger()
         {
             BigInteger result = __w1;
             result = (result << 64) | __w0;
@@ -481,14 +481,14 @@ public partial class BitFieldSpecializationTests
         public static bool TryParse(string? s, out DecimalRegister result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
         /// <summary>Formats the value using the specified format and format provider.</summary>
-        public string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);
+        public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
             => ((decimal)this).TryFormat(destination, out charsWritten, format, provider);
 
         /// <summary>Compares this instance to a specified object.</summary>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is DecimalRegister other) return CompareTo(other);
@@ -497,11 +497,11 @@ public partial class BitFieldSpecializationTests
 
         /// <summary>Compares this instance to another DecimalRegister.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(DecimalRegister other) => ((decimal)this).CompareTo((decimal)other);
+        public readonly int CompareTo(DecimalRegister other) => ((decimal)this).CompareTo((decimal)other);
 
         /// <summary>Indicates whether this instance is equal to another DecimalRegister.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(DecimalRegister other) => this == other;
+        public readonly bool Equals(DecimalRegister other) => this == other;
 
         /// <summary>JSON converter that serializes DecimalRegister as a hex string.</summary>
         private sealed class DecimalRegisterJsonConverter : JsonConverter<DecimalRegister>

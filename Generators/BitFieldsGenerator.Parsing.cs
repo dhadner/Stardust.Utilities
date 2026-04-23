@@ -317,7 +317,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <param name=\"format\">The format to use, or null for the default format.</param>");
         sb.AppendLine($"{indent}/// <param name=\"formatProvider\">The provider to use for culture-specific formatting.</param>");
         sb.AppendLine($"{indent}/// <returns>The formatted string representation of the value.</returns>");
-        sb.AppendLine($"{indent}public string ToString(string? format, IFormatProvider? formatProvider) => {fmtExpr}.ToString(format, formatProvider);");
+        sb.AppendLine($"{indent}public readonly string ToString(string? format, IFormatProvider? formatProvider) => {fmtExpr}.ToString(format, formatProvider);");
         sb.AppendLine();
 
         sb.AppendLine($"{indent}/// <summary>Tries to format the value into the provided span of characters.</summary>");
@@ -343,7 +343,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <param name=\"obj\">An object to compare, or null.</param>");
         sb.AppendLine($"{indent}/// <returns>A value indicating the relative order of the objects being compared.</returns>");
         sb.AppendLine($"{indent}/// <exception cref=\"ArgumentException\">obj is not a {t}.</exception>");
-        sb.AppendLine($"{indent}public int CompareTo(object? obj)");
+        sb.AppendLine($"{indent}public readonly int CompareTo(object? obj)");
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}    if (obj is null) return 1;");
         sb.AppendLine($"{indent}    if (obj is {t} other) return CompareTo(other);");
@@ -358,11 +358,11 @@ public partial class BitFieldsGenerator
         if (info.Mode == StorageMode.NativeFloat)
         {
             string fromBits = FromBitsMethod(info.FloatingPointType!);
-            sb.AppendLine($"{indent}public int CompareTo({t} other) => {fromBits}({v}).CompareTo({fromBits}(other.{v}));");
+            sb.AppendLine($"{indent}public readonly int CompareTo({t} other) => {fromBits}({v}).CompareTo({fromBits}(other.{v}));");
         }
         else
         {
-            sb.AppendLine($"{indent}public int CompareTo({t} other) => {v}.CompareTo(other.{v});");
+            sb.AppendLine($"{indent}public readonly int CompareTo({t} other) => {v}.CompareTo(other.{v});");
         }
         sb.AppendLine();
 
@@ -370,7 +370,7 @@ public partial class BitFieldsGenerator
         sb.AppendLine($"{indent}/// <param name=\"other\">A {t} to compare with this instance.</param>");
         sb.AppendLine($"{indent}/// <returns>true if the two instances are equal; otherwise, false.</returns>");
         sb.AppendLine($"{indent}[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        sb.AppendLine($"{indent}public bool Equals({t} other) => {v} == other.{v};");
+        sb.AppendLine($"{indent}public readonly bool Equals({t} other) => {v} == other.{v};");
         sb.AppendLine();
     }
 

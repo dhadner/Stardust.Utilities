@@ -307,16 +307,16 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     public static bool operator !=(DecimalPayload128 a, DecimalPayload128 b) => !(a == b);
 
     /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    public override bool Equals(object? obj) => obj is DecimalPayload128 other && this == other;
+    public override readonly bool Equals(object? obj) => obj is DecimalPayload128 other && this == other;
 
     /// <summary>Returns the hash code for this instance.</summary>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(__w0, __w1);
     }
 
     /// <summary>Returns the decimal string representation of the value.</summary>
-    public override string ToString() => ((decimal)this).ToString();
+    public override readonly string ToString() => ((decimal)this).ToString();
 
     /// <summary>Implicit conversion from ulong (zero-extended).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -365,7 +365,7 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     public static explicit operator DecimalPayload128(UInt128 value) => new((ulong)(value & ulong.MaxValue), (ulong)(value >> 64));
 
     /// <summary>Converts this value to a BigInteger.</summary>
-    public BigInteger ToBigInteger()
+    public readonly BigInteger ToBigInteger()
     {
         BigInteger result = __w1;
         result = (result << 64) | __w0;
@@ -479,14 +479,14 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
     public static bool TryParse(string? s, out DecimalPayload128 result) => TryParse(s, CultureInfo.InvariantCulture, out result);
 
     /// <summary>Formats the value using the specified format and format provider.</summary>
-    public string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((decimal)this).ToString(format, formatProvider);
 
     /// <summary>Tries to format the value into the provided span of characters.</summary>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         => ((decimal)this).TryFormat(destination, out charsWritten, format, provider);
 
     /// <summary>Compares this instance to a specified object.</summary>
-    public int CompareTo(object? obj)
+    public readonly int CompareTo(object? obj)
     {
         if (obj is null) return 1;
         if (obj is DecimalPayload128 other) return CompareTo(other);
@@ -495,11 +495,11 @@ public partial struct DecimalPayload128 : IComparable, IComparable<DecimalPayloa
 
     /// <summary>Compares this instance to another DecimalPayload128.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(DecimalPayload128 other) => ((decimal)this).CompareTo((decimal)other);
+    public readonly int CompareTo(DecimalPayload128 other) => ((decimal)this).CompareTo((decimal)other);
 
     /// <summary>Indicates whether this instance is equal to another DecimalPayload128.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(DecimalPayload128 other) => this == other;
+    public readonly bool Equals(DecimalPayload128 other) => this == other;
 
     /// <summary>JSON converter that serializes DecimalPayload128 as a hex string.</summary>
     private sealed class DecimalPayload128JsonConverter : JsonConverter<DecimalPayload128>

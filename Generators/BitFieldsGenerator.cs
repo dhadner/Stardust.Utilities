@@ -799,7 +799,7 @@ public partial class BitFieldsGenerator : IIncrementalGenerator
                     ? $"({info.StorageType})((({info.UnsignedStorageType})__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK)"
                     : $"({info.StorageType})((__value & __NORMALIZATION_AND_MASK) | __NORMALIZATION_OR_MASK)";
             }
-            sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)] private {info.StorageType} __GetNormalizedValue() => {normExpr};");
+            sb.AppendLine($"{memberIndent}[MethodImpl(MethodImplOptions.AggressiveInlining)] private readonly {info.StorageType} __GetNormalizedValue() => {normExpr};");
             sb.AppendLine();
         }
 

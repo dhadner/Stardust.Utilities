@@ -242,13 +242,13 @@ public partial class RecordStructViewTests
         public static bool operator !=(BitZeroIsMsbRegister a, BitZeroIsMsbRegister b) => a.__value != b.__value;
 
         /// <summary>Determines whether the specified object is equal to the current object.</summary>
-        public override bool Equals(object? obj) => obj is BitZeroIsMsbRegister other && __value == other.__value;
+        public override readonly bool Equals(object? obj) => obj is BitZeroIsMsbRegister other && __value == other.__value;
 
         /// <summary>Returns the hash code for this instance.</summary>
-        public override int GetHashCode() => __value.GetHashCode();
+        public override readonly int GetHashCode() => __value.GetHashCode();
 
         /// <summary>Returns a string representation of the value.</summary>
-        public override string ToString() => $"0x{__value:X}";
+        public override readonly string ToString() => $"0x{__value:X}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator byte(BitZeroIsMsbRegister value) => value.__value;
@@ -467,7 +467,7 @@ public partial class RecordStructViewTests
         /// <param name="format">The format to use, or null for the default format.</param>
         /// <param name="formatProvider">The provider to use for culture-specific formatting.</param>
         /// <returns>The formatted string representation of the value.</returns>
-        public string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
+        public readonly string ToString(string? format, IFormatProvider? formatProvider) => __value.ToString(format, formatProvider);
 
         /// <summary>Tries to format the value into the provided span of characters.</summary>
         /// <param name="destination">The span to write to.</param>
@@ -482,7 +482,7 @@ public partial class RecordStructViewTests
         /// <param name="obj">An object to compare, or null.</param>
         /// <returns>A value indicating the relative order of the objects being compared.</returns>
         /// <exception cref="ArgumentException">obj is not a BitZeroIsMsbRegister.</exception>
-        public int CompareTo(object? obj)
+        public readonly int CompareTo(object? obj)
         {
             if (obj is null) return 1;
             if (obj is BitZeroIsMsbRegister other) return CompareTo(other);
@@ -493,13 +493,13 @@ public partial class RecordStructViewTests
         /// <param name="other">A BitZeroIsMsbRegister to compare.</param>
         /// <returns>A value indicating the relative order of the instances being compared.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CompareTo(BitZeroIsMsbRegister other) => __value.CompareTo(other.__value);
+        public readonly int CompareTo(BitZeroIsMsbRegister other) => __value.CompareTo(other.__value);
 
         /// <summary>Indicates whether this instance is equal to another BitZeroIsMsbRegister.</summary>
         /// <param name="other">A BitZeroIsMsbRegister to compare with this instance.</param>
         /// <returns>true if the two instances are equal; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(BitZeroIsMsbRegister other) => __value == other.__value;
+        public readonly bool Equals(BitZeroIsMsbRegister other) => __value == other.__value;
 
         /// <summary>JSON converter that serializes BitZeroIsMsbRegister as a string.</summary>
         private sealed class BitZeroIsMsbRegisterJsonConverter : JsonConverter<BitZeroIsMsbRegister>

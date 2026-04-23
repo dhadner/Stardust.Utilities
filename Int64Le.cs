@@ -188,7 +188,7 @@ namespace Stardust.Utilities
         }
 
         /// <inheritdoc/>
-        public override string ToString() => ((long)this).ToString();
+        public override readonly string ToString() => ((long)this).ToString();
         /// <inheritdoc/>
         public readonly string ToString(string? format, IFormatProvider? formatProvider) => ((long)this).ToString(format, formatProvider);
         /// <inheritdoc/>
@@ -200,11 +200,11 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(Int64Le other) => ((long)this).CompareTo((long)other);
         /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj != null && Equals((Int64Le)obj);
+        public override readonly bool Equals(object? obj) => obj != null && Equals((Int64Le)obj);
         /// <inheritdoc/>
         public readonly bool Equals(Int64Le other) => this == other;
         /// <inheritdoc/>
-        public override int GetHashCode() => ((long)this).GetHashCode();
+        public override readonly int GetHashCode() => ((long)this).GetHashCode();
 
         #region Operators
 
