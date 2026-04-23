@@ -94,16 +94,30 @@ var explicit32 = new UInt32Be(0xDEADBEEF);
 
 ### From Byte Arrays
 
+Every endian type has four `byte[]` constructors, matching the `ReadOnlySpan<byte>` ctors one-to-one. The `isBigEndian` parameter lets you feed a buffer of the opposite byte order and it will be flipped as it is stored.
+
 ```csharp
 byte[] networkData = new byte[] { 0x12, 0x34, 0x56, 0x78 };
 
-// From array with offset
-var value = new UInt32Be(networkData, offset: 0);
+// Default -- reads in the type's own storage order (Be = big-endian, Le = little-endian)
+var a = new UInt32Be(networkData);
 
-// From IList<byte> (works with List<byte>, arrays, etc.)
-IList<byte> bytes = networkData;
-var fromList = new UInt32Be(bytes, offset: 0);
+// Override the source order without specifying an offset
+var b = new UInt32Be(networkData, isBigEndian: false);  // reverses on the way in
+
+// Offset into the buffer -- payload starts at networkData[offset]
+var c = new UInt32Be(networkData, offset: 0);
+
+// Offset + source order
+byte[] packet = new byte[PAD + 4];
+// ... fill packet ...
+var d = new UInt32Be(packet, offset: PAD, isBigEndian: true);
+
+// Static factory form (parallels ReadFrom on Span)
+var e = UInt32Be.ReadFrom(networkData, offset: 0);
 ```
+
+Prior releases also supported `IList<byte>` constructors. Those are marked `[Obsolete]` in 0.9.13 -- use `byte[]` or `ReadOnlySpan<byte>` instead.
 
 ### From Spans (Zero-Allocation)
 
@@ -112,8 +126,15 @@ var fromList = new UInt32Be(bytes, offset: 0);
 ReadOnlySpan<byte> packet = stackalloc byte[] { 0xDE, 0xAD, 0xBE, 0xEF };
 var header = new UInt32Be(packet);
 
-// Static factory method
+// Override the source byte order
+var reversed = new UInt32Be(packet, isBigEndian: false);
+
+// Read from an offset inside a larger span
+var offsetValue = new UInt32Be(packet, offset: 0, isBigEndian: true);
+
+// Static factory method (same offset / isBigEndian overloads)
 var value = UInt32Be.ReadFrom(packet);
+var atOffset = UInt32Be.ReadFrom(packet, offset: 0, isBigEndian: false);
 
 // Slice for multiple values
 var first = new UInt16Be(packet[..2]);
@@ -124,17 +145,29 @@ var second = new UInt16Be(packet[2..4]);
 
 ### To Byte Arrays
 
+`WriteTo` and `TryWriteTo` work on both `Span<byte>` and `byte[]` with the same `(destination, int offset = 0, bool isBigEndian = X)` shape, so a caller with a `byte[]` no longer needs `.AsSpan()` to reach the offset / byte-order overloads.
+
 ```csharp
 UInt64Be value = 0x0102030405060708UL;
 
-// Instance method
+// byte[] overload -- default order
 byte[] buffer = new byte[8];
-value.ToBytes(buffer, offset: 0);
+value.WriteTo(buffer);
 // buffer: [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
 
-// Static method
-UInt64Be.ToBytes(0x0102030405060708UL, buffer, offset: 0);
+// Offset into a larger buffer
+byte[] frame = new byte[16];
+value.WriteTo(frame, offset: 8);
+
+// Flip byte order at the destination
+value.WriteTo(buffer, isBigEndian: false);
+// buffer: [0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01]
+
+// Static optimized write for a native value (uses BinaryPrimitives internally)
+UInt64Be.WriteTo(0x0102030405060708UL, buffer);
 ```
+
+> **Deprecated in 0.9.13.** The instance `ToBytes(byte[], int offset = 0, bool isBigEndian = X)` method is marked `[Obsolete]` on every endian type. Replace `v.ToBytes(buf, offset, isBigEndian)` with `v.WriteTo(buf, offset, isBigEndian)` -- the signatures and semantics are identical.
 
 ### To Spans (Zero-Allocation)
 
@@ -145,9 +178,18 @@ UInt32Be value = 0x12345678;
 Span<byte> buffer = stackalloc byte[4];
 value.WriteTo(buffer);
 
-// TryWriteTo - returns false if span too small
+// WriteTo at an offset inside a larger span
+Span<byte> frame = stackalloc byte[16];
+value.WriteTo(frame, offset: 4);
+
+// Flip byte order at the destination
+value.WriteTo(buffer, isBigEndian: false);
+
+// TryWriteTo - returns false if the span is too short from the given offset
 Span<byte> smallBuffer = stackalloc byte[2];
-bool success = value.TryWriteTo(smallBuffer);  // false
+bool ok = value.TryWriteTo(smallBuffer);                // false
+bool ok2 = value.TryWriteTo(frame, offset: 13);         // false (needs 4 bytes, only 3 left)
+bool ok3 = value.TryWriteTo(frame, offset: 12);         // true
 
 // Static optimized write (uses BinaryPrimitives internally)
 UInt32Be.WriteTo(0x12345678U, buffer);

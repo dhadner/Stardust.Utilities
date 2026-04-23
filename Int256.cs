@@ -56,6 +56,8 @@ namespace Stardust.Utilities
         }
 
         /// <summary>Initializes a new <see cref="Int256"/> from a byte span. The span is 32 bytes.</summary>
+        /// <param name="bytes">The byte span containing the value.</param>
+        /// <param name="isBigEndian">Whether the byte span is in big-endian order (default: false for little-endian).</param>
         public Int256(ReadOnlySpan<byte> bytes, bool isBigEndian = false)
         {
             if (bytes.Length < 32) throw new ArgumentException("Span must be at least 32 bytes.", nameof(bytes));
@@ -74,6 +76,36 @@ namespace Stardust.Utilities
                 var l = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(8, 8));
                 var h2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(16, 8));
                 var h = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(24, 8));
+                _hi = new UInt128(h, h2);
+                _lo = new UInt128(l, l2);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="Int256"/> from a byte span with the specified offset. The span must have at least 32 bytes starting from the offset.
+        /// </summary>
+        /// <param name="bytes">The byte span containing the value.</param>
+        /// <param name="offset">The starting offset in the span.</param>
+        /// <param name="isBigEndian">Whether the byte span is in big-endian order (default: false for little-endian).</param>
+        /// <exception cref="ArgumentException">Thrown if the span is too short.</exception>
+        public Int256(ReadOnlySpan<byte> bytes, int offset, bool isBigEndian = false)
+        {
+            if (bytes.Length - offset < 32) throw new ArgumentException("Span must be at least 32 bytes.", nameof(bytes));
+            if (isBigEndian)
+            {
+                var h = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset, 8));
+                var h2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset + 8, 8));
+                var l = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset + 16, 8));
+                var l2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset + 24, 8));
+                _hi = new UInt128(h, h2);
+                _lo = new UInt128(l, l2);
+            }
+            else
+            {
+                var l2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset, 8));
+                var l = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset + 8, 8));
+                var h2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset + 16, 8));
+                var h = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset + 24, 8));
                 _hi = new UInt128(h, h2);
                 _lo = new UInt128(l, l2);
             }

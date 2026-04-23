@@ -38,6 +38,7 @@ namespace Stardust.Utilities
         /// <param name="bytes">Source bytes (must have at least 4 bytes from offset).</param>
         /// <param name="offset">Starting offset.</param>
         /// <exception cref="ArgumentException">If list is too short.</exception>
+        [Obsolete("IList<byte> overloads are deprecated. Use a byte[] or ReadOnlySpan<byte> overload instead.")]
         public Int32Be(IList<byte> bytes, int offset = 0)
         {
             if (bytes.Count - offset < 4)
@@ -98,6 +99,53 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
+        /// Creates a big-endian 32-bit signed integer from a ReadOnlySpan at the given offset.
+        /// </summary>
+        /// <param name="bytes">Source span (must have at least 4 bytes starting from <paramref name="offset"/>).</param>
+        /// <param name="offset">Starting offset in the span.</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian and reversed during storage.</param>
+        /// <exception cref="ArgumentException">If span is too short from the given offset.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Int32Be(ReadOnlySpan<byte> bytes, int offset, bool isBigEndian = true)
+        {
+            if (bytes.Length - offset < 4)
+            {
+                throw new ArgumentException("Span must have at least 4 bytes", nameof(bytes));
+            }
+            if (isBigEndian)
+            {
+                hi.hi = bytes[offset + 0];
+                hi.lo = bytes[offset + 1];
+                lo.hi = bytes[offset + 2];
+                lo.lo = bytes[offset + 3];
+            }
+            else
+            {
+                hi.hi = bytes[offset + 3];
+                hi.lo = bytes[offset + 2];
+                lo.hi = bytes[offset + 1];
+                lo.lo = bytes[offset + 0];
+            }
+        }
+
+        /// <summary>
+        /// Creates a big-endian 32-bit signed integer from a byte array whose byte order is specified.
+        /// </summary>
+        /// <param name="bytes">Source byte array (must have at least 4 bytes).</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian and reversed during storage.</param>
+        /// <exception cref="ArgumentException">If array is too short.</exception>
+        public Int32Be(byte[] bytes, bool isBigEndian = true) : this(new ReadOnlySpan<byte>(bytes), isBigEndian) { }
+
+        /// <summary>
+        /// Creates a big-endian 32-bit signed integer from a byte array at the given offset.
+        /// </summary>
+        /// <param name="bytes">Source byte array (must have at least 4 bytes starting from <paramref name="offset"/>).</param>
+        /// <param name="offset">Starting offset in the array.</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian and reversed during storage.</param>
+        /// <exception cref="ArgumentException">If array is too short.</exception>
+        public Int32Be(byte[] bytes, int offset, bool isBigEndian = true) : this(new ReadOnlySpan<byte>(bytes), offset, isBigEndian) { }
+
+        /// <summary>
         /// Creates a big-endian 32-bit signed integer from a native uint.
         /// </summary>
         /// <param name="num">The native value.</param>
@@ -128,6 +176,7 @@ namespace Stardust.Utilities
         /// <param name="bytes">Destination list.</param>
         /// <param name="offset">Starting offset.</param>
         /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
+        [Obsolete("IList<byte> overloads are deprecated. Use WriteTo(byte[], int, bool) or WriteTo(Span<byte>, int, bool) instead.")]
         public readonly void ToBytes(IList<byte> bytes, int offset = 0, bool isBigEndian = true)
         {
             if (isBigEndian)
@@ -149,59 +198,83 @@ namespace Stardust.Utilities
         /// <summary>
         /// Writes the bytes to a Span in the specified byte order.
         /// </summary>
-        /// <param name="destination">Destination span (must have at least 4 bytes).</param>
+        /// <param name="destination">Destination span (must have at least 4 bytes starting from <paramref name="offset"/>).</param>
+        /// <param name="offset">Starting offset in the destination span.</param>
         /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
         /// <exception cref="ArgumentException">If span is too short.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void WriteTo(Span<byte> destination, bool isBigEndian = true)
+        public readonly void WriteTo(Span<byte> destination, int offset = 0, bool isBigEndian = true)
         {
-            if (destination.Length < 4)
+            if (destination.Length - offset < 4)
             {
                 throw new ArgumentException("Destination span must have at least 4 bytes", nameof(destination));
             }
             if (isBigEndian)
             {
-                destination[0] = hi.hi;
-                destination[1] = hi.lo;
-                destination[2] = lo.hi;
-                destination[3] = lo.lo;
+                destination[offset + 0] = hi.hi;
+                destination[offset + 1] = hi.lo;
+                destination[offset + 2] = lo.hi;
+                destination[offset + 3] = lo.lo;
             }
             else
             {
-                destination[0] = lo.lo;
-                destination[1] = lo.hi;
-                destination[2] = hi.lo;
-                destination[3] = hi.hi;
+                destination[offset + 0] = lo.lo;
+                destination[offset + 1] = lo.hi;
+                destination[offset + 2] = hi.lo;
+                destination[offset + 3] = hi.hi;
             }
         }
+
+        /// <summary>
+        /// Writes the bytes to a byte array in the specified byte order.
+        /// </summary>
+        /// <param name="destination">Destination byte array (must have at least 4 bytes starting from <paramref name="offset"/>).</param>
+        /// <param name="offset">Starting offset in the array.</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
+        /// <exception cref="ArgumentException">If array is too short.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void WriteTo(byte[] destination, int offset = 0, bool isBigEndian = true)
+            => WriteTo(new Span<byte>(destination), offset, isBigEndian);
 
         /// <summary>
         /// Tries to write the bytes to a Span in the specified byte order.
         /// </summary>
         /// <param name="destination">Destination span.</param>
+        /// <param name="offset">Starting offset in the destination span.</param>
         /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
         /// <returns>True if successful, false if span is too short.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryWriteTo(Span<byte> destination, bool isBigEndian = true)
+        public readonly bool TryWriteTo(Span<byte> destination, int offset = 0, bool isBigEndian = true)
         {
-            if (destination.Length < 4)
+            if (destination.Length - offset < 4)
                 return false;
             if (isBigEndian)
             {
-                destination[0] = hi.hi;
-                destination[1] = hi.lo;
-                destination[2] = lo.hi;
-                destination[3] = lo.lo;
+                destination[offset + 0] = hi.hi;
+                destination[offset + 1] = hi.lo;
+                destination[offset + 2] = lo.hi;
+                destination[offset + 3] = lo.lo;
             }
             else
             {
-                destination[0] = lo.lo;
-                destination[1] = lo.hi;
-                destination[2] = hi.lo;
-                destination[3] = hi.hi;
+                destination[offset + 0] = lo.lo;
+                destination[offset + 1] = lo.hi;
+                destination[offset + 2] = hi.lo;
+                destination[offset + 3] = hi.hi;
             }
             return true;
         }
+
+        /// <summary>
+        /// Tries to write the bytes to a byte array in the specified byte order.
+        /// </summary>
+        /// <param name="destination">Destination byte array.</param>
+        /// <param name="offset">Starting offset in the array.</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
+        /// <returns>True if successful, false if array is too short.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool TryWriteTo(byte[] destination, int offset = 0, bool isBigEndian = true)
+            => TryWriteTo(new Span<byte>(destination), offset, isBigEndian);
 
         /// <summary>
         /// Writes a native int as big-endian bytes to an IList.
@@ -210,6 +283,7 @@ namespace Stardust.Utilities
         /// <param name="bytes">Destination list.</param>
         /// <param name="offset">Starting offset.</param>
         /// <returns>No return value.</returns>
+        [Obsolete("IList<byte> overloads are deprecated. Use WriteTo(int, Span<byte>) instead.")]
         public static void ToBytes(int num, IList<byte> bytes, int offset = 0)
         {
             bytes[offset + 0] = (byte)((uint)num >> 24);
@@ -234,10 +308,21 @@ namespace Stardust.Utilities
         /// Reads an <see cref="Int32Be"/> from a ReadOnlySpan in the specified byte order.
         /// </summary>
         /// <param name="source">Source span.</param>
+        /// <param name="offset">Starting offset in the source span.</param>
         /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian.</param>
         /// <returns>The parsed value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Int32Be ReadFrom(ReadOnlySpan<byte> source, bool isBigEndian = true) => new(source, isBigEndian);
+        public static Int32Be ReadFrom(ReadOnlySpan<byte> source, int offset = 0, bool isBigEndian = true) => new(source, offset, isBigEndian);
+
+        /// <summary>
+        /// Reads an <see cref="Int32Be"/> from a byte array in the specified byte order.
+        /// </summary>
+        /// <param name="source">Source byte array.</param>
+        /// <param name="offset">Starting offset in the array.</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian.</param>
+        /// <returns>The parsed value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32Be ReadFrom(byte[] source, int offset = 0, bool isBigEndian = true) => new(new ReadOnlySpan<byte>(source), offset, isBigEndian);
 
         #region Operators
 

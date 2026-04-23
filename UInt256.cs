@@ -84,10 +84,36 @@ namespace Stardust.Utilities
             }
         }
 
+        /// <summary>
+        /// Create a new <see cref="UInt256"/> from a byte span with an offset. The span must have at least 32 bytes starting from the offset.
+        /// </summary>
+        /// <param name="bytes">The byte span containing the value.</param>
+        /// <param name="offset">The starting offset in the span.</param>
+        /// <param name="isBigEndian">Whether the byte span is in big-endian order (default: false for little-endian).</param>
+        /// <exception cref="ArgumentException">Thrown if the span is too short.</exception>
+        public UInt256(ReadOnlySpan<byte> bytes, int offset, bool isBigEndian = false)
+        {
+            if (bytes.Length - offset < 32) throw new ArgumentException("Span must be at least 32 bytes.", nameof(bytes));
+            if (isBigEndian)
+            {
+                _p3 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset, 8));
+                _p2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset + 8, 8));
+                _p1 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset + 16, 8));
+                _p0 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(offset + 24, 8));
+            }
+            else
+            {
+                _p0 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset, 8));
+                _p1 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset + 8, 8));
+                _p2 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset + 16, 8));
+                _p3 = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(bytes.Slice(offset + 24, 8));
+            }
+        }
+
         /// <summary>The low 128 bits.</summary>
-        public UInt128 Lower => new UInt128(_p1, _p0);
+        public UInt128 Lower => new(_p1, _p0);
         /// <summary>The high 128 bits.</summary>
-        public UInt128 Upper => new UInt128(_p3, _p2);
+        public UInt128 Upper => new(_p3, _p2);
 
         /// <inheritdoc/>
         public override readonly string ToString() => ToString("G", CultureInfo.CurrentCulture);

@@ -98,23 +98,23 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt16Be_ToBytes_ByteArray_BothOrders()
+    public void UInt16Be_WriteTo_ByteArray_BothOrders()
     {
         UInt16Be v = new(U16);
         byte[] beOut = new byte[2];
         byte[] leOut = new byte[2];
-        v.ToBytes(beOut);
-        v.ToBytes(leOut, isBigEndian: false);
+        v.WriteTo(beOut);
+        v.WriteTo(leOut, isBigEndian: false);
         beOut.Should().Equal(BE16);
         leOut.Should().Equal(LE16);
     }
 
     [Fact]
-    public void UInt16Be_ToBytes_WithOffset_LittleEndian()
+    public void UInt16Be_WriteTo_ByteArray_WithOffset_LittleEndian()
     {
         UInt16Be v = new(U16);
         byte[] buf = new byte[4]; // leading pad
-        v.ToBytes(buf, offset: 2, isBigEndian: false);
+        v.WriteTo(buf, offset: 2, isBigEndian: false);
         buf[2].Should().Be(LE16[0]);
         buf[3].Should().Be(LE16[1]);
         buf[0].Should().Be(0);
@@ -167,11 +167,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt32Be_ToBytes_IList_LittleEndian()
+    public void UInt32Be_WriteTo_ByteArray_LittleEndian()
     {
         UInt32Be v = new(U32);
-        List<byte> buf = [0, 0, 0, 0];
-        v.ToBytes(buf, offset: 0, isBigEndian: false);
+        byte[] buf = new byte[4];
+        v.WriteTo(buf, offset: 0, isBigEndian: false);
         buf.Should().Equal(LE32);
     }
 
@@ -212,11 +212,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt64Be_ToBytes_IList_LittleEndian()
+    public void UInt64Be_WriteTo_ByteArray_LittleEndian()
     {
         UInt64Be v = new(U64);
-        List<byte> buf = new byte[8].ToList();
-        v.ToBytes(buf, offset: 0, isBigEndian: false);
+        byte[] buf = new byte[8];
+        v.WriteTo(buf, offset: 0, isBigEndian: false);
         buf.Should().Equal(LE64);
     }
 
@@ -256,13 +256,13 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt128Be_ToBytes_IList_BothOrders()
+    public void UInt128Be_WriteTo_ByteArray_BothOrders()
     {
         UInt128Be v = new(BE128.AsSpan());
-        List<byte> big = new byte[16].ToList();
-        List<byte> little = new byte[16].ToList();
-        v.ToBytes(big);
-        v.ToBytes(little, offset: 0, isBigEndian: false);
+        byte[] big = new byte[16];
+        byte[] little = new byte[16];
+        v.WriteTo(big);
+        v.WriteTo(little, offset: 0, isBigEndian: false);
         big.Should().Equal(BE128);
         little.Should().Equal(LE128);
     }
@@ -291,11 +291,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt256Be_ToBytes_ByteArray_LittleEndian()
+    public void UInt256Be_WriteTo_ByteArray_LittleEndian()
     {
         UInt256Be v = new(BE256.AsSpan());
         byte[] buf = new byte[32];
-        v.ToBytes(buf, offset: 0, isBigEndian: false);
+        v.WriteTo(buf, offset: 0, isBigEndian: false);
         buf.Should().Equal(LE256);
     }
 
@@ -311,7 +311,7 @@ public class EndianExportWithOrderTests
     [Fact]
     public void Int256Be_WriteTo_LittleEndian()
     {
-        Int256Be v = new(BE256.AsSpan());
+        Int256Be v = new(BE256);
         Span<byte> buf = stackalloc byte[32];
         v.WriteTo(buf, isBigEndian: false);
         buf.ToArray().Should().Equal(LE256);
@@ -359,13 +359,13 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt16Le_ToBytes_ByteArray_BothOrders()
+    public void UInt16Le_WriteTo_ByteArray_BothOrders()
     {
         UInt16Le v = new(U16);
         byte[] little = new byte[2];
         byte[] big = new byte[2];
-        v.ToBytes(little);
-        v.ToBytes(big, isBigEndian: true);
+        v.WriteTo(little);
+        v.WriteTo(big, isBigEndian: true);
         little.Should().Equal(LE16);
         big.Should().Equal(BE16);
     }
@@ -397,11 +397,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt32Le_ToBytes_ByteArray_BigEndian()
+    public void UInt32Le_WriteTo_ByteArray_BigEndian()
     {
         UInt32Le v = new(U32);
         byte[] buf = new byte[4];
-        v.ToBytes(buf, isBigEndian: true);
+        v.WriteTo(buf, isBigEndian: true);
         buf.Should().Equal(BE32);
     }
 
@@ -441,11 +441,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt64Le_ToBytes_ByteArray_BigEndian()
+    public void UInt64Le_WriteTo_ByteArray_BigEndian()
     {
         UInt64Le v = new(U64);
         byte[] buf = new byte[8];
-        v.ToBytes(buf, isBigEndian: true);
+        v.WriteTo(buf, isBigEndian: true);
         buf.Should().Equal(BE64);
     }
 
@@ -485,11 +485,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt128Le_ToBytes_ByteArray_BigEndian()
+    public void UInt128Le_WriteTo_ByteArray_BigEndian()
     {
         UInt128Le v = new(LE128.AsSpan());
         byte[] buf = new byte[16];
-        v.ToBytes(buf, isBigEndian: true);
+        v.WriteTo(buf, isBigEndian: true);
         buf.Should().Equal(BE128);
     }
 
@@ -526,11 +526,11 @@ public class EndianExportWithOrderTests
     }
 
     [Fact]
-    public void UInt256Le_ToBytes_ByteArray_BigEndian()
+    public void UInt256Le_WriteTo_ByteArray_BigEndian()
     {
         UInt256Le v = new(LE256.AsSpan());
         byte[] buf = new byte[32];
-        v.ToBytes(buf, isBigEndian: true);
+        v.WriteTo(buf, isBigEndian: true);
         buf.Should().Equal(BE256);
     }
 
@@ -565,7 +565,7 @@ public class EndianExportWithOrderTests
         byte[] src = ctorIsBigEndian ? BE32 : LE32;
         UInt32Be v = new(src.AsSpan(), isBigEndian: ctorIsBigEndian);
         byte[] round = new byte[4];
-        v.ToBytes(round, offset: 0, isBigEndian: exportIsBigEndian);
+        v.WriteTo(round, offset: 0, isBigEndian: exportIsBigEndian);
         byte[] expected = exportIsBigEndian ? BE32 : LE32;
         round.Should().Equal(expected);
     }
@@ -580,7 +580,7 @@ public class EndianExportWithOrderTests
         byte[] src = ctorIsBigEndian ? BE64 : LE64;
         UInt64Le v = new(src.AsSpan(), isBigEndian: ctorIsBigEndian);
         byte[] round = new byte[8];
-        v.ToBytes(round, offset: 0, isBigEndian: exportIsBigEndian);
+        v.WriteTo(round, offset: 0, isBigEndian: exportIsBigEndian);
         byte[] expected = exportIsBigEndian ? BE64 : LE64;
         round.Should().Equal(expected);
     }
@@ -611,14 +611,14 @@ public class EndianExportWithOrderTests
 
         byte[] beBig = new byte[4];
         byte[] leBig = new byte[4];
-        be.ToBytes(beBig);                         // default big-endian
-        le.ToBytes(leBig, isBigEndian: true);      // explicit big-endian
+        be.WriteTo(beBig);                         // default big-endian
+        le.WriteTo(leBig, isBigEndian: true);      // explicit big-endian
         beBig.Should().Equal(leBig).And.Equal(BE32);
 
         byte[] beLittle = new byte[4];
         byte[] leLittle = new byte[4];
-        be.ToBytes(beLittle, isBigEndian: false);
-        le.ToBytes(leLittle);                      // default little-endian
+        be.WriteTo(beLittle, isBigEndian: false);
+        le.WriteTo(leLittle);                      // default little-endian
         beLittle.Should().Equal(leLittle).And.Equal(LE32);
     }
 
@@ -642,12 +642,12 @@ public class EndianExportWithOrderTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void UInt128Le_ToBytes_OversizedArrayWithOffset_LeavesSurroundingBytesUntouched(bool isBigEndian)
+    public void UInt128Le_WriteTo_OversizedArrayWithOffset_LeavesSurroundingBytesUntouched(bool isBigEndian)
     {
         UInt128Le v = new(LE128.AsSpan());
         byte[] buf = new byte[48];
         for (int i = 0; i < 48; i++) buf[i] = 0x77;
-        v.ToBytes(buf, offset: 8, isBigEndian: isBigEndian);
+        v.WriteTo(buf, offset: 8, isBigEndian: isBigEndian);
         byte[] expected = isBigEndian ? BE128 : LE128;
         for (int i = 0; i < 8; i++) buf[i].Should().Be(0x77);
         for (int i = 0; i < 16; i++) buf[8 + i].Should().Be(expected[i]);

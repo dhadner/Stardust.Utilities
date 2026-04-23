@@ -287,7 +287,8 @@ uint native  = incoming;                   // implicit conversion
 - `[StructLayout(LayoutKind.Explicit)]` guarantees byte ordering in memory regardless of host.
 - Full operator set: arithmetic, bitwise, shift, comparison, equality.
 - Modern .NET interfaces generated: `IParsable<T>`, `ISpanParsable<T>`, `ISpanFormattable`.
-- Zero-allocation `ReadOnlySpan<byte>` constructors plus `WriteTo` / `TryWriteTo`.
+- Zero-allocation `ReadOnlySpan<byte>` constructors plus `WriteTo` / `TryWriteTo` / `ReadFrom`, all with an optional `int offset` and an `isBigEndian` override for reading or writing the opposite byte order.
+- Parallel `byte[]` overloads on every read/write API -- no `.AsSpan()` required to reach the offset / byte-order overloads.
 - PropertyGrid `TypeConverter` for every type.
 - Per-field endian override inside `[BitFields]` views -- mix big- and little-endian fields in the same buffer.
 
