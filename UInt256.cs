@@ -16,8 +16,8 @@ namespace Stardust.Utilities
     /// </remarks>
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct UInt256 : IComparable, IComparable<UInt256>, IEquatable<UInt256>,
-                                     IFormattable, ISpanFormattable, IParsable<UInt256>, ISpanParsable<UInt256>
+    public readonly partial struct UInt256 : IComparable, IComparable<UInt256>, IEquatable<UInt256>,
+                                             IFormattable, ISpanFormattable, IParsable<UInt256>, ISpanParsable<UInt256>
     {
         internal readonly ulong _p0; // bits 0-63
         internal readonly ulong _p1; // bits 64-127

@@ -88,7 +88,7 @@ public class Int256NativeArithmeticTests
         var val = new Int256(bytes, isBigEndian: false);
         val.Lower.Should().Be(new UInt128(0, 0xAA));
         val.Upper.Should().Be(new UInt128(0x8B00000000000000, 0));
-        val.IsNegative.Should().BeTrue();
+        Int256.IsNegative(val).Should().BeTrue();
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class Int256NativeArithmeticTests
         var val = new Int256(bytes, isBigEndian: true);
         val.Lower.Should().Be(new UInt128(0, 0xAA));
         val.Upper.Should().Be(new UInt128(0x8B00000000000000, 0));
-        val.IsNegative.Should().BeTrue();
+        Int256.IsNegative(val).Should().BeTrue();
     }
 
     [Fact]

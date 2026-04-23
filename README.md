@@ -333,7 +333,7 @@ UInt256 value = be;                           // implicit conversion to host-nat
 
 - Zero heap allocations on the hot path (`readonly struct` backed by four `ulong` values).
 - Native CPU instructions: multiply via BMI2 `MULX`, divide via `X86Base.X64.DivRem`, with hand-rolled carry-chain fallbacks on ARM64 and non-x64 platforms.
-- Full operator and interface surface -- drop-in replacement for `UInt128` / `BigInteger` where 32-byte fixed width is the right shape.
+- **Full BCL `UInt128` / `Int128` API parity.** `INumber<T>`, `IBinaryInteger<T>`, `IBinaryNumber<T>`, `IMinMaxValue<T>`, `IUnsignedNumber<T>` / `ISignedNumber<T>`, plus `IUtf8SpanFormattable` / `IUtf8SpanParsable<T>` on .NET 8+. Every member a caller expects from `UInt128` / `Int128` is present: `Abs`, `Clamp`, `CopySign`, `DivRem`, `Max`, `Min`, `MaxMagnitude`, `MinMagnitude`, `Sign`, `LeadingZeroCount`, `TrailingZeroCount`, `PopCount`, `Log2`, `RotateLeft`, `RotateRight`, `Read` / `Write` / `TryRead` / `TryWrite` `BigEndian` / `LittleEndian`, checked operators (`checked + - * / ++ --` and unary `-`), `CreateChecked` / `CreateSaturating` / `CreateTruncating` for every BCL numeric type, and explicit conversions to/from `float`, `double`, `decimal`, and `char`.
 - Wire-format safety via `UInt256Be` / `UInt256Le` with zero conversion cost on LE hardware.
 - First-class `[BitFields]` citizen: `[BitFields(typeof(UInt256))]` gets a 4-ulong backing store with full operator and JSON support.
 - Fuzz-tested on every build: `Int256NativeArithmeticTests` cross-validates every operation against `BigInteger` on randomized inputs.

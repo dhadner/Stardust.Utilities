@@ -21,6 +21,13 @@ These types exist because:
 - [Integration with `[BitFields]`](#integration-with-bitfields)
 - [Interop with `BigInteger`, `UInt128`, `Int256`](#interop-with-biginteger-uint128-int256)
 - [API Surface](#api-surface)
+  - [Static Math Helpers](#static-math-helpers)
+  - [Bit-Level Operations](#bit-level-operations)
+  - [`Is*` Predicates](#is-predicates)
+  - [Endian Read / Write](#endian-read--write)
+  - [Checked Operators](#checked-operators)
+  - [Parsing and Formatting](#parsing-and-formatting)
+  - [Generic Math Interfaces](#generic-math-interfaces)
 - [Performance](#performance)
   - [Design Principles](#design-principles)
   - [Benchmark Results](#benchmark-results)
@@ -46,6 +53,13 @@ Internally, `UInt256` stores the value as four native `ulong` limbs. This allows
 Sub operators to read all eight limbs with no extraction overhead, which the JIT can assign
 to dedicated registers. The public `Lower` and `Upper` properties return the corresponding
 `UInt128` halves (computed on access) for callers that need them.
+
+Both types implement the full generic-math surface
+(`INumber<T>` / `IBinaryInteger<T>` / `IBinaryNumber<T>`, plus `IUtf8SpanFormattable` /
+`IUtf8SpanParsable<T>` on .NET 8+), so anywhere you would use `UInt128.PopCount`,
+`Int128.DivRem`, `Int128.CreateChecked`, or `UInt128.TryReadBigEndian`, the same member
+exists on `UInt256` / `Int256` with identical semantics. See
+[API Surface](#api-surface) for the full list.
 
 ## Quick Start
 
@@ -164,35 +178,221 @@ See [BITFIELDS.md](BITFIELDS.md) for the full generator reference.
 
 ## Interop with `BigInteger`, `UInt128`, `Int256`
 
-| From | To | Conversion | Notes |
-|------|-----|------------|-------|
-| `ulong`, `uint`, `ushort`, `byte`, `UInt128` | `UInt256` | **Implicit** | Zero-extended |
-| `UInt256` | `UInt128`, `ulong`, `uint`, `ushort`, `byte` | **Explicit** | Truncates to low bits |
-| `UInt256` | `Int256` | **Explicit** | Bit-reinterpret (no value change) |
-| `UInt256` | `BigInteger` | `.ToBigInteger()` or explicit operator | Always non-negative |
-| `BigInteger` | `UInt256` | `UInt256.FromBigInteger(big)` | Throws `OverflowException` if negative or > 256 bits |
-| `Int256` | `UInt256` | **Explicit** | Bit-reinterpret (two's-complement pattern preserved) |
-| `Int128`, `long`, `int`, `short`, `sbyte` | `Int256` | **Implicit** | Sign-extended |
-| `Int256` | `Int128`, `long`, `int`, `short`, `sbyte` | **Explicit** | Truncates, sign-sensitive |
+**Widening to `UInt256`:**
 
-All conversions are pure value-type operations -- no allocations, no runtime type checks.
+| From | Conversion | Notes |
+|------|------------|-------|
+| `byte`, `ushort`, `uint`, `ulong`, `UInt128`, `char` | **Implicit** | Zero-extended |
+| `sbyte`, `short`, `int`, `long`, `Int128` | **Explicit** | Unchecked: bit-reinterpret (two's-complement). Checked: throws on negative |
+| `float`, `double`, `decimal` | **Explicit** | Truncates toward zero. Unchecked out-of-range wraps; checked throws |
+| `BigInteger` | `UInt256.FromBigInteger(big)` | Throws `OverflowException` if negative or > 256 bits |
+| `Int256` | **Explicit** | Bit-reinterpret (two's-complement pattern preserved) |
+
+**Narrowing from `UInt256`:**
+
+| To | Conversion | Notes |
+|----|------------|-------|
+| `byte`, `ushort`, `uint`, `ulong`, `UInt128` | **Explicit** (unchecked + checked) | Unchecked truncates low bits; checked throws on overflow |
+| `sbyte`, `short`, `int`, `long`, `Int128` | **Explicit** (unchecked + checked) | Unchecked truncates; checked throws on overflow |
+| `float`, `double` | **Explicit** | May lose precision |
+| `decimal` | **Explicit** | Throws `OverflowException` if value > `decimal.MaxValue` |
+| `BigInteger` | `.ToBigInteger()` | Always non-negative |
+| `Int256` | **Explicit** | Bit-reinterpret (no value change) |
+
+**Widening to `Int256`:**
+
+| From | Conversion | Notes |
+|------|------------|-------|
+| `sbyte`, `short`, `int`, `long`, `Int128`, `byte`, `ushort`, `uint`, `char` | **Implicit** | Sign- or zero-extended as appropriate |
+| `ulong`, `UInt128` | **Explicit** | Cross-sign; matches BCL `Int128` policy |
+| `float`, `double`, `decimal` | **Explicit** | Truncates toward zero. Unchecked out-of-range wraps to `MinValue`; checked throws |
+| `BigInteger` | `Int256.FromBigInteger(big)` | Throws `OverflowException` if outside `Int256` range |
+
+**Narrowing from `Int256`:**
+
+| To | Conversion | Notes |
+|----|------------|-------|
+| `sbyte`, `short`, `int`, `long`, `Int128` | **Explicit** (unchecked + checked) | Unchecked truncates; checked throws on overflow |
+| `byte`, `ushort`, `uint`, `ulong`, `UInt128`, `char` | **Explicit** (unchecked + checked) | Unchecked truncates; checked throws on negative or overflow |
+| `float`, `double` | **Explicit** | Sign-preserving; may lose precision |
+| `decimal` | **Explicit** | Throws if magnitude > `decimal.MaxValue` |
+| `BigInteger` | `.ToBigInteger()` | Signed (two's-complement) |
+
+All value-type conversions are pure register operations -- no allocations, no runtime type checks.
 `BigInteger` conversions are the exception (they must allocate because `BigInteger` itself is
 heap-allocated), and they exist exclusively for boundary interop.
 
+The checked `explicit operator checked T(...)` variants are accessed inside a `checked { }` block
+or with the `checked(...)` expression and throw `OverflowException` on out-of-range inputs --
+matching the behaviour of the BCL `UInt128` / `Int128` checked conversions.
+
 ## API Surface
 
-Both types implement:
+`UInt256` and `Int256` mirror the full BCL `UInt128` / `Int128` shape. Anywhere you would
+reach for `UInt128.PopCount`, `Int128.DivRem`, `Int128.CreateChecked`, or
+`UInt128.TryReadBigEndian`, the same member exists on `UInt256` / `Int256` with identical
+semantics.
 
-- `IComparable`, `IComparable<T>`, `IEquatable<T>`
-- `IFormattable`, `ISpanFormattable`
-- `IParsable<T>`, `ISpanParsable<T>`
+The static factory properties are unchanged from earlier releases: `Zero`, `One`,
+`MaxValue`, `MinValue`, `AdditiveIdentity`, `MultiplicativeIdentity`, `Radix` (= 2), and --
+on .NET 8+ -- `AllBitsSet`. `Int256` additionally exposes `NegativeOne`. The `FromBigInteger`
+factory and `ToBigInteger()` instance method remain the allocating perimeter for
+`BigInteger` interop.
 
-All standard operators: `+ - * / % & | ^ ~ << >> >>> == != < > <= >= ++ --`
+### Static Math Helpers
 
-Static factories: `Zero`, `One`, `MaxValue`, `MinValue`, `FromBigInteger`.
+| Member | `UInt256` | `Int256` | Notes |
+|---|:---:|:---:|---|
+| `Abs(value)` | ✓ (no-op) | ✓ | `Int256.Abs` throws on `MinValue` |
+| `Clamp(value, min, max)` | ✓ | ✓ | Throws `ArgumentException` if `min > max` |
+| `CopySign(value, sign)` | ✓ (no-op) | ✓ | |
+| `DivRem(left, right)` | ✓ | ✓ | Returns `(Quotient, Remainder)` tuple |
+| `Max(x, y)` / `Min(x, y)` | ✓ | ✓ | Signed-aware on `Int256` |
+| `MaxMagnitude` / `MinMagnitude` | ✓ | ✓ | `Int256` compares by `|value|` |
+| `MaxMagnitudeNumber` / `MinMagnitudeNumber` | ✓ | ✓ | Aliases required by `INumberBase<T>` |
+| `Sign(value)` | ✓ (0 or 1) | ✓ (-1 / 0 / 1) | |
 
-Instance helpers: `Upper` / `Lower` (high/low `UInt128` halves), `ToBigInteger()`,
-`WriteLittleEndianBytes(Span<byte>)` (internal; used by the endian-aware wrappers).
+### Bit-Level Operations
+
+| Member | Returns | Notes |
+|---|---|---|
+| `LeadingZeroCount(value)` | `T` (0..256) | |
+| `TrailingZeroCount(value)` | `T` (0..256) | |
+| `PopCount(value)` | `T` | Count of set bits |
+| `Log2(value)` | `T` | `Int256` throws on negative; zero returns 0 (matches BCL) |
+| `RotateLeft(value, int)` / `RotateRight(value, int)` | `T` | Rotate amount interpreted `mod 256` |
+| `GetByteCount()` (instance) | `int` | Always 32 |
+| `GetShortestBitLength()` (instance) | `int` | BCL semantics: `256 - LeadingZeroCount(value)` for non-negative, `257 - LeadingZeroCount(~value)` for negative `Int256` |
+
+All bit-level methods compile to fully-unrolled limb scans -- no heap, no branches in the
+hot path beyond the zero-limb shortcut.
+
+### `Is*` Predicates
+
+Every `Is*` predicate required by `INumberBase<T>` is present. The integer-relevant ones
+(all returning `bool`):
+
+| Predicate | `UInt256` | `Int256` |
+|---|---|---|
+| `IsZero` | value == 0 | value == 0 |
+| `IsEvenInteger` / `IsOddInteger` | LSB-based | LSB-based |
+| `IsPow2` | `true` iff `PopCount == 1` | `true` iff value > 0 and `PopCount == 1` |
+| `IsNegative` | always `false` | true iff top bit set |
+| `IsPositive` | always `true` | true iff top bit clear (matches BCL: 0 is positive) |
+
+The BCL-required trivial predicates -- `IsCanonical` (true), `IsFinite` (true), `IsInteger`
+(true), `IsInfinity` / `IsNaN` / `IsPositiveInfinity` / `IsNegativeInfinity` / `IsSubnormal`
+/ `IsImaginaryNumber` / `IsComplexNumber` (all false), `IsNormal` (value != 0), `IsRealNumber`
+(true) -- are all present with the constant values dictated by `INumberBase<T>`.
+
+### Endian Read / Write
+
+The `UInt256` / `Int256` types themselves -- not just the `UInt256Be` / `UInt256Le`
+wrappers -- can read and write big- or little-endian byte sequences directly.
+
+```csharp
+// Static: parse from bytes. isUnsigned controls sign-extension and overflow.
+UInt256 parsed = UInt256.ReadBigEndian(buf, isUnsigned: true);
+if (Int256.TryReadLittleEndian(buf, isUnsigned: false, out Int256 v)) { /* ... */ }
+
+// Instance: write to bytes.
+Span<byte> out32 = stackalloc byte[32];
+int n = value.WriteBigEndian(out32);                 // always 32 on success
+bool ok = value.TryWriteLittleEndian(out32, out n);
+```
+
+| Direction | Members |
+|---|---|
+| Static read | `ReadBigEndian`, `ReadLittleEndian`, `TryReadBigEndian`, `TryReadLittleEndian` |
+| Instance write | `WriteBigEndian`, `WriteLittleEndian`, `TryWriteBigEndian`, `TryWriteLittleEndian` |
+
+For signed `Int256`, `isUnsigned: false` sign-extends a shorter source and rejects
+unsigned sources whose top bit is set. For unsigned `UInt256`, `isUnsigned: false` forces
+the caller to acknowledge the source is signed and rejects negative inputs.
+
+### Checked Operators
+
+Both types expose C# 11 `checked` operator variants that throw `OverflowException` on
+out-of-range results:
+
+```csharp
+UInt256 safe = checked(x + y);       // throws if sum > MaxValue
+Int256  safe = checked(x * y);       // throws on signed overflow
+Int256  safe = checked(-x);          // throws on MinValue
+Int256  safe = checked(x / y);       // Int256: throws on MinValue / -1
+```
+
+The full set on both types: `checked +`, `checked -` (binary and unary), `checked *`,
+`checked /`, `checked ++`, `checked --`. `Int256` division additionally traps the
+`MinValue / -1` overflow case.
+
+### Parsing and Formatting
+
+Every `Parse` / `TryParse` overload defined by `INumberBase<T>` is implemented:
+
+| Overload | `UInt256` | `Int256` |
+|---|:---:|:---:|
+| `Parse(string, NumberStyles, IFormatProvider?)` | ✓ | ✓ |
+| `Parse(ReadOnlySpan<char>, NumberStyles, IFormatProvider?)` | ✓ | ✓ |
+| `TryParse(string?, NumberStyles, IFormatProvider?, out T)` | ✓ | ✓ |
+| `TryParse(ReadOnlySpan<char>, NumberStyles, IFormatProvider?, out T)` | ✓ | ✓ |
+
+On .NET 8+, `IUtf8SpanFormattable` and `IUtf8SpanParsable<T>` are also implemented:
+
+```csharp
+// Format directly to UTF-8 without the intermediate string.
+Span<byte> utf8 = stackalloc byte[80];
+value.TryFormat(utf8, out int n, "G", CultureInfo.InvariantCulture);
+
+// Parse from UTF-8 bytes (e.g., HTTP header, protobuf string).
+UInt256 v = UInt256.Parse(utf8Bytes, CultureInfo.InvariantCulture);
+```
+
+### Generic Math Interfaces
+
+Both types implement the full generic-math surface. Declarations:
+
+```
+UInt256 : INumber<UInt256>, IBinaryInteger<UInt256>, IBinaryNumber<UInt256>,
+          IMinMaxValue<UInt256>, IUnsignedNumber<UInt256>,
+          IUtf8SpanFormattable, IUtf8SpanParsable<UInt256>        // (.NET 8+)
+
+Int256  : INumber<Int256>, IBinaryInteger<Int256>, IBinaryNumber<Int256>,
+          IMinMaxValue<Int256>, ISignedNumber<Int256>,
+          IUtf8SpanFormattable, IUtf8SpanParsable<Int256>         // (.NET 8+)
+```
+
+This means generic-math code that works over `UInt128` / `Int128` works unchanged:
+
+```csharp
+static T Sum<T>(ReadOnlySpan<T> values) where T : INumber<T>
+{
+    T total = T.Zero;
+    foreach (T v in values) total += v;
+    return total;
+}
+
+UInt256 total = Sum<UInt256>(...);     // no changes to Sum<T>
+```
+
+The `CreateChecked` / `CreateSaturating` / `CreateTruncating` factories are exposed as
+concrete public static methods (matching how the BCL exposes them) so callers can write
+`UInt256.CreateChecked(someInt128)` without going through the interface:
+
+```csharp
+UInt256 a = UInt256.CreateChecked(someInt);          // throws on negative
+UInt256 b = UInt256.CreateSaturating(-1);            // clamps to Zero
+UInt256 c = UInt256.CreateTruncating(-1L);           // wraps to ulong.MaxValue (64-bit truncation)
+Int256  d = Int256.CreateSaturating(1e78);           // saturates to Int256.MaxValue
+```
+
+Every BCL numeric type is supported as the source/target: `byte`, `sbyte`, `short`,
+`ushort`, `int`, `uint`, `long`, `ulong`, `nint`, `nuint`, `Int128`, `UInt128`, `char`,
+`Half`, `float`, `double`, `decimal`. The `TryConvertFromChecked` / `TryConvertFromSaturating`
+/ `TryConvertFromTruncating` / `TryConvertToChecked` / `TryConvertToSaturating` /
+`TryConvertToTruncating` methods are implemented on the interface for each.
+
+Other instance helpers: `Upper` / `Lower` (high/low `UInt128` halves), `ToBigInteger()`.
 
 ## Performance
 
@@ -323,4 +523,4 @@ and the indirection on every arithmetic operation for no gain.
 
 ---
 
-*Last updated: 0.9.9 release.*
+*Last updated: 0.9.13 release.*

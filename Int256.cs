@@ -16,8 +16,8 @@ namespace Stardust.Utilities
     /// </remarks>
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Int256 : IComparable, IComparable<Int256>, IEquatable<Int256>,
-                                    IFormattable, ISpanFormattable, IParsable<Int256>, ISpanParsable<Int256>
+    public readonly partial struct Int256 : IComparable, IComparable<Int256>, IEquatable<Int256>,
+                                            IFormattable, ISpanFormattable, IParsable<Int256>, ISpanParsable<Int256>
     {
         internal readonly UInt128 _lo;
         internal readonly UInt128 _hi;
@@ -111,9 +111,6 @@ namespace Stardust.Utilities
             }
         }
 
-        /// <summary>True if this value is negative.</summary>
-        public bool IsNegative => (_hi & SignMask) != UInt128.Zero;
-
         /// <summary>The low 128 bits.</summary>
         public UInt128 Lower => _lo;
         /// <summary>The high 128 bits.</summary>
@@ -137,7 +134,7 @@ namespace Stardust.Utilities
             // the unsigned magnitude, then prepend '-' if negative.
             if (fmt == 'D' || fmt == 'd' || fmt == 'G' || fmt == 'g' || fmt == 'R' || fmt == 'r')
             {
-                bool neg = IsNegative;
+                bool neg = IsNegative(this);
                 UInt256 mag = neg
                     ? (UInt256)(-this) // two's complement negation; Int256.MinValue wraps to itself (|min| = 2^255)
                     : (UInt256)this;
@@ -235,8 +232,8 @@ namespace Stardust.Utilities
         /// <inheritdoc/>
         public readonly int CompareTo(Int256 other)
         {
-            bool aNeg = IsNegative;
-            bool bNeg = other.IsNegative;
+            bool aNeg = IsNegative(this);
+            bool bNeg = IsNegative(other);
             if (aNeg != bNeg) return aNeg ? -1 : 1;
             int c = _hi.CompareTo(other._hi);
             return c != 0 ? c : _lo.CompareTo(other._lo);
@@ -331,8 +328,8 @@ namespace Stardust.Utilities
         public static Int256 operator /(Int256 a, Int256 b)
         {
             if (b._hi == UInt128.Zero && b._lo == UInt128.Zero) throw new DivideByZeroException();
-            bool aNeg = a.IsNegative;
-            bool bNeg = b.IsNegative;
+            bool aNeg = IsNegative(a);
+            bool bNeg = IsNegative(b);
             UInt256 au = aNeg ? (UInt256)(-a) : (UInt256)a;
             UInt256 bu = bNeg ? (UInt256)(-b) : (UInt256)b;
             UInt256 q;
@@ -348,8 +345,8 @@ namespace Stardust.Utilities
         public static Int256 operator %(Int256 a, Int256 b)
         {
             if (b._hi == UInt128.Zero && b._lo == UInt128.Zero) throw new DivideByZeroException();
-            bool aNeg = a.IsNegative;
-            bool bNeg = b.IsNegative;
+            bool aNeg = IsNegative(a);
+            bool bNeg = IsNegative(b);
             UInt256 au = aNeg ? (UInt256)(-a) : (UInt256)a;
             UInt256 bu = bNeg ? (UInt256)(-b) : (UInt256)b;
             UInt256 r;
@@ -383,7 +380,7 @@ namespace Stardust.Utilities
         {
             b &= 255;
             if (b == 0) return a;
-            bool neg = a.IsNegative;
+            bool neg = IsNegative(a);
             UInt256 u = (UInt256)a >>> b;
             if (!neg) return (Int256)u;
             // Fill top b bits with ones
@@ -411,7 +408,7 @@ namespace Stardust.Utilities
         /// <summary>Determines whether the left operand is less than the right (signed comparison).</summary>
         public static bool operator <(Int256 a, Int256 b)
         {
-            bool an = a.IsNegative, bn = b.IsNegative;
+            bool an = IsNegative(a), bn = IsNegative(b);
             if (an != bn) return an;
             return a._hi < b._hi || (a._hi == b._hi && a._lo < b._lo);
         }
