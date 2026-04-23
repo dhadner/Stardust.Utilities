@@ -54,6 +54,28 @@ namespace Stardust.Utilities
             hi = new UInt64Le(bytes.Slice(8));
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="UInt128Le"/> from a read-only byte span whose byte order is specified.
+        /// </summary>
+        /// <param name="bytes">Source span (must have at least 16 bytes).</param>
+        /// <param name="isBigEndian">If <see langword="false"/> (default) the source is interpreted as little-endian; if <see langword="true"/> it is interpreted as big-endian and reversed during storage.</param>
+        /// <exception cref="ArgumentException">If span is too short.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UInt128Le(ReadOnlySpan<byte> bytes, bool isBigEndian = false)
+        {
+            if (bytes.Length < 16) throw new ArgumentException("Span must have at least 16 bytes", nameof(bytes));
+            Unsafe.SkipInit(out this);
+            Span<byte> dst = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1));
+            if (isBigEndian)
+            {
+                for (int i = 0; i < 16; i++) dst[i] = bytes[15 - i];
+            }
+            else
+            {
+                bytes[..16].CopyTo(dst);
+            }
+        }
+
         /// <summary>Initializes a new <see cref="UInt128Le"/> from a byte array at the given offset.</summary>
         /// <param name="bytes">The source byte array.</param>
         /// <param name="offset">The zero-based offset into <paramref name="bytes"/>.</param>
@@ -65,44 +87,72 @@ namespace Stardust.Utilities
             hi = new UInt64Le(bytes, offset + 8);
         }
 
-        /// <summary>Writes the value to a byte array at the given offset.</summary>
+        /// <summary>Writes the value to a byte array in the specified byte order.</summary>
         /// <param name="bytes">The destination byte array.</param>
         /// <param name="offset">The zero-based offset into <paramref name="bytes"/>.</param>
-        public readonly void ToBytes(byte[] bytes, int offset = 0)
+        /// <param name="isBigEndian">If <see langword="false"/> (default) bytes are written little-endian; if <see langword="true"/> they are written big-endian.</param>
+        public readonly void ToBytes(byte[] bytes, int offset = 0, bool isBigEndian = false)
         {
-            lo.ToBytes(bytes, offset);
-            hi.ToBytes(bytes, offset + 8);
+            if (isBigEndian)
+            {
+                ReadOnlySpan<byte> src = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1));
+                for (int i = 0; i < 16; i++) bytes[offset + i] = src[15 - i];
+            }
+            else
+            {
+                lo.ToBytes(bytes, offset);
+                hi.ToBytes(bytes, offset + 8);
+            }
         }
 
-        /// <summary>Writes the value to a destination span.</summary>
+        /// <summary>Writes the value to a destination span in the specified byte order.</summary>
         /// <param name="destination">A span with at least 16 bytes of space.</param>
+        /// <param name="isBigEndian">If <see langword="false"/> (default) bytes are written little-endian; if <see langword="true"/> they are written big-endian.</param>
         /// <exception cref="ArgumentException"><paramref name="destination"/> is too short.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void WriteTo(Span<byte> destination)
+        public readonly void WriteTo(Span<byte> destination, bool isBigEndian = false)
         {
             if (destination.Length < 16) throw new ArgumentException("Destination span must have at least 16 bytes", nameof(destination));
-            lo.WriteTo(destination);
-            hi.WriteTo(destination.Slice(8));
+            if (isBigEndian)
+            {
+                ReadOnlySpan<byte> src = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1));
+                for (int i = 0; i < 16; i++) destination[i] = src[15 - i];
+            }
+            else
+            {
+                lo.WriteTo(destination);
+                hi.WriteTo(destination.Slice(8));
+            }
         }
 
-        /// <summary>Attempts to write the value to a destination span.</summary>
+        /// <summary>Attempts to write the value to a destination span in the specified byte order.</summary>
         /// <param name="destination">The destination span.</param>
+        /// <param name="isBigEndian">If <see langword="false"/> (default) bytes are written little-endian; if <see langword="true"/> they are written big-endian.</param>
         /// <returns><see langword="true"/> if the span was large enough; otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryWriteTo(Span<byte> destination)
+        public readonly bool TryWriteTo(Span<byte> destination, bool isBigEndian = false)
         {
             if (destination.Length < 16)
                 return false;
-            lo.WriteTo(destination);
-            hi.WriteTo(destination.Slice(8));
+            if (isBigEndian)
+            {
+                ReadOnlySpan<byte> src = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1));
+                for (int i = 0; i < 16; i++) destination[i] = src[15 - i];
+            }
+            else
+            {
+                lo.WriteTo(destination);
+                hi.WriteTo(destination.Slice(8));
+            }
             return true;
         }
 
-        /// <summary>Reads a <see cref="UInt128Le"/> from a read-only byte span.</summary>
+        /// <summary>Reads a <see cref="UInt128Le"/> from a read-only byte span in the specified byte order.</summary>
         /// <param name="source">A span containing at least 16 bytes.</param>
+        /// <param name="isBigEndian">If <see langword="false"/> (default) the source is interpreted as little-endian; if <see langword="true"/> it is interpreted as big-endian.</param>
         /// <returns>The value read from the span.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt128Le ReadFrom(ReadOnlySpan<byte> source) => new(source);
+        public static UInt128Le ReadFrom(ReadOnlySpan<byte> source, bool isBigEndian = false) => new(source, isBigEndian);
 
         /// <summary>Parses a string into a <see cref="UInt128Le"/>.</summary>
         /// <param name="s">The string to parse.</param>

@@ -65,6 +65,31 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
+        /// Creates a big-endian 64-bit signed integer from a ReadOnlySpan whose byte order is specified.
+        /// </summary>
+        /// <param name="bytes">Source span (must have at least 8 bytes).</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian and reversed during storage.</param>
+        /// <exception cref="ArgumentException">If span is too short.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Int64Be(ReadOnlySpan<byte> bytes, bool isBigEndian = true)
+        {
+            if (bytes.Length < 8)
+            {
+                throw new ArgumentException("Span must have at least 8 bytes", nameof(bytes));
+            }
+            Unsafe.SkipInit(out this);
+            Span<byte> dst = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref this, 1));
+            if (isBigEndian)
+            {
+                bytes[..8].CopyTo(dst);
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++) dst[i] = bytes[7 - i];
+            }
+        }
+
+        /// <summary>
         /// Creates a big-endian 64-bit signed integer from a native long.
         /// </summary>
         /// <param name="num">The native value.</param>
@@ -90,46 +115,73 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// Writes the big-endian bytes to an IList.
+        /// Writes the bytes to an IList in the specified byte order.
         /// </summary>
         /// <param name="bytes">Destination list.</param>
         /// <param name="offset">Starting offset.</param>
-        /// <returns>No return value.</returns>
-        public readonly void ToBytes(IList<byte> bytes, int offset = 0)
+        /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
+        public readonly void ToBytes(IList<byte> bytes, int offset = 0, bool isBigEndian = true)
         {
-            hi.ToBytes(bytes, offset);
-            lo.ToBytes(bytes, offset + 4);
+            if (isBigEndian)
+            {
+                hi.ToBytes(bytes, offset);
+                lo.ToBytes(bytes, offset + 4);
+            }
+            else
+            {
+                Span<byte> buf = stackalloc byte[8];
+                hi.WriteTo(buf);
+                lo.WriteTo(buf.Slice(4));
+                for (int i = 0; i < 8; i++) bytes[offset + i] = buf[7 - i];
+            }
         }
 
         /// <summary>
-        /// Writes the big-endian bytes to a Span.
+        /// Writes the bytes to a Span in the specified byte order.
         /// </summary>
         /// <param name="destination">Destination span (must have at least 8 bytes).</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
         /// <exception cref="ArgumentException">If span is too short.</exception>
-        /// <returns>No return value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void WriteTo(Span<byte> destination)
+        public readonly void WriteTo(Span<byte> destination, bool isBigEndian = true)
         {
             if (destination.Length < 8)
             {
                 throw new ArgumentException("Destination span must have at least 8 bytes", nameof(destination));
             }
-            hi.WriteTo(destination);
-            lo.WriteTo(destination.Slice(4));
+            if (isBigEndian)
+            {
+                hi.WriteTo(destination);
+                lo.WriteTo(destination.Slice(4));
+            }
+            else
+            {
+                ReadOnlySpan<byte> src = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1));
+                for (int i = 0; i < 8; i++) destination[i] = src[7 - i];
+            }
         }
 
         /// <summary>
-        /// Tries to write the big-endian bytes to a Span.
+        /// Tries to write the bytes to a Span in the specified byte order.
         /// </summary>
         /// <param name="destination">Destination span.</param>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) bytes are written big-endian; if <see langword="false"/> they are written little-endian.</param>
         /// <returns>True if successful, false if span is too short.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryWriteTo(Span<byte> destination)
+        public readonly bool TryWriteTo(Span<byte> destination, bool isBigEndian = true)
         {
             if (destination.Length < 8)
                 return false;
-            hi.WriteTo(destination);
-            lo.WriteTo(destination.Slice(4));
+            if (isBigEndian)
+            {
+                hi.WriteTo(destination);
+                lo.WriteTo(destination.Slice(4));
+            }
+            else
+            {
+                ReadOnlySpan<byte> src = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this), 1));
+                for (int i = 0; i < 8; i++) destination[i] = src[7 - i];
+            }
             return true;
         }
 
@@ -166,15 +218,13 @@ namespace Stardust.Utilities
         }
 
         /// <summary>
-        /// Reads a big-endian long from a ReadOnlySpan.
+        /// Reads an <see cref="Int64Be"/> from a ReadOnlySpan in the specified byte order.
         /// </summary>
         /// <param name="source">Source span.</param>
-        /// <returns>The parsed big-endian value.</returns>
+        /// <param name="isBigEndian">If <see langword="true"/> (default) the source is interpreted as big-endian; if <see langword="false"/> it is interpreted as little-endian.</param>
+        /// <returns>The parsed value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Int64Be ReadFrom(ReadOnlySpan<byte> source)
-        {
-            return new Int64Be(source);
-        }
+        public static Int64Be ReadFrom(ReadOnlySpan<byte> source, bool isBigEndian = true) => new(source, isBigEndian);
 
         #region Operators
 
