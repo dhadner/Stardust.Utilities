@@ -210,6 +210,8 @@ public sealed class BitFieldsAttribute : Attribute
         Utilities.StorageType.Decimal => typeof(decimal),
         Utilities.StorageType.Int128 => typeof(Int128),
         Utilities.StorageType.UInt128 => typeof(UInt128),
+        Utilities.StorageType.Int256 => typeof(Int256),
+        Utilities.StorageType.UInt256 => typeof(UInt256),
         _ => null,
     };
 }
