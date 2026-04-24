@@ -10,7 +10,7 @@
 
 [![Stardust Utilities](https://raw.githubusercontent.com/dhadner/Stardust.Utilities/main/icon.png)](https://github.com/dhadner/Stardust.Utilities)
 
-**Zero-cost bit manipulation, Rust-style error handling, endian-safe integers, and fixed-width 256-bit math for modern .NET.** One NuGet package. One source generator. No runtime dependencies.
+**Zero-cost bit manipulation, Rust-style error handling, endian-safe integers, and high-performance fixed-width 256-bit math for modern .NET.** One NuGet package. One source generator. No runtime dependencies.
 
 Stardust.Utilities is a *library*, not a framework. You pick the pieces you need and use them exactly where you need them -- parsing a packet, decoding a register, shaping an API result. Nothing runs on its own, nothing calls home, and nothing ships with your binary except the code you touch.
 
