@@ -440,7 +440,7 @@ See [Numeric Decomposition Types](BITFIELDS.md#numeric-decomposition-types) in B
 Three most-frequent issues and their fixes. For the full diagnostic reference (every `SD00xx` error and warning, browser/WASM notes, how to view generated code) see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 - **`CS9248: partial property must have an implementation part`** -- add the `partial` keyword to every `[BitField]` / `[BitFlag]` property. If you also see `SD0004`, the generator is pointing directly at the missing keyword.
-- **Generated code didn't update** -- make sure the type is `partial struct` or `partial record struct` (not `class`), then clean and rebuild.
+- **Generated code didn't update** -- make sure the type is `partial struct` or `partial record struct` (not `class`), then clean and rebuild.  Any classes containing this `partial` definition (including parent classes all the way up) must also be `partial`.
 - **IntelliSense missing for generated members** -- build the project at least once, then close and reopen the solution if needed.
 
 ---
