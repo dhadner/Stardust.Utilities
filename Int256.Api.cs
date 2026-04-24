@@ -145,7 +145,7 @@ namespace Stardust.Utilities
         public static int Sign(Int256 value)
         {
             if (IsNegative(value)) return -1;
-            if (value._hi == UInt128.Zero && value._lo == UInt128.Zero) return 0;
+            if ((value._p0 | value._p1 | value._p2 | value._p3) == 0UL) return 0;
             return 1;
         }
 
@@ -158,10 +158,10 @@ namespace Stardust.Utilities
         /// <returns>Number of leading zero bits as an <see cref="Int256"/>.</returns>
         public static Int256 LeadingZeroCount(Int256 value)
         {
-            ulong p3 = (ulong)(value._hi >> 64);
-            ulong p2 = (ulong)value._hi;
-            ulong p1 = (ulong)(value._lo >> 64);
-            ulong p0 = (ulong)value._lo;
+            ulong p3 = value._p3;
+            ulong p2 = value._p2;
+            ulong p1 = value._p1;
+            ulong p0 = value._p0;
             if (p3 != 0) return BitOperations.LeadingZeroCount(p3);
             if (p2 != 0) return 64 + BitOperations.LeadingZeroCount(p2);
             if (p1 != 0) return 128 + BitOperations.LeadingZeroCount(p1);
@@ -173,10 +173,10 @@ namespace Stardust.Utilities
         /// <returns>Number of trailing zero bits as an <see cref="Int256"/>.</returns>
         public static Int256 TrailingZeroCount(Int256 value)
         {
-            ulong p0 = (ulong)value._lo;
-            ulong p1 = (ulong)(value._lo >> 64);
-            ulong p2 = (ulong)value._hi;
-            ulong p3 = (ulong)(value._hi >> 64);
+            ulong p0 = value._p0;
+            ulong p1 = value._p1;
+            ulong p2 = value._p2;
+            ulong p3 = value._p3;
             if (p0 != 0) return BitOperations.TrailingZeroCount(p0);
             if (p1 != 0) return 64 + BitOperations.TrailingZeroCount(p1);
             if (p2 != 0) return 128 + BitOperations.TrailingZeroCount(p2);
@@ -188,10 +188,10 @@ namespace Stardust.Utilities
         /// <returns>Number of set bits as an <see cref="Int256"/>.</returns>
         public static Int256 PopCount(Int256 value)
         {
-            ulong p0 = (ulong)value._lo;
-            ulong p1 = (ulong)(value._lo >> 64);
-            ulong p2 = (ulong)value._hi;
-            ulong p3 = (ulong)(value._hi >> 64);
+            ulong p0 = value._p0;
+            ulong p1 = value._p1;
+            ulong p2 = value._p2;
+            ulong p3 = value._p3;
             return BitOperations.PopCount(p0) + BitOperations.PopCount(p1)
                  + BitOperations.PopCount(p2) + BitOperations.PopCount(p3);
         }
@@ -203,10 +203,10 @@ namespace Stardust.Utilities
         public static Int256 Log2(Int256 value)
         {
             if (IsNegative(value)) throw new ArgumentOutOfRangeException(nameof(value));
-            ulong p0 = (ulong)value._lo;
-            ulong p1 = (ulong)(value._lo >> 64);
-            ulong p2 = (ulong)value._hi;
-            ulong p3 = (ulong)(value._hi >> 64);
+            ulong p0 = value._p0;
+            ulong p1 = value._p1;
+            ulong p2 = value._p2;
+            ulong p3 = value._p3;
             if (p3 != 0) return 192 + BitOperations.Log2(p3);
             if (p2 != 0) return 128 + BitOperations.Log2(p2);
             if (p1 != 0) return 64 + BitOperations.Log2(p1);
@@ -264,19 +264,19 @@ namespace Stardust.Utilities
         /// <param name="value">The value.</param>
         /// <returns><c>true</c> if zero.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsZero(Int256 value) => value._hi == UInt128.Zero && value._lo == UInt128.Zero;
+        public static bool IsZero(Int256 value) => (value._p0 | value._p1 | value._p2 | value._p3) == 0UL;
 
         /// <summary>Determines whether the value is an even integer.</summary>
         /// <param name="value">The value.</param>
         /// <returns><c>true</c> if even.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsEvenInteger(Int256 value) => ((ulong)value._lo & 1UL) == 0UL;
+        public static bool IsEvenInteger(Int256 value) => (value._p0 & 1UL) == 0UL;
 
         /// <summary>Determines whether the value is an odd integer.</summary>
         /// <param name="value">The value.</param>
         /// <returns><c>true</c> if odd.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsOddInteger(Int256 value) => ((ulong)value._lo & 1UL) != 0UL;
+        public static bool IsOddInteger(Int256 value) => (value._p0 & 1UL) != 0UL;
 
         /// <summary>Determines whether the value is a (positive) power of two.</summary>
         /// <param name="value">The value.</param>
@@ -291,13 +291,13 @@ namespace Stardust.Utilities
         /// <param name="value">The value.</param>
         /// <returns><c>true</c> if negative.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNegative(Int256 value) => (value._hi & SignMask) != UInt128.Zero;
+        public static bool IsNegative(Int256 value) => (value._p3 & SIGN_BIT) != 0UL;
 
         /// <summary>Returns <c>true</c> when the value is zero or positive (matches BCL Int128 semantics).</summary>
         /// <param name="value">The value.</param>
         /// <returns><c>true</c> if non-negative.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsPositive(Int256 value) => (value._hi & SignMask) == UInt128.Zero;
+        public static bool IsPositive(Int256 value) => (value._p3 & SIGN_BIT) == 0UL;
 
         /// <summary>Always returns <c>true</c> for fixed-width integers.</summary>
         /// <param name="value">Ignored.</param>
@@ -460,10 +460,10 @@ namespace Stardust.Utilities
         public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
         {
             if (destination.Length < 32) { bytesWritten = 0; return false; }
-            ulong p3 = (ulong)(_hi >> 64);
-            ulong p2 = (ulong)_hi;
-            ulong p1 = (ulong)(_lo >> 64);
-            ulong p0 = (ulong)_lo;
+            ulong p3 = _p3;
+            ulong p2 = _p2;
+            ulong p1 = _p1;
+            ulong p0 = _p0;
             BinaryPrimitives.WriteUInt64BigEndian(destination[..8], p3);
             BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(8, 8), p2);
             BinaryPrimitives.WriteUInt64BigEndian(destination.Slice(16, 8), p1);
@@ -479,10 +479,10 @@ namespace Stardust.Utilities
         public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
         {
             if (destination.Length < 32) { bytesWritten = 0; return false; }
-            ulong p0 = (ulong)_lo;
-            ulong p1 = (ulong)(_lo >> 64);
-            ulong p2 = (ulong)_hi;
-            ulong p3 = (ulong)(_hi >> 64);
+            ulong p0 = _p0;
+            ulong p1 = _p1;
+            ulong p2 = _p2;
+            ulong p3 = _p3;
             BinaryPrimitives.WriteUInt64LittleEndian(destination[..8], p0);
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(8, 8), p1);
             BinaryPrimitives.WriteUInt64LittleEndian(destination.Slice(16, 8), p2);
@@ -839,32 +839,32 @@ namespace Stardust.Utilities
         /// <summary>Narrowing conversion to <see cref="byte"/> (keeps low 8 bits).</summary>
         /// <param name="a">The input.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator byte(Int256 a) => (byte)(ulong)a._lo;
+        public static explicit operator byte(Int256 a) => (byte)a._p0;
 
         /// <summary>Narrowing conversion to <see cref="ushort"/> (keeps low 16 bits).</summary>
         /// <param name="a">The input.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ushort(Int256 a) => (ushort)(ulong)a._lo;
+        public static explicit operator ushort(Int256 a) => (ushort)a._p0;
 
         /// <summary>Narrowing conversion to <see cref="uint"/> (keeps low 32 bits).</summary>
         /// <param name="a">The input.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator uint(Int256 a) => (uint)(ulong)a._lo;
+        public static explicit operator uint(Int256 a) => (uint)a._p0;
 
         /// <summary>Narrowing conversion to <see cref="ulong"/> (keeps low 64 bits).</summary>
         /// <param name="a">The input.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator ulong(Int256 a) => (ulong)a._lo;
+        public static explicit operator ulong(Int256 a) => a._p0;
 
         /// <summary>Narrowing conversion to <see cref="UInt128"/> (keeps low 128 bits).</summary>
         /// <param name="a">The input.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator UInt128(Int256 a) => a._lo;
+        public static explicit operator UInt128(Int256 a) => new(a._p1, a._p0);
 
         /// <summary>Narrowing conversion to <see cref="char"/> (keeps low 16 bits).</summary>
         /// <param name="a">The input.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator char(Int256 a) => (char)(ushort)(ulong)a._lo;
+        public static explicit operator char(Int256 a) => (char)(ushort)a._p0;
 
         /// <summary>Checked narrowing to <see cref="byte"/>.</summary>
         /// <param name="a">The input.</param>
@@ -872,8 +872,8 @@ namespace Stardust.Utilities
         public static explicit operator checked byte(Int256 a)
         {
             if (IsNegative(a)) throw new OverflowException();
-            if (a._hi != UInt128.Zero || (ulong)a._lo > byte.MaxValue || a._lo > byte.MaxValue) throw new OverflowException();
-            return (byte)(ulong)a._lo;
+            if ((a._p1 | a._p2 | a._p3) != 0UL || a._p0 > byte.MaxValue) throw new OverflowException();
+            return (byte)a._p0;
         }
 
         /// <summary>Checked narrowing to <see cref="sbyte"/>.</summary>
@@ -890,8 +890,8 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside ushort range.</exception>
         public static explicit operator checked ushort(Int256 a)
         {
-            if (IsNegative(a) || a._hi != UInt128.Zero || a._lo > ushort.MaxValue) throw new OverflowException();
-            return (ushort)(ulong)a._lo;
+            if (IsNegative(a) || (a._p1 | a._p2 | a._p3) != 0UL || a._p0 > ushort.MaxValue) throw new OverflowException();
+            return (ushort)a._p0;
         }
 
         /// <summary>Checked narrowing to <see cref="short"/>.</summary>
@@ -908,8 +908,8 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside uint range.</exception>
         public static explicit operator checked uint(Int256 a)
         {
-            if (IsNegative(a) || a._hi != UInt128.Zero || a._lo > uint.MaxValue) throw new OverflowException();
-            return (uint)(ulong)a._lo;
+            if (IsNegative(a) || (a._p1 | a._p2 | a._p3) != 0UL || a._p0 > uint.MaxValue) throw new OverflowException();
+            return (uint)a._p0;
         }
 
         /// <summary>Checked narrowing to <see cref="int"/>.</summary>
@@ -926,8 +926,8 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside ulong range.</exception>
         public static explicit operator checked ulong(Int256 a)
         {
-            if (IsNegative(a) || a._hi != UInt128.Zero) throw new OverflowException();
-            return (ulong)a._lo;
+            if (IsNegative(a) || (a._p1 | a._p2 | a._p3) != 0UL) throw new OverflowException();
+            return a._p0;
         }
 
         /// <summary>Checked narrowing to <see cref="long"/>.</summary>
@@ -935,17 +935,13 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside long range.</exception>
         public static explicit operator checked long(Int256 a)
         {
-            // Valid range: value fits in signed 64 bits. Upper 192 bits must be sign-extension of low bit 63.
+            // Valid range: value fits in signed 64 bits. Upper 192 bits must be sign-extension of bit 63 of _p0.
             bool neg = IsNegative(a);
-            ulong hiHi = (ulong)(a._hi >> 64);
-            ulong hiLo = (ulong)a._hi;
-            ulong loHi = (ulong)(a._lo >> 64);
-            ulong lo = (ulong)a._lo;
             ulong expected = neg ? ulong.MaxValue : 0UL;
-            if (hiHi != expected || hiLo != expected || loHi != expected) throw new OverflowException();
-            if (neg && (lo & 0x8000_0000_0000_0000UL) == 0UL) throw new OverflowException();
-            if (!neg && (lo & 0x8000_0000_0000_0000UL) != 0UL) throw new OverflowException();
-            return (long)lo;
+            if (a._p1 != expected || a._p2 != expected || a._p3 != expected) throw new OverflowException();
+            if (neg && (a._p0 & SIGN_BIT) == 0UL) throw new OverflowException();
+            if (!neg && (a._p0 & SIGN_BIT) != 0UL) throw new OverflowException();
+            return (long)a._p0;
         }
 
         /// <summary>Checked narrowing to <see cref="UInt128"/>.</summary>
@@ -953,8 +949,8 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside <see cref="UInt128"/> range.</exception>
         public static explicit operator checked UInt128(Int256 a)
         {
-            if (IsNegative(a) || a._hi != UInt128.Zero) throw new OverflowException();
-            return a._lo;
+            if (IsNegative(a) || (a._p2 | a._p3) != 0UL) throw new OverflowException();
+            return new UInt128(a._p1, a._p0);
         }
 
         /// <summary>Checked narrowing to <see cref="Int128"/>.</summary>
@@ -962,12 +958,14 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside <see cref="Int128"/> range.</exception>
         public static explicit operator checked Int128(Int256 a)
         {
+            // Valid range: low 128 bits form a valid signed Int128. Upper 128 bits must
+            // be sign-extension of bit 127 (= top bit of _p1).
             bool neg = IsNegative(a);
-            UInt128 expected = neg ? ~UInt128.Zero : UInt128.Zero;
-            if (a._hi != expected) throw new OverflowException();
-            if (neg && (a._lo & SignMask) == UInt128.Zero) throw new OverflowException();
-            if (!neg && (a._lo & SignMask) != UInt128.Zero) throw new OverflowException();
-            return (Int128)a._lo;
+            ulong expected = neg ? ulong.MaxValue : 0UL;
+            if (a._p2 != expected || a._p3 != expected) throw new OverflowException();
+            if (neg && (a._p1 & SIGN_BIT) == 0UL) throw new OverflowException();
+            if (!neg && (a._p1 & SIGN_BIT) != 0UL) throw new OverflowException();
+            return (Int128)new UInt128(a._p1, a._p0);
         }
 
         /// <summary>Checked narrowing to <see cref="char"/>.</summary>
@@ -975,8 +973,8 @@ namespace Stardust.Utilities
         /// <exception cref="OverflowException">Value is outside char range.</exception>
         public static explicit operator checked char(Int256 a)
         {
-            if (IsNegative(a) || a._hi != UInt128.Zero || a._lo > char.MaxValue) throw new OverflowException();
-            return (char)(ushort)(ulong)a._lo;
+            if (IsNegative(a) || (a._p1 | a._p2 | a._p3) != 0UL || a._p0 > char.MaxValue) throw new OverflowException();
+            return (char)(ushort)a._p0;
         }
 
         #endregion
@@ -1170,13 +1168,13 @@ namespace Stardust.Utilities
 
         private static bool TryConvertToSaturatingImpl<TOther>(Int256 value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
         {
-            if (typeof(TOther) == typeof(byte))    { byte r = IsNegative(value) ? (byte)0 : value > new Int256(0, byte.MaxValue) ? byte.MaxValue : (byte)(ulong)value._lo; result = (TOther)(object)r; return true; }
-            if (typeof(TOther) == typeof(char))    { char r = IsNegative(value) ? (char)0 : value > new Int256(0, char.MaxValue) ? char.MaxValue : (char)(ushort)(ulong)value._lo; result = (TOther)(object)r; return true; }
-            if (typeof(TOther) == typeof(ushort))  { ushort r = IsNegative(value) ? (ushort)0 : value > new Int256(0, ushort.MaxValue) ? ushort.MaxValue : (ushort)(ulong)value._lo; result = (TOther)(object)r; return true; }
-            if (typeof(TOther) == typeof(uint))    { uint r = IsNegative(value) ? 0u : value > new Int256(0, uint.MaxValue) ? uint.MaxValue : (uint)(ulong)value._lo; result = (TOther)(object)r; return true; }
-            if (typeof(TOther) == typeof(ulong))   { ulong r = IsNegative(value) ? 0UL : value > new Int256(0, ulong.MaxValue) ? ulong.MaxValue : (ulong)value._lo; result = (TOther)(object)r; return true; }
-            if (typeof(TOther) == typeof(UInt128)) { UInt128 r = IsNegative(value) ? UInt128.Zero : value._hi != UInt128.Zero ? UInt128.MaxValue : value._lo; result = (TOther)(object)r; return true; }
-            if (typeof(TOther) == typeof(nuint))   { ulong r = IsNegative(value) ? 0UL : value > new Int256(0, ulong.MaxValue) ? ulong.MaxValue : (ulong)value._lo; nuint n = r > nuint.MaxValue ? nuint.MaxValue : (nuint)r; result = (TOther)(object)n; return true; }
+            if (typeof(TOther) == typeof(byte))    { byte r = IsNegative(value) ? (byte)0 : value > new Int256(0, byte.MaxValue) ? byte.MaxValue : (byte)value._p0; result = (TOther)(object)r; return true; }
+            if (typeof(TOther) == typeof(char))    { char r = IsNegative(value) ? (char)0 : value > new Int256(0, char.MaxValue) ? char.MaxValue : (char)(ushort)value._p0; result = (TOther)(object)r; return true; }
+            if (typeof(TOther) == typeof(ushort))  { ushort r = IsNegative(value) ? (ushort)0 : value > new Int256(0, ushort.MaxValue) ? ushort.MaxValue : (ushort)value._p0; result = (TOther)(object)r; return true; }
+            if (typeof(TOther) == typeof(uint))    { uint r = IsNegative(value) ? 0u : value > new Int256(0, uint.MaxValue) ? uint.MaxValue : (uint)value._p0; result = (TOther)(object)r; return true; }
+            if (typeof(TOther) == typeof(ulong))   { ulong r = IsNegative(value) ? 0UL : value > new Int256(0, ulong.MaxValue) ? ulong.MaxValue : value._p0; result = (TOther)(object)r; return true; }
+            if (typeof(TOther) == typeof(UInt128)) { UInt128 r = IsNegative(value) ? UInt128.Zero : (value._p2 | value._p3) != 0UL ? UInt128.MaxValue : new UInt128(value._p1, value._p0); result = (TOther)(object)r; return true; }
+            if (typeof(TOther) == typeof(nuint))   { ulong r = IsNegative(value) ? 0UL : value > new Int256(0, ulong.MaxValue) ? ulong.MaxValue : value._p0; nuint n = r > nuint.MaxValue ? nuint.MaxValue : (nuint)r; result = (TOther)(object)n; return true; }
 
             if (typeof(TOther) == typeof(sbyte))   { sbyte r = value < new Int256((long)sbyte.MinValue) ? sbyte.MinValue : value > new Int256(sbyte.MaxValue) ? sbyte.MaxValue : (sbyte)(long)value; result = (TOther)(object)r; return true; }
             if (typeof(TOther) == typeof(short))   { short r = value < new Int256((long)short.MinValue) ? short.MinValue : value > new Int256(short.MaxValue) ? short.MaxValue : (short)(long)value; result = (TOther)(object)r; return true; }
@@ -1196,20 +1194,20 @@ namespace Stardust.Utilities
 
         private static bool TryConvertToTruncatingImpl<TOther>(Int256 value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
         {
-            if (typeof(TOther) == typeof(byte))    { result = (TOther)(object)(byte)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(char))    { result = (TOther)(object)(char)(ushort)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(ushort))  { result = (TOther)(object)(ushort)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(uint))    { result = (TOther)(object)(uint)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(ulong))   { result = (TOther)(object)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(UInt128)) { result = (TOther)(object)value._lo; return true; }
-            if (typeof(TOther) == typeof(nuint))   { result = (TOther)(object)(nuint)(ulong)value._lo; return true; }
+            if (typeof(TOther) == typeof(byte))    { result = (TOther)(object)(byte)value._p0; return true; }
+            if (typeof(TOther) == typeof(char))    { result = (TOther)(object)(char)(ushort)value._p0; return true; }
+            if (typeof(TOther) == typeof(ushort))  { result = (TOther)(object)(ushort)value._p0; return true; }
+            if (typeof(TOther) == typeof(uint))    { result = (TOther)(object)(uint)value._p0; return true; }
+            if (typeof(TOther) == typeof(ulong))   { result = (TOther)(object)value._p0; return true; }
+            if (typeof(TOther) == typeof(UInt128)) { result = (TOther)(object)new UInt128(value._p1, value._p0); return true; }
+            if (typeof(TOther) == typeof(nuint))   { result = (TOther)(object)(nuint)value._p0; return true; }
 
-            if (typeof(TOther) == typeof(sbyte))   { result = (TOther)(object)(sbyte)(byte)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(short))   { result = (TOther)(object)(short)(ushort)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(int))     { result = (TOther)(object)(int)(uint)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(long))    { result = (TOther)(object)(long)(ulong)value._lo; return true; }
-            if (typeof(TOther) == typeof(Int128))  { result = (TOther)(object)(Int128)value._lo; return true; }
-            if (typeof(TOther) == typeof(nint))    { result = (TOther)(object)(nint)(long)(ulong)value._lo; return true; }
+            if (typeof(TOther) == typeof(sbyte))   { result = (TOther)(object)(sbyte)(byte)value._p0; return true; }
+            if (typeof(TOther) == typeof(short))   { result = (TOther)(object)(short)(ushort)value._p0; return true; }
+            if (typeof(TOther) == typeof(int))     { result = (TOther)(object)(int)(uint)value._p0; return true; }
+            if (typeof(TOther) == typeof(long))    { result = (TOther)(object)(long)value._p0; return true; }
+            if (typeof(TOther) == typeof(Int128))  { result = (TOther)(object)(Int128)new UInt128(value._p1, value._p0); return true; }
+            if (typeof(TOther) == typeof(nint))    { result = (TOther)(object)(nint)(long)value._p0; return true; }
 
             if (typeof(TOther) == typeof(float))   { result = (TOther)(object)(float)value; return true; }
             if (typeof(TOther) == typeof(double))  { result = (TOther)(object)(double)value; return true; }

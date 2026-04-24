@@ -501,7 +501,7 @@ namespace Stardust.Utilities
 
         /// <summary>Reinterprets the bit pattern as a signed <see cref="Int256"/>.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator Int256(UInt256 a) => new(new UInt128(a._p3, a._p2), new UInt128(a._p1, a._p0));
+        public static explicit operator Int256(UInt256 a) => new(a._p3, a._p2, a._p1, a._p0);
 
         #endregion
     }

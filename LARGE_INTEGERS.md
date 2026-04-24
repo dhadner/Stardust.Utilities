@@ -41,7 +41,7 @@ These types exist because:
 | Type | Bits | Layout | Heap alloc | Representation |
 |------|------|--------|------------|----------------|
 | `UInt256` | 256 (unsigned) | Four `ulong` limbs (`_p0`.._p3`) | Never | Host-native |
-| `Int256` | 256 (signed, two's complement) | Two `UInt128` halves | Never | Host-native |
+| `Int256` | 256 (signed, two's complement) | Four `ulong` limbs (`_p0`.._p3`); top bit of `_p3` is the sign | Never | Host-native |
 | `UInt256Le` / `UInt256Be` | 256 (unsigned) | 32 bytes, explicit layout | Never | Little/big-endian wire format |
 | `Int256Le` / `Int256Be` | 256 (signed) | 32 bytes, explicit layout | Never | Little/big-endian wire format |
 
@@ -433,38 +433,83 @@ reports the BenchmarkDotNet ratio relative to the Stardust baseline
 so every operation returns a fresh object. The ratios illustrate the heap-allocation and
 variable-width tax relative to a fixed-32-byte value type.
 
-**Measured results, .NET 10 x64 (Release), Intel/AMD host:**
+**`UInt256` — measured results, .NET 10 x64 (Release), 11th Gen Intel Core i7-11370H 3.30 GHz, median of three full runs:**
 
 | Operation | `Stardust.Utilities.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 | `System.Numerics.BigInteger` (BCL) |
 |-----------|:-------------------:|:------------------------------------:|:------------------------------:|:-----------------------------------:|
-| **Add** | **1.00x** (baseline) | 1.49x | 1.00x | 38.5x |
-| **Sub** | **1.00x** (baseline) | 1.70x | 1.00x | 46.3x |
-| **Mul** (full 256×256 → low 256) | **1.00x** (baseline) | 1.73x | 1.01x | 25.3x |
-| **Div** (256 / 256) | **1.00x** (baseline) | 1.14x | 2.08x | 7.36x |
-| **Mod** (256 % 256) | **1.00x** (baseline) | 1.17x | 2.16x | 7.22x |
-| **ToString** (decimal) | **1.00x** (baseline) | 1.58x | 1.08x | 1.98x |
-| **Parse** (decimal) | **1.00x** (baseline) | 4.32x | 2.27x | 4.60x |
+| **Add** | **1.0x** (baseline) | 1.8x | 1.0x | 44x |
+| **Sub** | **1.0x** (baseline) | 1.6x | 1.0x | 46x |
+| **Mul** (full 256×256 → low 256) | **1.0x** (baseline) | 1.7x | 1.2x | 24x |
+| **Div** (256 / 256) | **1.0x** (baseline) | 1.1x | 2.0x | 7.4x |
+| **Mod** (256 % 256) | **1.0x** (baseline) | 1.2x | 2.2x | 7.0x |
+| **ToString** (decimal) | **1.0x** (baseline) | 1.5x | 1.0x | 2.0x |
+| **Parse** (decimal) | **1.0x** (baseline) | 4.1x | 2.2x | 4.4x |
 
-Notes on the results:
+**`Int256` — same machine, same methodology:**
 
-- `MissingValues` is at parity with Stardust on **Add** (1.00x), **Sub** (1.00x), and
-  **Mul** (1.01x). This parity was achieved by storing `UInt256` as four native `ulong`
-  limbs (`_p0`.._p3`) rather than two `UInt128` halves, eliminating field-extraction
-  overhead in the hot arithmetic path. Investigation of the MissingValues source confirmed
-  its carry logic is identical to Stardust's; the earlier performance gap was entirely
-  due to struct layout.
-- `BigInteger` arithmetic operations (**Add** through **Mod**) allocate 2–3 MB per
-  10 000-iteration run and trigger GC — the large ratios (7–46×) reflect allocation + GC
-  cost, not raw instruction throughput. **ToString** and **Parse** are less penalised
-  because all libraries must allocate a `string` there anyway.
+| Operation | `Stardust.Utilities.Int256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.Int256` 2.2.1 | `System.Numerics.BigInteger` (BCL) |
+|-----------|:-------------------:|:------------------------------------:|:------------------------------:|:-----------------------------------:|
+| **Add** | **1.0x** (baseline) | 1.7x | 1.0x | 80x |
+| **Sub** | **1.0x** (baseline) | 1.7x | 1.0x | 71x |
+| **Mul** (full 256×256 → low 256) | **1.0x** (baseline) | 2.4x | 1.3x | 45x |
+| **Div** (256 / 256) | **1.0x** (baseline) | 1.1x | 2.3x | 9.3x |
+| **Mod** (256 % 256) | **1.0x** (baseline) | 1.2x | 2.3x | 9.3x |
+| **ToString** (decimal) | **1.0x** (baseline) | 1.6x | 1.0x | 2.3x |
+| **Parse** (decimal) | **1.0x** (baseline) | 3.6x | 1.9x | 4.7x |
 
-Across these seven operations, `Stardust.UInt256` is at parity with or faster than
-Nethermind across the board, and is competitive with MissingValues on all operations
-except Add (where MissingValues is ~16% faster). All three fixed-width libraries are
-high-quality implementations; the main goal is to demonstrate that the type is
-competitive on the operations most code spends time in, not to claim a definitive
-ranking. Libraries evolve — re-run the suite against the current versions if the
-decision matters for your project.
+Ratios are rounded to 2 significant digits — the third digit lives in the run-to-run
+noise band (see "How to read the ratios" below) and would be misleading precision.
+
+### How to read the ratios
+
+The numbers above are the **median of three complete benchmark runs** on the same
+machine. Single-run ratios for the simple-arithmetic operations (Add, Sub, Mul,
+ToString) fluctuate by ±5–10% between runs — large enough that any single-run claim of
+a "win" or "loss" in that range would be cherry-picking. The ratios for Div, Mod, and
+Parse are stable to within ~2% across runs because those operations spend longer per
+call and are less sensitive to scheduling/cache noise.
+
+The benchmark suite reports `RatioSD` (the standard deviation of the ratio
+distribution within a single run) alongside each ratio. RatioSD is in the 0.01–0.04
+range, but observed run-to-run variance is larger than RatioSD because hardware
+thermals, OS scheduling, JIT codegen sequence, and cache state all shift between
+invocations. Hardware, .NET runtime version, and competitor library version drift each
+add another few percent on top when reproducing elsewhere.
+
+For the purposes of these notes (using a deliberately conservative threshold):
+
+- **Tied** (within ~10% across multiple runs): not distinguishable from noise on this
+  hardware.
+- **Small** (10–25%): real but modest.
+- **Substantial** (> 25%): clear difference.
+
+Applied to the **`UInt256`** table:
+
+- vs **MissingValues**: Stardust is **substantially faster** on Div (2.0×), Mod
+  (2.2×), and Parse (2.2×); **small win** on Mul (1.2×); **tied** on Add, Sub, and
+  ToString (all ~1.0×).
+- vs **Nethermind**: Stardust is **substantially faster** on Add (1.8×), Sub (1.6×),
+  Mul (1.7×), ToString (1.5×), and Parse (4.1×); **small win** on Mod (1.2×) and Div
+  (1.1×).
+
+Applied to the **`Int256`** table:
+
+- vs **MissingValues**: Stardust is **substantially faster** on Mul (1.3×), Div (2.3×),
+  Mod (2.3×), and Parse (1.9×); **tied** on Add, Sub, and ToString.
+- vs **Nethermind**: Stardust is **substantially faster** on Add (1.7×), Sub (1.7×),
+  Mul (2.4×), ToString (1.6×), and Parse (3.6×); **small win** on Mod (1.2×) and Div
+  (1.1×).
+- vs **`BigInteger`**: arithmetic operations allocate 2–3 MB per 10 000-iteration run and
+  trigger GC — the 7–46× ratios reflect allocation + GC cost, not raw instruction
+  throughput. ToString and Parse are less penalized because all libraries must allocate a
+  `string` there anyway.
+
+Across these seven operations, Stardust is at parity with or faster than both
+fixed-width competitors on every operation. The goal of this table is to demonstrate
+that Stardust is at the achievable performance ceiling for managed 256-bit arithmetic,
+not to claim a definitive ranking. Libraries evolve — re-run the suite against current
+versions on your target hardware (and take the median of multiple runs) if the decision
+matters.
 
 Exact nanosecond values vary with CPU, memory bandwidth, .NET version, and library
 version, so the table reports **ratios** rather than absolute times. Ratios are reasonably

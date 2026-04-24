@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>Stardust.Utilities.Benchmarks.Int256LibraryComparisonBenchmarks-20260419-193848</title>
+<title>Stardust.Utilities.Benchmarks.Int256LibraryComparisonBenchmarks-20260423-162348</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -24,34 +24,34 @@ BenchmarkDotNet v0.15.2, Windows 11 (10.0.26200.8246)
 <table>
 <thead><tr><th>Method          </th><th>Categories</th><th>Mean </th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>Ours_Add</td><td>Add</td><td>40.96 &mu;s</td><td>0.814 &mu;s</td><td>1.681 &mu;s</td><td>1.00</td><td>0.06</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Nethermind_Add</td><td>Add</td><td>60.83 &mu;s</td><td>1.164 &mu;s</td><td>1.089 &mu;s</td><td>1.49</td><td>0.06</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>MissingValues_Add</td><td>Add</td><td>41.04 &mu;s</td><td>0.741 &mu;s</td><td>1.791 &mu;s</td><td>1.00</td><td>0.06</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>BigInteger_Add</td><td>Add</td><td>1,572.85 &mu;s</td><td>31.306 &mu;s</td><td>70.663 &mu;s</td><td>38.47</td><td>2.28</td><td>458.9844</td><td>2879640 B</td><td>NA</td>
-</tr><tr><td>Ours_Div</td><td>Div</td><td>281.34 &mu;s</td><td>3.727 &mu;s</td><td>3.303 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Nethermind_Div</td><td>Div</td><td>319.65 &mu;s</td><td>5.060 &mu;s</td><td>4.486 &mu;s</td><td>1.14</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>MissingValues_Div</td><td>Div</td><td>583.96 &mu;s</td><td>8.998 &mu;s</td><td>7.976 &mu;s</td><td>2.08</td><td>0.04</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>BigInteger_Div</td><td>Div</td><td>2,069.04 &mu;s</td><td>41.316 &mu;s</td><td>38.647 &mu;s</td><td>7.36</td><td>0.16</td><td>367.1875</td><td>2320000 B</td><td>NA</td>
-</tr><tr><td>Ours_Mod</td><td>Mod</td><td>286.26 &mu;s</td><td>3.301 &mu;s</td><td>2.756 &mu;s</td><td>1.00</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Nethermind_Mod</td><td>Mod</td><td>334.84 &mu;s</td><td>3.414 &mu;s</td><td>3.193 &mu;s</td><td>1.17</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>MissingValues_Mod</td><td>Mod</td><td>618.63 &mu;s</td><td>10.328 &mu;s</td><td>8.063 &mu;s</td><td>2.16</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>BigInteger_Mod</td><td>Mod</td><td>2,066.71 &mu;s</td><td>40.953 &mu;s</td><td>53.250 &mu;s</td><td>7.22</td><td>0.19</td><td>406.2500</td><td>2560000 B</td><td>NA</td>
-</tr><tr><td>Ours_Mul</td><td>Mul</td><td>85.60 &mu;s</td><td>1.329 &mu;s</td><td>1.243 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Nethermind_Mul</td><td>Mul</td><td>147.97 &mu;s</td><td>1.622 &mu;s</td><td>1.354 &mu;s</td><td>1.73</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>MissingValues_Mul</td><td>Mul</td><td>86.49 &mu;s</td><td>1.533 &mu;s</td><td>1.434 &mu;s</td><td>1.01</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>BigInteger_Mul</td><td>Mul</td><td>2,162.51 &mu;s</td><td>42.123 &mu;s</td><td>85.090 &mu;s</td><td>25.27</td><td>1.05</td><td>519.5313</td><td>3280000 B</td><td>NA</td>
-</tr><tr><td>Ours_Parse</td><td>Parse</td><td>976.52 &mu;s</td><td>15.069 &mu;s</td><td>13.358 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Nethermind_Parse</td><td>Parse</td><td>4,214.37 &mu;s</td><td>83.176 &mu;s</td><td>73.734 &mu;s</td><td>4.32</td><td>0.09</td><td>250.0000</td><td>1680000 B</td><td>NA</td>
-</tr><tr><td>MissingValues_Parse</td><td>Parse</td><td>2,216.06 &mu;s</td><td>42.835 &mu;s</td><td>62.787 &mu;s</td><td>2.27</td><td>0.07</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>BigInteger_Parse</td><td>Parse</td><td>4,495.57 &mu;s</td><td>79.568 &mu;s</td><td>70.535 &mu;s</td><td>4.60</td><td>0.09</td><td>273.4375</td><td>1759640 B</td><td>NA</td>
-</tr><tr><td>Ours_Sub</td><td>Sub</td><td>37.04 &mu;s</td><td>0.415 &mu;s</td><td>0.324 &mu;s</td><td>1.00</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Nethermind_Sub</td><td>Sub</td><td>63.05 &mu;s</td><td>0.532 &mu;s</td><td>0.498 &mu;s</td><td>1.70</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>MissingValues_Sub</td><td>Sub</td><td>36.97 &mu;s</td><td>0.156 &mu;s</td><td>0.130 &mu;s</td><td>1.00</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>BigInteger_Sub</td><td>Sub</td><td>1,716.13 &mu;s</td><td>34.174 &mu;s</td><td>58.030 &mu;s</td><td>46.33</td><td>1.59</td><td>546.8750</td><td>3439640 B</td><td>NA</td>
-</tr><tr><td>Ours_ToString</td><td>ToString</td><td>1,311.38 &mu;s</td><td>25.917 &mu;s</td><td>44.705 &mu;s</td><td>1.00</td><td>0.05</td><td>292.9688</td><td>1840000 B</td><td>1.00</td>
-</tr><tr><td>Nethermind_ToString</td><td>ToString</td><td>2,064.37 &mu;s</td><td>41.257 &mu;s</td><td>93.964 &mu;s</td><td>1.58</td><td>0.09</td><td>378.9063</td><td>2400000 B</td><td>1.30</td>
-</tr><tr><td>MissingValues_ToString</td><td>ToString</td><td>1,420.77 &mu;s</td><td>25.415 &mu;s</td><td>21.223 &mu;s</td><td>1.08</td><td>0.04</td><td>292.9688</td><td>1840000 B</td><td>1.00</td>
-</tr><tr><td>BigInteger_ToString</td><td>ToString</td><td>2,588.16 &mu;s</td><td>50.609 &mu;s</td><td>65.806 &mu;s</td><td>1.98</td><td>0.08</td><td>468.7500</td><td>2960000 B</td><td>1.61</td>
+</thead><tbody><tr><td>Ours_Add</td><td>Add</td><td>38.41 &mu;s</td><td>0.412 &mu;s</td><td>0.441 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Nethermind_Add</td><td>Add</td><td>59.72 &mu;s</td><td>0.263 &mu;s</td><td>0.233 &mu;s</td><td>1.55</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>MissingValues_Add</td><td>Add</td><td>38.47 &mu;s</td><td>0.317 &mu;s</td><td>0.281 &mu;s</td><td>1.00</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>BigInteger_Add</td><td>Add</td><td>1,595.97 &mu;s</td><td>31.108 &mu;s</td><td>33.285 &mu;s</td><td>41.56</td><td>0.96</td><td>458.9844</td><td>2879640 B</td><td>NA</td>
+</tr><tr><td>Ours_Div</td><td>Div</td><td>283.44 &mu;s</td><td>5.461 &mu;s</td><td>6.707 &mu;s</td><td>1.00</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Nethermind_Div</td><td>Div</td><td>319.39 &mu;s</td><td>4.624 &mu;s</td><td>4.325 &mu;s</td><td>1.13</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>MissingValues_Div</td><td>Div</td><td>575.49 &mu;s</td><td>9.321 &mu;s</td><td>8.263 &mu;s</td><td>2.03</td><td>0.05</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>BigInteger_Div</td><td>Div</td><td>2,114.29 &mu;s</td><td>41.908 &mu;s</td><td>75.570 &mu;s</td><td>7.46</td><td>0.31</td><td>367.1875</td><td>2320000 B</td><td>NA</td>
+</tr><tr><td>Ours_Mod</td><td>Mod</td><td>291.30 &mu;s</td><td>5.713 &mu;s</td><td>7.819 &mu;s</td><td>1.00</td><td>0.04</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Nethermind_Mod</td><td>Mod</td><td>344.50 &mu;s</td><td>4.171 &mu;s</td><td>3.902 &mu;s</td><td>1.18</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>MissingValues_Mod</td><td>Mod</td><td>630.18 &mu;s</td><td>10.710 &mu;s</td><td>10.018 &mu;s</td><td>2.16</td><td>0.07</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>BigInteger_Mod</td><td>Mod</td><td>2,050.30 &mu;s</td><td>39.969 &mu;s</td><td>44.426 &mu;s</td><td>7.04</td><td>0.24</td><td>406.2500</td><td>2560000 B</td><td>NA</td>
+</tr><tr><td>Ours_Mul</td><td>Mul</td><td>85.53 &mu;s</td><td>1.198 &mu;s</td><td>1.121 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Nethermind_Mul</td><td>Mul</td><td>152.20 &mu;s</td><td>1.537 &mu;s</td><td>1.438 &mu;s</td><td>1.78</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>MissingValues_Mul</td><td>Mul</td><td>105.17 &mu;s</td><td>1.276 &mu;s</td><td>1.131 &mu;s</td><td>1.23</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>BigInteger_Mul</td><td>Mul</td><td>2,045.78 &mu;s</td><td>40.668 &mu;s</td><td>54.291 &mu;s</td><td>23.92</td><td>0.69</td><td>519.5313</td><td>3280000 B</td><td>NA</td>
+</tr><tr><td>Ours_Parse</td><td>Parse</td><td>990.51 &mu;s</td><td>17.956 &mu;s</td><td>14.994 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Nethermind_Parse</td><td>Parse</td><td>4,146.66 &mu;s</td><td>56.270 &mu;s</td><td>52.635 &mu;s</td><td>4.19</td><td>0.08</td><td>265.6250</td><td>1680000 B</td><td>NA</td>
+</tr><tr><td>MissingValues_Parse</td><td>Parse</td><td>2,220.27 &mu;s</td><td>40.363 &mu;s</td><td>37.756 &mu;s</td><td>2.24</td><td>0.05</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>BigInteger_Parse</td><td>Parse</td><td>4,305.77 &mu;s</td><td>72.854 &mu;s</td><td>74.816 &mu;s</td><td>4.35</td><td>0.10</td><td>273.4375</td><td>1759640 B</td><td>NA</td>
+</tr><tr><td>Ours_Sub</td><td>Sub</td><td>38.90 &mu;s</td><td>0.718 &mu;s</td><td>0.706 &mu;s</td><td>1.00</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Nethermind_Sub</td><td>Sub</td><td>63.44 &mu;s</td><td>0.609 &mu;s</td><td>0.569 &mu;s</td><td>1.63</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>MissingValues_Sub</td><td>Sub</td><td>38.18 &mu;s</td><td>0.716 &mu;s</td><td>0.796 &mu;s</td><td>0.98</td><td>0.03</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>BigInteger_Sub</td><td>Sub</td><td>1,690.81 &mu;s</td><td>18.751 &mu;s</td><td>28.065 &mu;s</td><td>43.48</td><td>1.04</td><td>546.8750</td><td>3439640 B</td><td>NA</td>
+</tr><tr><td>Ours_ToString</td><td>ToString</td><td>1,244.24 &mu;s</td><td>9.772 &mu;s</td><td>9.141 &mu;s</td><td>1.00</td><td>0.01</td><td>292.9688</td><td>1840000 B</td><td>1.00</td>
+</tr><tr><td>Nethermind_ToString</td><td>ToString</td><td>2,102.07 &mu;s</td><td>41.954 &mu;s</td><td>84.749 &mu;s</td><td>1.69</td><td>0.07</td><td>380.8594</td><td>2400000 B</td><td>1.30</td>
+</tr><tr><td>MissingValues_ToString</td><td>ToString</td><td>1,476.95 &mu;s</td><td>20.078 &mu;s</td><td>18.781 &mu;s</td><td>1.19</td><td>0.02</td><td>292.9688</td><td>1840000 B</td><td>1.00</td>
+</tr><tr><td>BigInteger_ToString</td><td>ToString</td><td>2,718.38 &mu;s</td><td>53.248 &mu;s</td><td>54.682 &mu;s</td><td>2.18</td><td>0.05</td><td>468.7500</td><td>2960000 B</td><td>1.61</td>
 </tr></tbody></table>
 </body>
 </html>

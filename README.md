@@ -315,19 +315,19 @@ UInt256Be be = new(wire);
 UInt256 value = be;                           // implicit conversion to host-native
 ```
 
-**Competitive with the leading managed 256-bit libraries** (.NET 10 x64, lower = faster; `1.00x` is the Stardust baseline):
+**Competitive with the leading managed 256-bit libraries** — table below shows **`UInt256`** (the more commonly used of the two; the signed `Int256` numbers are similar shape and are tabulated in [LARGE_INTEGERS.md](LARGE_INTEGERS.md#performance)). Measured on .NET 10 x64, median of three full runs; `1.0x` is the Stardust baseline; lower = faster:
 
 | Operation | `Stardust.Utilities.UInt256` | `Nethermind.Numerics.Int256` 1.5.0 | `MissingValues.UInt256` 2.2.1 | `BigInteger` (BCL) |
 |---|:---:|:---:|:---:|:---:|
-| Add | **1.00x** | 1.49x | 1.00x | 38.5x |
-| Sub | **1.00x** | 1.70x | 1.00x | 46.3x |
-| Mul | **1.00x** | 1.73x | 1.01x | 25.3x |
-| Div | **1.00x** | 1.14x | 2.08x | 7.36x |
-| Mod | **1.00x** | 1.17x | 2.16x | 7.22x |
-| ToString | **1.00x** | 1.58x | 1.08x | 1.98x |
-| Parse | **1.00x** | 4.32x | 2.27x | 4.60x |
+| Add | **1.0x** | 1.8x | 1.0x | 44x |
+| Sub | **1.0x** | 1.6x | 1.0x | 46x |
+| Mul | **1.0x** | 1.7x | 1.2x | 24x |
+| Div | **1.0x** | 1.1x | 2.0x | 7.4x |
+| Mod | **1.0x** | 1.2x | 2.2x | 7.0x |
+| ToString | **1.0x** | 1.5x | 1.0x | 2.0x |
+| Parse | **1.0x** | 4.1x | 2.2x | 4.4x |
 
-`BigInteger` allocates 2-3 MB per 10,000-iteration run and triggers GC; the 7-46x ratios reflect that cost, not raw throughput. All three fixed-width libraries are high-quality implementations. Library versions move -- re-run `BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs` against current packages if the decision matters.
+Ratios rounded to 2 significant digits (the third digit is in the run-to-run noise band). Stardust **substantially beats** MissingValues on Div, Mod, and Parse (2.0-2.2x); a **small win** on Mul (~1.2x); **tied within noise** on Add, Sub, and ToString. Stardust beats Nethermind on every operation. `BigInteger` allocates 2-3 MB per 10,000-iteration run and triggers GC; the 7-46x ratios reflect that cost, not raw throughput. All three fixed-width libraries are high-quality implementations. Library versions, .NET runtime versions, and hardware all move the numbers -- re-run `BenchmarkSuite1/Int256LibraryComparisonBenchmarks.cs` against current packages on your target hardware if the decision matters. See [LARGE_INTEGERS.md -- Performance](LARGE_INTEGERS.md#performance) for the full methodology, the parallel `Int256` table, and noise-band analysis.
 
 **Key benefits:**
 
