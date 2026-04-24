@@ -336,7 +336,7 @@ Ratios rounded to 2 significant digits (the third digit is in the run-to-run noi
 - **Full BCL `UInt128` / `Int128` API parity.** `INumber<T>`, `IBinaryInteger<T>`, `IBinaryNumber<T>`, `IMinMaxValue<T>`, `IUnsignedNumber<T>` / `ISignedNumber<T>`, plus `IUtf8SpanFormattable` / `IUtf8SpanParsable<T>` on .NET 8+. Every member a caller expects from `UInt128` / `Int128` is present: `Abs`, `Clamp`, `CopySign`, `DivRem`, `Max`, `Min`, `MaxMagnitude`, `MinMagnitude`, `Sign`, `LeadingZeroCount`, `TrailingZeroCount`, `PopCount`, `Log2`, `RotateLeft`, `RotateRight`, `Read` / `Write` / `TryRead` / `TryWrite` `BigEndian` / `LittleEndian`, checked operators (`checked + - * / ++ --` and unary `-`), `CreateChecked` / `CreateSaturating` / `CreateTruncating` for every BCL numeric type, and explicit conversions to/from `float`, `double`, `decimal`, and `char`.
 - Wire-format safety via `UInt256Be` / `UInt256Le` with zero conversion cost on LE hardware.
 - First-class `[BitFields]` citizen: `[BitFields(typeof(UInt256))]` gets a 4-ulong backing store with full operator and JSON support.
-- PropertyGrid `TypeConverter` on both raw types (`UInt256TypeConverter`, `Int256TypeConverter`) and all four wire-format types (`UInt256Be`/`Le`, `Int256Be`/`Le`) -- decimal, `0x` hex, and `0b` binary input with `_` separators.
+- PropertyGrid `TypeConverter` for both raw (`UInt256` / `Int256`) and wire-format (`UInt256Be`/`Le`, `Int256Be`/`Le`) types.
 - Fuzz-tested on every build: `Int256NativeArithmeticTests` cross-validates every operation against `BigInteger` on randomized inputs.
 
 See [LARGE_INTEGERS.md](LARGE_INTEGERS.md) for the full API, benchmark methodology, and guidance on choosing between `UInt256`, `UInt128`, and `BigInteger`.
