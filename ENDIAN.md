@@ -657,6 +657,13 @@ object? result = converter.ConvertFrom(null, null, "0xDEADBEEF");
 // result is UInt32Be with value 0xDEADBEEF
 ```
 
+The host-native `UInt256` and `Int256` types have matching converters
+(`UInt256TypeConverter`, `Int256TypeConverter`) that share the same input grammar
+but emit **decimal** strings for output (matching `System.ComponentModel.Int32Converter`
+and the other BCL numeric converters); the endian wrappers emit `0x` + 64-hex because
+their `ToString()` does the same. See
+[LARGE_INTEGERS.md — TypeConverters](LARGE_INTEGERS.md#typeconverters).
+
 ## Performance Notes
 
 - All types use `[StructLayout(LayoutKind.Explicit)]` for guaranteed memory layout

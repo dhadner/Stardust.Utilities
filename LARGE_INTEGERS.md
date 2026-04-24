@@ -28,6 +28,7 @@ These types exist because:
   - [Checked Operators](#checked-operators)
   - [Parsing and Formatting](#parsing-and-formatting)
   - [Generic Math Interfaces](#generic-math-interfaces)
+- [TypeConverters](#typeconverters)
 - [Performance](#performance)
   - [Design Principles](#design-principles)
   - [Benchmark Results](#benchmark-results)
@@ -393,6 +394,59 @@ Every BCL numeric type is supported as the source/target: `byte`, `sbyte`, `shor
 `TryConvertToTruncating` methods are implemented on the interface for each.
 
 Other instance helpers: `Upper` / `Lower` (high/low `UInt128` halves), `ToBigInteger()`.
+
+## TypeConverters
+
+`UInt256` and `Int256` each carry a `[TypeConverter(...)]` attribute so that WinForms
+PropertyGrid, the Visual Studio designer, and other `TypeDescriptor`-driven UI
+infrastructure can edit them in place:
+
+| Type | TypeConverter |
+|------|---------------|
+| `UInt256` | `UInt256TypeConverter` |
+| `Int256`  | `Int256TypeConverter` |
+
+The converters match the shape of the BCL numeric converters (`Int32Converter`,
+`UInt32Converter`, etc.): **output is culture-aware decimal**, the same string
+that `UInt256.ToString()` / `Int256.ToString()` produces. Input is more permissive
+than the BCL — any of the following is accepted:
+
+- **Decimal** — culture-aware; `Int256` also accepts a leading `-`.
+- **Hex** — `0x` or `0X` prefix, followed by up to 64 hex digits. Stored as-is for
+  `UInt256`; interpreted as two's-complement bits for `Int256` (so `0xFFFF…FFFF`
+  parses as `-1`).
+- **Binary** — `0b` or `0B` prefix, followed by `0`/`1` digits.
+- **Digit separators** — any `_` characters are ignored in all three bases.
+- **Whitespace** — leading and trailing whitespace is stripped.
+
+Round-trip example:
+
+```csharp
+var converter = TypeDescriptor.GetConverter(typeof(UInt256));
+
+// Hex input is accepted ...
+UInt256 v = (UInt256)converter.ConvertFrom(null, null, "0xDEAD_BEEF_CAFE_BABE")!;
+
+// ... but output is always decimal (matching Int32Converter behaviour).
+string s = (string)converter.ConvertTo(null, CultureInfo.InvariantCulture, v, typeof(string))!;
+// s == "16045690984833335230"
+
+// Re-parsing the decimal string yields the same value.
+UInt256 back = (UInt256)converter.ConvertFrom(null, CultureInfo.InvariantCulture, s)!;
+// back == v
+```
+
+`GetStandardValues` returns `{ Zero, MaxValue }` for `UInt256` and
+`{ MinValue, Zero, MaxValue }` for `Int256` as non-exclusive drop-down hints — the user
+may still type any value. `ConvertTo(InstanceDescriptor)` emits a call to the 4-`ulong`
+constructor, so designer code generation and serialization round-trip the exact limb
+pattern without going through a string.
+
+The endian-aware wire types (`UInt256Be` / `UInt256Le` / `Int256Be` / `Int256Le`) have
+their own `TypeConverter`s with the same input grammar but, because those types are
+byte-pattern views rather than numbers, they emit `0x` + 64-hex strings for output
+(matching `UInt256Be.ToString()`). See
+[ENDIAN.md — TypeConverters](ENDIAN.md#typeconverters).
 
 ## Performance
 

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -19,6 +20,7 @@ namespace Stardust.Utilities
     /// </remarks>
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
+    [TypeConverter(typeof(Int256TypeConverter))]
     public readonly partial struct Int256 : IComparable, IComparable<Int256>, IEquatable<Int256>,
                                             IFormattable, ISpanFormattable, IParsable<Int256>, ISpanParsable<Int256>
     {
@@ -151,9 +153,24 @@ namespace Stardust.Utilities
             char fmt = format[0];
             if ((fmt == 'X' || fmt == 'x') && format.Length <= 3)
             {
-                string hiHex = Upper.ToString((fmt == 'X' ? "X32" : "x32"), formatProvider);
-                string loHex = Lower.ToString((fmt == 'X' ? "X32" : "x32"), formatProvider);
-                return hiHex + loHex;
+                // Width specifier (e.g. "x64") applies to the whole value. Natural
+                // form: if hi (the upper 128 bits of the two's-complement layout) is
+                // zero the value fits in the low half, so we emit just lo's natural
+                // hex; otherwise we emit hi's natural hex followed by lo padded to 32.
+                // Negative values have hi = all-ones, producing the standard full-width
+                // two's-complement form.
+                UInt128 hi = Upper, lo = Lower;
+                string baseFmt = fmt == 'X' ? "X" : "x";
+                string natural = hi == UInt128.Zero
+                    ? lo.ToString(baseFmt, formatProvider)
+                    : hi.ToString(baseFmt, formatProvider) + lo.ToString(baseFmt + "32", formatProvider);
+                if (format.Length > 1 &&
+                    int.TryParse(format.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int minWidth) &&
+                    natural.Length < minWidth)
+                {
+                    return new string('0', minWidth - natural.Length) + natural;
+                }
+                return natural;
             }
             // Decimal / 'D' / 'G' / 'R' formats: use native base-10 conversion on
             // the unsigned magnitude, then prepend '-' if negative.

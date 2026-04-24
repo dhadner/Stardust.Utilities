@@ -405,7 +405,7 @@ public partial class DecimalPropertyTests
         decimal.MinValue,
         0.0000000000000000000000000001m,
         -0.0000000000000000000000000001m,
-        79228162514264337593543950335m,  // MaxValue mantissa
+        7.9228162514264337593543950335m, // MaxValue mantissa (scale 28) — same 96-bit mantissa as decimal.MaxValue, different scale byte
         1.0000000000000000000000000000m, // scale 28
     };
 

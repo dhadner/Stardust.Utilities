@@ -1,46 +1,66 @@
 using System;
 using System.ComponentModel;
+using System.ComponentModel.Design.Serialization;
 using System.Globalization;
+using System.Reflection;
 
 namespace Stardust.Utilities
 {
     /// <summary>
     /// Used to support PropertyGrid editing of <see cref="Int256Le"/>.
+    /// Accepts decimal (culture-aware, signed), hex "0x…", and binary "0b…" input with
+    /// optional '_' digit separators and surrounding whitespace. Emits values as
+    /// zero-padded "0x" + two's-complement hex for strings. Supports the designer via
+    /// <see cref="InstanceDescriptor"/>.
     /// </summary>
     public class Int256LeTypeConverter : TypeConverter
     {
+        private static readonly StandardValuesCollection STANDARD_VALUES =
+            new(new Int256Le[] { new(Int256.MinValue), new(Int256.Zero), new(Int256.MaxValue) });
+
         /// <summary>
         /// Returns whether this converter can convert from the specified source type.
         /// </summary>
         /// <param name="context">Context information.</param>
         /// <param name="sourceType">The source type.</param>
-        /// <returns><see langword="true"/> if conversion from <paramref name="sourceType"/> is supported; otherwise, <see langword="false"/>.</returns>
+        /// <returns><see langword="true"/> for <see cref="string"/> or <see cref="Int256"/>; otherwise delegates to the base.</returns>
         public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         {
-            return sourceType == typeof(string);
+            if (sourceType == typeof(string)) return true;
+            if (sourceType == typeof(Int256)) return true;
+            return base.CanConvertFrom(context, sourceType);
+        }
+
+        /// <summary>
+        /// Returns whether this converter can convert to the specified destination type.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="destinationType">The destination type.</param>
+        /// <returns><see langword="true"/> for <see cref="string"/>, <see cref="Int256"/>, or <see cref="InstanceDescriptor"/>; otherwise delegates to the base.</returns>
+        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+        {
+            if (destinationType == typeof(string)) return true;
+            if (destinationType == typeof(Int256)) return true;
+            if (destinationType == typeof(InstanceDescriptor)) return true;
+            return base.CanConvertTo(context, destinationType);
         }
 
         /// <summary>
         /// Converts the given value to an <see cref="Int256Le"/> instance.
-        /// Accepts signed decimal strings (e.g., "-42", "100") and hex strings prefixed with "0x".
         /// </summary>
         /// <param name="context">Context information.</param>
-        /// <param name="culture">Culture information.</param>
+        /// <param name="culture">Culture information (used for decimal parsing).</param>
         /// <param name="value">The value to convert.</param>
-        /// <returns>The converted value.</returns>
+        /// <returns>The converted <see cref="Int256Le"/>.</returns>
         public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
         {
             if (value is string s)
             {
-                NumberStyles style = NumberStyles.Integer;
-                if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                {
-                    s = s[2..];
-                    style = NumberStyles.HexNumber;
-                }
-                return Int256Le.Parse(s, style);
+                return ConverterParsing.Parse<Int256Le>(s, culture,
+                    (d, p) => Int256Le.Parse(d, p),
+                    h => Int256Le.Parse(h, NumberStyles.HexNumber));
             }
-
+            if (value is Int256 i) return new Int256Le(i);
             return base.ConvertFrom(context, culture, value);
         }
 
@@ -51,13 +71,58 @@ namespace Stardust.Utilities
         /// <param name="culture">Culture information.</param>
         /// <param name="value">The value to convert.</param>
         /// <param name="destinationType">The destination type.</param>
-        /// <returns>The converted value.</returns>
-        public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+        /// <returns>The converted value; <see langword="null"/> if <paramref name="value"/> is null and the target is <see cref="string"/>.</returns>
+        public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture,
+                                          object? value, Type destinationType)
         {
-            if (destinationType == typeof(string) && value is Int256Le v)
-                return ((Int256)v).ToString();
-
+            if (destinationType == typeof(string))
+            {
+                if (value is null) return null;
+                if (value is Int256Le v) return $"0x{(UInt256)(Int256)v:x64}";
+            }
+            if (destinationType == typeof(Int256) && value is Int256Le v2) return (Int256)v2;
+            if (destinationType == typeof(InstanceDescriptor) && value is Int256Le v3)
+            {
+                ConstructorInfo ctor = typeof(Int256Le).GetConstructor(new[] { typeof(Int256) })!;
+                return new InstanceDescriptor(ctor, new object[] { (Int256)v3 });
+            }
             return base.ConvertTo(context, culture, value, destinationType);
         }
+
+        /// <summary>
+        /// Validates that <paramref name="value"/> is acceptable as input for this converter
+        /// without throwing. Strings are probed via TryParse.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="value">The candidate value.</param>
+        /// <returns>True when the value is acceptable.</returns>
+        public override bool IsValid(ITypeDescriptorContext? context, object? value)
+        {
+            if (value is Int256Le) return true;
+            if (value is Int256) return true;
+            if (value is string s)
+            {
+                return ConverterParsing.TryParse<Int256Le>(s, null,
+                    (d, p) => Int256Le.Parse(d, p),
+                    h => Int256Le.Parse(h, NumberStyles.HexNumber),
+                    out _);
+            }
+            return base.IsValid(context, value);
+        }
+
+        /// <summary>Indicates that this converter supplies a short list of standard values.</summary>
+        /// <param name="context">Context information.</param>
+        /// <returns>Always true.</returns>
+        public override bool GetStandardValuesSupported(ITypeDescriptorContext? context) => true;
+
+        /// <summary>Standard values are suggestions, not an exclusive set — the user may type any value.</summary>
+        /// <param name="context">Context information.</param>
+        /// <returns>Always false.</returns>
+        public override bool GetStandardValuesExclusive(ITypeDescriptorContext? context) => false;
+
+        /// <summary>Returns <see cref="Int256.MinValue"/>, <see cref="Int256.Zero"/>, and <see cref="Int256.MaxValue"/> for PropertyGrid drop-down hints.</summary>
+        /// <param name="context">Context information.</param>
+        /// <returns>The standard-values collection.</returns>
+        public override StandardValuesCollection? GetStandardValues(ITypeDescriptorContext? context) => STANDARD_VALUES;
     }
 }

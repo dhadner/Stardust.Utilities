@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,7 @@ namespace Stardust.Utilities
     /// </remarks>
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
+    [TypeConverter(typeof(UInt256TypeConverter))]
     public readonly partial struct UInt256 : IComparable, IComparable<UInt256>, IEquatable<UInt256>,
                                              IFormattable, ISpanFormattable, IParsable<UInt256>, ISpanParsable<UInt256>
     {
@@ -125,13 +127,21 @@ namespace Stardust.Utilities
             char fmt = format[0];
             if ((fmt == 'X' || fmt == 'x') && format.Length <= 3)
             {
-                // Hex: concatenate the two halves, 32 hex digits each
+                // Width specifier (digits after the fmt char, e.g. "x64") applies to
+                // the whole value, not per half. Previously we passed the raw format
+                // to each UInt128 half, over-padding hi and producing N+32 chars.
                 UInt128 hi = Upper, lo = Lower;
-                string hiHex = hi.ToString(format, formatProvider);
-                string loHex = lo.ToString(format == "X" || format == "x" ? format + "32" : format, formatProvider);
-                // If hi is zero and no width specifier, allow natural trim; otherwise pad lo to 32
-                if (hi == UInt128.Zero && format.Length == 1) return loHex;
-                return hiHex + lo.ToString((fmt == 'X' ? "X32" : "x32"), formatProvider);
+                string baseFmt = fmt == 'X' ? "X" : "x";
+                string natural = hi == UInt128.Zero
+                    ? lo.ToString(baseFmt, formatProvider)
+                    : hi.ToString(baseFmt, formatProvider) + lo.ToString(baseFmt + "32", formatProvider);
+                if (format.Length > 1 &&
+                    int.TryParse(format.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int minWidth) &&
+                    natural.Length < minWidth)
+                {
+                    return new string('0', minWidth - natural.Length) + natural;
+                }
+                return natural;
             }
             // Decimal / 'D' / 'G' / 'R' formats: use native base-10 conversion.
             // Other culture-sensitive or complex format strings (e.g., 'N', 'C')

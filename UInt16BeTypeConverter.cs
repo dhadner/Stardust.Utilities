@@ -1,49 +1,65 @@
 using System;
 using System.ComponentModel;
+using System.ComponentModel.Design.Serialization;
 using System.Globalization;
+using System.Reflection;
 
 namespace Stardust.Utilities
 {
     /// <summary>
-    /// Used to support PropertyGrid editing of UInt16Be.
+    /// Used to support PropertyGrid editing of <see cref="UInt16Be"/>.
+    /// Accepts decimal (culture-aware), hex "0x…", and binary "0b…" input with optional
+    /// '_' digit separators and surrounding whitespace. Emits values as zero-padded
+    /// "0x" + hex for strings. Supports the designer via <see cref="InstanceDescriptor"/>.
     /// </summary>
     public class UInt16BeTypeConverter : TypeConverter
     {
+        private static readonly StandardValuesCollection STANDARD_VALUES =
+            new(new UInt16Be[] { new((ushort)0), new(ushort.MaxValue) });
+
         /// <summary>
         /// Returns whether this converter can convert from the specified source type.
         /// </summary>
         /// <param name="context">Context information.</param>
         /// <param name="sourceType">The source type.</param>
-        /// <returns><see langword="true"/> if conversion from <paramref name="sourceType"/> is supported; otherwise, <see langword="false"/>.</returns>
-        public override bool CanConvertFrom(ITypeDescriptorContext? context,
-                                            Type sourceType)
+        /// <returns><see langword="true"/> for <see cref="string"/> or <see cref="ushort"/>; otherwise delegates to the base.</returns>
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         {
-            return sourceType == typeof(string);
+            if (sourceType == typeof(string)) return true;
+            if (sourceType == typeof(ushort)) return true;
+            return base.CanConvertFrom(context, sourceType);
         }
 
         /// <summary>
-        /// Converts the given value to a UInt16Be instance.
+        /// Returns whether this converter can convert to the specified destination type.
         /// </summary>
         /// <param name="context">Context information.</param>
-        /// <param name="culture">Culture information.</param>
-        /// <param name="value">The value to convert.</param>
-        /// <returns>The converted value.</returns>
-        public override object? ConvertFrom(ITypeDescriptorContext? context,
-                                            CultureInfo? culture, object value)
+        /// <param name="destinationType">The destination type.</param>
+        /// <returns><see langword="true"/> for <see cref="string"/>, <see cref="ushort"/>, or <see cref="InstanceDescriptor"/>; otherwise delegates to the base.</returns>
+        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
         {
-            if (value is string)
-            {
-                string s = (string)value;
-                NumberStyles style = NumberStyles.Integer;
-                if (s.StartsWith("0x") || s.StartsWith("0X"))
-                {
-                    s = s.Substring(2);
-                    style = NumberStyles.HexNumber;
-                }
-                var val = UInt16Be.Parse(s, style);
-                return val;
-            }
+            if (destinationType == typeof(string)) return true;
+            if (destinationType == typeof(ushort)) return true;
+            if (destinationType == typeof(InstanceDescriptor)) return true;
+            return base.CanConvertTo(context, destinationType);
+        }
 
+        /// <summary>
+        /// Converts the given value to a <see cref="UInt16Be"/> instance.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="culture">Culture information (used for decimal parsing).</param>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>The converted <see cref="UInt16Be"/>.</returns>
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        {
+            if (value is string s)
+            {
+                return ConverterParsing.Parse<UInt16Be>(s, culture,
+                    (d, p) => UInt16Be.Parse(d, p),
+                    h => UInt16Be.Parse(h, NumberStyles.HexNumber));
+            }
+            if (value is ushort u) return new UInt16Be(u);
             return base.ConvertFrom(context, culture, value);
         }
 
@@ -54,16 +70,58 @@ namespace Stardust.Utilities
         /// <param name="culture">Culture information.</param>
         /// <param name="value">The value to convert.</param>
         /// <param name="destinationType">The destination type.</param>
-        /// <returns>The converted value.</returns>
+        /// <returns>The converted value; <see langword="null"/> if <paramref name="value"/> is null and the target is <see cref="string"/>.</returns>
         public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture,
                                           object? value, Type destinationType)
         {
             if (destinationType == typeof(string))
             {
-                return value != null ? $"{value:x4}" : null;
+                if (value is null) return null;
+                if (value is UInt16Be v) return $"0x{(ushort)v:x4}";
             }
-
+            if (destinationType == typeof(ushort) && value is UInt16Be v2) return (ushort)v2;
+            if (destinationType == typeof(InstanceDescriptor) && value is UInt16Be v3)
+            {
+                ConstructorInfo ctor = typeof(UInt16Be).GetConstructor(new[] { typeof(ushort) })!;
+                return new InstanceDescriptor(ctor, new object[] { (ushort)v3 });
+            }
             return base.ConvertTo(context, culture, value, destinationType);
         }
+
+        /// <summary>
+        /// Validates that <paramref name="value"/> is acceptable as input for this converter
+        /// without throwing. Strings are probed via TryParse.
+        /// </summary>
+        /// <param name="context">Context information.</param>
+        /// <param name="value">The candidate value.</param>
+        /// <returns>True when the value is acceptable.</returns>
+        public override bool IsValid(ITypeDescriptorContext? context, object? value)
+        {
+            if (value is UInt16Be) return true;
+            if (value is ushort) return true;
+            if (value is string s)
+            {
+                return ConverterParsing.TryParse<UInt16Be>(s, null,
+                    (d, p) => UInt16Be.Parse(d, p),
+                    h => UInt16Be.Parse(h, NumberStyles.HexNumber),
+                    out _);
+            }
+            return base.IsValid(context, value);
+        }
+
+        /// <summary>Indicates that this converter supplies a short list of standard values.</summary>
+        /// <param name="context">Context information.</param>
+        /// <returns>Always true.</returns>
+        public override bool GetStandardValuesSupported(ITypeDescriptorContext? context) => true;
+
+        /// <summary>Standard values are suggestions, not an exclusive set — the user may type any value.</summary>
+        /// <param name="context">Context information.</param>
+        /// <returns>Always false.</returns>
+        public override bool GetStandardValuesExclusive(ITypeDescriptorContext? context) => false;
+
+        /// <summary>Returns the common values 0 and <see cref="ushort.MaxValue"/> for PropertyGrid drop-down hints.</summary>
+        /// <param name="context">Context information.</param>
+        /// <returns>The standard-values collection.</returns>
+        public override StandardValuesCollection? GetStandardValues(ITypeDescriptorContext? context) => STANDARD_VALUES;
     }
 }
